@@ -85,6 +85,18 @@ El correo no sale a Internet: `MAIL_*` apunta a **Mailpit**, que guarda cada men
 
 `staging` es la rama de trabajo; `main`, producción (ADR-0008, `docs/convenciones.md` §5). Verificar la rama antes de empezar: `git branch --show-current`.
 
+### Cuenta de GitHub de este repositorio
+
+El remoto es `SistemasANPR/eventos` y se usa con la cuenta **`Antonio1491`**, que tiene permiso de escritura (comprobado el 2026-11-09). En esta máquina el Administrador de credenciales de Git guarda otra cuenta (`support-parksys`), sin acceso a este repo: empujar con ella da 403. La configuración es **local al repositorio** (no toca la configuración global de Git ni la otra cuenta):
+
+```bash
+git remote set-url origin https://Antonio1491@github.com/SistemasANPR/eventos.git
+git config --local --add credential.https://github.com.helper ""
+git config --local --add credential.https://github.com.helper '!gh auth git-credential'
+```
+
+El nombre de usuario va en la URL y el helper de `gh` elige la sesión de `Antonio1491` (debe aparecer en `gh auth status`; si no, `gh auth login`). No cambiar la cuenta activa de `gh` ni borrar credenciales de otras cuentas. Al clonar de nuevo, repetir estos tres comandos. Verificar con `git config --local --list | grep -E "remote.origin.url|credential"`.
+
 ## 9. Problemas frecuentes
 
 | Síntoma | Causa y arreglo |
