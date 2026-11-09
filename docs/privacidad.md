@@ -24,6 +24,7 @@ Mantener esta tabla al día: **todo dato personal nuevo se añade aquí en el mi
 | Calificaciones y comentarios de evaluadores | Comité | Decisión de aceptación | Interés legítimo | `[RELLENAR]` | No |
 | Datos de facturación | Pagos | Facturación electrónica | Obligación legal | Plazo fiscal aplicable | No |
 | Necesidades de accesibilidad o alimentarias | Registro | Atención en el evento | Consentimiento expreso | Hasta el fin del evento + `[RELLENAR]` | **Posible** (salud) |
+| Nombre, correo y país de personas de contacto (`contacts`) | Núcleo (autores y ponentes) | Comunicación con la persona dentro de la organización que la registró | Relación de trabajo con la organización y consentimiento | `[RELLENAR: plazo; el borrado es anonimización, no borrado físico]` | No |
 | [RELLENAR] | | | | | |
 
 ## 3. Reglas de ingeniería

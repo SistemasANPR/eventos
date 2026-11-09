@@ -70,7 +70,10 @@ final class TenantModels
         ));
     }
 
-    /** @return array<class-string<Model>, array{0: class-string<Model>}> */
+    /**
+     * @param  list<class-string<Model>>  $classes
+     * @return array<class-string<Model>, array{0: class-string<Model>}>
+     */
     public static function dataset(array $classes): array
     {
         return array_combine($classes, array_map(static fn (string $class): array => [$class], $classes));

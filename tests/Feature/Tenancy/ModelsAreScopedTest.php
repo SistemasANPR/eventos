@@ -13,7 +13,7 @@ use Tests\Support\TenantModels;
  * dos cosas hace fallar esta prueba: así nadie olvida el filtro de organización.
  */
 
-it('is either organization-scoped or explicitly global', function (string $model): void {
+it('CA-001-7: is either organization-scoped or explicitly global', function (string $model): void {
     $isGlobal = in_array($model, TenantModels::GLOBAL_MODELS, true);
     $isScoped = in_array(BelongsToOrganization::class, class_uses_recursive($model), true);
 

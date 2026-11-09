@@ -3,7 +3,7 @@
 > Épica E-01 de `docs/plan-de-desarrollo.md` (R0). Deja el proyecto Laravel corriendo en Docker, el CI en verde en `staging` y `main`, un recorrido mínimo de punta a punta (organización → evento → página pública), ese esqueleto desplegado en Railway `staging` y los documentos de la plantilla adaptados.
 
 - **Fecha:** 2026-11-09
-- **Estado:** Borrador
+- **Estado:** En curso
 - **Esfuerzo:** M
 - **Deuda relacionada:** SSR de Inertia diferido (RC-5, ADR-0004 DA-1) hasta antes de R3; se registrará en `docs/sprints/deuda-tecnica.md` al aprobar el ADR correspondiente.
 

@@ -15,3 +15,12 @@ parameters:
     # No se ignoran errores a ojo. Un @phpstan-ignore requiere justificación local
     # (AGENTS.md, "Forma de trabajar").
     treatPhpDocTypesAsCertain: false
+
+    # Limitación conocida de Pest + PHPStan: "@param-closure-this TestCall" hace que
+    # "$this" (en realidad Tests\TestCase) no tenga get(), fail(), expect()...
+    # Solo se excluye ese mensaje exacto y solo dentro de tests/; en app/ no aplica.
+    ignoreErrors:
+        -
+            message: '#^Call to an undefined method Pest\\PendingCalls\\TestCall::#'
+            paths:
+                - tests/*

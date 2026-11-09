@@ -3,7 +3,7 @@
 > Primer plan del proyecto y mínimo de R0 (épica E-02 de `docs/plan-de-desarrollo.md`). Es la base de todo lo demás. RLS de PostgreSQL y 2FA quedan fuera de este plan (RC-1 y RC-2) y pasan al plan 014 (R1).
 
 - **Fecha:** 2026-11-09
-- **Estado:** Borrador
+- **Estado:** En curso
 - **Esfuerzo:** L
 - **Deuda relacionada:** RLS de PostgreSQL (P1, RC-1) y 2FA (P1, RC-2), ambas con fecha límite 18-dic-2026 y dueño Antonio; se registrarán en `docs/sprints/deuda-tecnica.md` al aprobar el ADR-0011.
 
