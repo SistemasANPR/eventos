@@ -92,10 +92,10 @@ El remoto es `SistemasANPR/eventos` y se usa con la cuenta **`Antonio1491`**, qu
 ```bash
 git remote set-url origin https://Antonio1491@github.com/SistemasANPR/eventos.git
 git config --local --add credential.https://github.com.helper ""
-git config --local --add credential.https://github.com.helper '!gh auth git-credential'
+git config --local --add credential.https://github.com.helper '!f() { test "$1" = get && echo "username=Antonio1491" && echo "password=$(gh auth token --user Antonio1491)"; }; f'
 ```
 
-El nombre de usuario va en la URL y el helper de `gh` elige la sesión de `Antonio1491` (debe aparecer en `gh auth status`; si no, `gh auth login`). No cambiar la cuenta activa de `gh` ni borrar credenciales de otras cuentas. Al clonar de nuevo, repetir estos tres comandos. Verificar con `git config --local --list | grep -E "remote.origin.url|credential"`.
+El helper toma el token de la sesión de `Antonio1491` en `gh` (debe aparecer en `gh auth status`; si no, `gh auth login`). No sirve `!gh auth git-credential`: con varias cuentas no entrega credencial y el push se queda esperando una contraseña (comprobado el 2026-11-09). No cambiar la cuenta activa de `gh` ni borrar credenciales de otras cuentas. Al clonar de nuevo, repetir estos tres comandos. Verificar con `git config --local --list | grep -E "remote.origin.url|credential"`.
 
 ## 9. Problemas frecuentes
 
