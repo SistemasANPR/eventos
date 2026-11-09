@@ -9,32 +9,32 @@
 
 ## 1. Objetivo y alcance
 
-Que el organizador de un evento cree su convocatoria (periodo en que el evento recibe propuestas de un tipo) con sus fechas de apertura, cierre y resultados, sus idiomas y sus **ejes temáticos propios**, y que el público la vea con su estado real. Nada del evento viene fijo: ejes, fechas y textos los captura el organizador desde el panel.
+Que el organizador de un evento cree su convocatoria (periodo en que el evento recibe propuestas de un tipo) con sus fechas de apertura, cierre y resultados, sus idiomas y sus **ejes temáticos propios**, la publique, y que el público la vea con su estado real. Nada del evento viene fijo: ejes, fechas y textos los captura el organizador desde el panel. **La convocatoria abre y cierra por fecha**; el control manual (pausar, cerrar, reabrir) es «Debería» (H-004-4) y el cierre de emergencia en R0 se hace moviendo `closes_at` al instante actual.
 
-**Dentro:** modelos `CallForSubmissions` y `Track`; recursos de Filament para ambos; estado calculado por fecha y estado manual (abrir, pausar, cerrar); página pública de la convocatoria (Inertia, sin SSR); Policies y permisos nuevos; auditoría.
+**Dentro:** modelos `CallForSubmissions` y `Track`; recursos de Filament para ambos; publicación con validación del aviso de privacidad; estado calculado por fecha; página pública de la convocatoria (Inertia, sin SSR); contrato `TrackUsageChecker`; Policies y permisos; auditoría; estado manual como «Debería».
 
-**Fuera:** el formulario de la convocatoria (plan 005), el envío de propuestas (plan 006), el aviso de privacidad (plan 003), la evaluación y los resultados (R1), el recordatorio de cierre (plan 012), SSR (RC-5) y múltiples rondas de una misma convocatoria.
+**Fuera:** el formulario de la convocatoria (plan 005), el envío de propuestas y la implementación real de `TrackUsageChecker` (plan 006), el aviso de privacidad (plan 003), la evaluación y los resultados (R1), el recordatorio de cierre (plan 012), SSR (RC-5), periodo de gracia al cierre y múltiples rondas de una misma convocatoria.
 
 ### Historias
 
 | Historia | Enunciado | Tam. | Dependencias |
 |---|---|---|---|
-| H-004-1 | Como organizador, quiero crear una convocatoria con tipo de propuesta, fechas de apertura, cierre y resultados e idiomas, para recibir propuestas | M | H-003-1 |
+| H-004-1 | Como organizador, quiero crear una convocatoria con tipo de propuesta, fechas de apertura, cierre y resultados e idiomas, y publicarla, para recibir propuestas | M | H-003-1, H-003-2 |
 | H-004-2 | Como organizador, quiero crear, ordenar y traducir los ejes temáticos de mi evento, para clasificar propuestas | S | H-003-1 |
 | H-004-3 | Como visitante, quiero ver la convocatoria con fechas, ejes y estado en mi idioma, para decidir si envío | M | H-004-1, H-004-2 |
-| H-004-4 | Como organizador, quiero abrir, pausar y cerrar la convocatoria a mano, para controlar el envío | S | H-004-1 |
+| H-004-4 | Como organizador, quiero pausar, cerrar y reabrir la convocatoria a mano, para controlar el envío («Debería») | S | H-004-1 |
 
 ## 2. Punto de partida
 
-Al 2026-11-09 el repositorio contiene solo la plantilla: no existen `composer.json`, `artisan` ni migraciones. Este plan parte de lo que entregan los planes 001 (organización, contexto, roles), 002 (esqueleto con página pública Inertia sin SSR) y 003 (`Event` con zona horaria e idiomas). En el cpanel de origen los ejes eran un catálogo oculto en el menú y la convocatoria no tenía fechas configurables (`docs/producto/cpanel-actual.md`).
+Al 2026-11-09 el repositorio contiene solo la plantilla: no existen `composer.json`, `artisan` ni migraciones. Este plan parte de lo que entregan los planes 001 (organización, contexto, roles y el middleware `SetOrganizationFromRoute`), 002 (esqueleto con página pública Inertia sin SSR) y 003 (`Event` con zona horaria, idiomas y aviso de privacidad versionado). En el cpanel de origen los ejes eran un catálogo oculto en el menú y la convocatoria no tenía fechas configurables (`docs/producto/cpanel-actual.md`).
 
-`[PENDIENTE: fecha de resultados y fecha exacta del cierre de la convocatoria 2027 (3.ª semana de enero de 2027); los captura el organizador, no se siembran]`.
+El cierre de la convocatoria 2027 es el 21-ene-2027, pero lo captura el organizador en la plataforma, no se siembra. `[PENDIENTE: fecha de resultados de la convocatoria 2027]`.
 
 ## 3. Decisiones
 
 ### DA-1 · Estado manual y estado efectivo — se recomienda **`status` manual más un estado efectivo calculado**
 
-`status` (`draft`, `open`, `paused`, `closed`) lo cambia una persona. El estado que ve el público (`CallState`: `scheduled`, `open`, `paused`, `closed`) se **calcula en cada petición** a partir de `status` y de las fechas, sin depender del planificador. Así una convocatoria abre y cierra a su hora aunque falle un *worker*.
+`status` (`draft`, `published`, `paused`, `closed`) lo cambia una persona. En R0 solo se usan `draft` y `published`; `paused` y `closed` llegan con H-004-4. El estado que ve el público (`CallState`: `scheduled`, `open`, `paused`, `closed`) se **calcula en cada petición** a partir de `status` y de las fechas, sin depender del planificador: con `status = published`, es `scheduled` antes de `opens_at`, `open` desde `opens_at` (incluido) y `closed` desde `closes_at` (el cierre es exclusivo). Una convocatoria abre y cierra a su hora aunque falle un *worker*.
 
 ### DA-2 · Varias convocatorias por evento — se recomienda **permitirlas**
 
@@ -42,11 +42,19 @@ Un evento puede tener una convocatoria por tipo (sesión, panel, póster) o vari
 
 ### DA-3 · Quién gestiona — se recomienda **administrador de organización gestiona; miembro solo consulta**
 
-Permisos nuevos: `calls.view`, `calls.manage`, `tracks.manage`. El administrador los tiene todos; el miembro, solo `calls.view`. `[PENDIENTE: ¿el rol de coordinador de evento puede gestionar convocatorias en R0?]`
+Permisos: `calls.view`, `calls.manage`, `tracks.manage` (nombres de la matriz del plan 001). El administrador los tiene todos; el miembro, solo `calls.view`. `[PENDIENTE: ¿el rol de coordinador de evento puede gestionar convocatorias en R0?]`
 
 ### DA-4 · Ejes con propuestas — se recomienda **archivar, no eliminar**
 
-Un eje con propuestas no se borra: se archiva (`archived_at`), deja de ofrecerse en nuevos envíos y se conserva en las propuestas existentes.
+Un eje con propuestas no se borra: se archiva (`archived_at`), deja de ofrecerse en nuevos envíos y se conserva en las propuestas existentes. Si hay propuestas lo decide el contrato `TrackUsageChecker`, que aquí tiene una implementación nula y un doble en las pruebas; el plan 006 enlaza la real y la clave foránea restrictiva.
+
+### DA-5 · Sin periodo de gracia al cierre — se recomienda **cierre estricto en R0**
+
+El cierre es exacto: con el instante del servidor en `closes_at` o después, no se aceptan envíos (plan 006). No hay margen de gracia. Un organizador que quiera dar más tiempo mueve `closes_at` antes del cierre.
+
+### DA-6 · Publicar exige aviso de privacidad — se recomienda **bloquear la publicación sin aviso**
+
+Una convocatoria solo pasa a `published` si el evento tiene el aviso de privacidad **publicado en cada uno de sus idiomas** (plan 003). Evita abrir sin un texto que consentir (plan 006, H-006-6).
 
 ## 4. Contrato
 
@@ -54,13 +62,13 @@ Un eje con propuestas no se borra: se archiva (`archived_at`), deja de ofrecerse
 
 | Ruta | Método | Quién |
 |---|---|---|
-| `/events/{event}/call-for-submissions/{call}` (`events.calls.show`) | GET | Público; `scopeBindings` acotado a la organización |
+| `/{organization:slug}/events/{event:slug}/call/{call:slug}` (`calls.show`) | GET | Público; `scopeBindings` acotado a la organización; `SetOrganizationFromRoute` (plan 001) establece el contexto antes del binding |
 | Recursos de Filament `CallForSubmissionsResource` y `TrackResource` | — | Equipo con permiso |
-| Acciones de Filament `OpenCall`, `PauseCall`, `CloseCall` | POST/PATCH con CSRF | `calls.manage` |
+| Acciones de Filament `PublishCall`, y (H-004-4) `PauseCall`, `CloseCall`, `ReopenCall` | POST/PATCH con CSRF | `calls.manage` |
 
-**Form Requests:** `StoreCallForSubmissionsRequest`, `UpdateCallForSubmissionsRequest`, `StoreTrackRequest`, `UpdateTrackRequest`, `ReorderTracksRequest`, `ChangeCallStatusRequest`.
+**Form Requests:** `StoreCallForSubmissionsRequest`, `UpdateCallForSubmissionsRequest`, `PublishCallRequest`, `StoreTrackRequest`, `UpdateTrackRequest`, `ReorderTracksRequest`, `ChangeCallStatusRequest`.
 
-**Actions:** `CreateCallForSubmissions`, `UpdateCallForSubmissions`, `ChangeCallStatus`, `CreateTrack`, `UpdateTrack`, `ReorderTracks`, `ArchiveTrack`. Clase de apoyo `ResolveCallState` (puro, probado con `Carbon::setTestNow`).
+**Actions:** `CreateCallForSubmissions`, `UpdateCallForSubmissions`, `PublishCall`, `ChangeCallStatus`, `CreateTrack`, `UpdateTrack`, `ReorderTracks`, `ArchiveTrack`. Clase de apoyo `ResolveCallState` (puro, probado con `Carbon::setTestNow`). **Contratos:** `TrackUsageChecker` (nulo aquí, real en el plan 006) y el contrato del plan 003 que informa si el evento tiene aviso publicado por idioma (nombre definitivo en el plan 003).
 
 **Props de Inertia** (`Calls/Show`): título, descripción, tipo, idiomas, `state`, `opensAt`, `closesAt`, `resultsAt` (ISO 8601 en UTC) y `tracks[]` activos. Los tipos TypeScript se escriben a mano en `resources/js/types/`.
 
@@ -69,84 +77,92 @@ Un eje con propuestas no se borra: se archiva (`archived_at`), deja de ofrecerse
 1. **Necesidad:** el evento recibe propuestas dentro de un periodo y las clasifica por eje. Módulo dueño: convocatoria. Ciclo de vida: de borrador a cerrada; se conserva como evidencia.
 2. **Inspección:** no hay esquema previo (proyecto sin migraciones). Se revisó la tabla `temas` y el catálogo de ejes del cpanel como referencia funcional, sin reutilizarlos.
 3. **Modelo:**
-   - `call_for_submissions`: `id uuid`, `organization_id uuid NOT NULL`, `event_id uuid NOT NULL`, `slug`, `submission_type` (`session`, `panel`, `poster`, `workshop`, con `CHECK`), `title` y `description` (`jsonb` traducible), `locales` (`jsonb` con códigos de idioma, validado contra los del evento), `opens_at`, `closes_at`, `results_at` (`timestamptz`, esta última nula hasta definirla), `status` (con `CHECK`), `timestamps` y `SoftDeletes`. Ámbito: evento.
+   - `call_for_submissions`: `id uuid`, `organization_id uuid NOT NULL`, `event_id uuid NOT NULL`, `slug`, `submission_type` (`session`, `panel`, `poster`, `workshop`, con `CHECK`), `title` y `description` (`jsonb` traducible), `locales` (`jsonb` con códigos de idioma, validado contra los del evento), `opens_at`, `closes_at`, `results_at` (`timestamptz`, esta última nula hasta definirla), `status` (`draft`, `published`, `paused`, `closed`, con `CHECK`), `timestamps` y `SoftDeletes`. Ámbito: evento.
    - `tracks`: `id uuid`, `organization_id`, `event_id`, `name` y `description` (`jsonb` traducible), `position int`, `archived_at`, `timestamps`. Ámbito: evento.
-4. **Integridad:** `organization_id NOT NULL` con clave foránea; clave foránea compuesta `(event_id, organization_id)` hacia `events` para impedir cruces entre organizaciones; `unique(organization_id, event_id, slug)`; `CHECK (closes_at > opens_at)`; índices `(organization_id, event_id, status)` y `(organization_id, event_id, position)`; `status` y `submission_type` como `enum` de PHP con `CHECK`.
+4. **Integridad:** `organization_id NOT NULL` con clave foránea; `unique(id, organization_id)` en ambas tablas (lo exigen las claves foráneas compuestas de los planes 005 y 006); clave foránea compuesta `(event_id, organization_id)` hacia `events` (que declara `unique(id, organization_id)` en el plan 003) para impedir cruces entre organizaciones; `unique(organization_id, event_id, slug)`; `CHECK (closes_at > opens_at)`; índices `(organization_id, event_id, status)` y `(organization_id, event_id, position)`; `status` y `submission_type` como `enum` de PHP con `CHECK`.
 5. **Cambio:** migraciones nuevas, sin datos previos. `down()` elimina las tablas. La migración la aplica el humano (acción 1 de `AGENTS.md`).
 6. **Alternativa descartada:** guardar los ejes como lista dentro de `events` o de la convocatoria (`jsonb`). Se descartó porque las propuestas los referencian por clave foránea, se filtran y se reportan entre eventos, y un arreglo impide integridad y archivado.
-7. **Preguntas de negocio:** `[PENDIENTE: fechas de cierre y de resultados de la convocatoria 2027]`; DA-3.
+7. **Preguntas de negocio:** `[PENDIENTE: fecha de resultados de la convocatoria 2027]`; DA-3.
 
 ## 5. Permisos, aislamiento y datos personales
 
 | Pregunta | Respuesta |
 |---|---|
-| ¿Qué roles pueden hacer qué? | Administrador de organización: crear, editar, abrir, pausar, cerrar y archivar convocatorias y ejes. Miembro: solo ver (`calls.view`). Visitante: ver la convocatoria no borrador. Soporte de plataforma: sin acceso salvo `withoutOrganizationScope()` auditado |
+| ¿Qué roles pueden hacer qué? | Administrador de organización: crear, editar, publicar y archivar convocatorias y ejes (y pausar, cerrar y reabrir con H-004-4). Miembro: solo ver (`calls.view`). Visitante: ver la convocatoria publicada. Soporte de plataforma: sin acceso salvo `withoutOrganizationScope()` auditado |
 | ¿Qué Policy cubre cada acción y dónde se prueba? | `CallForSubmissionsPolicy` y `TrackPolicy`; `tests/Feature/Calls/` con una prueba por rol y acción (permitido y denegado) |
-| ¿Hay modelos nuevos con datos de una organización? | Sí: `CallForSubmissions` y `Track`, ambos con `BelongsToOrganization`; cubiertos por `ModelsAreScopedTest` y `TenantIsolationTest` |
+| ¿Hay modelos nuevos con datos de una organización? | Sí: `CallForSubmissions` y `Track`, ambos con `BelongsToOrganization`; cubiertos por `ModelsAreScopedTest` y `TenantIsolationTest`. La ruta pública no usa `withoutOrganizationScope()` |
 | ¿El acceso cruza eventos o depende de `event_assignments`? | No en R0; las Policies usan el rol de organización. Cada consulta se acota con `forEvent($event)`. `event_assignments` llega en el plan 011 |
 | ¿Datos personales nuevos? | No. Son textos que define la organización. Nada se añade a `docs/privacidad.md` |
 | ¿Se suben archivos? | No |
 | ¿Dinero, pagos o webhooks? | No |
 | ¿Correos o notificaciones? | Ninguno en este plan. El recordatorio de cierre (`call.closing_reminder`) lo registra el plan 012 |
-| ¿Qué se registra en la auditoría? | Alta, edición y cambios de estado de la convocatoria (quién, cuándo, valor anterior y nuevo); alta, orden y archivado de ejes (`spatie/laravel-activitylog`) |
+| ¿Qué se registra en la auditoría? | Alta, edición, publicación y cambios de estado de la convocatoria (quién, cuándo, valor anterior y nuevo); alta, orden y archivado de ejes (`spatie/laravel-activitylog`) |
 
 ## 6. Estrategia por fases
 
 | Fase | Qué se hace | Esfuerzo |
 |---|---|---|
-| F0 | Permisos `calls.view`, `calls.manage`, `tracks.manage` y su asignación a roles, con pruebas de rol; enum `SubmissionType`, `CallStatus`, `CallState` y `ResolveCallState` con pruebas de fronteras de fecha | S |
+| F0 | Permisos `calls.view`, `calls.manage`, `tracks.manage` y su asignación a roles, con pruebas de rol; enums `SubmissionType`, `CallStatus`, `CallState` y `ResolveCallState` con pruebas de fronteras de fecha; contrato `TrackUsageChecker` | S |
 | F1 | `Track`: migración, modelo, Policy, recurso de Filament con orden, traducción y archivado (H-004-2) | S |
-| F2 | `CallForSubmissions`: migración, modelo, Policy, recurso de Filament y validación de fechas e idiomas (H-004-1) | M |
-| F3 | Estado manual: abrir, pausar y cerrar con auditoría (H-004-4) | S |
-| F4 | Página pública `Calls/Show` con estados e i18n (es, en), accesible a ~375 px y ~1280 px (H-004-3) | M |
+| F2 | `CallForSubmissions`: migración, modelo, Policy, recurso de Filament, validación de fechas e idiomas y publicación con aviso (H-004-1) | M |
+| F3 | Página pública `Calls/Show` con estados e i18n (es, en), accesible a ~375 px y ~1280 px (H-004-3) | M |
+| F4 | Estado manual: pausar, cerrar y reabrir con auditoría (H-004-4, «Debería») | S |
 
 ## 7. Criterios de aceptación
 
 Cada uno tiene al menos una prueba cuyo nombre lo cita (`CA-004-n: ...`) o declara su comprobación manual.
 
-**H-004-1 · Crear la convocatoria**
+**H-004-1 · Crear y publicar la convocatoria**
 
 - **CA-004-1:** *Dado* un administrador de la organización A y un evento de A con zona horaria `America/Mexico_City`, *cuando* crea una convocatoria de tipo `session` con apertura, cierre e idiomas válidos, *entonces* queda en estado `draft` con las fechas guardadas en UTC y se muestran en la zona del evento.
 - **CA-004-2:** *Dado* un formulario de convocatoria, *cuando* el cierre es igual o anterior a la apertura, o los resultados son anteriores al cierre, *entonces* se rechaza con error de validación por campo; los resultados pueden quedar vacíos.
 - **CA-004-3:** *Dado* un evento con idiomas `es` y `en`, *cuando* se indica un idioma que el evento no tiene o ninguno, *entonces* se rechaza.
 - **CA-004-4:** *Dado* el tipo de propuesta, *cuando* el valor no pertenece a `session`, `panel`, `poster` o `workshop`, *entonces* se rechaza; y *cuando* se repite un `slug` en el mismo evento, *entonces* se rechaza, mientras que el mismo `slug` en otro evento o en otra organización se permite.
-- **CA-004-5:** *Dado* un miembro sin `calls.manage`, *cuando* intenta crear o editar una convocatoria, *entonces* se deniega (403); *cuando* solo consulta, *entonces* se permite.
+- **CA-004-5:** *Dado* un miembro sin `calls.manage`, *cuando* intenta crear, editar o publicar una convocatoria, *entonces* se deniega (403); *cuando* solo consulta con `calls.view`, *entonces* se permite.
 - **CA-004-6:** *Dado* el administrador de A, *cuando* intenta crear una convocatoria con el `event_id` de un evento de B, *entonces* se rechaza, y *cuando* abre por identificador una convocatoria de B, *entonces* la respuesta es 404.
-- **CA-004-7:** *Dado* una convocatoria creada o editada, *cuando* se guarda, *entonces* queda un registro de auditoría con quién, cuándo y los valores anterior y nuevo.
+- **CA-004-7:** *Dado* una convocatoria creada, editada o publicada, *cuando* se guarda, *entonces* queda un registro de auditoría con quién, cuándo y los valores anterior y nuevo.
+- **CA-004-8:** *Dado* la base de datos, *cuando* se inserta directamente una convocatoria con el `organization_id` de A y el `event_id` de un evento de B, *entonces* la clave foránea compuesta lo rechaza (prueba de inserción cruzada).
+- **CA-004-9:** *Dado* una convocatoria en `draft` con fechas válidas y el aviso de privacidad del evento publicado en todos sus idiomas, *cuando* un administrador la publica, *entonces* pasa a `published` y queda auditado.
+- **CA-004-10:** *Dado* una convocatoria cuyo evento no tiene aviso de privacidad publicado en alguno de los idiomas de la convocatoria, *cuando* se intenta publicar, *entonces* se rechaza con `PRIVACY_NOTICE_MISSING` y sigue en `draft`.
+- **CA-004-11:** *Dado* una convocatoria publicada y abierta, *cuando* el administrador cambia `closes_at` al instante actual (cierre de emergencia), *entonces* el estado público es `closed` en la petición siguiente y los envíos se rechazan; *cuando* el instante indicado es anterior o igual a `opens_at`, *entonces* se rechaza por la regla de fechas.
 
 **H-004-2 · Ejes temáticos**
 
-- **CA-004-8:** *Dado* un evento, *cuando* el organizador crea ejes con nombre y descripción en es y en, y los reordena, *entonces* se guardan con su posición y se listan en ese orden.
-- **CA-004-9:** *Dado* un eje, *cuando* falta el nombre en el idioma base del evento, *entonces* se rechaza; un idioma adicional sin traducir cae al idioma base al mostrarse.
-- **CA-004-10:** *Dado* un eje que ya tiene propuestas (comprobado con el contrato de plan 006), *cuando* se intenta eliminar, *entonces* se rechaza y solo se permite archivarlo; un eje archivado no aparece en la convocatoria pública y se conserva en las propuestas existentes.
-- **CA-004-11:** *Dado* un administrador de A, *cuando* lista o edita ejes por identificador de un evento o eje de B, *entonces* la respuesta es 404; un miembro sin `tracks.manage` recibe 403 al modificar.
+- **CA-004-12:** *Dado* un evento, *cuando* el organizador crea ejes con nombre y descripción en es y en, y los reordena, *entonces* se guardan con su posición y se listan en ese orden.
+- **CA-004-13:** *Dado* un eje, *cuando* falta el nombre en el idioma base del evento, *entonces* se rechaza; un idioma adicional sin traducir cae al idioma base al mostrarse.
+- **CA-004-14:** *Dado* un eje que `TrackUsageChecker` (con doble en la prueba) declara en uso, *cuando* se intenta eliminar, *entonces* se rechaza con `TRACK_IN_USE` y solo se permite archivarlo; un eje archivado no aparece en la convocatoria pública y se conserva en las propuestas existentes.
+- **CA-004-15:** *Dado* un administrador de A, *cuando* lista o edita ejes por identificador de un evento o eje de B, *entonces* la respuesta es 404; un miembro sin `tracks.manage` recibe 403 al modificar.
+- **CA-004-16:** *Dado* la base de datos, *cuando* se inserta directamente un eje con el `organization_id` de A y el `event_id` de un evento de B, *entonces* la clave foránea compuesta lo rechaza (prueba de inserción cruzada).
 
 **H-004-3 · Convocatoria pública**
 
-- **CA-004-12:** *Dado* una convocatoria con `status = open`, *cuando* el momento actual es anterior a la apertura, entre apertura y cierre, o posterior al cierre, *entonces* el estado público es `scheduled`, `open` o `closed` respectivamente, con la apertura incluida y el cierre excluido.
-- **CA-004-13:** *Dado* una convocatoria en `open` con fechas vigentes, *cuando* corre el reloj sin ejecutarse ningún comando programado, *entonces* el estado cambia a `closed` en la petición posterior al cierre (comprobado con `Carbon::setTestNow`).
-- **CA-004-14:** *Dado* un visitante, *cuando* pide la convocatoria en `es` o `en`, *entonces* ve los textos en ese idioma, y si el idioma no está definido ve el idioma base; las fechas se muestran en la zona del evento con `Intl`.
-- **CA-004-15:** *Dado* una convocatoria en `draft`, de otra organización o inexistente, *cuando* un visitante pide su URL, *entonces* la respuesta es 404 sin distinguir los casos.
-- **CA-004-16:** *Dado* una convocatoria publicada, *cuando* se renderiza, *entonces* muestra solo los ejes no archivados en su orden, y las props no incluyen datos del equipo, identificadores internos de organización ni la fecha de resultados cuando es nula.
-- **CA-004-17:** La página pública se usa con teclado, tiene `lang`, título y encabezados correctos, contraste AA y sin errores en consola.
-  Manual: abrir `/events/{event}/call-for-submissions/{call}` a ~375 px y ~1280 px, recorrer con Tab, cambiar a `en`, y revisar la consola del navegador.
+- **CA-004-17:** *Dado* una convocatoria `published` con `opens_at` = T1 y `closes_at` = T2, *cuando* el instante es T1 − 1 s, T1, T2 − 1 s o T2, *entonces* el estado público es `scheduled`, `open`, `open` y `closed` respectivamente (apertura incluida, cierre excluido).
+- **CA-004-18:** *Dado* una convocatoria `published` con fechas vigentes, *cuando* corre el reloj sin ejecutarse ningún comando programado, *entonces* el estado cambia a `closed` en la petición posterior al cierre (comprobado con `Carbon::setTestNow`).
+- **CA-004-19:** *Dado* un visitante, *cuando* pide la convocatoria en `es` o `en`, *entonces* ve los textos en ese idioma, y si el idioma no está definido ve el idioma base; las fechas se muestran en la zona del evento con `Intl`.
+- **CA-004-20:** *Dado* una convocatoria en `draft`, de otra organización o inexistente, *cuando* un visitante pide su URL, *entonces* la respuesta es 404 sin distinguir los casos; el `slug` de una convocatoria de B bajo el `slug` de la organización A también es 404.
+- **CA-004-21:** *Dado* una convocatoria publicada, *cuando* se renderiza, *entonces* muestra solo los ejes no archivados en su orden, y las props no incluyen datos del equipo, identificadores internos de organización ni la fecha de resultados cuando es nula.
+- **CA-004-22:** La página pública se usa con teclado, tiene `lang`, título y encabezados correctos, contraste AA y sin errores en consola.
+  Manual: abrir `/{organization}/events/{event}/call/{call}` a ~375 px y ~1280 px, recorrer con Tab, cambiar a `en`, y revisar la consola del navegador.
+- **CA-004-23:** *Dado* una petición pública a la URL de la organización A, *cuando* se resuelve la ruta, *entonces* `CurrentOrganization` queda establecido por `SetOrganizationFromRoute` antes del binding del modelo, y una prueba de arquitectura falla si un controlador público llama a `withoutOrganizationScope()`.
 
-**H-004-4 · Estado manual**
+**H-004-4 · Estado manual («Debería»)**
 
-- **CA-004-18:** *Dado* un administrador, *cuando* abre, pausa o cierra una convocatoria, *entonces* el cambio se hace solo por POST o PATCH con CSRF y Policy; una petición GET a esa acción responde 405 y no cambia nada.
-- **CA-004-19:** *Dado* una convocatoria `open` en fechas vigentes, *cuando* se pausa, *entonces* el estado público es `paused` aunque las fechas estén vigentes, y al reabrirla vuelve a `open`.
-- **CA-004-20:** *Dado* una convocatoria cuyo cierre ya pasó, *cuando* se intenta abrirla sin cambiar `closes_at`, *entonces* se rechaza con un mensaje que pide una nueva fecha de cierre.
-- **CA-004-21:** *Dado* un cambio de estado, *cuando* se aplica, *entonces* queda auditado con quién, cuándo, estado anterior y nuevo; un miembro sin `calls.manage` recibe 403.
+- **CA-004-24:** *Dado* un administrador, *cuando* pausa, cierra o reabre una convocatoria, *entonces* el cambio se hace solo por POST o PATCH con CSRF y Policy; una petición GET a esa acción responde 405 y no cambia nada.
+- **CA-004-25:** *Dado* una convocatoria `published` en fechas vigentes, *cuando* se pausa, *entonces* el estado público es `paused` aunque las fechas estén vigentes, y al reabrirla vuelve a `open`.
+- **CA-004-26:** *Dado* una convocatoria cuyo cierre ya pasó, *cuando* se intenta reabrirla sin cambiar `closes_at`, *entonces* se rechaza con un mensaje que pide una nueva fecha de cierre.
+- **CA-004-27:** *Dado* un cambio de estado, *cuando* se aplica, *entonces* queda auditado con quién, cuándo, estado anterior y nuevo; un miembro sin `calls.manage` recibe 403.
 
 ## 8. Riesgos
 
 | Riesgo | Mitigación |
 |---|---|
-| Convocatoria que abre o cierra a destiempo por zona horaria | Fechas en UTC, zona del evento en los bordes y pruebas de frontera con reloj controlado |
+| Convocatoria que abre o cierra a destiempo por zona horaria | Fechas en UTC, zona del evento en los bordes y pruebas de frontera con reloj controlado (CA-004-17) |
 | Dependencia del planificador para cerrar | El estado efectivo se calcula en la petición (DA-1) |
-| Un eje borrado rompe propuestas ya enviadas | Archivado en vez de borrado (DA-4) y clave foránea restrictiva |
+| Un eje borrado rompe propuestas ya enviadas | Archivado en vez de borrado (DA-4), `TrackUsageChecker` y clave foránea restrictiva (plan 006) |
 | Los miembros no pueden preparar la convocatoria | DA-3 abierta con recomendación; el cambio de rol requiere especificación |
-| Convocatoria visible sin formulario listo | La publicación sin formulario se bloquea al enviar (plan 006, `CALL_NOT_READY`) |
+| Convocatoria publicada sin formulario listo | El envío se bloquea con `CALL_NOT_READY` (plan 006) |
+| Convocatoria publicada sin aviso de privacidad | La publicación se rechaza (DA-6, CA-004-10) |
+| Cierre estricto sin gracia pierde envíos de última hora | Cierre exacto documentado (DA-5); el formulario conserva lo escrito (plan 006, H-006-7) |
 
 ## 9. Registro de avance
 

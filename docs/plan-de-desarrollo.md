@@ -37,20 +37,20 @@ Tardan y no dependen del código. Responsable por defecto: **Antonio**, salvo qu
 
 R0 es el recorte vertical mínimo que abre la convocatoria **de forma segura y autónoma**: el organizador define todo lo del evento desde el panel. Se clasifica así (MoSCoW):
 
-**Debe** (sin esto no se abre):
+**Debe** (36 historias; sin esto no se abre):
 
-- Aislamiento por organización con scope que falla cerrado y guardianas en verde; roles y Policies; acceso de organizadores endurecido (E-02).
-- Evento con zona horaria, idiomas y **aviso de privacidad propio por idioma y versión** (E-03).
-- Convocatoria con fechas de apertura, cierre y resultados, y **ejes temáticos creados por el organizador** (E-04).
-- **Constructor de formularios**: el organizador crea formularios con campos de texto, número, selección, casilla, fecha, país y archivo; los publica en una convocatoria (E-05).
-- Envío público de propuestas con participantes, consentimiento registrado, límite de peticiones y anti-robots (E-06).
-- Archivos privados con validación por contenido (E-07).
-- Correos transaccionales mínimos con **catálogo y plantillas predeterminadas es/en** y renderizado seguro (E-08).
+- Aislamiento por organización con scope que falla cerrado y guardianas en verde; middleware que fija la organización desde la URL; roles, matriz de permisos y Policies; primer administrador creado por comando; acceso de organizadores endurecido, sin registro abierto, con aviso de inicio de sesión desde un dispositivo nuevo (E-02).
+- Evento con zona horaria, idiomas y **aviso de privacidad propio por idioma y versión**; equipo con alta por correo (E-03).
+- Convocatoria con fechas de apertura, cierre y resultados (abre y cierra por fecha) y **ejes temáticos creados por el organizador** (E-04).
+- **Constructor de formularios**: el organizador crea formularios con campos de texto, número, selección, casilla, fecha, país y archivo, los ordena, los previsualiza y los publica en una convocatoria; cada propuesta guarda la instantánea del formulario con el que se envió (E-05).
+- Envío público con participantes, consentimiento y autorización de terceros registrados, límite de peticiones y anti-robots en el envío y en las cargas, acuse y enlace de acceso de un solo uso (E-06).
+- Archivos privados con validación por contenido, límites por campo y por propuesta y descargas auditadas (E-07).
+- Correos transaccionales con **catálogo y plantillas predeterminadas es/en**, renderizado seguro, cola, reintentos e idempotencia (E-08).
 - Panel para ver, filtrar, abrir y exportar propuestas (E-09).
 - Producción en Railway con dominio, HTTPS, respaldos probados, monitoreo y correo con SPF/DKIM/DMARC (E-10).
-- Esqueleto, Docker y CI (E-01).
+- Esqueleto, Docker, CI y documentos de la plantilla adaptados (E-01).
 
-**Debería** (entra si cabe; si no, se pospone sin bloquear el *go*): edición de la plantilla de correo por organización con vista previa (H-008-4) y desactivar notificaciones no críticas (H-008-5); edición y retiro de la propuesta por el autor (H-006-4, H-006-5); plantillas de formulario de sesión, panel y póster (H-005-5); resumen de propuestas (H-009-4).
+**Debería** (9 historias; entran si caben, y si no se posponen sin bloquear el *go*): catálogo de correos en el panel (H-008-3), edición de la plantilla por organización con vista previa (H-008-4), desactivar notificaciones no críticas (H-008-5), edición y retiro de la propuesta por el autor (H-006-4, H-006-5), plantillas de formulario de sesión, panel y póster (H-005-5), control manual de la convocatoria: pausar, cerrar y reabrir (H-004-4), limpieza de archivos huérfanos (H-007-3) y resumen de propuestas (H-009-4).
 
 ### 3.2 Fuera de R0 (con fecha propuesta)
 
@@ -71,7 +71,7 @@ R0 es el recorte vertical mínimo que abre la convocatoria **de forma segura y a
 - Una organización real (ANPR) y un evento real en R0; el multi-cliente existe en el diseño (tenant) pero no hay onboarding self-service.
 - **Todo desde cero**: no se importa nada del cpanel. Ningún evento ni dato fijo se siembra; la organización se crea con un comando de plataforma y todo lo demás lo captura el equipo en la interfaz.
 - Idiomas de R0: es y en; pt antes del cierre (R1).
-- Dos personas, 6 horas por día cada una (declarado). `[PENDIENTE: trabajo en fin de semana]`; el calendario asume lunes a viernes y reserva el sábado 14 solo para el punto de control.
+- Dos personas, 6 horas por día cada una (declarado). `[PENDIENTE: trabajo en fin de semana]`; el calendario asume lunes a viernes y deja el fin de semana del 14 y 15 como holgura.
 - Un solo proveedor de correo a la vez: Resend en R0, SES como proveedor de crecimiento (§14).
 - Sin SSR en R0 (RC-5). La landing informativa del congreso puede seguir en el sitio actual y enlazar a la convocatoria.
 
@@ -82,7 +82,7 @@ Cada recorte requiere tu aprobación y se registra como ADR corto o como punto d
 | ID | Recorte | Tipo | Riesgo aceptado | Compensación en R0 | Fecha límite | Dueño |
 |---|---|---|---|---|---|---|
 | RC-1 | RLS de PostgreSQL diferida (ADR-0003 DA-2; CA-001-12 pasa a E-14) | Seguridad | Un fallo del scope no tendría segunda barrera | Un solo tenant real, guardianas en verde, revisión humana de tenancy, binding acotado | 18-dic-2026 (deuda P1; obligatoria antes de la segunda organización) | Antonio |
-| RC-2 | 2FA diferida | Seguridad | Una contraseña robada de un administrador da acceso a datos personales | Pocas cuentas (equipo), contraseñas fuertes con lista de expuestas, límite de intentos, sesión endurecida, aviso por correo al iniciar sesión nueva | Antes de dar acceso a evaluadores externos y, como máximo, 18-dic-2026 (deuda P1) | Antonio |
+| RC-2 | 2FA diferida | Seguridad | Una contraseña robada de un administrador da acceso a datos personales | Pocas cuentas (equipo), contraseñas fuertes con lista de expuestas, límite de intentos, sesión endurecida, registro y aviso por correo de inicio de sesión desde un dispositivo nuevo (CA-001-35 y CA-001-36; requiere la tabla `known_devices` y la notificación `auth.new_device_login`) | Antes de dar acceso a evaluadores externos y, como máximo, 18-dic-2026 (deuda P1) | Antonio |
 | RC-3 | Sin antivirus en R0 | Seguridad | Un archivo malicioso aceptado | Lista corta de tipos (PDF, PPTX, imágenes), validación por contenido, nombre generado, descarga solo por organizadores como adjunto desde el bucket privado | Decisión el 18-dic-2026 (deuda P2) | Antonio |
 | RC-4 | Marca blanca completa fuera (logotipo y colores solo en correos, R1) | Alcance | El sitio público usa la identidad base | — | R5 | Antonio |
 | RC-5 | SSR de Inertia diferido (cambia ADR-0004 DA-1) | Alcance | Menor SEO de la página de convocatoria | Landing en el sitio actual; la página de convocatoria lleva metadatos básicos | Antes de R3 | Gabriel |
@@ -90,6 +90,7 @@ Cada recorte requiere tu aprobación y se registra como ADR corto o como punto d
 | RC-7 | Sin panel de plataforma: las organizaciones se crean con un comando | Alcance | Solo soporte puede crear organizaciones | Comando probado y documentado | R5 | Antonio |
 | RC-8 | La propuesta nace «enviada» (sin borrador) | Alcance | No se guarda a medias | Consulta y edición del autor mientras esté abierta | R2 | Gabriel |
 | RC-9 | Participantes como bloque fijo (mínimo y máximo por convocatoria) más campos dinámicos; sin repetidores dinámicos | Alcance | Un formulario no puede repetir grupos arbitrarios | Cubre ponentes y coautores | R3 (E-21) | Gabriel |
+| RC-10 | Tres historias pasan a «Debería» (H-004-4, H-007-3, H-008-3) y H-003-4 se absorbe en H-002-3; los límites por propuesta se quedan en H-007-1 | Alcance | Sin pausa manual de la convocatoria (se cierra moviendo `closes_at`), sin limpieza automática de huérfanos y sin pantalla de catálogo de correos | El cierre por fecha, los límites de subida y las plantillas predeterminadas siguen activos | R1 | Antonio |
 
 ## 4. Convención de trabajo
 
@@ -112,8 +113,8 @@ Tamaños: S, M, L (relativos). Ninguna historia es mayor que M; una épica puede
 
 | Release | Objetivo | Épicas | Valor entregado | Criterio de entrada | Criterio de salida (go / no-go) | Riesgos principales |
 |---|---|---|---|---|---|---|
-| **R0** Lanzamiento de la convocatoria | Convocatoria abierta en producción el 18-nov | E-01..E-10 | Un organizador crea evento, ejes y formularios; el público envía propuestas; el equipo las ve y exporta | Planes 001..010 aprobados; acciones A1..A9 lanzadas | Punto de control del §6.3 (sábado 14-nov, 18:00) | Alcance frente a capacidad; entregabilidad del correo; constructor de formularios; subida de archivos |
-| **R1** Evaluación, resultados y endurecimiento | Evaluar y decidir antes del cierre de la convocatoria | E-11..E-14 | Comité evalúa con rúbrica por evento; decisiones y correos de resultado; 2FA y RLS | R0 en producción y estable 5 días | 18-dic-2026: evaluación completa de punta a punta con datos ficticios; 2FA y RLS en verde; restauración ensayada | Receso de fin de año; volumen de propuestas |
+| **R0** Lanzamiento de la convocatoria | Convocatoria abierta en producción el 18-nov | E-01..E-10 | Un organizador crea evento, ejes y formularios; el público envía propuestas; el equipo las ve y exporta | Planes 001..010 aprobados; acciones A1..A9 lanzadas | Puertas del §6.3: Puerta 1 el lunes 16-nov y Puerta 2 el martes 17-nov, a las 18:00 | Alcance frente a capacidad; entregabilidad del correo; constructor de formularios; subida de archivos |
+| **R1** Evaluación, resultados y endurecimiento | Evaluar y decidir antes del cierre de la convocatoria | E-11..E-14 | Comité evalúa con rúbrica por evento; decisiones y correos de resultado; 2FA y RLS | R0 en producción y estable 5 días | **11 y 12 (evaluación y decisiones) terminadas el 18-dic-2026, antes del cierre del 21-ene-2027**; 13 y 14 pueden terminar después, salvo H-014-1 (2FA), que debe estar antes de invitar a evaluadores externos. Si R0 se retrasa al 4-dic, la prioridad es 011 y 012 | Receso de fin de año; volumen de propuestas; dependencia H-011-2 → H-012-1 (la acción «en revisión» se construye primero) |
 | **R2** Conferencistas y portal | Ponente confirmado con requisitos cumplidos | E-15..E-18 | Portal por enlace, lista de requisitos, acuerdos con versión y PDF, carta de aceptación, perfil único, duplicar evento | R1 cerrado; propuestas aceptadas | Un ponente completa sus requisitos sin intervención del equipo | Firma digital y PDF; reutilización de `Contact` |
 | **R3** Programa, registro, boletos y pagos, acreditación | Un evento se opera de principio a fin | E-19..E-24 | Sitio público con SSR, agenda sin choques, registro, boletos, pagos, QR y check-in | R2 cerrado; ADR-0007 cerrado | Una compra real de prueba conciliada y un check-in por QR | Pagos (ADR-0007), SSR, editor de agenda |
 | **Punto de control de demanda del SaaS** | Decidir si se invierte en lo multi-cliente completo | — | Evidencia de interés de 2 o 3 organizaciones afines que pagarían | Salida de R3 | Al menos dos organizaciones con compromiso explícito `[PENDIENTE: criterio fino]`; si no, R5 se limita a CRM y reportes de la ANPR | Construir producto sin clientes |
@@ -127,62 +128,71 @@ Tamaños: S, M, L (relativos). Ninguna historia es mayor que M; una épica puede
 | Dato | Valor |
 |---|---|
 | Fecha de hoy | lunes 9-nov-2026 |
-| Fecha dura | miércoles 18-nov-2026 |
-| Días hábiles disponibles (9..13 y 16..18) | 8 por persona |
-| Capacidad declarada | 2 personas × 6 h × 8 días = **96 horas** (120 horas si se trabajan sábado 14 y domingo 15, `[PENDIENTE: A9]`) |
-| Historias de R0 en el plan | 44 (14 S y 30 M); 38 sin las «Debería» |
-| Criterios de aceptación de R0 | 216 «Debe» (236 con las «Debería»), cada uno con su prueba o comprobación manual |
-| Carga necesaria | 96 h para 38 historias = **2.5 horas por historia** terminada (código, pruebas y revisión humana obligatoria de autenticación, permisos, archivos y tenancy); equivale a **27 minutos por criterio** |
-| Con fin de semana | 120 h = 3.2 horas por historia y 33 minutos por criterio |
+| Fecha dura | miércoles 18-nov-2026 (día de lanzamiento, no de construcción) |
+| Días de construcción (lunes 9 a martes 17, sin fin de semana) | 7 por persona = **14 persona-días** |
+| Capacidad declarada | 6 h por persona por día = **84 horas** (96 horas si se trabajan sábado 14 y domingo 15, `[PENDIENTE: A9]`) |
+| Historias de R0 | 45: 36 «Debe» y 9 «Debería» (14 S y 31 M; ninguna mayor que M) |
+| Criterios de aceptación de R0 | 314: 281 de las «Debe» y 33 de las «Debería»; cada uno con su prueba o comprobación manual |
+| Ritmo exigido a las 36 «Debe» | **2.6 historias por persona-día = 2.3 horas por historia** (código, pruebas y revisión humana obligatoria de autenticación, permisos, archivos y tenancy), o **18 minutos por criterio** |
+| Con fin de semana | 96 h: 2.7 horas por historia y 20 minutos por criterio |
+| Cadenas de dependencia del mismo día | 14 en el calendario; una historia que se retrasa empuja a la siguiente |
 
-**Juicio:** con el constructor de formularios dinámico dentro de R0, **no es probable que el alcance «Debe» completo esté listo y revisado el 18-nov con dos personas de 6 horas diarias**. Lo que sí es realista: tener el esqueleto andante desplegado y las bases de seguridad (E-01, E-02, E-03) en los primeros 3 días. El resto depende de que cada historia M se cierre en medio día, algo que no puedo asegurar sin conocer la velocidad real del equipo con agentes. Por eso:
+**Juicio:** **el alcance «Debe» de R0 no es creíble para el 18-nov con dos personas de 6 horas diarias.** Para que quepa, cada historia (de 3 a 10 criterios con prueba y revisión) tendría que cerrarse en menos de media jornada, sin retrabajo y sin errores de ambiente, y el calendario no tiene holgura. Lo realista es llegar a la base: esqueleto, tenancy, acceso, eventos y correo. Por eso:
 
-1. El **plan B es una vía real, no un trámite**: se prepara en paralelo desde hoy (§6.4).
-2. Hay **tres puntos de decisión** (martes 10, jueves 12 y sábado 14) con criterios medibles; el primero es temprano a propósito.
-3. Si el sábado se declara *no-go*, la convocatoria abre el 18 en el sitio actual y R0 se lanza después; el objetivo es el **4-dic-2026** (confirmado el 9-nov) y las propuestas recibidas entre tanto se importan (§6.4).
-4. Los recortes de §3.4 y la lista «Debería» son la palanca antes de tocar seguridad. **La seguridad no se recorta.**
+1. **El plan B es la vía principal de riesgo, no un trámite.** Se prepara en paralelo desde hoy y se deja listo para publicar (§6.4).
+2. **Hay dos checkpoints de avance y dos puertas** (§6.3), con criterios medibles. La velocidad real de los primeros tres días decide.
+3. Si la puerta final es *no-go*, la convocatoria abre el 18 en el sitio actual y R0 se lanza después; el objetivo es el **4-dic-2026** (confirmado el 9-nov), con importación de las propuestas recibidas entre tanto.
+4. **Lo primero que se corta** (en este orden, con tu aprobación): las historias «Debería»; luego la exportación a Excel (CSV simple); luego el panel de resumen. **La seguridad no se recorta.**
+5. Trabajar el fin de semana del 14 y 15 sube la holgura de 84 a 96 horas y adelanta la primera puerta al sábado.
 
 ### 6.2 Calendario hacia atrás desde el 18
 
-Convención: la columna *Antonio* concentra tenancy, autenticación, correo, archivos, despliegue y revisión humana; *Gabriel* concentra convocatoria, constructor de formularios, formulario público y panel. Se ajusta con el equipo.
+*Antonio* concentra tenancy, autenticación, eventos, archivos, producción y revisión humana; *Gabriel* concentra correo, convocatoria, constructor de formularios, envío y panel. Cada fila es un objetivo, no una promesa: la carga es de 3 historias por persona-día, por encima del ritmo exigido de 2.6.
 
 | Fecha | Día | Antonio | Gabriel | Hito |
 |---|---|---|---|---|
-| 9-nov | D-9 | A1..A10 lanzadas; aprobar planes 001..003; crear el proyecto Laravel con Docker (H-002-1; lo ejecuta una persona) | Verificar Docker y puertos locales; propuestas de datos §6 de `docs/database-design.md` para los planes 001, 003, 004, 005, 006 | **H0:** proyecto creado y `docker compose up` funcionando; planes 001..003 aprobados |
-| 10-nov | D-8 | 001 F0–F1: `Organization`, contexto, scope que falla cerrado, guardianas en verde (H-001-1) | CI en `staging` y `main` (H-002-2, tras A8); esqueleto de la página pública con Inertia sin SSR y claves i18n (H-002-3) | **H1:** esqueleto andante local (organización → evento → convocatoria mínima → página pública) con CI en verde. **Checkpoint 1 (fin del día):** si H1 no se cumple, se activa la preparación firme del plan B |
-| 11-nov | D-7 | 001 F2–F3: roles por organización, Policies, acceso endurecido, comando de organización (H-001-2, H-001-3, H-001-4); esqueleto a Railway staging (H-002-4) | H-003-1 evento; H-004-1 convocatoria; H-004-2 ejes | **H2:** esqueleto en Railway `staging`; DNS de Resend verificado (A2) |
-| 12-nov | D-6 | H-003-2 aviso de privacidad por evento; H-003-3 equipo; H-007-1 archivos (spike S-3) | H-005-1, H-005-2 (campos, orden, vista previa); H-005-4 validación dinámica en servidor | **Checkpoint 2 (18:00):** criterios del §6.3 G1..G3 al 100 % y constructor guardando al menos 5 tipos de campo. Si falla, el plan B pasa a «listo para publicar» |
-| 13-nov | D-5 | H-008-1, H-008-2, H-008-6 correos núcleo; H-006-2 anti-robots y límite | H-005-3 publicar formulario en convocatoria; H-006-1 envío público; H-006-6 consentimiento | **H3:** flujo de envío de punta a punta en `staging` |
-| 14-nov | D-4 | H-006-3 acuse y enlace de acceso; H-007-2 descargas auditadas | H-009-1 y H-009-2 panel (lista y detalle); H-004-3 convocatoria pública | **Punto de control go / no-go: 18:00** (§6.3) |
-| 15-nov | D-3 | Sin trabajo planeado (holgura) | Sin trabajo planeado (holgura) | — |
-| 16-nov | D-2 | Si *go*: H-010-1, H-010-2, H-010-3 producción, dominio y respaldos; PR `staging` → `main` con aprobación | H-009-3 exportación; pruebas de extremo a extremo; correcciones del go/no-go | Congelamiento de funciones al final del día |
-| 17-nov | D-1 | H-010-4 ensayo en producción con datos ficticios que se limpian; runbook mínimo | Captura del contenido real del evento por los organizadores (ejes, formularios, aviso) en producción | Plan B cerrado o descartado; correo real verificado en Gmail y Outlook |
+| 9-nov | D-9 | Acciones A1..A10; aprobar planes; **H-002-1** (crear el proyecto Laravel con Docker; lo ejecuta una persona) | Verificar Docker y puertos; propuestas de datos §6 de `docs/database-design.md` para 001, 003, 004, 005, 006, 008; preparar el plan B | **H0:** `docker compose up` funcionando y planes aprobados |
+| 10-nov | D-8 | H-001-1 aislamiento; H-001-3 roles y Policies | H-002-2 CI; H-002-5 documentos y ADR; H-008-1 catálogo | **Checkpoint 1 (fin del día):** al menos 5 de las 6 historias terminadas (H-002-1, H-001-1, H-001-3, H-002-2, H-002-5, H-008-1) y CI verde. Si no, se prepara el plan B en firme |
+| 11-nov | D-7 | H-002-3 esqueleto y página pública del evento; H-003-1 evento; H-003-2 aviso de privacidad | H-008-2 plantillas; H-008-6 cola y proveedor; H-001-2 contexto y comando de organización | **H1:** esqueleto andante local; DNS de Resend verificado (A2) |
+| 12-nov | D-6 | H-001-4 acceso; H-003-3 equipo; H-004-1 convocatoria | H-004-2 ejes; H-002-4 esqueleto en Railway `staging` (y servicios de producción creados vacíos); H-005-1 campos | **H2 y Checkpoint 2 (fin del día):** esqueleto en Railway `staging` y al menos 16 de las 19 historias acumuladas |
+| 13-nov | D-5 | H-007-1 y H-007-2 archivos; H-006-1 envío (backend) | H-005-2 vista previa; H-005-4 validación; H-005-3 publicar | **H3:** envío de propuestas funcionando en `staging` |
+| 14 y 15-nov | D-4, D-3 | Sin trabajo planeado. Si se trabaja el fin de semana, la Puerta 1 pasa al sábado 14 y se avanza con la lista del lunes | Ídem | — |
+| 16-nov | D-2 | H-006-3 acuse y enlace; H-006-6 consentimiento; H-010-1 producción | H-004-3 página pública de la convocatoria; H-006-2 anti-robots; H-006-7 formulario público | **Puerta 1 (18:00)** |
+| 17-nov | D-1 | H-010-2 dominio y cabeceras; H-010-3 respaldos y monitoreo; H-010-4 ensayo y runbook | H-009-1, H-009-2 y H-009-3 panel y exportación; captura del contenido real por los organizadores | **Puerta 2 (18:00)**; plan B publicable o descartado |
 | 18-nov | D-0 | Abrir la convocatoria; monitoreo; guardia | Guardia; correcciones críticas | **R0 en producción** |
 
-### 6.3 Punto de control go / no-go (sábado 14-nov, 18:00)
+### 6.3 Puertas de decisión
 
-Se propone el sábado, cuatro días antes. Si el equipo no trabaja el fin de semana, pasa al viernes 13 a las 18:00. Decide **Antonio**. Cada criterio es medible:
+Decide **Antonio**. Se proponen dos puertas porque, con 6 horas por día y sin fin de semana, el recorrido completo (G2) no existe antes del martes.
+
+**Puerta 1: lunes 16-nov, 18:00 (dos días antes).** Decide si se sigue invirtiendo en el lanzamiento en la plataforma o si el plan B pasa a ser la vía.
+
+- Al menos **29 de las 36** historias «Debe» terminadas (el calendario prevé 31) `[PENDIENTE: umbral a validar con la velocidad medida el 10-nov]`.
+- G1, G3 (lista al 100 % de lo ya construido), G4, G7 y G8 cumplidos.
+- Si falla, **no-go**: se activa el plan B ese mismo día.
+
+**Puerta 2: martes 17-nov, 18:00 (la víspera).** Confirma el lanzamiento. Si falla, el plan B se publica el 18 por la mañana (ya preparado).
 
 | # | Criterio | Cómo se mide |
 |---|---|---|
 | G1 | CI verde en `staging`, incluidas `ModelsAreScopedTest` y `TenantIsolationTest` | Salida real de `composer check` y del CI |
-| G2 | Recorrido completo en `staging`, ejecutado por alguien que no escribió el código: crear evento, convocatoria, ejes y formulario con campos de texto, selección, casilla, archivo y consentimiento → enviar propuesta con archivo → recibir el acuse en una bandeja real → verla en el panel → exportarla | Lista de pasos con resultado de cada uno; 0 fallos bloqueantes |
-| G3 | Seguridad mínima de R0 verificada: lista de `docs/seguridad.md` §10 al 100 % y revisión humana hecha de autenticación, Policies, archivos y tenancy | Lista firmada por Antonio |
-| G4 | Entregabilidad: SPF, DKIM y DMARC en *pass* en cabeceras reales | Mensajes a Gmail y Outlook; los 3 envíos de prueba llegan a la bandeja principal |
-| G5 | Producción: `/up` responde 200; existe un respaldo y se restauró uno en `staging`; una alerta de caída llegó al equipo en una prueba | Evidencia de cada uno |
+| G2 | Recorrido completo en `staging` y en producción, ejecutado por alguien que no escribió el código: crear evento, convocatoria, ejes y formulario con campos de texto, selección, casilla, archivo y consentimiento → enviar propuesta con archivo → recibir el acuse en una bandeja real → verla en el panel → exportarla | Lista de pasos con resultado de cada uno; 0 fallos bloqueantes |
+| G3 | Seguridad mínima de R0 verificada: lista de `docs/seguridad.md` §10 al 100 % y revisión humana de autenticación, Policies, archivos y tenancy | Lista firmada por Antonio |
+| G4 | Entregabilidad: SPF, DKIM y DMARC en *pass* en cabeceras reales | Tres mensajes a Gmail y tres a Outlook llegan a la bandeja principal |
+| G5 | Producción: `/up` responde 200; existe un respaldo y se restauró uno en `staging`; una alerta de caída llegó al equipo en una prueba | Evidencia de cada uno (respaldo y restauración en `staging` antes de la Puerta 1; producción antes de la Puerta 2) |
 | G6 | Rendimiento: 30 envíos consecutivos de prueba sin error 5xx y con respuesta inferior a 1 s en el percentil 95 (sin contar la subida del archivo) | Resultado del script de prueba `[PENDIENTE: umbral a validar con el primer ensayo]` |
 | G7 | Aviso de privacidad del evento publicado y aprobado por su dueño; consentimiento registrado con versión | Captura y consulta de un registro |
 | G8 | El plan B está listo para publicarse (textos, fechas, parches y credenciales rotadas) | Lista del §6.4 completa |
 
-- **Go:** G1..G5, G7 y G8 completos. Los «Debería» pendientes no bloquean.
+- **Go (Puerta 2):** G1..G5, G7 y G8 completos. Los «Debería» pendientes no bloquean.
 - **No-go:** cualquiera de G1..G5, G7 o G8 incompleto, o una falla de seguridad abierta.
-- **Si es no-go:** el sábado mismo se activa el plan B; la plataforma sigue hacia R0 con una nueva fecha acordada con Antonio; se documenta qué faltó y se ajusta el alcance.
+- **Si es no-go:** se publica el plan B; la plataforma sigue hacia R0 con una nueva fecha acordada con Antonio; se documenta qué faltó y se ajusta el alcance.
 
 ### 6.4 Plan B: convocatoria en el sitio actual
 
 El sitio actual ya tiene formularios de sesiones y pósters en funcionamiento (`docs/producto/cpanel-actual.md`).
 
-**Criterios de activación:** no-go del §6.3; o el checkpoint del jueves 12 con G1..G3 por debajo del 100 % y sin camino a corregirlo antes del sábado; o una falla de seguridad grave en la plataforma sin corrección posible antes del 18.
+**Criterios de activación:** no-go de la Puerta 1 o de la Puerta 2 (§6.3); o el Checkpoint 1 (10-nov) con menos de 5 de 6 historias terminadas y sin explicación de una causa externa; o una falla de seguridad grave en la plataforma sin corrección posible antes del 18.
 
 **Qué se actualiza en el sitio actual (alcance mínimo):**
 
@@ -236,6 +246,8 @@ Catálogo con estado; edición con vista previa con datos de ejemplo y selector 
 |---|---|---|---|---|
 | `auth.password_reset` | Se pide restablecer contraseña | Usuario | Sí | R0 |
 | `team.set_password` | Se da de alta a un integrante del equipo | Usuario nuevo | Sí | R0 |
+| `team.membership_added` | Se agrega a una organización a alguien que ya tiene cuenta | Usuario | Sí | R0 |
+| `auth.new_device_login` | Inicio de sesión desde un dispositivo nuevo (compensación de RC-2) | Usuario | Sí | R0 |
 | `submission.received` | Se envía una propuesta | Autor | Sí | R0 |
 | `submission.access_link` | El autor pide su enlace de acceso (un solo uso) | Autor | Sí | R0 |
 | `submission.new_for_organizers` | Llega una propuesta | Organizadores con permiso | No | R0 |
@@ -318,95 +330,96 @@ Cada historia vive en su plan con sus criterios `CA-NNN-n`; aquí se resumen con
 
 | Historia | Tam. | Dep. | Notas | Criterios |
 |---|---|---|---|---|
-| H-002-1 Como desarrollador, quiero levantar todo con un comando, para trabajar con paridad con producción | M | — | Puertos 8080 y 5433; el comando de creación lo ejecuta una persona | CA-002-1..5 |
-| H-002-2 Como líder, quiero CI en verde en `staging` y `main` con ramas protegidas, para no integrar código roto | S | H-002-1, A8 | CI con secretos solo en GitHub | CA-002-6..10 |
-| H-002-3 Como visitante, quiero ver la página pública de un evento, para validar el recorrido completo | M | H-002-1, H-001-1 | **A:** consulta acotada a la organización; sin SSR | CA-002-11..15 |
-| H-002-4 Como líder, quiero el esqueleto desplegado en Railway `staging`, para probar en un entorno real | S | H-002-2, A4 | Sin datos reales | CA-002-16..19 |
+| H-002-1 Como desarrollador, quiero levantar todo con un comando y tener los scripts de calidad, para trabajar con paridad con producción | M | — | Puertos 8080 y 5433; el comando de creación lo ejecuta una persona | CA-002-1..7 |
+| H-002-2 Como líder, quiero CI en verde en `staging` y `main` con ramas protegidas, para no integrar código roto | S | H-002-1, A8 | CI con secretos solo en GitHub | CA-002-8..12 |
+| H-002-3 Como visitante, quiero ver la página pública de un evento publicado, para validar el recorrido completo (esta historia absorbe a la antigua H-003-4) | M | H-002-1, H-001-1 | **A:** consulta acotada a la organización; sin SSR | CA-002-13..19 |
+| H-002-4 Como líder, quiero el esqueleto desplegado en Railway `staging`, para probar en un entorno real | S | H-002-2, H-002-3, A4 | Sin datos reales | CA-002-20..24 |
+| H-002-5 Como líder, quiero los documentos de la plantilla y los ADR de R0 adaptados, para no salir con marcadores sin rellenar ni decisiones en «Propuesta» | S | H-002-1 | Marcadores de la plantilla y ADR 0003/0004/0005/0008 en «Aceptada» | CA-002-25..26 |
 
-**Plan 001 · E-02 Núcleo multi-tenant y acceso** (reducido al mínimo de R0)
+**Plan 001 · E-02 Núcleo multi-tenant y acceso**
 
 | Historia | Tam. | Dep. | Notas | Criterios |
 |---|---|---|---|---|
-| H-001-1 Como organizador, quiero que mis datos estén aislados de otras organizaciones, para que nadie ajeno los vea | M | H-002-1 | **A:** scope global, excepción sin contexto, guardianas | CA-001-1..8 |
-| H-001-2 Como equipo técnico, quiero contexto explícito en jobs y comandos y acceso de plataforma auditado, para no perder el aislamiento fuera de HTTP | S | H-001-1 | **A, P:** `withoutOrganizationScope` solo con rol de plataforma | CA-001-9..11, CA-001-13 |
-| H-001-3 Como administrador de organización, quiero roles y Policies por organización, para que cada persona haga solo lo suyo | M | H-001-1 | **P:** una prueba por rol y acción | CA-001-14..19 |
-| H-001-4 Como organizador, quiero iniciar sesión y recuperar mi contraseña con protección contra abuso, para entrar con seguridad | M | H-001-3, H-008-6 | **D:** correo y nombre; límite de intentos, sesión endurecida | CA-001-20..27 |
+| H-001-1 Como organizador, quiero que mis datos estén aislados de otras organizaciones, para que nadie ajeno los vea | M | H-002-1 | **A:** scope global, excepción sin contexto, guardianas | CA-001-1..10 |
+| H-001-2 Como equipo técnico, quiero contexto explícito en jobs y comandos, acceso de plataforma auditado y comandos para crear la primera organización y su administrador, para no perder el aislamiento fuera de HTTP y poder arrancar | S | H-001-1, H-008-6 (hasta entonces `Mail::fake()`) | **A, P:** `withoutOrganizationScope` solo con rol de plataforma | CA-001-11..17 |
+| H-001-3 Como administrador de organización, quiero roles y Policies por organización, para que cada persona haga solo lo suyo | M | H-001-1 | **P:** una prueba por rol y acción | CA-001-18..24 |
+| H-001-4 Como organizador, quiero iniciar sesión y recuperar mi contraseña con protección contra abuso, para entrar con seguridad | M | H-001-3, H-008-6 (hasta entonces `Mail::fake()`) | **D:** correo y nombre; límite de intentos, sesión endurecida | CA-001-25..36 |
 
 **Plan 003 · E-03 Eventos, equipo y aviso de privacidad**
 
 | Historia | Tam. | Dep. | Notas | Criterios |
 |---|---|---|---|---|
-| H-003-1 Como organizador, quiero crear y editar un evento (nombre, tipo, fechas, sede, zona horaria, idiomas, moneda y estado), para configurar mi edición sin código | M | H-001-3 | **A:** modelo con tenant; `unique(organization_id, slug)` | CA-003-1..9 |
-| H-003-2 Como organizador, quiero escribir y versionar el aviso de privacidad de mi evento por idioma, para cumplir con la ley desde la plataforma | M | H-003-1 | **D:** el texto lo define la organización (`docs/privacidad.md`); contenido sanitizado | CA-003-10..17 |
-| H-003-3 Como administrador de organización, quiero dar de alta a mi equipo con rol y enlace para establecer contraseña, para trabajar con permisos reales | M | H-001-3, H-008-6 | **P, D:** auditoría de cambios de rol | CA-003-18..26 |
-| H-003-4 Como visitante, quiero ver el evento publicado con sus fechas y sede, para conocerlo | S | H-003-1 | Estado `published`; borrador responde 404 | CA-003-27..31 |
+| H-003-1 Como organizador, quiero crear y editar un evento (nombre, tipo, fechas, sede, zona horaria, idiomas, moneda y estado) y elegir con qué evento trabajo en el panel, para configurar mi edición sin código | M | H-001-3, H-002-3 | **A:** modelo con tenant; `unique(organization_id, slug)` | CA-003-1..10 |
+| H-003-2 Como organizador, quiero escribir y versionar el aviso de privacidad de mi evento por idioma, para cumplir con la ley desde la plataforma | M | H-003-1 | **D:** el texto lo define la organización (`docs/privacidad.md`); contenido sanitizado | CA-003-11..20 |
+| H-003-3 Como administrador de organización, quiero dar de alta a mi equipo con rol y enlace para establecer contraseña, para trabajar con permisos reales | M | H-001-3, H-008-6 (hasta entonces `Mail::fake()`) | **P, D:** auditoría de cambios de rol | CA-003-21..30 |
 
 **Plan 004 · E-04 Convocatoria y ejes temáticos**
 
 | Historia | Tam. | Dep. | Notas | Criterios |
 |---|---|---|---|---|
-| H-004-1 Como organizador, quiero crear una convocatoria con tipo de propuesta, fechas de apertura, cierre y resultados e idiomas, para recibir propuestas | M | H-003-1 | Fechas en UTC; zona del evento | CA-004-1..7 |
-| H-004-2 Como organizador, quiero crear, ordenar y traducir los ejes temáticos de mi evento, para clasificar propuestas | S | H-003-1 | Textos traducibles (`spatie/laravel-translatable`) | CA-004-8..11 |
-| H-004-3 Como visitante, quiero ver la convocatoria con fechas, ejes y estado en mi idioma, para decidir si envío | M | H-004-1, H-004-2 | Estado calculado por fecha en la petición (sin depender del planificador) | CA-004-12..17 |
-| H-004-4 Como organizador, quiero abrir, pausar y cerrar la convocatoria a mano, para controlar el envío | S | H-004-1 | **P:** permiso específico; auditoría | CA-004-18..21 |
+| H-004-1 Como organizador, quiero crear una convocatoria con tipo de propuesta, fechas de apertura, cierre y resultados e idiomas, y publicarla, para recibir propuestas | M | H-003-1, H-003-2 | Fechas en UTC; zona del evento | CA-004-1..11 |
+| H-004-2 Como organizador, quiero crear, ordenar y traducir los ejes temáticos de mi evento, para clasificar propuestas | S | H-003-1 | Textos traducibles (`spatie/laravel-translatable`) | CA-004-12..16 |
+| H-004-3 Como visitante, quiero ver la convocatoria con fechas, ejes y estado en mi idioma, para decidir si envío | M | H-004-1, H-004-2 | Estado calculado por fecha en la petición (sin depender del planificador) | CA-004-17..23 |
+| H-004-4 Como organizador, quiero pausar, cerrar y reabrir la convocatoria a mano, para controlar el envío | S | H-004-1 | **Debería.** **P:** permiso específico; auditoría | CA-004-24..27 |
 
 **Plan 005 · E-05 Constructor de formularios**
 
 | Historia | Tam. | Dep. | Notas | Criterios |
 |---|---|---|---|---|
-| H-005-1 Como organizador, quiero crear un formulario con campos (texto corto y largo, número, selección única y múltiple, casilla, fecha, país, archivo) con etiqueta, ayuda, obligatoriedad y límites, para pedir lo que mi evento necesita | M | H-004-1 | Tipos de lista blanca; etiquetas por idioma | CA-005-1..7 |
-| H-005-2 Como organizador, quiero ordenar los campos y ver una vista previa en cada idioma, para revisar antes de publicar | M | H-005-1 | — | CA-005-8..11 |
-| H-005-3 Como organizador, quiero publicar el formulario en una convocatoria con reglas claras sobre qué puedo cambiar cuando ya hay propuestas, para no romper lo recibido | M | H-005-1, H-004-1 | Con respuestas no se elimina un campo ni se cambia su tipo | CA-005-12..19 |
-| H-005-4 Como sistema, quiero validar cada respuesta en el servidor contra la definición del formulario, para no confiar en el cliente | M | H-005-1 | Reglas dinámicas en un Form Request; respuestas en `jsonb` | CA-005-20..29 |
-| H-005-5 Como organizador, quiero partir de una plantilla (sesión, panel, póster) y duplicarla, para ahorrar tiempo | S | H-005-1 | «Debería» | CA-005-30..32 |
+| H-005-1 Como organizador, quiero crear un formulario con campos (texto corto y largo, número, selección única y múltiple, casilla, fecha, país, archivo) con etiqueta, ayuda, obligatoriedad y límites, para pedir lo que mi evento necesita | M | H-004-1 | Tipos de lista blanca; etiquetas por idioma | CA-005-1..10 |
+| H-005-2 Como organizador, quiero ordenar los campos y ver una vista previa en cada idioma, para revisar antes de publicar | M | H-005-1 | — | CA-005-11..15 |
+| H-005-3 Como organizador, quiero publicar el formulario en una convocatoria con reglas claras sobre qué puedo cambiar cuando ya hay propuestas, para no romper lo recibido | M | H-005-1, H-004-1 | Con respuestas no se elimina un campo ni se cambia su tipo | CA-005-16..24 |
+| H-005-4 Como sistema, quiero validar cada respuesta en el servidor contra la definición del formulario, para no confiar en el cliente | M | H-005-1 | Reglas dinámicas en un Form Request; respuestas en `jsonb` | CA-005-25..34 |
+| H-005-5 Como organizador, quiero partir de una plantilla (sesión, panel, póster) y duplicarla, para ahorrar tiempo | S | H-005-1 | **Debería.** | CA-005-35..37 |
 
 **Plan 006 · E-06 Envío de propuestas y acceso del autor**
 
 | Historia | Tam. | Dep. | Notas | Criterios |
 |---|---|---|---|---|
-| H-006-1 Como autor, quiero enviar mi propuesta con el formulario del evento, mis datos y los de los participantes, para participar | M | H-005-3, H-005-4, H-007-1 | **A, D:** nace en el contexto del evento; idempotencia ante doble envío | CA-006-1..11 |
-| H-006-2 Como organizador, quiero límite de peticiones y anti-robots en los formularios públicos, para evitar spam y abuso | S | H-006-1 | Turnstile verificado en servidor | CA-006-12..16 |
-| H-006-3 Como autor, quiero recibir un acuse y pedir un enlace de acceso de un solo uso, para consultar mi propuesta | M | H-006-1, H-008-6 | **D:** el enlace no revela si un correo existe; ligado a correo y propuesta | CA-006-17..25 |
-| H-006-4 Como autor, quiero editar mi propuesta mientras la convocatoria esté abierta, para corregir errores | M | H-006-3 | «Debería»; auditoría de cambios | CA-006-26..30 |
-| H-006-5 Como autor, quiero retirar mi propuesta, para no participar | S | H-006-3 | «Debería»; estado `withdrawn` reversible por organizador | CA-006-31..34 |
-| H-006-6 Como organización, quiero registrar el consentimiento (versión del aviso, fecha) con cada propuesta, para demostrarlo | S | H-003-2, H-006-1 | **D:** sin guardar datos de más | CA-006-35..38 |
+| H-006-1 Como autor, quiero enviar mi propuesta con el formulario del evento, mis datos y los de los participantes, para participar (backend de `SubmitSubmission`) | M | H-005-3, H-005-4, H-007-1 | **A, D:** nace en el contexto del evento; idempotencia ante doble envío | CA-006-1..19 |
+| H-006-2 Como organizador, quiero límite de peticiones y anti-robots en los formularios públicos y en las cargas, para evitar spam y abuso | S | H-006-1 | Turnstile verificado en servidor | CA-006-20..28 |
+| H-006-3 Como autor, quiero recibir un acuse y pedir un enlace de acceso de un solo uso, para consultar mi propuesta | M | H-006-1, H-008-6 | **D:** el enlace no revela si un correo existe; ligado a correo y propuesta | CA-006-29..40 |
+| H-006-4 Como autor, quiero editar mi propuesta mientras la convocatoria esté abierta, para corregir errores | M | H-006-3 | **Debería.** auditoría de cambios | CA-006-41..45 |
+| H-006-5 Como autor, quiero retirar mi propuesta, para no participar | S | H-006-3 | **Debería.** estado `withdrawn` reversible por organizador | CA-006-46..49 |
+| H-006-6 Como organización, quiero registrar el consentimiento (versión del aviso, fecha) y la autorización de terceros con cada propuesta, para demostrarlos | S | H-003-2, H-006-1 | **D:** sin guardar datos de más | CA-006-50..54 |
+| H-006-7 Como autor, quiero un formulario público accesible que conserve lo que escribí ante un error, para enviar mi propuesta sin perder el trabajo | M | H-006-1, H-005-2, H-004-3 | **D:** formulario accesible AA; conserva lo escrito ante un error | CA-006-55..58 |
 
 **Plan 007 · E-07 Archivos privados**
 
 | Historia | Tam. | Dep. | Notas | Criterios |
 |---|---|---|---|---|
-| H-007-1 Como autor, quiero adjuntar archivos permitidos a mi propuesta, para sustentarla | M | H-001-1 | Disco privado, nombre generado, validación por contenido, tipos y tamaño | CA-007-1..6 |
-| H-007-2 Como organizador, quiero descargar los archivos con enlaces temporales y auditados, para evaluarlos | M | H-007-1, H-001-3 | **A, P:** archivo de otra organización responde 404; descarga como adjunto | CA-007-7..11 |
-| H-007-3 Como líder, quiero límites por propuesta y limpieza de archivos huérfanos, para no acumular abuso ni basura | S | H-007-1 | Tarea programada | CA-007-12..14 |
+| H-007-1 Como autor, quiero adjuntar archivos permitidos a mi propuesta, con límites por campo y por propuesta, para sustentarla | M | H-001-1, H-004-1 | Disco privado, nombre generado, validación por contenido, tipos y tamaño | CA-007-1..16 |
+| H-007-2 Como organizador, quiero descargar los archivos con enlaces temporales y auditados, para evaluarlos | M | H-007-1, H-001-3 | **A, P:** archivo de otra organización responde 404; descarga como adjunto | CA-007-17..24 |
+| H-007-3 Como líder, quiero limpieza de archivos huérfanos, para no acumular basura | S | H-007-1 | **Debería.** Tarea programada | CA-007-25..28 |
 
 **Plan 008 · E-08 Correos: catálogo y plantillas**
 
 | Historia | Tam. | Dep. | Notas | Criterios |
 |---|---|---|---|---|
 | H-008-1 Como equipo, quiero un catálogo en código de notificaciones, para que cada módulo registre las suyas | M | H-001-1 | Guardiana: notificación sin registrar o sin predeterminada es/en falla | CA-008-1..3 |
-| H-008-2 Como sistema, quiero plantillas predeterminadas es/en con renderizado seguro y variables de lista blanca, para enviar correos correctos | M | H-008-1 | Sin Blade ni PHP del usuario | CA-008-4..8 |
-| H-008-3 Como organizador, quiero ver el catálogo con su estado en el panel, para saber qué envía el sistema | M | H-008-1, H-001-3 | **P:** permiso de lectura | CA-008-9..11 |
-| H-008-4 Como organizador, quiero personalizar asunto, cuerpo, remitente y responder-a de mi organización con vista previa y restaurar la predeterminada, para adaptar la voz | M | H-008-2, H-008-3 | «Debería»; **A:** plantilla con tenant | CA-008-12..15 |
-| H-008-5 Como organizador, quiero activar o desactivar las notificaciones no críticas, para controlar el ruido | S | H-008-3 | «Debería»; las críticas no se desactivan | CA-008-16..17 |
-| H-008-6 Como sistema, quiero enviar los correos por cola con Resend y un adaptador intercambiable a SES, con reintentos e idempotencia, para entregarlos de forma fiable | M | H-008-1 | **D:** sin datos personales en logs | CA-008-18..22 |
+| H-008-2 Como sistema, quiero plantillas predeterminadas es/en con renderizado seguro y variables de lista blanca, para enviar correos correctos | M | H-008-1 | Sin Blade ni PHP del usuario | CA-008-4..11 |
+| H-008-3 Como organizador, quiero ver el catálogo con su estado en el panel, para saber qué envía el sistema | M | H-008-1, H-001-3 | **Debería.** **P:** permiso de lectura | CA-008-12..14 |
+| H-008-4 Como organizador, quiero personalizar asunto, cuerpo, remitente y responder-a de mi organización con vista previa y restaurar la predeterminada, para adaptar la voz | M | H-008-2, H-008-3 | **Debería.** **A:** plantilla con tenant | CA-008-15..20 |
+| H-008-5 Como organizador, quiero activar o desactivar las notificaciones no críticas, para controlar el ruido | S | H-008-3 | **Debería.** las críticas no se desactivan | CA-008-21..22 |
+| H-008-6 Como sistema, quiero enviar los correos por cola con Resend y un adaptador intercambiable a SES, con reintentos e idempotencia, para entregarlos de forma fiable | M | H-008-1, H-008-2 | **D:** sin datos personales en logs | CA-008-23..30 |
 
 **Plan 009 · E-09 Panel de propuestas**
 
 | Historia | Tam. | Dep. | Notas | Criterios |
 |---|---|---|---|---|
-| H-009-1 Como organizador, quiero listar y filtrar propuestas por convocatoria, eje, tipo y fecha con paginación, para revisarlas | M | H-006-1 | **A, P:** Policy; máximo 100 por página | CA-009-1..5 |
-| H-009-2 Como organizador, quiero abrir el detalle con respuestas, participantes y archivos, para leerla completa | M | H-009-1, H-007-2 | **D:** acceso auditado | CA-009-6..9 |
-| H-009-3 Como organizador, quiero exportar las propuestas con columnas del formulario, con registro de quién exportó, para trabajar fuera | M | H-009-1 | Sin credenciales jamás; protección contra inyección de fórmulas | CA-009-10..14 |
-| H-009-4 Como organizador, quiero un resumen por eje, tipo y día, para seguir el avance | S | H-009-1 | «Debería» | CA-009-15..16 |
+| H-009-1 Como organizador, quiero listar y filtrar propuestas por convocatoria, eje, tipo y fecha con paginación, para revisarlas | M | H-006-1, H-003-1 | **A, P:** Policy; máximo 100 por página | CA-009-1..5 |
+| H-009-2 Como organizador, quiero abrir el detalle con respuestas, participantes y archivos, para leerla completa | M | H-009-1, H-007-2 | **D:** acceso auditado | CA-009-6..10 |
+| H-009-3 Como organizador, quiero exportar las propuestas con columnas del formulario, con registro de quién exportó, para trabajar fuera | M | H-009-1 | Sin credenciales jamás; protección contra inyección de fórmulas | CA-009-11..19 |
+| H-009-4 Como organizador, quiero un resumen por eje, tipo y día, para seguir el avance | S | H-009-1 | **Debería.** | CA-009-20..21 |
 
 **Plan 010 · E-10 Producción y operación**
 
 | Historia | Tam. | Dep. | Notas | Criterios |
 |---|---|---|---|---|
-| H-010-1 Como líder, quiero producción en Railway con web, worker, planificador, PostgreSQL, Redis y bucket privado, para operar la convocatoria | M | H-002-4, A4, A5 | Secretos solo en variables de entorno | CA-010-1..4 |
-| H-010-2 Como líder, quiero dominio, HTTPS, cabeceras de seguridad y dominio de envío verificado, para que el sitio y el correo sean confiables | M | A2, A6, A7 | HSTS, CSP ajustada | CA-010-5..9 |
-| H-010-3 Como líder, quiero respaldos automáticos probados, monitoreo de salud, errores y colas con alertas, para detectar y recuperar fallos | M | H-010-1 | Sin PII en los eventos de error | CA-010-10..14 |
-| H-010-4 Como líder, quiero un ensayo de lanzamiento en producción con datos ficticios que se limpian y un runbook mínimo, para lanzar con confianza | S | H-010-1..3 | — | CA-010-15..17 |
+| H-010-1 Como líder, quiero producción en Railway con web, worker, planificador, PostgreSQL, Redis y bucket privado, con accesos compartidos entre Antonio y Gabriel, para operar la convocatoria | M | H-002-4, A4, A5 | Secretos solo en variables de entorno | CA-010-1..5 |
+| H-010-2 Como líder, quiero dominio, HTTPS, cabeceras de seguridad, IP real del cliente y dominio de envío verificado, para que el sitio y el correo sean confiables | M | A2, A6, A7 | HSTS, CSP ajustada | CA-010-6..12 |
+| H-010-3 Como líder, quiero respaldos automáticos probados, monitoreo de salud, errores y colas con alertas, para detectar y recuperar fallos | M | H-010-1 | Sin PII en los eventos de error | CA-010-13..17 |
+| H-010-4 Como líder, quiero un ensayo de lanzamiento en producción con una organización de prueba que se purga por completo y un runbook mínimo, para lanzar con confianza | S | H-010-1, H-010-2, H-010-3 | — | CA-010-18..21 |
 
 ### 10.2 R1
 
@@ -414,46 +427,47 @@ Cada historia vive en su plan con sus criterios `CA-NNN-n`; aquí se resumen con
 
 | Historia | Tam. | Dep. | Notas | Criterios |
 |---|---|---|---|---|
-| H-011-1 Como organizador, quiero crear una rúbrica por evento y tipo de propuesta con criterios, escala y peso, para evaluar con mis reglas | M | H-006-1 | Versionada | CA-011-1..4 |
-| H-011-2 Como organizador, quiero asignar evaluadores a ejes y propuestas con un mínimo por propuesta, para repartir la carga | M | H-011-7 | **P, A** | CA-011-5..8 |
-| H-011-3 Como evaluador, quiero un panel propio con mis propuestas asignadas y calificar con guardado transaccional, para evaluar sin ver lo ajeno | M | H-011-1, H-011-2 | **P, A:** panel por rol; **D:** acceso mínimo | CA-011-9..13 |
-| H-011-4 Como evaluador, quiero declarar conflicto de interés y, si el evento lo pide, evaluar en modo ciego, para una evaluación justa | M | H-011-3 | Ocultar datos del autor | CA-011-14..16 |
-| H-011-5 Como organizador, quiero resultados con promedio ponderado, desviación y discrepancias, para decidir con evidencia | M | H-011-3 | — | CA-011-17..19 |
-| H-011-6 Como organizador, quiero ver el avance por evaluador y cerrar el periodo de evaluación, para dar seguimiento | S | H-011-3 | — | CA-011-20..22 |
-| H-011-7 Como sistema, quiero asignaciones de usuarios a eventos con rol (`event_assignments`), para que evaluadores y ponentes vean solo su evento | M | H-001-3 | ADR-0003 DA-1; **P, A** | CA-011-23..26 |
+| H-011-1 Como organizador, quiero crear una rúbrica por evento y tipo de propuesta con criterios, escala, peso y umbral de discrepancia, para evaluar con mis reglas | M | H-006-1 | Versionada | CA-011-1..4 |
+| H-011-2 Como organizador, quiero asignar evaluadores a ejes y propuestas con un mínimo por propuesta, para repartir la carga | M | H-011-7, H-012-1 (Action `MarkSubmissionUnderReview`) | **P, A** | CA-011-5..10 |
+| H-011-3 Como evaluador, quiero un panel propio con mis propuestas asignadas y calificar con guardado transaccional, para evaluar sin ver lo ajeno | M | H-011-1, H-011-2, H-014-1 | **P, A:** panel por rol; **D:** acceso mínimo | CA-011-11..16 |
+| H-011-4 Como evaluador, quiero declarar conflicto de interés y, si el evento lo pide, evaluar en modo ciego, para una evaluación justa | M | H-011-3, H-005-1 (atributo `identifies_author`) | Ocultar datos del autor | CA-011-17..21 |
+| H-011-5 Como organizador, quiero resultados con promedio ponderado, desviación y discrepancias, para decidir con evidencia | M | H-011-3 | — | CA-011-22..24 |
+| H-011-6 Como organizador, quiero ver el avance por evaluador y cerrar el periodo de evaluación, para dar seguimiento | S | H-011-3 | — | CA-011-25..27 |
+| H-011-7 Como sistema, quiero asignaciones de usuarios a eventos con rol (`event_assignments`), para que evaluadores y coordinadores vean solo su evento | M | H-001-3 (plan 001) | ADR-0003 DA-1; **P, A** | CA-011-28..32 |
+| H-011-8 Como organizador, quiero invitar a un evaluador por correo con el rol `reviewer` y un enlace para establecer su contraseña, para que entre a su panel sin ver el de organizadores | M | H-011-7, H-008-6, H-014-1 | **P, D:** rol `reviewer` sin acceso al panel de organizadores; exige 2FA (H-014-1) | CA-011-33..37 |
 
 **Plan 012 · E-12 Decisiones y resultados**
 
 | Historia | Tam. | Dep. | Notas | Criterios |
 |---|---|---|---|---|
-| H-012-1 Como organizador, quiero aceptar, rechazar, poner en lista de espera y revertir una propuesta, para decidir con historial | M | H-011-5 | **P:** una Action por transición; auditoría | CA-012-1..6 |
-| H-012-2 Como organizador, quiero decidir sobre una selección filtrada, para ahorrar tiempo | M | H-012-1 | Confirmación y reversa | CA-012-7..10 |
-| H-012-3 Como autor, quiero recibir el resultado de mi propuesta, para saber qué sigue | M | H-012-1, H-008-2 | **D:** correos críticos | CA-012-11..15 |
-| H-012-4 Como autor, quiero un recordatorio antes del cierre, para corregir mi propuesta a tiempo | S | H-006-4 | Planificador | CA-012-16..18 |
-| H-012-5 Como organizador, quiero añadir un comentario opcional para el autor al decidir, para dar retroalimentación | S | H-012-1 | **D** | CA-012-19..21 |
+| H-012-1 Como organizador, quiero aceptar, rechazar, poner en lista de espera y revertir una propuesta, para decidir con historial | M | H-006-1 | **P:** una Action por transición; auditoría | CA-012-1..8 |
+| H-012-2 Como organizador, quiero decidir sobre una selección filtrada, para ahorrar tiempo | M | H-012-1 | Confirmación y reversa | CA-012-9..13 |
+| H-012-3 Como autor, quiero recibir el resultado de mi propuesta, para saber qué sigue | M | H-012-1, H-008-2 | **D:** correos críticos | CA-012-14..22 |
+| H-012-4 Como autor, quiero un recordatorio antes del cierre, para corregir mi propuesta a tiempo | S | H-006-1; H-006-4 solo de forma condicional (si no existe, el recordatorio es informativo) | Planificador | CA-012-23..26 |
+| H-012-5 Como organizador, quiero añadir un comentario opcional para el autor al decidir, para dar retroalimentación | S | H-012-1 | **D** | CA-012-27..29 |
 
 **Plan 013 · E-13 Correos avanzados**
 
 | Historia | Tam. | Dep. | Notas | Criterios |
 |---|---|---|---|---|
-| H-013-1 Como organizador, quiero que la plantilla del evento sobrescriba la de la organización, para adaptar cada evento | M | H-008-4 | Orden evento → organización → sistema | CA-013-1..4 |
-| H-013-2 Como organizador, quiero logotipo, colores, pie y firma, para que el correo lleve mi marca | M | H-013-1 | Logotipo validado por contenido | CA-013-5..8 |
-| H-013-3 Como organizador, quiero textos por idioma (es, en, pt), para comunicarme en el idioma del autor | S | H-013-1 | pt con predeterminada | CA-013-9..11 |
-| H-013-4 Como organizador, quiero historial de versiones y restaurar una anterior, para deshacer errores | M | H-013-1 | **A** | CA-013-12..14 |
-| H-013-5 Como organizador, quiero enviar un correo de prueba, para ver el resultado real | S | H-013-1 | Solo a mi propio correo | CA-013-15..17 |
-| H-013-6 Como organizador, quiero un registro de envíos con estado de entrega, para saber qué recibió cada persona | M | H-008-6 | **D:** retención definida; webhooks con firma | CA-013-18..22 |
-| H-013-7 Como líder, quiero enviar también con SES, para no depender de un solo proveedor | S | H-008-6, A3 | Cambio por configuración | CA-013-23..25 |
+| H-013-1 Como organizador, quiero que la plantilla del evento sobrescriba la de la organización, para adaptar cada evento | M | H-008-4 (si no entró en R0, se hace primero en F1 de este plan) | Orden evento → organización → sistema | CA-013-1..5 |
+| H-013-2 Como organizador, quiero logotipo, colores, pie y firma, para que el correo lleve mi marca | M | H-013-1 | Logotipo validado por contenido | CA-013-6..10 |
+| H-013-3 Como organizador, quiero textos por idioma (es, en, pt), para comunicarme en el idioma del autor | S | H-013-1 | pt con predeterminada | CA-013-11..13 |
+| H-013-4 Como organizador, quiero historial de versiones y restaurar una anterior, para deshacer errores | M | H-013-1 | **A** | CA-013-14..16 |
+| H-013-5 Como organizador, quiero enviar un correo de prueba, para ver el resultado real | S | H-013-1 | Solo a mi propio correo | CA-013-17..19 |
+| H-013-6 Como organizador, quiero un registro de envíos con estado de entrega, para saber qué recibió cada persona | M | H-008-6 | **D:** retención definida; webhooks con firma | CA-013-20..26 |
+| H-013-7 Como líder, quiero enviar también con SES, para no depender de un solo proveedor | S | H-008-6, A3 | Cambio por configuración | CA-013-27..29 |
 
 **Plan 014 · E-14 Endurecimiento y privacidad**
 
 | Historia | Tam. | Dep. | Notas | Criterios |
 |---|---|---|---|---|
-| H-014-1 Como administrador, quiero verificación en dos pasos obligatoria para administradores y roles de plataforma, para proteger las cuentas con más acceso | M | H-001-4 | Cierra RC-2 | CA-014-1..6 |
-| H-014-2 Como líder, quiero RLS de PostgreSQL como segunda barrera de aislamiento, para protegerme de un fallo del scope | M | H-001-1 | Cierra RC-1; **A:** pruebas de acceso permitido y denegado | CA-014-7..12 |
-| H-014-3 Como líder, quiero ensayar la restauración de un respaldo y documentar los runbooks, para recuperar el servicio | S | H-010-3 | Registro en `docs/operacion.md` | CA-014-13..15 |
-| H-014-4 Como organización, quiero exportar y anonimizar los datos de una persona, para atender sus derechos | M | H-006-1 | **D:** auditoría; respeta lo que debe conservarse | CA-014-16..21 |
-| H-014-5 Como líder, quiero decidir sobre el escaneo de archivos, para cerrar RC-3 | S | H-007-1 | Spike con decisión | CA-014-22..23 |
-| H-014-6 Como organización, quiero retención y anonimización programadas, para no guardar datos de más | M | H-014-4 | **D** | CA-014-24..26 |
+| H-014-1 Como administrador, quiero verificación en dos pasos obligatoria para todo rol con acceso a datos de autores, para proteger las cuentas con más acceso | M | H-001-4 | Cierra RC-2 | CA-014-1..5 |
+| H-014-2 Como líder, quiero RLS de PostgreSQL como segunda barrera de aislamiento, para protegerme de un fallo del scope | M | H-001-1, H-001-2 | Cierra RC-1; **A:** pruebas de acceso permitido y denegado | CA-014-6..15 |
+| H-014-3 Como líder, quiero ensayar la restauración de un respaldo y documentar los runbooks, para recuperar el servicio | S | H-010-3 | Registro en `docs/operacion.md` | CA-014-16..19 |
+| H-014-4 Como organización, quiero exportar y anonimizar los datos de una persona, para atender sus derechos | M | H-006-1 | **D:** auditoría; respeta lo que debe conservarse | CA-014-20..30 |
+| H-014-5 Como líder, quiero decidir sobre el escaneo de archivos, para cerrar RC-3 | S | H-007-1 | Spike con decisión | CA-014-31..32 |
+| H-014-6 Como organización, quiero retención y anonimización programadas, para no guardar datos de más | M | H-014-4 | **D** | CA-014-33..37 |
 
 ### 10.3 R2 (épicas sin plan todavía)
 
@@ -500,6 +514,8 @@ Solo épicas (§8), sin historias detalladas todavía. Se esbozan al abrir cada 
 | S-10 | Pasarela, modelo de ingresos y CFDI | ADR-0007 aceptada (DA-1..DA-5) | E-23 | `[PENDIENTE]` |
 | S-11 | Editor de agenda: Livewire o React dentro de Filament | Plan de E-20 | E-20 | `[PENDIENTE]` |
 | S-12 | Contacto único por organización o persona global | ADR-0003 DA-3 y glosario | E-17 | — |
+| S-13 | Limpieza de metadatos de PDF y PPTX para la revisión ciega | Plan 007 | E-11 (H-011-4) | antes de R1 |
+| S-14 | Límites de subida y tiempo máximo de petición en Railway | Nota en el plan 007 y 010 | E-07 | 12-nov |
 
 ## 12. Estrategia de calidad
 
@@ -540,7 +556,7 @@ Servicios: aplicación web, *worker* de colas, planificador, PostgreSQL gestiona
 | Integración | Controlador de correo de Laravel con un adaptador propio detrás de una interfaz (H-008-6) | Mismo adaptador intercambiable por configuración (H-013-7) |
 | Cambio de proveedor | Sin cambios de código en los módulos: el catálogo y las plantillas no dependen del proveedor | Requiere dominio verificado y webhooks de entrega propios |
 
-Variables nuevas: las del proveedor de correo, almacenamiento y Turnstile, siempre en `.env.example` con valores ficticios y en `docs/operacion.md`. Respaldos: diarios con restauración ensayada en `staging` antes del 14-nov (G5) y a fondo en R1 (H-014-3).
+Variables nuevas: las del proveedor de correo, almacenamiento y Turnstile, siempre en `.env.example` con valores ficticios y en `docs/operacion.md`. Respaldos: diarios con restauración ensayada en `staging` antes de la Puerta 1 (G5) y a fondo en R1 (H-014-3).
 
 ## 15. Riesgos y supuestos
 
@@ -548,7 +564,7 @@ Probabilidad (P) e impacto (I): A alta, M media, B baja.
 
 | # | Riesgo | P | I | Mitigación | Dueño |
 |---|---|---|---|---|---|
-| 1 | El alcance de R0 no cabe en la capacidad (2.5 horas por historia y 27 minutos por criterio) | A | A | Puntos de control en 10, 12 y 14-nov; lista «Debería» como palanca; plan B real | Antonio |
+| 1 | El alcance de R0 no cabe en la capacidad (exige 2.3 horas por historia y 18 minutos por criterio) | A | A | Checkpoints el 10 y 12-nov y puertas el 16 y 17-nov; lista «Debería» como palanca; plan B real | Antonio |
 | 2 | Fuga entre organizaciones | B | A | Scope que falla cerrado; guardianas; revisión humana; RLS en R1 (RC-1) | Antonio |
 | 3 | El correo no llega o cae en spam | M | A | A2 hoy; S-2; prueba en Gmail y Outlook; segundo proveedor (SES) preparado | Antonio |
 | 4 | El constructor de formularios genera datos o esquemas inconsistentes | M | A | ADR-0010; reglas de cambio con respuestas; validación en servidor; spike S-4 | Gabriel |
@@ -561,7 +577,10 @@ Probabilidad (P) e impacto (I): A alta, M media, B baja.
 | 11 | Dependencia de dos personas (vacaciones, enfermedad) | M | A | Documentar en los planes; runbooks mínimos | Antonio |
 | 12 | El receso de fin de año retrasa R1 | M | M | R1 con meta 18-dic-2026; recortes de R1 si hace falta | Antonio |
 | 13 | Producto sin demanda de otras organizaciones | M | M | Punto de control de demanda antes de R5 | Antonio |
-| 14 | Una propuesta enviada por un enlace de acceso reutilizado | B | M | Un solo uso y caducidad corta (S-7) | Gabriel |
+| 14 | Una propuesta enviada por un enlace de acceso reutilizado | B | M | Un solo uso, consumo atómico y caducidad corta (S-7) | Gabriel |
+| 15 | Cadenas de dependencia del mismo día (14 en el calendario): un retraso se propaga | A | M | Ordenar por dependencia en cada reunión diaria; mover «Debería» fuera de la ruta crítica | Antonio |
+| 16 | El constructor de formularios cambia mientras se envían propuestas (carrera) | M | A | Bloqueo de la definición y instantánea por propuesta (ADR-0010); CA de envío concurrente | Gabriel |
+| 17 | Metadatos de PDF y PPTX delatan al autor en la revisión ciega | M | M | Advertencia al organizador; decisión de limpiar metadatos antes de R1 (plan 007) | Antonio |
 
 Supuestos: capacidad del §6.1; una sola organización activa; correo con un solo proveedor a la vez; el equipo acepta aprobar los planes el 9-nov.
 
@@ -581,7 +600,7 @@ Coherentes con ADR-0001 y `AGENTS.md`.
 
 - **Aprobación:** Antonio aprueba cada plan (estado `Aprobado`) antes de escribir código, y decide cada *go / no-go*. La revisión humana de autenticación, permisos, archivos, tenancy y pagos queda en una persona distinta de quien escribió el código cuando sea posible (Antonio revisa a Gabriel y viceversa).
 - **Cambios de alcance:** se proponen como recorte o adición (`RC-n`), con riesgo y fecha; se registran en este documento y, si son decisiones costosas, en un ADR.
-- **Cadencia:** hasta el 18-nov, revisión diaria de 15 minutos al inicio y checkpoints formales (10, 12 y 14-nov). Después, revisión semanal de la hoja de ruta y una revisión de cierre por release.
+- **Cadencia:** hasta el 18-nov, revisión diaria de 15 minutos al inicio y checkpoints formales (10 y 12-nov) y puertas (16 y 17-nov). Después, revisión semanal de la hoja de ruta y una revisión de cierre por release.
 - **Métricas:** cobertura (con umbral que no baja); deuda técnica (puntos P1 abiertos y su antigüedad); defectos escapados a producción; tiempo de ciclo (de «aprobado» a «terminado» por historia); y, para el negocio, propuestas recibidas por día y porcentaje de correos entregados.
 
 ## 18. Trazabilidad: módulo del Word → épica → plan → release
@@ -648,6 +667,9 @@ Secciones 9 y 10 del Word.
 9. `[PENDIENTE: criterio fino del punto de control de demanda del SaaS]`.
 10. `[PENDIENTE: fechas de R2 a R5, que dependen del calendario del evento 2027]`.
 11. `[PENDIENTE: cliente de errores (Sentry u otro)]`.
+12. `[PENDIENTE: tiempo máximo de petición en Railway y herramienta del gestor de contraseñas compartido]`.
+13. `[PENDIENTE: aprobar los valores propuestos en los planes (límites de subida y cuotas, tope de exportación, intentos de acceso, caducidades)]`.
+14. `[PENDIENTE: umbral de la Puerta 1, medido con la velocidad real del 10-nov]`.
 
 ## Cambios propuestos (no aplicados; requieren tu aprobación)
 
@@ -665,4 +687,8 @@ Secciones 9 y 10 del Word.
 | Enlace de acceso del autor y su excepción a «un solo uso» si aplica | `docs/seguridad.md` §2 |
 | Proveedor de correo, alojamiento y subencargados | `docs/operacion.md` y `docs/privacidad.md` |
 | Dependencia nueva: cliente de Resend (acción 4 de `AGENTS.md`); Turnstile se verifica con el cliente HTTP de Laravel, sin paquete | `AGENTS.md` §Dependencias |
-| Puntos de deuda: RLS (P1), 2FA (P1), antivirus (P2), SSR, marca blanca, retención de datos | `docs/sprints/deuda-tecnica.md` |
+| Puntos de deuda: RLS (P1), 2FA (P1), antivirus (P2), metadatos de archivos, SSR, marca blanca, retención de datos | `docs/sprints/deuda-tecnica.md` |
+| ADR-0010 debe incluir la instantánea del formulario por propuesta, el bloqueo de la definición y la vista previa con React dentro del panel (excepción acotada a ADR-0004, que se registra en uno de los dos) | `docs/adr/` |
+| URL pública única `/{organization:slug}/events/{event:slug}/...` y middleware que fija la organización | ADR-0003 (DA-4) |
+| Tablas y notificaciones nuevas que aprobar con su propuesta de datos: `known_devices`, `mail_suppressions`, `auth.new_device_login`, `team.membership_added` | `docs/database-design.md` §6 y plan 008 |
+| Permisos y roles (`org_admin`, `organizer`, `reviewer`, `platform`) y los 13 permisos de la matriz del plan 001 | plan 001 y `docs/seguridad.md` §3 |
