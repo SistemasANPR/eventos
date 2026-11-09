@@ -29,13 +29,8 @@ final class SetOrganizationFromRoute
 
         $organization = Organization::query()->where('slug', $slug)->firstOrFail();
 
-        CurrentOrganization::set($organization);
         $route->setParameter('organization', $organization);
 
-        try {
-            return $next($request);
-        } finally {
-            CurrentOrganization::forget();
-        }
+        return CurrentOrganization::run($organization, fn (): Response => $next($request));
     }
 }

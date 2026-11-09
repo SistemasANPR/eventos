@@ -32,13 +32,17 @@ it('CA-001-6: rejects a slug with an invalid format', function (string $slug): v
     'too long' => str_repeat('a', 64),
     'accent' => 'organización',
     'empty' => '',
+    'trailing newline' => "anpr\n",
 ]);
 
 it('CA-001-6: rejects a reserved slug', function (string $slug): void {
     $validator = Validator::make(['slug' => $slug], ['slug' => ['required', new OrganizationSlug]]);
 
     expect($validator->fails())->toBeTrue();
-})->with(['admin', 'up', 'login', 'register', 'api']);
+})->with([
+    'admin', 'up', 'login', 'register', 'api',
+    'livewire', 'horizon', 'filament', 'storage', 'build', 'logout', 'password',
+]);
 
 it('CA-001-6: rejects a slug that is already used', function (): void {
     Organization::factory()->create(['slug' => 'anpr']);

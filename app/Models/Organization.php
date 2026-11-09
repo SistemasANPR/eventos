@@ -27,7 +27,10 @@ class Organization extends Model
     use HasFactory, HasUuids, SoftDeletes;
 
     /** Segmentos que chocarían con rutas de la aplicación. */
-    public const RESERVED_SLUGS = ['admin', 'up', 'login', 'register', 'api'];
+    public const RESERVED_SLUGS = [
+        'admin', 'up', 'login', 'register', 'api',
+        'livewire', 'horizon', 'filament', 'storage', 'build', 'logout', 'password',
+    ];
 
     /** @return array<string, string> */
     protected function casts(): array

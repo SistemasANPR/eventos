@@ -46,4 +46,13 @@ it('CA-001-8: the storage path refuses to leave the organization directory', fun
     CurrentOrganization::set(Organization::factory()->create());
 
     expect(fn () => TenantStoragePath::for($path))->toThrow(InvalidArgumentException::class);
-})->with(['parent' => '../other/file.pdf', 'nested parent' => 'a/../../b', 'absolute' => '/etc/passwd']);
+})->with([
+    'parent' => '../other/file.pdf',
+    'nested parent' => 'a/../../b',
+    'absolute' => '/etc/passwd',
+    'backslash' => 'a\\b',
+    'null byte' => "a\0b",
+    'empty segment' => 'a//b',
+    'current directory' => './a',
+    'empty' => '',
+]);

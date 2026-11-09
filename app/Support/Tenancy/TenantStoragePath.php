@@ -22,8 +22,14 @@ final class TenantStoragePath
     {
         $organizationId = CurrentOrganization::id();
 
-        if (str_starts_with($path, '/') || in_array('..', explode('/', $path), true)) {
-            throw new InvalidArgumentException('La ruta debe ser relativa y no puede contener "..".');
+        if (str_contains($path, '\\') || str_contains($path, "\0") || str_starts_with($path, '/')) {
+            throw new InvalidArgumentException('La ruta debe ser relativa, sin "\\" ni bytes nulos.');
+        }
+
+        foreach (explode('/', $path) as $segment) {
+            if (in_array($segment, ['', '.', '..'], true)) {
+                throw new InvalidArgumentException('La ruta no puede tener segmentos vacíos, "." ni "..".');
+            }
         }
 
         return "organizations/{$organizationId}/{$path}";

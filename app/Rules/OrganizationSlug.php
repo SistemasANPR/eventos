@@ -15,7 +15,8 @@ use Illuminate\Contracts\Validation\ValidationRule;
  */
 final class OrganizationSlug implements ValidationRule
 {
-    public const PATTERN = '/^[a-z0-9]+(?:-[a-z0-9]+)*$/';
+    /** El modificador `D` evita que `$` acepte un salto de línea final. */
+    public const PATTERN = '/^[a-z0-9]+(?:-[a-z0-9]+)*$/D';
 
     public const MIN_LENGTH = 3;
 
