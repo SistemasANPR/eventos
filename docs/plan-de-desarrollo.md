@@ -28,7 +28,7 @@ Tardan y no dependen del código. Responsable por defecto: **Antonio**, salvo qu
 | A6 | **Cloudflare**: DNS delante del sitio, y llave de *Turnstile* para el anti-robots (propuesta, §3 RC-3) | El anti-robots y el HTTPS dependen de ello | Acceso a Cloudflare del dominio |
 | A7 | **URL de la convocatoria**: decidir el subdominio público (por ejemplo, uno del dominio actual del congreso) | Fija el dominio de envío, certificados y CORS | Recomendación: `convocatoria.` y `mail.` como subdominios del dominio actual del congreso, si el equipo tiene acceso a su DNS `[PENDIENTE: confirmar acceso al DNS]`; si no, un dominio nuevo registrado hoy |
 | A8 | **GitHub**: autorizar el primer `push` de `main` y `staging`, activar protección de ramas y cargar secretos del CI | Sin push no hay CI ni staging desplegable; es una acción que el agente no puede hacer (AGENTS acción 12) | Tu orden de push |
-| A9 | **Capacidad**: declarada en 6 horas por día por persona; falta confirmar si se trabaja sábado 14 y domingo 15 | Sin esto el calendario no es verificable | Respuesta sobre el fin de semana `[PENDIENTE]` |
+| A9 | **Capacidad**: declarada en 6 horas por día por persona; **no se trabaja sábado 14 ni domingo 15** (confirmado el 9-nov) | Fija el calendario | Cerrada el 9-nov |
 | A10 | **Textos del evento**: nombre, fechas, sede, ejes y campos de los formularios 2027, y el texto del aviso de privacidad | Los capturan los organizadores en la plataforma desde el día 6 (no se siembran) | Dueño de cada texto `[PENDIENTE]` |
 
 ## 3. Alcance
@@ -71,7 +71,7 @@ R0 es el recorte vertical mínimo que abre la convocatoria **de forma segura y a
 - Una organización real (ANPR) y un evento real en R0; el multi-cliente existe en el diseño (tenant) pero no hay onboarding self-service.
 - **Todo desde cero**: no se importa nada del cpanel. Ningún evento ni dato fijo se siembra; la organización se crea con un comando de plataforma y todo lo demás lo captura el equipo en la interfaz.
 - Idiomas de R0: es y en; pt antes del cierre (R1).
-- Dos personas, 6 horas por día cada una (declarado). `[PENDIENTE: trabajo en fin de semana]`; el calendario asume lunes a viernes y deja el fin de semana del 14 y 15 como holgura.
+- Dos personas, 6 horas por día cada una (declarado). **no se trabaja el fin de semana** (confirmado el 9-nov); el calendario es de lunes a viernes y el 14 y 15 quedan sin trabajo planeado.
 - Un solo proveedor de correo a la vez: Resend en R0, SES como proveedor de crecimiento (§14).
 - Sin SSR en R0 (RC-5). La landing informativa del congreso puede seguir en el sitio actual y enlazar a la convocatoria.
 
@@ -143,7 +143,7 @@ Tamaños: S, M, L (relativos). Ninguna historia es mayor que M; una épica puede
 2. **Hay dos checkpoints de avance y dos puertas** (§6.3), con criterios medibles. La velocidad real de los primeros tres días decide.
 3. Si la puerta final es *no-go*, la convocatoria abre el 18 en el sitio actual y R0 se lanza después; el objetivo es el **4-dic-2026** (confirmado el 9-nov), con importación de las propuestas recibidas entre tanto.
 4. **Lo primero que se corta** (en este orden, con tu aprobación): las historias «Debería»; luego la exportación a Excel (CSV simple); luego el panel de resumen. **La seguridad no se recorta.**
-5. Trabajar el fin de semana del 14 y 15 sube la holgura de 84 a 96 horas y adelanta la primera puerta al sábado.
+5. Trabajar el fin de semana del 14 y 15 subiría la holgura de 84 a 96 horas y adelantaría la primera puerta al sábado; **se descartó el 9-nov** (no se trabaja fin de semana).
 
 ### 6.2 Calendario hacia atrás desde el 18
 
@@ -156,7 +156,7 @@ Tamaños: S, M, L (relativos). Ninguna historia es mayor que M; una épica puede
 | 11-nov | D-7 | H-002-3 esqueleto y página pública del evento; H-003-1 evento; H-003-2 aviso de privacidad | H-008-2 plantillas; H-008-6 cola y proveedor; H-001-2 contexto y comando de organización | **H1:** esqueleto andante local; DNS de Resend verificado (A2) |
 | 12-nov | D-6 | H-001-4 acceso; H-003-3 equipo; H-004-1 convocatoria | H-004-2 ejes; H-002-4 esqueleto en Railway `staging` (y servicios de producción creados vacíos); H-005-1 campos | **H2 y Checkpoint 2 (fin del día):** esqueleto en Railway `staging` y al menos 16 de las 19 historias acumuladas |
 | 13-nov | D-5 | H-007-1 y H-007-2 archivos; H-006-1 envío (backend) | H-005-2 vista previa; H-005-4 validación; H-005-3 publicar | **H3:** envío de propuestas funcionando en `staging` |
-| 14 y 15-nov | D-4, D-3 | Sin trabajo planeado. Si se trabaja el fin de semana, la Puerta 1 pasa al sábado 14 y se avanza con la lista del lunes | Ídem | — |
+| 14 y 15-nov | D-4, D-3 | Sin trabajo (confirmado el 9-nov); la Puerta 1 sigue el lunes 16 | Ídem | — |
 | 16-nov | D-2 | H-006-3 acuse y enlace; H-006-6 consentimiento; H-010-1 producción | H-004-3 página pública de la convocatoria; H-006-2 anti-robots; H-006-7 formulario público | **Puerta 1 (18:00)** |
 | 17-nov | D-1 | H-010-2 dominio y cabeceras; H-010-3 respaldos y monitoreo; H-010-4 ensayo y runbook | H-009-1, H-009-2 y H-009-3 panel y exportación; captura del contenido real por los organizadores | **Puerta 2 (18:00)**; plan B publicable o descartado |
 | 18-nov | D-0 | Abrir la convocatoria; monitoreo; guardia | Guardia; correcciones críticas | **R0 en producción** |

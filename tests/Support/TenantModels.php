@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Tests\Support;
 
 use App\Models\Concerns\BelongsToOrganization;
+use App\Models\Organization;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use ReflectionClass;
 use Symfony\Component\Finder\Finder;
@@ -25,8 +27,8 @@ final class TenantModels
      * @var list<class-string<Model>>
      */
     public const GLOBAL_MODELS = [
-        \App\Models\Organization::class,
-        \App\Models\User::class,
+        Organization::class,
+        User::class,
     ];
 
     /** @return list<class-string<Model>> */

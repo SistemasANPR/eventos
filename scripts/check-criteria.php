@@ -18,7 +18,6 @@ declare(strict_types=1);
  *
  * Uso: php scripts/check-criteria.php [ruta-raiz]
  */
-
 $root = $argv[1] ?? dirname(__DIR__);
 $strict = getenv('STRICT') === '1';
 
@@ -75,12 +74,14 @@ foreach ($planFiles as $planPath) {
 
     if (preg_match('/^- \*\*Estado:\*\*\s*(.+)$/mu', $text, $match) !== 1) {
         $warnings[] = "{$name}: no declara «Estado»; se omite.";
+
         continue;
     }
 
     $status = mb_strtolower(trim($match[1]));
     if (str_contains($status, '|')) {
         $warnings[] = "{$name}: el estado aún es la lista de la plantilla; se omite.";
+
         continue;
     }
     if (! in_array($status, ['en curso', 'terminado'], true)) {
@@ -103,11 +104,13 @@ foreach ($planFiles as $planPath) {
         if (preg_match('/^- \*\*(CA-(\d{3})-(\d+)):\*\*/u', $line, $m) === 1) {
             $current = $m[1];
             $criteria[$current] = ['prefix' => $m[2], 'manual' => false];
+
             continue;
         }
         if ($current !== null) {
             if (preg_match('/^#{1,6}\s/u', $line) === 1) {
                 $current = null;
+
                 continue;
             }
             if (preg_match('/^\s+.*\bManual:/u', $line) === 1 || preg_match('/^\s*Manual:/u', $line) === 1) {
@@ -118,6 +121,7 @@ foreach ($planFiles as $planPath) {
 
     if ($criteria === []) {
         $warnings[] = "{$name}: está «{$status}» pero no define criterios CA-NNN-n.";
+
         continue;
     }
 
