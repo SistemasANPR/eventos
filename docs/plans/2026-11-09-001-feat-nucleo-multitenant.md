@@ -185,3 +185,4 @@ Cada uno tiene al menos una prueba cuyo nombre lo cita (`CA-001-n: ...`) o decla
 
 | Fase | Commit | Fecha | Notas (salida real de las validaciones) |
 |---|---|---|---|
+| F1 (H-001-1) | `c3690b7` | 2026-11-09 | `composer check` exit 0: Pint sin cambios, Larastan sin errores, 61 pruebas (48 Feature + 13 Arch) en verde; CA-001-1 a CA-001-10 con prueba. Migraciones aplicadas en la base local con `migrate:fresh` (users pasa a UUID). Pendiente en F0: paquetes de roles (H-001-3) |
