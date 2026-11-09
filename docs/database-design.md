@@ -31,6 +31,7 @@
 - Evita referencias cruzadas entre organizaciones: las claves foráneas compuestas o las restricciones comprueban el mismo ámbito en ambos extremos, además de las validaciones de aplicación. Ejemplo: una propuesta y su evento deben tener el mismo `organization_id`.
 - Con RLS de PostgreSQL: el contexto se establece con `SET LOCAL app.organization_id` por transacción y se limpia al terminar; se prueban los accesos permitidos y los denegados. RLS complementa la autorización, no la reemplaza.
 - Soporte y exportación de datos requieren autorización explícita, alcance acotado y auditoría.
+- **`organization_id` es inmutable en la base:** toda tabla con tenant lleva un trigger `<tabla>_organization_id_immutable` (`BEFORE UPDATE OF organization_id`) que ejecuta `prevent_organization_id_change()`, para que un UPDATE por builder, SQL o `saveQuietly` no pueda mover una fila a otra organización. La migración de la tabla nueva lo declara (`DB::unprepared`; la función usa `CREATE OR REPLACE`) y `OrganizationIdImmutableTest` falla si falta. Los insertos masivos (`insert`, `upsert`), `DB::table` y `withoutGlobalScopes` quedan prohibidos fuera de `app/Support/Tenancy` por la guardiana `tests/Arch/TenantBypassTest.php`.
 
 ## 4. Restricciones, índices e historial
 

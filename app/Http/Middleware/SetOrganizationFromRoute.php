@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Middleware;
 
+use App\Enums\OrganizationStatus;
 use App\Models\Organization;
 use App\Support\Tenancy\CurrentOrganization;
 use Closure;
@@ -27,7 +28,11 @@ final class SetOrganizationFromRoute
             abort(404);
         }
 
-        $organization = Organization::query()->where('slug', $slug)->firstOrFail();
+        // Una organización suspendida no existe para el público: 404, no 403.
+        $organization = Organization::query()
+            ->where('slug', $slug)
+            ->where('status', OrganizationStatus::Active)
+            ->firstOrFail();
 
         $route->setParameter('organization', $organization);
 

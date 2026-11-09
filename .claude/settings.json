@@ -12,7 +12,6 @@
       "Edit(./.env.staging)",
       "Edit(./.env.production)",
       "Edit(./.env.*.local)",
-      "Bash(git push:*)",
       "Bash(git reset --hard:*)",
       "Bash(git clean:*)",
       "Bash(git checkout -- :*)"

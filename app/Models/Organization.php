@@ -6,6 +6,7 @@ namespace App\Models;
 
 use App\Enums\OrganizationStatus;
 use Database\Factories\OrganizationFactory;
+use Filament\Models\Contracts\HasName;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -21,7 +22,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * El `slug` va en la URL pública (`/{organization:slug}/...`).
  */
 #[Fillable(['name', 'slug', 'status'])]
-class Organization extends Model
+class Organization extends Model implements HasName
 {
     /** @use HasFactory<OrganizationFactory> */
     use HasFactory, HasUuids, SoftDeletes;
@@ -31,6 +32,12 @@ class Organization extends Model
         'admin', 'up', 'login', 'register', 'api',
         'livewire', 'horizon', 'filament', 'storage', 'build', 'logout', 'password',
     ];
+
+    /** Nombre que Filament muestra en el selector de organización. */
+    public function getFilamentName(): string
+    {
+        return $this->name;
+    }
 
     /** @return array<string, string> */
     protected function casts(): array

@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Enums\OrganizationStatus;
 use App\Http\Middleware\SetOrganizationFromRoute;
 use App\Models\Contact;
 use App\Models\Organization;
@@ -90,4 +91,19 @@ it('CA-001-10: the next request does not inherit the previous organization', fun
 
     $this->get("/{$organizationA->slug}/whoami")->assertJson(['context' => $organizationA->id]);
     $this->get("/{$organizationB->slug}/whoami")->assertJson(['context' => $organizationB->id]);
+});
+
+it('CA-001-9: a suspended organization answers 404 and leaves no context', function (): void {
+    $organization = Organization::factory()->create(['status' => OrganizationStatus::Suspended]);
+
+    $this->get("/{$organization->slug}/whoami")->assertNotFound();
+
+    expect(CurrentOrganization::has())->toBeFalse();
+});
+
+it('CA-001-9: a soft-deleted organization answers 404', function (): void {
+    $organization = Organization::factory()->create();
+    $organization->delete();
+
+    $this->get("/{$organization->slug}/whoami")->assertNotFound();
 });
