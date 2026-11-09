@@ -1,6 +1,6 @@
 # AGENTS.md
 
-Reglas estables para agentes de código en `[RELLENAR: nombre del repo]`. Sin estado de sesión: el estado vive en Git y en `docs/plans/`.
+Reglas estables para agentes de código en `SistemasANPR/eventos`. Sin estado de sesión: el estado vive en Git y en `docs/plans/`.
 
 ## Producto e invariantes
 

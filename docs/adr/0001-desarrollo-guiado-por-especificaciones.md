@@ -2,7 +2,7 @@
 
 > ADR de partida de la plantilla: ya viene aceptada. Ajustar solo las rutas y los lugares marcados; la regla se conserva.
 
-- **Fecha:** [RELLENAR: AAAA-MM-DD de adopción]
+- **Fecha:** 2026-11-09 (primer commit del repositorio)
 - **Estado:** Aceptada
 - **Alcance:** todo el repositorio; toda funcionalidad o módulo nuevo
 

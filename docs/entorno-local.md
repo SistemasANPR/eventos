@@ -1,6 +1,6 @@
 # Entorno local (Docker y VS Code)
 
-> Decisión en ADR-0008. Todo corre en contenedores; los comandos se prefijan con `docker compose exec app`. Los comandos de esta guía existen una vez creado el proyecto con el entorno Docker (`[CONFIRMAR: opciones vigentes de Sail]`).
+> Decisión en ADR-0008. Todo corre en contenedores; los comandos se prefijan con `docker compose exec app`. Los comandos de esta guía existen una vez creado el proyecto con el entorno Docker (Laravel Sail v1.69.0 según `composer.lock`; el `compose.yaml` de la raíz define `app`, `pgsql`, `redis` y `mailpit`).
 
 ## 1. Requisitos
 

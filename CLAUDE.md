@@ -1,4 +1,4 @@
-# [RELLENAR: Nombre del proyecto] — contrato de trabajo del agente
+# Eventos — contrato de trabajo del agente
 
 > Este archivo es corto a propósito. Las reglas viven en `AGENTS.md` (única fuente de verdad); aquí solo está lo específico de Claude Code. No duplicar contenido de `AGENTS.md`.
 
@@ -47,4 +47,4 @@ Cuando confirmes, muéstrame el plan de implementación en pasos antes de ejecut
 
 Un cambio no está hecho hasta que se ve funcionando: `docker compose exec app composer check`, y en el navegador la ruta afectada a ~375 px y ~1280 px con la consola abierta. Las animaciones de entrada pueden dejar una captura en blanco sin que nada esté roto: esperar o hacer scroll antes de concluir que hay un fallo.
 
-Entorno: desarrollo local con **VS Code y Docker** (Docker Desktop con WSL2); todo se ejecuta en el contenedor `app` (`docker compose exec app ...`), nunca con el PHP, Composer ni Node del equipo. El desarrollo va en la rama **`staging`**; `main` es producción y no se toca (ADR-0008). El correo local lo recibe Mailpit en http://localhost:8025. [RELLENAR: puertos reales, versión de PHP y Node fijadas, qué servicios externos no funcionan en local.]
+Entorno: desarrollo local con **VS Code y Docker** (Docker Desktop con WSL2); todo se ejecuta en el contenedor `app` (`docker compose exec app ...`), nunca con el PHP, Composer ni Node del equipo. El desarrollo va en la rama **`staging`**; `main` es producción y no se toca (ADR-0008). El correo local lo recibe Mailpit en http://localhost:8025. Puertos locales (`compose.yaml` y `.env.example`): aplicación 8080, Vite 5173, PostgreSQL 5433 (5432 entre contenedores), Redis 6379 y Mailpit 8025 (SMTP 1025). Versiones en el contenedor: PHP 8.4 (runtime de Sail 8.4; 8.4.27) y Node 24 (v24.22.2); PostgreSQL 18. [RELLENAR: qué servicios externos no funcionan en local.]
