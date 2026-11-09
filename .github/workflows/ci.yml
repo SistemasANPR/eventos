@@ -54,11 +54,12 @@ jobs:
           coverage: pcov
           tools: composer:v2
 
-      - name: Copiar .env de pruebas
-        run: cp .env.example .env && php artisan key:generate
-
       - name: Instalar dependencias
         run: composer install --no-interaction --prefer-dist --no-progress
+
+      # Después de instalar: artisan necesita vendor/autoload.php.
+      - name: Copiar .env de pruebas
+        run: cp .env.example .env && php artisan key:generate
 
       - name: Auditoría de dependencias
         run: composer audit
