@@ -1,0 +1,15 @@
+# Las rutas sensibles exigen revisión humana de una persona del equipo
+# (AGENTS.md: revisión obligatoria en autenticación, permisos, pagos, archivos y tenancy).
+# Sustituir @equipo-plataforma por el usuario o equipo real y descomentar.
+
+# * @equipo-plataforma
+
+# /app/Policies/                      @equipo-plataforma
+# /app/Support/Tenancy/               @equipo-plataforma
+# /app/Models/Concerns/               @equipo-plataforma
+# /app/Actions/Payments/              @equipo-plataforma
+# /app/Http/Controllers/Webhooks/     @equipo-plataforma
+# /database/migrations/               @equipo-plataforma
+# /config/                            @equipo-plataforma
+# /.github/ /.claude/                 @equipo-plataforma
+# /docs/seguridad.md /docs/privacidad.md  @equipo-plataforma

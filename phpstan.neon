@@ -1,0 +1,17 @@
+includes:
+    - vendor/larastan/larastan/extension.neon
+
+parameters:
+    # Nivel de partida. Solo sube, nunca baja: al cumplirse, subir uno y corregir.
+    # Meta: 8 antes de la primera versión en producción.
+    level: 6
+
+    paths:
+        - app
+        - database
+        - routes
+        - tests
+
+    # No se ignoran errores a ojo. Un @phpstan-ignore requiere justificación local
+    # (AGENTS.md, "Forma de trabajar").
+    treatPhpDocTypesAsCertain: false

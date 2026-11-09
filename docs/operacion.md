@@ -1,0 +1,95 @@
+# Operación
+
+> Cómo se despliega, se vigila y se recupera el sistema. Rellenar al elegir la plataforma (ADR-0002) y revisar con cada cambio de infraestructura.
+
+## 1. Entornos
+
+| Entorno | Para qué | Datos | Rama | Despliegue |
+|---|---|---|---|---|
+| Local (Docker, VS Code) | Desarrollo | Ficticios (fábricas y seeders) | `staging` | Manual (`docs/entorno-local.md`) |
+| CI | Pipeline | Efímeros (PostgreSQL de servicio) | pull request, `staging`, `main` | Automático |
+| Pruebas (`staging`) | Validar antes de producción | Anonimizados o ficticios; **nunca** datos reales sin anonimizar | `staging` | `[RELLENAR: solo la rama, o un servidor desplegado, ADR-0008 DA-3]` |
+| Producción | Uso real | Reales | `main` | Manual con aprobación |
+
+Todo el desarrollo ocurre en `staging`; `main` solo recibe lo ya probado (ADR-0008). `staging` puede empezar como una rama sin servidor propio; cuando haga falta que el equipo o la organización cliente prueben en un entorno compartido, se despliega.
+
+[RELLENAR: plataforma elegida (Railway, Laravel Cloud, GCP, AWS), región y dominios.]
+
+## 2. Servicios requeridos
+
+| Servicio | Notas |
+|---|---|
+| Aplicación web | Laravel; SSR de Inertia si se activa (ADR-0004) |
+| Worker de colas | Procesa correos, webhooks, exportaciones y PDF. **Hosting compartido no sirve** |
+| Planificador | `php artisan schedule:run` cada minuto |
+| PostgreSQL | Gestionado; respaldos automáticos |
+| Redis | Colas, caché y bloqueos |
+| Almacenamiento de archivos | Compatible con S3; bucket **privado**; versionado activado |
+| Correo transaccional | `[RELLENAR: proveedor]`; dominio con SPF, DKIM y DMARC |
+| CDN y protección | Cloudflare delante del sitio público |
+| Errores | `[RELLENAR: Sentry u otro]`; sin PII en los eventos |
+| Monitoreo de colas | Laravel Horizon |
+
+## 3. Despliegue
+
+1. Cada pull request pasa el CI (`.github/workflows/ci.yml`).
+2. Integrar en `staging` despliega al entorno de pruebas (si existe, ADR-0008 DA-3).
+3. Producción se despliega desde `main`, que solo recibe `staging` por pull request, con **aprobación manual**.
+4. **Migraciones:** el paso de despliegue las aplica solo tras la aprobación de una persona (regla 1 de `AGENTS.md`). Cambios incompatibles siguen «expandir y contraer» (`docs/database-design.md` §5).
+5. Después del despliegue: comprobar `/up`, reiniciar los workers y revisar errores durante 15 minutos.
+
+**Reversa:** redesplegar la versión anterior. Si la migración es incompatible hacia atrás, el plan de reversa se describe en la propuesta de datos antes de aprobarla.
+
+## 4. Variables de entorno
+
+Solo nombres; nunca valores en el repositorio. Toda variable nueva se añade a `.env.example` con valor ficticio y a esta tabla.
+
+| Variable | Para qué | Obligatoria |
+|---|---|---|
+| `APP_KEY`, `APP_URL`, `APP_ENV` | Aplicación | Sí |
+| `DB_*` | PostgreSQL | Sí |
+| `REDIS_*` | Colas y caché | Sí |
+| `FILESYSTEM_DISK` y credenciales del bucket | Archivos | Sí |
+| `MAIL_*` | Correo transaccional | Sí |
+| `[RELLENAR: proveedor de pagos]` | Pagos (ADR-0007) | Según módulo |
+| `[RELLENAR: errores]` | Registro de errores | Recomendada |
+
+## 5. Respaldos y recuperación
+
+- **Base de datos:** respaldo diario automático con retención de `[RELLENAR: días]`, más recuperación a un punto en el tiempo si la plataforma lo ofrece.
+- **Archivos:** versionado del bucket y copia a otra región o proveedor `[RELLENAR]`.
+- **Prueba de restauración** en staging cada trimestre; se anota la fecha y el resultado aquí:
+
+| Fecha | Qué se restauró | Resultado | Tiempo |
+|---|---|---|---|
+
+- Objetivos: punto de recuperación `[RELLENAR]` y tiempo de recuperación `[RELLENAR]`.
+
+## 6. Observabilidad
+
+- **Salud:** `/up` (incluido en Laravel) y una comprobación externa cada minuto.
+- **Registros** estructurados con identificador de correlación; sin datos personales ni secretos. Retención `[RELLENAR]`.
+- **Errores:** agrupados y con alerta al equipo; los de pagos y webhooks alertan de inmediato.
+- **Colas:** Horizon con alertas por trabajos fallidos, tiempo de espera largo y worker caído.
+- **Alertas mínimas:** sitio caído, tasa de errores 5xx, cola atrasada, espacio de disco o conexiones de la base, certificado por caducar, fallo del planificador.
+- **Métricas de negocio** (registros, pagos, envíos) en el panel de reportes, no aquí.
+
+## 7. Rendimiento y costos
+
+- Revisar consultas lentas y N+1 (`Model::preventLazyLoading()` fuera de producción).
+- Caché con clave que incluye la organización.
+- Revisión mensual de costos por servicio; alertas de gasto en la plataforma.
+
+## 8. Mantenimiento
+
+- Modo de mantenimiento de Laravel para ventanas planificadas; aviso previo a las organizaciones.
+- Actualizaciones de dependencias: Dependabot, una por pull request; actualizaciones de seguridad de inmediato.
+- Rotación de secretos: al menos cada `[RELLENAR]` y siempre que se sospeche una exposición.
+
+## 9. Guías de actuación (runbooks)
+
+Anotar aquí, al ocurrir o al ensayar, cómo se resuelve:
+
+- Sitio caído · Cola atrasada o worker caído · Webhook de pagos que falla · Correo que no llega · Restauración de la base · Sospecha de fuga entre organizaciones · Secreto expuesto.
+
+[RELLENAR: un enlace o un párrafo por caso.]
