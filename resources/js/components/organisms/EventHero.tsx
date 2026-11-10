@@ -1,3 +1,4 @@
+import { TextLink } from '@/components/atoms/TextLink';
 import { EventFact } from '@/components/molecules/EventFact';
 import { LocaleSwitcher } from '@/components/molecules/LocaleSwitcher';
 import { useTranslation } from '@/hooks/useTranslation';
@@ -6,13 +7,15 @@ import type { PublicEvent } from '@/types/event';
 
 interface EventHeroProps {
     event: PublicEvent;
+    /** URL del aviso de privacidad publicado, o `null` si el evento no tiene uno. */
+    privacyUrl: string | null;
 }
 
 /**
  * Presentación de un evento: nombre, descripción, fechas en su zona horaria y sede.
  * Usar en: página pública del evento (`pages/Events/Show`).
  */
-export function EventHero({ event }: EventHeroProps) {
+export function EventHero({ event, privacyUrl }: EventHeroProps) {
     const { t } = useTranslation();
 
     const dates = formatEventDates(event.startsAt, event.endsAt, event.timezone, event.locale);
@@ -35,7 +38,10 @@ export function EventHero({ event }: EventHeroProps) {
                 <EventFact label={t('event.timezone')}>{event.timezone}</EventFact>
             </dl>
 
-            <LocaleSwitcher locales={event.locales} currentLocale={event.locale} />
+            <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:gap-6">
+                {privacyUrl !== null && <TextLink href={privacyUrl}>{t('event.privacy_link')}</TextLink>}
+                <LocaleSwitcher locales={event.locales} currentLocale={event.locale} />
+            </div>
         </section>
     );
 }

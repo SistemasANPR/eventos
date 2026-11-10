@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Public;
 
 use App\Models\Event;
 use App\Models\Organization;
+use App\Models\PrivacyNotice;
 use App\Support\Events\PublicEventData;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -29,6 +30,10 @@ final class ShowEventController
         return Inertia::render('Events/Show', [
             'event' => PublicEventData::from($event, $locale),
             'organization' => ['name' => $organization->name, 'slug' => $organization->slug],
+            // Solo se enlaza si hay una versión PUBLICADA (CA-003-19); un borrador no cuenta.
+            'privacyUrl' => PrivacyNotice::currentPublished($event) === null
+                ? null
+                : route('events.privacy', ['organization' => $organization->slug, 'event' => $event->slug], false),
         ]);
     }
 }

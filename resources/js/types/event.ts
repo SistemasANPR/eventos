@@ -21,3 +21,23 @@ export interface PublicOrganization {
     name: string;
     slug: string;
 }
+
+/** Evento en la página del aviso: coincide con las props de `Events/Privacy` (solo lo que esa página muestra). */
+export interface PrivacyPageEvent {
+    name: string;
+    /** Idioma de ESTA página. */
+    locale: string;
+    /** Idiomas del evento. */
+    locales: string[];
+}
+
+/** Aviso de privacidad publicado, con el cuerpo ya sanitizado en el servidor. */
+export interface PrivacyNotice {
+    version: number;
+    /** Instante de publicación en UTC (ISO 8601). */
+    publishedAt: string;
+    /** HTML ya sanitizado: solo p, br, strong, em, ul, ol, li y a con href http o https. */
+    body: string;
+    /** Idioma real del texto; puede ser el idioma base si falta el pedido. */
+    locale: string;
+}

@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Http\Controllers\Public\ShowEventController;
+use App\Http\Controllers\Public\ShowPrivacyNoticeController;
 use App\Http\Middleware\HandleInertiaRequests;
 use App\Http\Middleware\SetOrganizationFromRoute;
 use Illuminate\Support\Facades\Route;
@@ -24,4 +25,5 @@ Route::middleware([SetOrganizationFromRoute::class, HandleInertiaRequests::class
     ->scopeBindings()
     ->group(function (): void {
         Route::get('events/{event:slug}', ShowEventController::class)->name('events.show');
+        Route::get('events/{event:slug}/privacy', ShowPrivacyNoticeController::class)->name('events.privacy');
     });

@@ -16,3 +16,19 @@ export function formatEventDates(startsAt: string, endsAt: string, timeZone: str
 
     return formatter.formatRange(new Date(startsAt), new Date(endsAt));
 }
+
+/**
+ * Instante de publicación de un documento, en UTC y en el idioma de la página.
+ * Se usa UTC porque la zona horaria del evento no se conoce en esas páginas.
+ */
+export function formatPublishedAt(publishedAt: string, locale: string): string {
+    return new Intl.DateTimeFormat(locale, {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: 'numeric',
+        minute: '2-digit',
+        timeZone: 'UTC',
+        timeZoneName: 'short',
+    }).format(new Date(publishedAt));
+}

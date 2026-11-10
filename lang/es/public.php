@@ -15,6 +15,14 @@ return [
         'language' => 'Idioma',
         'language_option' => 'Ver en :language',
         'no_venue' => 'Sede por confirmar',
+        'privacy_link' => 'Aviso de privacidad',
+    ],
+    'privacy' => [
+        'title' => 'Aviso de privacidad',
+        'version' => 'Versión :version',
+        'published_on' => 'Publicado el :date',
+        'back_to_event' => 'Volver al evento',
+        'shown_in_base_language' => 'Este aviso se muestra en el idioma base del evento.',
     ],
     'languages' => [
         'es' => 'Español',

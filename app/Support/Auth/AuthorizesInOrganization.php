@@ -16,14 +16,16 @@ use Illuminate\Support\Facades\Gate;
 trait AuthorizesInOrganization
 {
     /**
-     * @param  string|object  $subject  el modelo (o su clase) sobre el que se actúa
+     * `$subject` es el modelo (o su clase) sobre el que se actúa. Si la Policy
+     * recibe además otro modelo (p. ej. crear un aviso exige su evento), va en `$related`.
+     *
      *
      * @throws AuthorizationException
      */
-    private function authorizeActor(User $actor, string $ability, string|object $subject): void
+    private function authorizeActor(User $actor, string $ability, string|object $subject, ?object $related = null): void
     {
         $actor->unsetRelation('roles')->unsetRelation('permissions');
 
-        Gate::forUser($actor)->authorize($ability, $subject);
+        Gate::forUser($actor)->authorize($ability, $related === null ? $subject : [$subject, $related]);
     }
 }

@@ -1,4 +1,4 @@
-import { formatEventDates } from '@/lib/date-format';
+import { formatEventDates, formatPublishedAt } from '@/lib/date-format';
 
 const STARTS_AT = '2027-03-10T15:00:00Z';
 const ENDS_AT = '2027-03-12T23:00:00Z';
@@ -23,5 +23,19 @@ describe('formatEventDates', () => {
         const text = formatEventDates('2027-03-10T02:00:00Z', '2027-03-10T05:00:00Z', 'America/Mexico_City', 'en');
 
         expect(text).toContain('March 9');
+    });
+});
+
+describe('formatPublishedAt', () => {
+    it('shows the instant in UTC, whatever the zone of the browser', () => {
+        const text = formatPublishedAt('2026-11-10T23:30:00Z', 'es');
+
+        expect(text).toContain('10 de noviembre de 2026');
+        expect(text).toMatch(/23:30/);
+        expect(text).toContain('UTC');
+    });
+
+    it('formats in the language of the page', () => {
+        expect(formatPublishedAt('2026-11-10T15:00:00Z', 'en')).toContain('November 10, 2026');
     });
 });

@@ -20,6 +20,15 @@ export interface CatalogEntry {
 
 export const registry: CatalogEntry[] = [
     {
+        name: 'RichText',
+        path: 'atoms/RichText',
+        level: 'atom',
+        category: 'Data display',
+        useWhen: 'Mostrar texto enriquecido (párrafos, énfasis, listas, enlaces) ya sanitizado en el servidor, como el aviso de privacidad',
+        avoidFor: 'HTML arbitrario o contenido con imágenes, tablas o formularios; texto plano (usar un <p>)',
+        preview: 'none',
+    },
+    {
         name: 'TextLink',
         path: 'atoms/TextLink',
         level: 'atom',
@@ -51,7 +60,7 @@ export const registry: CatalogEntry[] = [
         path: 'organisms/EventHero',
         level: 'organism',
         category: 'Events',
-        useWhen: 'Presentar un evento: nombre, descripción, fechas, sede y zona horaria',
+        useWhen: 'Presentar un evento: nombre, descripción, fechas, sede, zona horaria y enlace a su aviso de privacidad',
         avoidFor: 'Listados de eventos (usar una tarjeta compacta)',
         preview: 'none',
     },

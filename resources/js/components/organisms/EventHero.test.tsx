@@ -12,6 +12,7 @@ const translations = {
         language: 'Idioma',
         language_option: 'Ver en :language',
         no_venue: 'Sede por confirmar',
+        privacy_link: 'Aviso de privacidad',
     },
     languages: { es: 'Español', en: 'English' },
 };
@@ -35,13 +36,13 @@ const event: PublicEvent = {
 
 describe('EventHero', () => {
     it('shows the name as the main heading', () => {
-        render(<EventHero event={event} />);
+        render(<EventHero event={event} privacyUrl={null} />);
 
         expect(screen.getByRole('heading', { level: 1, name: 'Congreso Parques' })).toBeInTheDocument();
     });
 
     it('shows the description, the venue and the time zone', () => {
-        render(<EventHero event={event} />);
+        render(<EventHero event={event} privacyUrl={null} />);
 
         expect(screen.getByText('Una descripción')).toBeInTheDocument();
         expect(screen.getByText('Centro de Convenciones, Ciudad de México')).toBeInTheDocument();
@@ -49,7 +50,7 @@ describe('EventHero', () => {
     });
 
     it('shows the dates in the time zone of the event, formatted for the language', () => {
-        render(<EventHero event={event} />);
+        render(<EventHero event={event} privacyUrl={null} />);
 
         const dates = screen.getByText(/marzo/);
 
@@ -58,19 +59,19 @@ describe('EventHero', () => {
     });
 
     it('omits the description when there is none', () => {
-        render(<EventHero event={{ ...event, description: null }} />);
+        render(<EventHero event={{ ...event, description: null }} privacyUrl={null} />);
 
         expect(screen.queryByText('Una descripción')).not.toBeInTheDocument();
     });
 
     it('says the venue is to be confirmed when there is none', () => {
-        render(<EventHero event={{ ...event, venueName: null, city: null }} />);
+        render(<EventHero event={{ ...event, venueName: null, city: null }} privacyUrl={null} />);
 
         expect(screen.getByText('Sede por confirmar')).toBeInTheDocument();
     });
 
     it('offers the other languages and marks the current one', () => {
-        render(<EventHero event={event} />);
+        render(<EventHero event={event} privacyUrl={null} />);
 
         const nav = screen.getByRole('navigation', { name: 'Idioma' });
 
@@ -79,8 +80,23 @@ describe('EventHero', () => {
     });
 
     it('hides the language switcher when the event has a single language', () => {
-        render(<EventHero event={{ ...event, locales: ['es'] }} />);
+        render(<EventHero event={{ ...event, locales: ['es'] }} privacyUrl={null} />);
 
         expect(screen.queryByRole('navigation', { name: 'Idioma' })).not.toBeInTheDocument();
+    });
+
+    it('links to the privacy notice only when the event has a published one', () => {
+        render(<EventHero event={event} privacyUrl="/parques/events/congreso/privacy" />);
+
+        expect(screen.getByRole('link', { name: 'Aviso de privacidad' })).toHaveAttribute(
+            'href',
+            '/parques/events/congreso/privacy',
+        );
+    });
+
+    it('does not show the privacy link when there is no published notice', () => {
+        render(<EventHero event={event} privacyUrl={null} />);
+
+        expect(screen.queryByRole('link', { name: 'Aviso de privacidad' })).not.toBeInTheDocument();
     });
 });

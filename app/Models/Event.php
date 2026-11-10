@@ -13,6 +13,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Carbon;
 use Spatie\Translatable\HasTranslations;
@@ -72,6 +73,12 @@ class Event extends Model
     public function scopePublished(Builder $query): Builder
     {
         return $query->where('status', EventStatus::Published);
+    }
+
+    /** @return HasMany<PrivacyNotice, $this> */
+    public function privacyNotices(): HasMany
+    {
+        return $this->hasMany(PrivacyNotice::class);
     }
 
     public function isPublished(): bool
