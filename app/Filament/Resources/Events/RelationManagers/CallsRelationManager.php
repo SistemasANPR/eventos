@@ -86,6 +86,8 @@ class CallsRelationManager extends RelationManager
             ->label(__('calls.new_call'))
             ->icon(Heroicon::OutlinedPlus)
             ->schema(fn (): array => $this->formFields())
+            // Más de cuatro campos (tipo, idiomas, textos y fechas): panel lateral (plan 015, DA-5).
+            ->slideOver()
             ->visible(fn (): bool => Gate::allows('create', [CallForSubmissions::class, $this->owner()]))
             ->action(fn (array $data) => $this->run(
                 fn () => app(CreateCallForSubmissions::class)->handle(ActionErrors::actor(), $this->owner(), $data),
@@ -99,6 +101,7 @@ class CallsRelationManager extends RelationManager
             ->label(__('calls.actions.edit'))
             ->icon(Heroicon::OutlinedPencilSquare)
             ->schema(fn (): array => $this->formFields())
+            ->slideOver()
             ->fillForm(fn (CallForSubmissions $record): array => [
                 'submission_type_id' => $record->submission_type_id,
                 'title' => $record->getTranslations('title'),

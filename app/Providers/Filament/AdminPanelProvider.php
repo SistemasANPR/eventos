@@ -10,6 +10,7 @@ use App\Filament\Pages\Auth\ResetPassword;
 use App\Http\Middleware\ApplyOrganizationContext;
 use App\Models\Organization;
 use App\Support\Panel\BrandPalette;
+use Filament\Actions\Action;
 use Filament\FontProviders\LocalFontProvider;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
@@ -18,6 +19,7 @@ use Filament\Http\Middleware\DispatchServingFilamentEvent;
 use Filament\Pages\Dashboard;
 use Filament\Panel;
 use Filament\PanelProvider;
+use Filament\Support\Enums\Width;
 use Filament\Widgets\AccountWidget;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Illuminate\Cookie\Middleware\EncryptCookies;
@@ -47,6 +49,7 @@ class AdminPanelProvider extends PanelProvider
             ->viteTheme('resources/css/filament/admin/theme.css')
             ->font('Roboto', provider: LocalFontProvider::class)
             ->darkMode(false)
+            ->bootUsing(fn () => self::defaultModalWidth())
             ->colors([
                 'primary' => BrandPalette::primary(),
                 'gray' => BrandPalette::gray(),
@@ -78,5 +81,19 @@ class AdminPanelProvider extends PanelProvider
             ->authMiddleware([
                 Authenticate::class,
             ]);
+    }
+
+    /**
+     * Ancho `md` de todos los modales de acción del panel (plan 015, DA-5), definido
+     * aquí y en ningún otro sitio. Filament usa `4xl` por omisión, demasiado ancho
+     * en móvil. Va en `bootUsing` y no en `AppServiceProvider` para que solo corra
+     * al arrancar este panel y no el de plataforma. `Action::configureUsing` alcanza
+     * a las subclases (CreateAction, EditAction, ViewAction...) y corre antes de la
+     * cadena de cada acción, así que un `->modalWidth()` explícito sigue ganando.
+     * Los formularios largos se abren con `->slideOver()` en su propia acción.
+     */
+    private static function defaultModalWidth(): void
+    {
+        Action::configureUsing(fn (Action $action): Action => $action->modalWidth(Width::Medium));
     }
 }

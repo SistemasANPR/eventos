@@ -53,3 +53,74 @@ h3,
 .fi-section-header-heading {
     font-family: 'Montserrat', system-ui, -apple-system, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
 }
+
+/*
+ * Pantallas de acceso (plan 015, F1, CA-015-8): inicio de sesion y recuperacion
+ * de contrasena. El marino lidera (fondo y titulos); la lima es un solo detalle
+ * decorativo bajo el nombre de marca y nunca lleva texto (design.md §3.1).
+ *
+ * TODO(marca): cuando exista el archivo del logotipo, configurarlo con
+ * ->brandLogo() en AdminPanelProvider y retirar el nombre tipografico y su
+ * detalle lima de `.fi-simple-header .fi-logo`.
+ */
+.fi-simple-layout {
+    background-color: #0d1e70;
+    background-image:
+        radial-gradient(60rem 30rem at 15% -10%, rgb(87 114 186 / 0.35), transparent 60%),
+        linear-gradient(160deg, #152b83 0%, #0d1e70 55%, #08155d 100%);
+    background-attachment: fixed;
+}
+
+.fi-simple-layout .fi-simple-main {
+    background-color: #ffffff;
+    box-shadow: 0 24px 48px -12px rgb(8 21 93 / 0.55);
+    border-radius: 1rem;
+}
+
+@media (max-width: 639px) {
+    .fi-simple-layout .fi-simple-main {
+        width: calc(100% - 2rem);
+        margin-block: 2rem;
+        padding-inline: 1.5rem;
+        padding-block: 2rem;
+    }
+}
+
+.fi-simple-header .fi-logo {
+    flex-direction: column;
+    align-items: center;
+    gap: 0.625rem;
+    font-family: 'Montserrat', system-ui, -apple-system, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+    font-size: 1.75rem;
+    font-weight: 800;
+    letter-spacing: -0.01em;
+    color: #152b83;
+}
+
+.fi-simple-header .fi-logo::after {
+    content: '';
+    display: block;
+    width: 2.5rem;
+    height: 0.25rem;
+    border-radius: 9999px;
+    background-color: #bfcc36;
+}
+
+.fi-simple-header-heading {
+    color: #152b83;
+    font-size: 1.25rem;
+}
+
+/* Foco visible de 2 px en el marino de la marca (design.md §7). */
+.fi-simple-main a:focus-visible,
+.fi-simple-main button:focus-visible,
+.fi-simple-main input:focus-visible,
+.fi-simple-main [tabindex]:focus-visible {
+    outline: 2px solid #152b83;
+    outline-offset: 2px;
+}
+
+/* Subtitulo en `text-muted` (6,8:1): el gris por defecto de Filament no llega a AA. */
+.fi-simple-header-subheading {
+    color: #585b62;
+}
