@@ -6,6 +6,8 @@ namespace App\Providers;
 
 use App\Models\User;
 use App\Policies\MembershipPolicy;
+use App\Support\Calls\NoTrackUsage;
+use App\Support\Calls\TrackUsageChecker;
 use App\Support\Files\FileFieldRegistry;
 use App\Support\Files\NoFileFields;
 use App\Support\Files\NoIssuedUploadTokens;
@@ -31,6 +33,8 @@ class AppServiceProvider extends ServiceProvider
         // Costuras hacia el formulario público (planes 005 y 006): deniegan todo hasta que existan.
         $this->app->bind(FileFieldRegistry::class, NoFileFields::class);
         $this->app->bind(UploadTokenVerifier::class, NoIssuedUploadTokens::class);
+        // Costura hacia las propuestas (plan 006): hasta entonces ningún eje está en uso.
+        $this->app->bind(TrackUsageChecker::class, NoTrackUsage::class);
     }
 
     /**
