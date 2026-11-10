@@ -6,10 +6,13 @@ namespace App\Support\Files;
 
 use App\Exceptions\Domain\PrivateUploadFailed;
 use App\Support\Tenancy\TenantStoragePath;
+use DateTimeInterface;
 use Illuminate\Contracts\Filesystem\Filesystem;
+use Illuminate\Filesystem\FilesystemAdapter;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
+use InvalidArgumentException;
 use ZipArchive;
 
 /**
@@ -126,6 +129,31 @@ class PrivateUploads
         }
 
         return $path;
+    }
+
+    /**
+     * URL temporal firmada que fuerza la descarga como adjunto con `$downloadName`.
+     * El nombre lo construye el llamador con datos generados por el servidor (nunca
+     * del cliente) y se valida aquí: solo letras, dígitos, `-`, `_` y un punto.
+     *
+     * @throws PrivateUploadFailed si el disco no emite URLs temporales
+     */
+    public function temporaryUrl(string $path, DateTimeInterface $expiration, string $downloadName): string
+    {
+        $diskName = (string) config('filesystems.private_uploads_disk');
+        $disk = $this->disk();
+
+        if (preg_match('/\A[A-Za-z0-9_-]+\.[A-Za-z0-9]+\z/', $downloadName) !== 1) {
+            throw new InvalidArgumentException('Nombre de descarga no permitido.');
+        }
+
+        if (! $disk instanceof FilesystemAdapter || ! $disk->providesTemporaryUrls()) {
+            throw PrivateUploadFailed::onDisk($diskName);
+        }
+
+        return $disk->temporaryUrl($path, $expiration, [
+            'ResponseContentDisposition' => 'attachment; filename="'.$downloadName.'"',
+        ]);
     }
 
     public function delete(string $path): void

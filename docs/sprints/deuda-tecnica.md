@@ -26,6 +26,8 @@ Lo que NO está aquí porque se decidió no cambiarlo: [RELLENAR: decisiones de 
 | DT-05 | El 429 del login en Livewire muestra el modal de error genérico en vez de un aviso amable. Dueño: [PENDIENTE]. Fecha límite sugerida: [PENDIENTE] | `app/Filament/Pages/Auth`, `app/Support/Auth/AccessThrottle.php` | S |
 | DT-12 | Plan 007 (H-007-1): `submission_files.submission_id` es un uuid sin clave foránea y `FileFieldRegistry` / `UploadTokenVerifier` tienen una implementación que deniega todo. Al llegar el plan 006 (`submissions`) añadir la FK compuesta `(submission_id, organization_id)` en su migración, y con los planes 005 y 006 sustituir ambas por las reales (hasta entonces la subida responde 403). Documentar `PRIVATE_UPLOADS_DISK` en `.env.example` y `docs/operacion.md`. Dueño: [PENDIENTE]. Fecha límite sugerida: con el plan 006; [PENDIENTE] fecha | `database/migrations/2026_11_10_500000_create_submission_files_table.php`, `app/Support/Files/` | M |
 
+| DT-13 | Plan 007 (H-007-2): la descarga existe como ruta `submission-files.download` y Action, pero ninguna pantalla la enlaza hasta el detalle de propuesta del plan 009 (acción visible solo con `files.download`, CA-009-6 y CA-009-10). Además, el driver `local` (solo desarrollo) sirve el archivo con su ruta firmada propia y no aplica `Content-Disposition`; solo el bucket S3 de `staging` y producción lo fuerza (CA-007-21, comprobación manual). Dueño: [PENDIENTE]. Fecha límite sugerida: con el plan 009; [PENDIENTE] fecha | `app/Actions/Submissions/DownloadSubmissionFile.php`, `routes/web.php` | S |
+
 ### P3 · Convenciones
 
 | # | Punto | Archivos | Esfuerzo |

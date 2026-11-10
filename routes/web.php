@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Http\Controllers\Panel\SubmissionFileDownloadController;
 use App\Http\Controllers\Public\ShowEventController;
 use App\Http\Controllers\Public\ShowPrivacyNoticeController;
 use App\Http\Controllers\Public\SubmissionFileUploadController;
@@ -32,3 +33,10 @@ Route::middleware([SetOrganizationFromRoute::class, HandleInertiaRequests::class
             ->middleware('throttle:60,1')
             ->name('calls.files.store');
     });
+
+// Descarga de archivos de propuesta por organizadores (plan 007, H-007-2). Bajo el prefijo `admin/`
+// del panel de Filament, pero como ruta web propia: autenticada con `auth` y con la organización
+// fijada por la ruta. Decisión: `tenantRoutes()` de Filament exigiría tocar el proveedor del panel.
+Route::middleware(['auth', SetOrganizationFromRoute::class])
+    ->get('admin/{organization:slug}/submission-files/{file}', SubmissionFileDownloadController::class)
+    ->name('submission-files.download');

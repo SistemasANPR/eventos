@@ -51,6 +51,7 @@ Solo nombres; nunca valores en el repositorio. Toda variable nueva se añade a `
 | `DB_*` | PostgreSQL | Sí |
 | `REDIS_*` | Colas y caché | Sí |
 | `FILESYSTEM_DISK` y credenciales del bucket | Archivos | Sí |
+| `PRIVATE_UPLOADS_DISK` | Disco privado de los archivos de propuestas (por defecto `local`). En staging y producción apunta a un bucket S3 compatible **privado**; nunca a `public` | Sí |
 | `MAIL_*` | Correo transaccional | Sí |
 | `[RELLENAR: proveedor de pagos]` | Pagos (ADR-0007) | Según módulo |
 | `[RELLENAR: errores]` | Registro de errores | Recomendada |
