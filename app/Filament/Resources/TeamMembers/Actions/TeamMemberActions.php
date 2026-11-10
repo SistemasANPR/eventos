@@ -7,7 +7,9 @@ namespace App\Filament\Resources\TeamMembers\Actions;
 use App\Actions\Organizations\ChangeMemberRole;
 use App\Actions\Organizations\DeactivateMember;
 use App\Actions\Organizations\InviteTeamMember;
+use App\Actions\Organizations\ResendTeamInvitation;
 use App\Enums\OrganizationRole;
+use App\Exceptions\Domain\InvitationNotPending;
 use App\Exceptions\Domain\LastOrganizationAdmin;
 use App\Exceptions\Domain\MemberNotActive;
 use App\Filament\Support\ActionErrors;
@@ -26,7 +28,7 @@ use Illuminate\Http\Exceptions\ThrottleRequestsException;
 use Illuminate\Validation\ValidationException;
 
 /**
- * Alta, cambio de rol y baja de integrantes desde el panel. Delgadas: las
+ * Alta, reenvío de invitación, cambio de rol y baja de integrantes desde el panel. Delgadas: las
  * reglas y la autorización viven en las Actions y en `MembershipPolicy`; aquí
  * solo se oculta lo que no procede (ocultar no es autorizar) y se muestra el
  * resultado. Los errores de validación de las Actions llegan al campo del
@@ -84,6 +86,22 @@ final class TeamMemberActions
             });
     }
 
+    public static function resendInvitation(): Action
+    {
+        return Action::make('resendInvitation')
+            ->label(__('team.resend.action'))
+            ->icon(Heroicon::OutlinedEnvelope)
+            ->authorize('resendInvitation')
+            ->requiresConfirmation()
+            ->modalDescription(__('team.resend.confirm'))
+            ->action(function (User $record): void {
+                self::run(
+                    fn () => app(ResendTeamInvitation::class)->handle(ActionErrors::actor(), CurrentOrganization::get(), $record),
+                    __('team.resend.done'),
+                );
+            });
+    }
+
     public static function deactivate(): Action
     {
         return Action::make('deactivate')
@@ -137,6 +155,10 @@ final class TeamMemberActions
             return;
         } catch (LastOrganizationAdmin) {
             Notification::make()->title(__('team.errors.last_admin'))->danger()->send();
+
+            return;
+        } catch (InvitationNotPending) {
+            Notification::make()->title(__('team.errors.not_pending'))->danger()->send();
 
             return;
         } catch (MemberNotActive) {

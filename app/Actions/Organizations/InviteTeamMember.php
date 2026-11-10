@@ -12,12 +12,12 @@ use App\Notifications\MembershipAddedNotification;
 use App\Notifications\SetPasswordNotification;
 use App\Support\Auth\AccessThrottle;
 use App\Support\Auth\OrganizationAdmins;
+use App\Support\Auth\TeamInvitationLimiter;
 use App\Support\Tenancy\CurrentOrganization;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\Exceptions\ThrottleRequestsException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
-use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use Illuminate\Support\Timebox;
@@ -50,7 +50,7 @@ use Illuminate\Validation\ValidationException;
  */
 final class InviteTeamMember
 {
-    public const MAX_PER_MINUTE = 10;
+    public const MAX_PER_MINUTE = TeamInvitationLimiter::MAX_PER_MINUTE;
 
     /** @param  array<string, mixed>  $input */
     public function handle(User $actor, Organization $organization, array $input): void
@@ -58,7 +58,7 @@ final class InviteTeamMember
         CurrentOrganization::run($organization, function () use ($actor, $organization, $input): void {
             Gate::forUser($actor)->authorize('create', User::class);
 
-            $this->hitLimit($actor);
+            TeamInvitationLimiter::hit($actor);
 
             $data = $this->validated($input);
 
@@ -69,16 +69,6 @@ final class InviteTeamMember
 
             $member->notify($isNew ? new SetPasswordNotification : new MembershipAddedNotification($organization->name));
         });
-    }
-
-    private function hitLimit(User $actor): void
-    {
-        $key = 'team-invite:'.$actor->id;
-
-        // Se cuenta primero y se decide con el valor de `hit()`: contar después dejaría pasar una ráfaga paralela.
-        if (RateLimiter::hit($key, 60) > self::MAX_PER_MINUTE) {
-            throw new ThrottleRequestsException(headers: ['Retry-After' => (string) RateLimiter::availableIn($key)]);
-        }
     }
 
     /**

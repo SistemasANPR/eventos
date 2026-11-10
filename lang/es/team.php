@@ -39,6 +39,11 @@ return [
         'throttled' => 'Demasiadas altas en poco tiempo. Espera un minuto e inténtalo de nuevo.',
         'already_member' => 'Ese correo ya pertenece al equipo de esta organización.',
     ],
+    'resend' => [
+        'action' => 'Reenviar invitación',
+        'confirm' => 'Se enviará de nuevo el correo para definir la contraseña, con un enlace nuevo que caduca en 60 minutos.',
+        'done' => 'Invitación reenviada. La persona recibirá un correo para definir su contraseña.',
+    ],
     'change_role' => [
         'action' => 'Cambiar rol',
         'done' => 'Rol actualizado.',
@@ -50,6 +55,7 @@ return [
     ],
     'errors' => [
         'last_admin' => 'La organización debe conservar al menos un administrador activo.',
+        'not_pending' => 'Esa persona ya inició sesión: puede usar «¿Olvidaste tu contraseña?» si la perdió.',
         'not_active' => 'La persona ya no es integrante activo de esta organización.',
     ],
 ];

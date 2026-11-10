@@ -30,6 +30,7 @@ final class TeamMembersTable
             ->paginated([10, 25, 50, 100])
             ->defaultPaginationPageOption(25)
             ->recordActions([
+                TeamMemberActions::resendInvitation(),
                 TeamMemberActions::changeRole(),
                 TeamMemberActions::deactivate(),
             ]);

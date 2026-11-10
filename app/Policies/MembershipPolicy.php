@@ -47,4 +47,9 @@ final class MembershipPolicy
     {
         return $this->manage($actor) && $member->hasActiveMembershipIn(CurrentOrganization::get());
     }
+
+    public function resendInvitation(User $actor, User $member): bool
+    {
+        return $this->manage($actor) && $member->hasActiveMembershipIn(CurrentOrganization::get());
+    }
 }

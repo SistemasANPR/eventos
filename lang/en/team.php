@@ -39,6 +39,11 @@ return [
         'throttled' => 'Too many additions in a short time. Wait a minute and try again.',
         'already_member' => 'That email already belongs to this organization\'s team.',
     ],
+    'resend' => [
+        'action' => 'Resend invitation',
+        'confirm' => 'The email to set the password will be sent again, with a new link that expires in 60 minutes.',
+        'done' => 'Invitation resent. The person will receive an email to set their password.',
+    ],
     'change_role' => [
         'action' => 'Change role',
         'done' => 'Role updated.',
@@ -50,6 +55,7 @@ return [
     ],
     'errors' => [
         'last_admin' => 'The organization must keep at least one active administrator.',
+        'not_pending' => 'This person has already signed in: they can use "Forgot your password?" if they lost it.',
         'not_active' => 'The person is no longer an active member of this organization.',
     ],
 ];
