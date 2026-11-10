@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace App\Filament\Resources\Events\RelationManagers;
 
+use App\Actions\Calls\ChangeCallStatus;
 use App\Actions\Calls\CreateCallForSubmissions;
 use App\Actions\Calls\CreateSubmissionType;
 use App\Actions\Calls\PublishCall;
 use App\Actions\Calls\UpdateCallForSubmissions;
+use App\Enums\CallStatus;
 use App\Filament\Support\ActionErrors;
 use App\Filament\Support\SubmissionTypeFields;
 use App\Http\Requests\Events\StoreEventRequest;
@@ -75,7 +77,14 @@ class CallsRelationManager extends RelationManager
             ])
             ->defaultSort('opens_at', 'desc')
             ->headerActions([$this->createAction()])
-            ->recordActions([$this->editAction(), $this->publishAction()])
+            ->recordActions([
+                $this->editAction(),
+                $this->publishAction(),
+                $this->statusAction('pauseCall', 'pause', 'paused', CallStatus::Paused, [CallStatus::Published], Heroicon::OutlinedPauseCircle, 'warning'),
+                $this->statusAction('resumeCall', 'resume', 'resumed', CallStatus::Published, [CallStatus::Paused], Heroicon::OutlinedPlayCircle, 'success', true),
+                $this->statusAction('closeCall', 'close', 'closed', CallStatus::Closed, [CallStatus::Published, CallStatus::Paused], Heroicon::OutlinedLockClosed, 'danger', false, true),
+                $this->statusAction('reopenCall', 'reopen', 'reopened', CallStatus::Published, [CallStatus::Closed], Heroicon::OutlinedArrowPath, 'success', true),
+            ])
             ->emptyStateHeading(__('calls.empty_heading'))
             ->emptyStateDescription(__('calls.empty_description'));
     }
@@ -131,6 +140,50 @@ class CallsRelationManager extends RelationManager
                 fn () => app(PublishCall::class)->handle(ActionErrors::actor(), $record),
                 __('calls.actions.published'),
             ));
+    }
+
+    /**
+     * Pausar, cerrar, reanudar y reabrir (H-004-4): visibles solo según el estado y el permiso;
+     * la Action valida de nuevo. Al volver a publicada se ofrece una nueva fecha de cierre.
+     *
+     * @param  list<CallStatus>  $visibleFrom  estados desde los que se ofrece la acción
+     */
+    private function statusAction(
+        string $name,
+        string $labelKey,
+        string $doneKey,
+        CallStatus $target,
+        array $visibleFrom,
+        Heroicon $icon,
+        string $color,
+        bool $offersNewClose = false,
+        bool $confirms = false,
+    ): Action {
+        $action = Action::make($name)
+            ->label(__("calls.actions.{$labelKey}"))
+            ->icon($icon)
+            ->color($color)
+            ->visible(fn (CallForSubmissions $record): bool => in_array($record->status, $visibleFrom, true) && Gate::allows('changeStatus', $record))
+            ->action(fn (CallForSubmissions $record, array $data) => $this->run(
+                fn () => app(ChangeCallStatus::class)->handle(ActionErrors::actor(), $record, $target, $data),
+                __("calls.actions.{$doneKey}"),
+            ));
+
+        if ($offersNewClose) {
+            $action->schema([
+                DateTimePicker::make('closes_at')
+                    ->label(__('calls.actions.new_close'))
+                    ->helperText(__('calls.actions.new_close_help'))
+                    ->seconds(false)
+                    ->format('Y-m-d H:i'),
+            ]);
+        }
+
+        if ($confirms) {
+            $action->requiresConfirmation()->modalDescription(__('calls.actions.close_confirm'));
+        }
+
+        return $action;
     }
 
     /**

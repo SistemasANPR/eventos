@@ -11,7 +11,7 @@ use App\Support\Auth\ChecksOrganizationPermissions;
 
 /**
  * Quién puede qué con las convocatorias (plan 004, CA-004-5): consultar con
- * `calls.view` o `calls.manage`; crear, editar y publicar con `calls.manage`.
+ * `calls.view` o `calls.manage`; crear, editar, publicar y cambiar el estado (pausar, cerrar, reabrir) con `calls.manage`.
  * Exige membresía activa en la organización en contexto y que la convocatoria
  * o el evento sean de ella: el permiso de un rol en A no sirve en B.
  *
@@ -42,6 +42,12 @@ final class CallForSubmissionsPolicy
     }
 
     public function publish(User $user, CallForSubmissions $call): bool
+    {
+        return $this->allows($user, ['calls.manage'], $call->organization_id);
+    }
+
+    /** Pausar, cerrar y reabrir a mano (H-004-4, CA-004-27). */
+    public function changeStatus(User $user, CallForSubmissions $call): bool
     {
         return $this->allows($user, ['calls.manage'], $call->organization_id);
     }

@@ -5,6 +5,10 @@ declare(strict_types=1);
 return [
     'title_required' => 'The call needs a title in at least one language.',
     'only_draft_can_be_published' => 'Only a draft call can be published.',
+    'status_transition_invalid' => 'The call cannot go from ":from" to ":to".',
+    'reopen_needs_new_close' => 'The close of the call has already passed: enter a new closing date to reopen it.',
+    'reopen_close_in_the_past' => 'The new closing date must be later than the current moment.',
+    'reopen_close_before_opening' => 'The new closing date must be after the opening.',
     'privacy_notice_missing' => 'The event must have its privacy notice published in every language of the call. It is missing in: :locales.',
 
     'status' => [
@@ -100,6 +104,17 @@ return [
         'publish_confirm' => 'Publish this call? It will open and close by itself on the given dates (event time).',
         'published' => 'Call published',
         'saved' => 'Call saved',
+        'pause' => 'Pause',
+        'paused' => 'Call paused',
+        'resume' => 'Resume',
+        'resumed' => 'Call resumed',
+        'close' => 'Close',
+        'close_confirm' => 'Close this call? It will stop receiving submissions until you reopen it.',
+        'closed' => 'Call closed',
+        'reopen' => 'Reopen',
+        'reopened' => 'Call reopened',
+        'new_close' => 'New closing date (event time)',
+        'new_close_help' => 'Required if the original close has already passed; otherwise leave it empty to keep it.',
         'failed' => 'The action could not be completed',
     ],
 ];

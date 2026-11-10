@@ -5,6 +5,10 @@ declare(strict_types=1);
 return [
     'title_required' => 'La convocatoria necesita un título en al menos un idioma.',
     'only_draft_can_be_published' => 'Solo se puede publicar una convocatoria en borrador.',
+    'status_transition_invalid' => 'No se puede pasar la convocatoria de «:from» a «:to».',
+    'reopen_needs_new_close' => 'El cierre de la convocatoria ya pasó: indica una nueva fecha de cierre para reabrirla.',
+    'reopen_close_in_the_past' => 'La nueva fecha de cierre debe ser posterior al momento actual.',
+    'reopen_close_before_opening' => 'La nueva fecha de cierre debe ser posterior a la apertura.',
     'privacy_notice_missing' => 'El evento debe tener su aviso de privacidad publicado en todos los idiomas de la convocatoria. Falta en: :locales.',
 
     'status' => [
@@ -100,6 +104,17 @@ return [
         'publish_confirm' => '¿Publicar esta convocatoria? Se abrirá y cerrará sola en las fechas indicadas (hora del evento).',
         'published' => 'Convocatoria publicada',
         'saved' => 'Convocatoria guardada',
+        'pause' => 'Pausar',
+        'paused' => 'Convocatoria en pausa',
+        'resume' => 'Reanudar',
+        'resumed' => 'Convocatoria reanudada',
+        'close' => 'Cerrar',
+        'close_confirm' => '¿Cerrar esta convocatoria? Dejará de recibir propuestas hasta que la reabras.',
+        'closed' => 'Convocatoria cerrada',
+        'reopen' => 'Reabrir',
+        'reopened' => 'Convocatoria reabierta',
+        'new_close' => 'Nueva fecha de cierre (hora del evento)',
+        'new_close_help' => 'Obligatoria si el cierre original ya pasó; si no, déjala vacía para conservarlo.',
         'failed' => 'No se pudo completar la acción',
     ],
 ];
