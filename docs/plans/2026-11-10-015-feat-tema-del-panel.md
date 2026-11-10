@@ -123,3 +123,5 @@ Cada fase deja el repo en verde y termina en su propio commit.
 
 | Fase | Commit | Fecha | Notas (salida real de las validaciones) |
 |---|---|---|---|
+| F0 | 120d192 | 2026-11-10 | Pest completo 672 pasan; pint, typecheck, lint y build en verde; login a 375 y 1280 px sin errores de consola. Opcache de desarrollo aparte en abb327b (~4 s a ~0,45 s). |
+| F1 | 805f172 | 2026-11-10 | Paneles, Convocatorias, Equipo, Auth, Eventos y LangParity: 428 pasan, 1 fallo por interferencia de otra ejecucion sobre la base compartida (`relation users does not exist`); repetido en aislado, pasa. Pendiente la revision manual de CA-015-3 y de CA-015-8 en los modales a 375 y 1280 px. |
