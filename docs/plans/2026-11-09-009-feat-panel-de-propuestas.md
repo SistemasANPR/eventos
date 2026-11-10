@@ -6,6 +6,7 @@
 - **Estado:** Borrador
 - **Esfuerzo:** M
 - **Deuda relacionada:** ninguna
+- **Responsable:** Gabriel (`docs/plan-de-desarrollo.md` §6.2: H-009-1, H-009-2 y H-009-3 el 17-nov). Pendiente: no existe aún ningún visualizador de propuestas; depende de `Submission` (plan 006) y del formulario (plan 005), que tampoco existen en el repositorio
 
 ## 1. Objetivo y alcance
 
