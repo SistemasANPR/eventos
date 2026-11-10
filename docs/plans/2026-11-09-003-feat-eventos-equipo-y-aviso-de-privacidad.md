@@ -168,3 +168,6 @@ Cada uno tiene al menos una prueba cuyo nombre lo cita (`CA-003-n: ...`) o decla
 
 | Fase | Commit | Fecha | Notas (salida real de las validaciones) |
 |---|---|---|---|
+| H-003-1 | `fd7d689` | 2026-11-10 | Actions `CreateEvent`, `UpdateEvent`, `PublishEvent` y `ArchiveEvent` con `EventPolicy`; fechas en hora local del evento guardadas en UTC; `EventResource` de Filament. Cubre CA-003-1 a 10 (CA-003-9 y 10 también verificados en navegador). Incluye la corrección del contexto de organización del panel en peticiones de Livewire |
+| H-003-3 | `9b5ae24` | 2026-11-10 | `InviteTeamMember` (respuesta idéntica exista o no el usuario, límite de 10 altas por minuto), `DeactivateMember`, regla del último administrador con bloqueo de fila, `MembershipPolicy` y `TeamMemberResource`. Cubre CA-003-21 a 30 |
+| H-003-2 | `8db7e0a` | 2026-11-10 | Tabla `privacy_notices` con versiones inmutables al publicarse (trigger), sanitizador de lista blanca, Actions con `PrivacyNoticePolicy` (solo org_admin), página pública `/{org}/events/{evento}/privacy`. Cubre CA-003-11 a 20. Verificado en navegador a 375 px |

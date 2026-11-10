@@ -47,12 +47,21 @@ Solo nombres; nunca valores en el repositorio. Toda variable nueva se añade a `
 | Variable | Para qué | Obligatoria |
 |---|---|---|
 | `APP_KEY`, `APP_URL`, `APP_ENV` | Aplicación | Sí |
+| `TRUSTED_PROXIES` | Lista separada por comas de IPs o CIDR de los balanceadores en los que se confía para leer `X-Forwarded-For/Host/Port/Proto`. Vacía (por defecto) = no se confía en ninguno. `*` confía en cualquier origen: solo con intención explícita | Sí, detrás de un balanceador |
 | `DB_*` | PostgreSQL | Sí |
 | `REDIS_*` | Colas y caché | Sí |
 | `FILESYSTEM_DISK` y credenciales del bucket | Archivos | Sí |
 | `MAIL_*` | Correo transaccional | Sí |
 | `[RELLENAR: proveedor de pagos]` | Pagos (ADR-0007) | Según módulo |
 | `[RELLENAR: errores]` | Registro de errores | Recomendada |
+
+### Proxies de confianza y límites por IP
+
+Detrás de un balanceador (Railway u otro), sin `TRUSTED_PROXIES` la aplicación ve la IP del proxy en `request()->ip()`: el límite de intentos del login (correo + IP) y la huella de dispositivo (red /24) dejarían de distinguir clientes. Con `*` o con un rango demasiado amplio ocurre lo contrario: cualquiera puede falsificar `X-Forwarded-For` y eludir esos límites. **Los límites de intentos dependen de que `request()->ip()` sea correcta.**
+
+- Se lee de `config('app.trusted_proxies')` (`config/app.php`) y lo aplica `App\Http\Middleware\TrustConfiguredProxies`; solo se aceptan las cabeceras `X-Forwarded-For`, `-Host`, `-Port` y `-Proto` (no las de AWS ELB).
+- En Railway se fija al rango o valor de su red interna `[RELLENAR: valor real]` y se **verifica con una petición real**: comprobar en la bitácora de accesos (`activity_log`, registro `auth`) que la IP registrada es la del cliente y no la del proxy.
+- Local y CI: dejarla vacía.
 
 ## 5. Respaldos y recuperación
 

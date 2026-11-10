@@ -170,3 +170,7 @@ Cada uno tiene al menos una prueba cuyo nombre lo cita (`CA-002-n: ...`) o decla
 
 | Fase | Commit | Fecha | Notas (salida real de las validaciones) |
 |---|---|---|---|
+| H-002-1 | `498ebe1` | 2026-11-09 | Esqueleto Laravel 13 sobre la plantilla, servicio `app` con PHP 8.4, pgsql, redis y mailpit; puertos 8080 y 5433; scripts de Composer y npm; Pest y Larastan instalados. `composer check` en rojo hasta H-001-1 (las guardianas citan clases de ese plan) |
+| Cuenta de GitHub del repositorio | `17df86e`, `f983d2f` | 2026-11-09 | Documentación de la cuenta de GitHub del repositorio y corrección del helper de credenciales (`docs(env)`) |
+| CI backend corregido | `0bc51f5`, `bfffcbe` | 2026-11-09 | `0bc51f5`: instalar dependencias antes de generar la clave de la aplicación. `bfffcbe`: conservar `tests/Unit` con `.gitkeep` (el CI fallaba con «Test directory tests/Unit not found») y registrar el spike S-1 |
+| H-002-3 | `7692044` | 2026-11-10 | Migración final de `events`, modelo `Event` traducible, `DemoSeeder` que se niega en producción, ruta pública `/{organization:slug}/events/{event:slug}` (404 para borrador, archivado u otra organización), frontend React + TypeScript con catálogo y guardianas Vitest. Cubre CA-002-13 a 19 (CA-002-16 manual). Verificado en navegador a 375 y 1280 px; `composer check` y npm `typecheck`, `lint`, `test` y `build` en verde, según el commit |
