@@ -1,4 +1,4 @@
-# [RELLENAR: Nombre] — Sistema de diseño
+# EMS — Sistema de diseño
 
 > Prevalece sobre cualquier otro documento en todo lo visual. Aplica al **sitio público** en React (ADR-0004). Los paneles de Filament se personalizan con el tema de Filament y los mismos tokens de color, sin CSS suelto.
 > Leer completo antes de crear o modificar un componente o estilo.
@@ -152,7 +152,60 @@ Una guardiana nueva puede arrancar en «modo lista» (registra las violaciones d
 
 ### 3.1 Tokens: siempre los semánticos, nunca hex directos
 
-[RELLENAR: tabla de tokens primitivos de marca y tokens semánticos (`bg`, `surface`, `surface-raised`, `border`, `text`, `text-muted`, `accent`, `success`, `error`, `warning`) con su valor en cada modo. Los componentes solo usan los semánticos.]
+Dirección visual: **Institucional** (variación A de la guía de marca). El marino del logotipo lidera la interfaz, la lima se reserva para acciones destacadas y el verde-azulado acompaña la información de apoyo. Sobria y de alto contraste: pensada para registro, administración y documentos.
+
+#### Primitivos de marca (no se usan como clase en los componentes)
+
+| Escala | 50 | 100 | 200 | 300 | 400 | 500 | 600 | 700 | 800 | 900 |
+|---|---|---|---|---|---|---|---|---|---|---|
+| Marino | `#F4F7FE` | `#E5EDFF` | `#CFDBF6` | `#B3C4EA` | `#768FCC` | `#5772BA` | `#3A56A6` | **`#152B83`** (logo) | `#0D1E70` | `#08155D` |
+| Lima | `#F6FAE3` | `#EBF2C8` | `#D9E663` | **`#BFCC36`** (logo) | `#A9B523` | `#8F9A15` | `#757D0E` | `#5B620C` | `#43480C` | `#2D310C` |
+| Neutro frío | `#F8FAFE` | `#F1F3F8` | `#E2E6EF` | `#D0D4DC` | `#A1A5AC` | `#777A82` | `#585B62` | `#3F4249` | `#26292F` | `#14161C` |
+
+Verde-azulado de apoyo: `#156A62` (texto e iconos). El `#3D9E94` del logotipo es **solo decorativo**: no lleva texto.
+
+#### Tokens semánticos (lo único que usan los componentes)
+
+| Token | Valor | Uso | Contraste |
+|---|---|---|---|
+| `bg` | `#F8FAFE` | Fondo de página | — |
+| `surface` | `#FFFFFF` | Tarjetas y campos de formulario | — |
+| `surface-raised` | `#FFFFFF` con sombra | Modales, menús, tarjetas elevadas | — |
+| `border` | `#E2E6EF` | Divisores y tarjetas | — |
+| `border-input` | `#777A82` | Borde de campos de formulario | 3:1 (WCAG 1.4.11) |
+| `text` | `#243342` | Cuerpo y títulos de tarjetas | AAA · 12,9:1 con blanco |
+| `text-muted` | `#585B62` | Metadatos, ayudas, pies de foto | AAA · 6,8:1 con blanco |
+| `primary` | `#152B83` | Botones principales, barra de navegación, enlaces y títulos | AAA · 12,3:1 con blanco |
+| `primary-contrast` | `#FFFFFF` | Texto sobre `primary` y `primary-hover` | — |
+| `primary-hover` | `#0D1E70` | Hover y activo del primario | AAA · 14,6:1 con blanco |
+| `accent` | `#BFCC36` | Destacados, insignias y la acción principal sobre fondo marino | AA · 7,0:1 con texto marino |
+| `accent-contrast` | `#152B83` | Texto sobre `accent` | — |
+| `support` | `#156A62` | Etiquetas, iconos e información de apoyo | AA · 6,4:1 con blanco |
+
+Semánticos de estado (texto / fondo):
+
+| Token | Texto | Fondo |
+|---|---|---|
+| `success` | `#2E7D32` | `#E8F5E9` |
+| `warning` | `#92400E` | `#FEF3C7` |
+| `error` | `#B42318` | `#FEE4E2` |
+| `info` | `#3A56A6` | `#E5EDFF` |
+
+Reglas de uso:
+
+- **La lima nunca es color de texto sobre blanco**; sobre lima el texto es siempre marino.
+- El estado no se comunica solo con color: va con icono y texto (Pagado, Pendiente, Cancelado, En revisión).
+- El foco visible usa `primary` con contorno de 2 px; sobre fondo marino, `accent`.
+- Los campos llevan fondo `surface` y borde `border-input`, nunca `border`.
+- Hay **una sola acción destacada** (lima) por pantalla; el resto de botones son `primary` (relleno) o contorno `primary`.
+- Cada par nuevo de texto y fondo se añade a `lib/contrast.ts` y `tokens.test.ts` lo valida contra los valores reales del CSS.
+
+#### Componentes de referencia de la guía
+
+- **Barra de navegación:** fondo `primary`, texto blanco, enlace activo subrayado en `accent`, botón de acción en `accent` con texto marino.
+- **Insignia de estado:** píldora con el par texto/fondo del semántico.
+- **Etiqueta de categoría** (Plenaria, Taller…): mayúsculas pequeñas en `support`.
+- **Alerta:** fondo del semántico, icono y texto del semántico.
 
 **Marca blanca por organización (SaaS):** cada organización puede definir logotipo y colores de marca. Se aplican sobrescribiendo los tokens primitivos mediante variables CSS por organización; los componentes no cambian. El contraste AA se valida también contra los colores que la organización elija.
 
@@ -164,29 +217,32 @@ Todo par nuevo de texto y fondo se añade a `lib/contrast.ts`; `tokens.test.ts` 
 
 ### 3.3 Tipografía
 
-[RELLENAR: fuentes, pesos cargados y jerarquía (display, h1, h2, body, caption) con su clase.]
+Fuentes de Google Fonts **alojadas en el proyecto** (`resources/fonts/`, subconjuntos `latin` y `latin-ext`, variables, `font-display: swap`). No se cargan desde los servidores de Google: hacerlo enviaría la IP del visitante a un tercero (`docs/privacidad.md`).
+
+| Uso | Familia | Pesos | Clase |
+|---|---|---|---|
+| Títulos (h1, h2, h3) y display | Montserrat | 600 a 800 | `font-display` (aplicada por defecto a `h1`–`h3`) |
+| Cuerpo, formularios, metadatos | Roboto | 400 a 700 | `font-sans` (por defecto) |
+
+Si falta una fuente, cae a la pila del sistema. Jerarquía (display, h1, h2, h3, cuerpo, pequeño, etiqueta en mayúsculas): `[PENDIENTE: fijar tamaños y fijarlos en lib/classes.ts al construir la primera vista que los necesite]`.
 
 ---
 
 ## 4. Tema claro/oscuro
 
-[RELLENAR si aplica. Si solo hay un modo, borrar esta sección, dejar los tokens semánticos de §3.1, retirar los tokens y las variantes `dark:` que traiga la librería y añadir una prueba que impida reintroducirlos.]
+**Un solo modo (claro).** La guía de marca no define modo oscuro. Los componentes no usan variantes `dark:`; los tokens y variantes oscuros que traiga una librería se retiran, y una prueba guardiana impedirá reintroducirlos (`[PENDIENTE: añadirla junto a no-hex.test.ts]`).
 
 Checklist de compatibilidad de un componente nuevo:
 
 - [ ] Usa el token semántico de fondo, superficie, borde y texto (primario y secundario).
-- [ ] Sobre fondos de color sólido (accent, error) usa blanco fijo.
+- [ ] Sobre `primary` usa blanco; sobre `accent` (lima) usa `accent-contrast` (marino), nunca blanco.
 - [ ] Nunca usa tokens primitivos de marca como clases directas ni clases de color del framework (`bg-gray-900`).
 
 ---
 
 ## 5. Gráficas
 
-[RELLENAR: borrar si el sitio público no tiene gráficas. Los reportes de los organizadores viven en Filament.]
-
-- **Gráfica de análisis:** título descriptivo, ejes etiquetados, unidad visible, leyenda (salvo serie única), etiquetas en puntos clave, cuadrícula sutil con eje Y desde 0 y nota de origen o filtro activo.
-- **Sparkline en tarjeta:** el título lo pone la tarjeta; unidad en el texto; tooltip con el valor exacto; sin ejes, leyenda ni nota. Si necesita ejes o leyenda, es una gráfica de análisis.
-- Paleta, tooltip, ejes y márgenes viven solo en `lib/chart-theme.ts`. Sin animaciones en gráficas que se refrescan por sondeo.
+No aplica: el sitio público no tiene gráficas. Los reportes de los organizadores viven en Filament. Si alguna vista pública las necesita, se especifica aquí antes de construirla.
 
 ---
 
@@ -216,4 +272,4 @@ HTML semántico, nombre accesible en todo control, navegación por teclado compl
 
 ---
 
-*[RELLENAR: Nombre] — design.md v1.0 — [RELLENAR: mes y año]*
+*EMS — design.md v1.0 — noviembre 2026*

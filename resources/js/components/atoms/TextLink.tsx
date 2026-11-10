@@ -16,8 +16,8 @@ export function TextLink({ isActive = false, className, children, ...rest }: Tex
         <a
             aria-current={isActive ? 'true' : undefined}
             className={cn(
-                'inline-flex min-h-11 items-center rounded-md px-3 text-base underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent sm:min-h-8',
-                isActive ? 'font-semibold text-text no-underline' : 'text-accent',
+                'inline-flex min-h-11 items-center rounded-md px-3 text-base underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary sm:min-h-8',
+                isActive ? 'font-semibold text-text no-underline' : 'text-primary',
                 className,
             )}
             {...rest}

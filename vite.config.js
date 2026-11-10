@@ -4,7 +4,7 @@ import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
 import { fileURLToPath } from 'node:url';
 
-// Sin fuentes remotas: el sitio público usa la pila de fuentes del sistema
+// Sin fuentes remotas: Montserrat y Roboto se sirven desde resources/fonts
 // (no se envía la IP del visitante a un tercero; docs/privacidad.md).
 export default defineConfig({
     plugins: [

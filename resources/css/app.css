@@ -3,31 +3,98 @@
 @source '../js/**/*.tsx';
 
 /*
- * Tokens semánticos del sitio público (design.md §3.1). Los componentes usan
- * SOLO estas clases (bg-bg, text-text, border-border...), nunca hex ni colores
- * del framework. Un solo modo (claro).
+ * Fuentes alojadas en el proyecto (descargadas de Google Fonts): el navegador no
+ * contacta a un tercero, así que no se envía la IP del visitante (docs/privacidad.md).
+ * Solo los subconjuntos latin y latin-ext (es, en, pt); son fuentes variables.
+ */
+@font-face {
+    font-family: 'Montserrat';
+    font-style: normal;
+    font-weight: 600 800;
+    font-display: swap;
+    src: url('../fonts/montserrat-latin-ext.woff2') format('woff2');
+    unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
+@font-face {
+    font-family: 'Montserrat';
+    font-style: normal;
+    font-weight: 600 800;
+    font-display: swap;
+    src: url('../fonts/montserrat-latin.woff2') format('woff2');
+    unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+    font-family: 'Roboto';
+    font-style: normal;
+    font-weight: 400 700;
+    font-display: swap;
+    src: url('../fonts/roboto-latin-ext.woff2') format('woff2');
+    unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
+@font-face {
+    font-family: 'Roboto';
+    font-style: normal;
+    font-weight: 400 700;
+    font-display: swap;
+    src: url('../fonts/roboto-latin.woff2') format('woff2');
+    unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+/*
+ * Tokens semánticos del sitio público (design.md §3.1, dirección «Institucional»).
+ * Los componentes usan SOLO estas clases (bg-bg, text-text, bg-primary...), nunca
+ * hex ni colores del framework. Un solo modo (claro).
  *
- * PROVISIONAL: son valores neutros mientras la organización no define su marca
- * (design.md §3 sigue sin rellenar). Cambiarlos aquí cambia todo el sitio; la
- * prueba tokens.test.ts exige contraste AA (4,5:1) en cada par texto/fondo.
+ * Son el tema por defecto: cada organización puede sobrescribirlos con su marca.
+ * La prueba tokens.test.ts exige contraste AA (4,5:1) en cada par texto/fondo.
  */
 @theme {
-    --color-bg: #ffffff;
-    --color-surface: #f5f5f4;
-    --color-border: #d6d3d1;
-    --color-text: #1c1917;
-    --color-text-muted: #57534e;
-    --color-accent: #1d4ed8;
-    --color-accent-contrast: #ffffff;
-    --color-error: #b91c1c;
+    --color-bg: #f8fafe;
+    --color-surface: #ffffff;
+    --color-surface-raised: #ffffff;
+    --color-border: #e2e6ef;
+    /* Borde de campos de formulario: 3:1 como mínimo (WCAG 1.4.11). */
+    --color-border-input: #777a82;
+    --color-text: #243342;
+    --color-text-muted: #585b62;
 
-    /* Fuentes del sistema: sin cargar fuentes remotas (privacidad). */
-    --font-sans: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    /* Marino: acción principal, navegación, enlaces y títulos. */
+    --color-primary: #152b83;
+    --color-primary-hover: #0d1e70;
+    --color-primary-contrast: #ffffff;
+
+    /* Lima: destacados y la acción principal sobre fondo marino. Nunca texto sobre blanco. */
+    --color-accent: #bfcc36;
+    --color-accent-contrast: #152b83;
+
+    /* Verde-azulado: etiquetas, iconos e información de apoyo. */
+    --color-support: #156a62;
+
+    --color-success: #2e7d32;
+    --color-success-bg: #e8f5e9;
+    --color-warning: #92400e;
+    --color-warning-bg: #fef3c7;
+    --color-error: #b42318;
+    --color-error-bg: #fee4e2;
+    --color-info: #3a56a6;
+    --color-info-bg: #e5edff;
+
+    --font-sans: 'Roboto', system-ui, -apple-system, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+    --font-display: 'Montserrat', system-ui, -apple-system, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
 }
 
 html {
     background-color: var(--color-bg);
     color: var(--color-text);
+}
+
+h1,
+h2,
+h3 {
+    font-family: var(--font-display);
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -123,7 +123,7 @@ function renderLink(element: Element, key: string, children: ReactNode[]): React
             key={key}
             href={href}
             rel={LINK_REL}
-            className="text-accent underline underline-offset-4 break-words focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+            className="text-primary underline underline-offset-4 break-words focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
         >
             {children}
         </a>

@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
-import { contrastRatio, TEXT_ON_BACKGROUND_PAIRS } from '@/lib/contrast';
+import { contrastRatio, TEXT_ON_BACKGROUND_PAIRS, UI_COMPONENT_PAIRS } from '@/lib/contrast';
 
 /** Lee los tokens reales del CSS: la prueba valida lo que se envía, no una copia. */
 function readTokens(): Record<string, string> {
@@ -46,5 +46,14 @@ describe('design tokens (AA)', () => {
         expect(fg, `falta el token --color-${foreground}`).toBeDefined();
         expect(bg, `falta el token --color-${background}`).toBeDefined();
         expect(contrastRatio(fg ?? '', bg ?? '')).toBeGreaterThanOrEqual(4.5);
+    });
+
+    it.each(UI_COMPONENT_PAIRS)('%s on %s reaches 3:1', (foreground, background) => {
+        const fg = tokens[foreground];
+        const bg = tokens[background];
+
+        expect(fg, `falta el token --color-${foreground}`).toBeDefined();
+        expect(bg, `falta el token --color-${background}`).toBeDefined();
+        expect(contrastRatio(fg ?? '', bg ?? '')).toBeGreaterThanOrEqual(3);
     });
 });
