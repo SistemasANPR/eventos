@@ -210,3 +210,4 @@ Cada uno tiene al menos una prueba cuyo nombre lo cita (`CA-016-n: ...`) o decla
 
 | Fase | Commit | Fecha | Notas (salida real de las validaciones) |
 |---|---|---|---|
+| F0 a F5 | `e1a0f02` | 2026-11-10 | Un solo commit para las seis fases (se construyeron seguidas, no por separado). Pruebas de plataforma, arquitectura, aislamiento y paridad de idiomas en verde (85 en la última corrida enfocada); Larastan sin errores en los archivos del plan; `composer check:criteria` sin errores. Verificado en el navegador a 1280 px (organizaciones y auditoría) y a 375 px (auditoría), sin errores de consola. Pendiente a mano: CA-016-8 (con la 2FA del plan 014) y CA-016-33 en Usuarios, Eventos y el detalle de una organización. La migración `2026_11_10_650000` ya está aplicada en la base local. |
