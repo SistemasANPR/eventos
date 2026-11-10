@@ -1,9 +1,41 @@
 @import 'tailwindcss';
 
-@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
-@source '../../storage/framework/views/*.php';
+@source '../js/**/*.tsx';
 
+/*
+ * Tokens semánticos del sitio público (design.md §3.1). Los componentes usan
+ * SOLO estas clases (bg-bg, text-text, border-border...), nunca hex ni colores
+ * del framework. Un solo modo (claro).
+ *
+ * PROVISIONAL: son valores neutros mientras la organización no define su marca
+ * (design.md §3 sigue sin rellenar). Cambiarlos aquí cambia todo el sitio; la
+ * prueba tokens.test.ts exige contraste AA (4,5:1) en cada par texto/fondo.
+ */
 @theme {
-    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
-        'Segoe UI Symbol', 'Noto Color Emoji';
+    --color-bg: #ffffff;
+    --color-surface: #f5f5f4;
+    --color-border: #d6d3d1;
+    --color-text: #1c1917;
+    --color-text-muted: #57534e;
+    --color-accent: #1d4ed8;
+    --color-accent-contrast: #ffffff;
+    --color-error: #b91c1c;
+
+    /* Fuentes del sistema: sin cargar fuentes remotas (privacidad). */
+    --font-sans: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+}
+
+html {
+    background-color: var(--color-bg);
+    color: var(--color-text);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
 }

@@ -53,6 +53,12 @@ class Organization extends Model implements HasName
         return $this->belongsToMany(User::class)->withPivot(['status', 'deactivated_at'])->withTimestamps();
     }
 
+    /** @return HasMany<Event, $this> */
+    public function events(): HasMany
+    {
+        return $this->hasMany(Event::class);
+    }
+
     /** @return HasMany<Contact, $this> */
     public function contacts(): HasMany
     {
