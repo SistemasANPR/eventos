@@ -67,7 +67,7 @@ it('CA-001-22: the panel lists only the active organizations of the user', funct
         ->and($user->canAccessTenant($active))->toBeTrue();
 });
 
-it('CA-001-18: the panel tenant sets the organization context and the permissions team, and clears them after', function (): void {
+it('CA-001-18: the panel tenant sets the organization context and the permissions team', function (): void {
     $organization = Memberships::organization();
     $this->actingAs(Memberships::attach(User::factory()->create(), $organization, OrganizationRole::OrgAdmin));
     Filament::setTenant($organization);
@@ -80,8 +80,30 @@ it('CA-001-18: the panel tenant sets the organization context and the permission
     });
 
     expect($response->getContent())->toBe('ok')
-        ->and($seen)->toBe([$organization->id, $organization->id])
-        ->and(CurrentOrganization::has())->toBeFalse()
+        ->and($seen)->toBe([$organization->id, $organization->id]);
+});
+
+it('CA-001-18: the context outlives the middleware, because Livewire runs it in a separate chain before the real update', function (): void {
+    $organization = Memberships::organization();
+    $this->actingAs(Memberships::attach(User::factory()->create(), $organization, OrganizationRole::OrgAdmin));
+    Filament::setTenant($organization);
+
+    (new ApplyOrganizationContext)->handle(Request::create('/admin'), fn () => response('ok'));
+
+    // Si se restaurara aquí, la petición real de Livewire llegaría sin contexto y toda Policy lo negaría.
+    expect(CurrentOrganization::has())->toBeTrue()
+        ->and(app(PermissionRegistrar::class)->getPermissionsTeamId())->toBe($organization->id);
+});
+
+it('CA-001-18: the context is cleared when the request terminates', function (): void {
+    $organization = Memberships::organization();
+    $this->actingAs(Memberships::attach(User::factory()->create(), $organization, OrganizationRole::OrgAdmin));
+    Filament::setTenant($organization);
+
+    (new ApplyOrganizationContext)->handle(Request::create('/admin'), fn () => response('ok'));
+    $this->app->terminate();
+
+    expect(CurrentOrganization::has())->toBeFalse()
         ->and(app(PermissionRegistrar::class)->getPermissionsTeamId())->toBeNull();
 });
 

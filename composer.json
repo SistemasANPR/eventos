@@ -58,6 +58,7 @@
             "@php artisan dev"
         ],
         "test": [
+            "Composer\\Config::disableProcessTimeout",
             "@php artisan config:clear --ansi @no_additional_args",
             "pest"
         ],
@@ -81,6 +82,7 @@
             "Illuminate\\Foundation\\ComposerScripts::prePackageUninstall"
         ],
         "test:coverage": [
+            "Composer\\Config::disableProcessTimeout",
             "@php artisan config:clear --ansi",
             "pest --coverage --min=0"
         ],
