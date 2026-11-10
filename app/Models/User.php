@@ -11,6 +11,8 @@ use Filament\Models\Contracts\HasTenants;
 use Filament\Panel;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
+use Illuminate\Database\Eloquent\Attributes\Scope;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -63,6 +65,42 @@ class User extends Authenticatable implements FilamentUser, HasTenants
     public function canAccessTenant(Model $tenant): bool
     {
         return $tenant instanceof Organization && $this->hasActiveMembershipIn($tenant);
+    }
+
+    /**
+     * Integrantes de la organización (de cualquier estado), con la membresía
+     * cargada para leer su estado con `membershipStatus()`. Es la consulta del
+     * equipo: un usuario de otra organización no aparece (CA-003-24).
+     *
+     * @param  Builder<User>  $query
+     */
+    #[Scope]
+    protected function membersOf(Builder $query, Organization $organization): void
+    {
+        $query->whereHas('organizations', fn (Builder $memberships) => $memberships->whereKey($organization->id))
+            ->with(['organizations' => fn ($memberships) => $memberships->whereKey($organization->id)]);
+    }
+
+    /**
+     * Integrantes con membresía activa (estado `active` y sin `deactivated_at`).
+     *
+     * @param  Builder<User>  $query
+     */
+    #[Scope]
+    protected function activeMembersOf(Builder $query, Organization $organization): void
+    {
+        $query->whereHas('organizations', fn (Builder $memberships) => $memberships
+            ->whereKey($organization->id)
+            ->where('organization_user.status', 'active')
+            ->whereNull('organization_user.deactivated_at'));
+    }
+
+    /** Estado de la membresía; solo disponible si la consulta usó `membersOf` (carga la membresía). */
+    public function membershipStatus(): string
+    {
+        $membership = $this->organizations->sole();
+
+        return (string) $membership->getRelation('pivot')->getAttribute('status');
     }
 
     /** @return BelongsToMany<Organization, $this> */

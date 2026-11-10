@@ -4,12 +4,15 @@ declare(strict_types=1);
 
 namespace App\Providers;
 
+use App\Models\User;
+use App\Policies\MembershipPolicy;
 use App\Support\Tenancy\CurrentOrganization;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Queue\Events\JobExceptionOccurred;
 use Illuminate\Queue\Events\JobFailed;
 use Illuminate\Queue\Events\JobProcessed;
 use Illuminate\Queue\Events\JobProcessing;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
@@ -33,6 +36,9 @@ class AppServiceProvider extends ServiceProvider
         Model::shouldBeStrict(! $this->app->isProduction());
 
         $this->isolateQueuedJobsContext();
+
+        // La gestión del equipo se autoriza sobre el usuario (el integrante) con una Policy propia.
+        Gate::policy(User::class, MembershipPolicy::class);
 
         // Contraseñas: mínimo 12 caracteres y fuera de la lista de expuestas (CA-001-31).
         // `uncompromised()` consulta un servicio externo y, si falla, rechaza (falla cerrado).

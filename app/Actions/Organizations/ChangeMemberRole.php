@@ -5,9 +5,11 @@ declare(strict_types=1);
 namespace App\Actions\Organizations;
 
 use App\Enums\OrganizationRole;
+use App\Exceptions\Domain\LastOrganizationAdmin;
 use App\Exceptions\Domain\MemberNotActive;
 use App\Models\Organization;
 use App\Models\User;
+use App\Support\Auth\OrganizationAdmins;
 use App\Support\Tenancy\CurrentOrganization;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\DB;
@@ -24,6 +26,7 @@ use Illuminate\Support\Facades\Gate;
  *
  * @throws AuthorizationException si quien cambia no puede gestionar el equipo
  * @throws MemberNotActive si el destinatario no es miembro activo
+ * @throws LastOrganizationAdmin si quitaría el rol de administrador al último administrador activo
  */
 final class ChangeMemberRole
 {
@@ -50,6 +53,12 @@ final class ChangeMemberRole
             }
 
             DB::transaction(function () use ($actor, $organization, $member, $role, $from): void {
+                // Quitar el rol de administrador al último administrador activo dejaría la organización sin gestión (CA-003-25).
+                if (in_array(OrganizationRole::OrgAdmin->value, $from, true) && $role !== OrganizationRole::OrgAdmin) {
+                    OrganizationAdmins::lock($organization);
+                    OrganizationAdmins::assertAnotherRemains($organization, $member);
+                }
+
                 $member->syncRoles([$role->value]);
 
                 activity()
