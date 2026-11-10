@@ -87,6 +87,15 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: npm
 
+      # El tema del panel (resources/css/filament/admin/theme.css) importa el CSS de
+      # Filament desde vendor/: sin Composer, `npm run build` no lo encuentra.
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ env.PHP_VERSION }}
+          tools: composer:v2
+      - name: Instalar dependencias de PHP (solo el CSS de Filament)
+        run: composer install --no-interaction --prefer-dist --no-progress --no-dev --no-scripts
+
       - run: npm ci
       - name: Auditoría de dependencias
         run: npm audit --audit-level=high

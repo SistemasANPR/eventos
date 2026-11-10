@@ -14,7 +14,6 @@ use App\Models\Organization;
 use App\Models\User;
 use App\Support\Tenancy\CurrentOrganization;
 use Filament\Actions\Action;
-use Filament\Actions\Contracts\HasActions;
 use Filament\Actions\CreateAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\Testing\TestAction;
@@ -82,8 +81,9 @@ function eventManager(string $manager, Event $event): Testable
  */
 function mountedModal(Testable $component): Action
 {
+    // `getMountedAction()` vive en el trait InteractsWithActions, no en la interfaz HasActions.
     $instance = $component->instance();
-    $action = $instance instanceof HasActions ? $instance->getMountedAction() : null;
+    $action = method_exists($instance, 'getMountedAction') ? $instance->getMountedAction() : null;
 
     return $action instanceof Action ? $action : throw new LogicException('No hay una acción montada.');
 }
