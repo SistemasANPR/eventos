@@ -14,7 +14,6 @@ Lo que NO está aquí porque se decidió no cambiarlo: [RELLENAR: decisiones de 
 
 | # | Punto | Archivos | Esfuerzo |
 |---|---|---|---|
-| DT-01 | `organization_id` propio en la bitácora `activity_log` (hoy solo dentro de `properties`). Necesario para filtrar por organización y **antes de mostrar la bitácora a las organizaciones** (riesgo de fuga entre organizaciones). Dueño: [PENDIENTE]. Fecha límite sugerida: antes de exponer la bitácora en el panel; [PENDIENTE] fecha | `config/activitylog.php`, migración de `activity_log`, acciones que auditan | M |
 | DT-02 | Sin límite global por IP ni 2FA frente a fuerza bruta distribuida (hoy el límite es por correo + IP, 5 intentos / 15 min). Se aborda en el plan 014. Dueño: [PENDIENTE]. Fecha límite sugerida: según el calendario del plan 014; [PENDIENTE] fecha | `app/Support/Auth/AccessThrottle.php`, plan 014 | L |
 
 ### P2 · Contratos
@@ -52,3 +51,4 @@ Lo que NO está aquí porque se decidió no cambiarlo: [RELLENAR: decisiones de 
 
 | # | Punto | Commit | Fecha |
 |---|---|---|---|
+| DT-01 | `organization_id` propio en la bitácora `activity_log`: columna nullable con clave foránea e índice, modelo de actividad propio que la fija desde `properties` o el contexto y relleno de lo existente. Se hizo en el plan 016 (F1) y 6 pruebas nuevas (`ActivityOrganizationTest`, incluida la de la migración). Queda pendiente, y no es parte de este punto, acotar la bitácora por organización antes de mostrarla a las organizaciones | `e1a0f02` | 2026-11-10 |
