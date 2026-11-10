@@ -162,6 +162,20 @@ class PrivateUploads
     }
 
     /**
+     * Borra y dice si el disco lo logró. Un archivo que ya no existe cuenta como
+     * borrado (los discos lo informan como éxito); `false` es un fallo del disco.
+     */
+    public function deleteConfirmed(string $path): bool
+    {
+        return $this->disk()->delete($path);
+    }
+
+    public function diskName(): string
+    {
+        return (string) config('filesystems.private_uploads_disk');
+    }
+
+    /**
      * Nombre para mostrar: sin segmentos de ruta (`../`, `\`), sin caracteres de
      * control ni de formato (p. ej. el que invierte el sentido del texto) y de
      * a lo sumo 255 caracteres. Nunca se usa como ruta ni como cabecera.

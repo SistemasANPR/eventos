@@ -92,6 +92,7 @@ Detrás de un balanceador (Railway u otro), sin `TRUSTED_PROXIES` la aplicación
 
 ## 8. Mantenimiento
 
+- **Tarea programada `files:purge-orphans`** (plan 007, H-007-3): diaria a las 03:00 (`routes/console.php`, `withoutOverlapping`). Borra del disco privado y marca como eliminados los archivos de propuesta `pending` con más de 24 h sin ligar a una propuesta, organización por organización; nunca toca los `attached`. Cada organización con borrados deja un registro de auditoría `submission_files_purged` con su conteo (sin nombres de archivo). **Vigilancia:** si el disco falla, el fallo de cada organización se reporta al gestor de errores (`OrphanFilesPurgeFailed`) y el comando termina con código distinto de 0 (las demás organizaciones se limpian igualmente); alertar por ese código de salida o por ese error. La tarea es idempotente: reintentarla a mano con `php artisan files:purge-orphans` es seguro.
 - Modo de mantenimiento de Laravel para ventanas planificadas; aviso previo a las organizaciones.
 - Actualizaciones de dependencias: Dependabot, una por pull request; actualizaciones de seguridad de inmediato.
 - Rotación de secretos: al menos cada `[RELLENAR]` y siempre que se sospeche una exposición.
