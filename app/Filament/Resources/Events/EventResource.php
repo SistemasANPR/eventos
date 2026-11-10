@@ -8,6 +8,7 @@ use App\Filament\Resources\Events\Pages\CreateEvent;
 use App\Filament\Resources\Events\Pages\EditEvent;
 use App\Filament\Resources\Events\Pages\ListEvents;
 use App\Filament\Resources\Events\Pages\ViewEvent;
+use App\Filament\Resources\Events\RelationManagers\CallsRelationManager;
 use App\Filament\Resources\Events\RelationManagers\PrivacyNoticesRelationManager;
 use App\Filament\Resources\Events\Schemas\EventForm;
 use App\Filament\Resources\Events\Schemas\EventInfolist;
@@ -65,6 +66,7 @@ class EventResource extends Resource
     public static function getRelations(): array
     {
         return [
+            CallsRelationManager::class,
             PrivacyNoticesRelationManager::class,
         ];
     }

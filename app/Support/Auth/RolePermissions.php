@@ -20,6 +20,7 @@ final class RolePermissions
     private const ORGANIZER = [
         'events.manage',
         'calls.manage',
+        'calls.view',
         'tracks.manage',
         'forms.manage',
         'submissions.view',

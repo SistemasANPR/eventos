@@ -75,6 +75,12 @@ class Event extends Model
         return $query->where('status', EventStatus::Published);
     }
 
+    /** @return HasMany<CallForSubmissions, $this> */
+    public function calls(): HasMany
+    {
+        return $this->hasMany(CallForSubmissions::class);
+    }
+
     /** @return HasMany<PrivacyNotice, $this> */
     public function privacyNotices(): HasMany
     {

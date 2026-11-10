@@ -66,6 +66,7 @@ Medido el 2026-11-09: el repositorio contiene solo la plantilla (documentos, reg
 | `privacy_notices.manage` | sí | no | no |
 | `team.manage` | sí | no | no |
 | `calls.manage` | sí | sí | no |
+| `calls.view` | sí | sí | no |
 | `tracks.manage` | sí | sí | no |
 | `forms.manage` | sí | sí | no |
 | `submissions.view` | sí | sí | no |
@@ -193,3 +194,7 @@ Cada uno tiene al menos una prueba cuyo nombre lo cita (`CA-001-n: ...`) o decla
 | Fase | Commit | Fecha | Notas (salida real de las validaciones) |
 |---|---|---|---|
 | F1 (H-001-1) | `c3690b7` | 2026-11-09 | `composer check` exit 0: Pint sin cambios, Larastan sin errores, 61 pruebas (48 Feature + 13 Arch) en verde; CA-001-1 a CA-001-10 con prueba. Migraciones aplicadas en la base local con `migrate:fresh` (users pasa a UUID). Pendiente en F0: paquetes de roles (H-001-3) |
+| H-001-3 (parcial) | `b246f30` | 2026-11-09 | Roles por organización con `spatie/laravel-permission` (organización como team, uuid), matriz rol x permiso con `SyncOrganizationRoles`, `EnsureActiveMembership`, `CurrentOrganization::run()`. Cubre CA-001-12, 19, 20, 21, 22 y 24. `composer check` en verde (128 pruebas, según el commit) |
+| Panel con tenant y cambio de rol auditado | `2c25413` | 2026-11-09 | Panel Filament con tenant, `ChangeMemberRole` auditado (`activity_log`), trigger que impide cambiar `organization_id` y guardiana `TenantBypassTest` |
+| H-001-2 y H-001-4 | `1a822df` | 2026-11-10 | `withoutOrganizationScope()` solo para plataforma y auditado; comandos `app:create-organization` y `app:create-platform-user`; login con límite 5/15 min por correo+IP, recuperación sin enumeración, sesión Secure/HttpOnly/Lax, `/register` 404, aviso de dispositivo nuevo. Cubre CA-001-11 a 17 y 25 a 36 (CA-001-33 verificado a nivel de manejador de sesión). Revisado por un agente de seguridad independiente |
+| Corrección del contexto del panel en peticiones de Livewire | `fd7d689` | 2026-11-10 | Livewire ejecuta el middleware de tenant en una cadena aparte: el contexto de organización se fija y se limpia al terminar la petición (antes los formularios del panel respondían 403). Viaja en el commit de H-003-1 |

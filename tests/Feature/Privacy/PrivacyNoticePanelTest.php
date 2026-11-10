@@ -137,3 +137,16 @@ it('CA-003-14: the panel offers no way to delete a version', function (): void {
         ->assertActionDoesNotExist(TestAction::make('delete')->table($draft))
         ->assertActionDoesNotExist(TestAction::make('forceDelete')->table($draft));
 });
+
+it('CA-003-11: an admin edits a draft from the panel and the text is sanitized', function (): void {
+    [$organization, $event, $admin] = noticePanelScenario();
+    $draft = app(CreatePrivacyNoticeDraft::class)->handle($admin, $event, ['es' => '<p>Original</p>']);
+    CurrentOrganization::set($organization);
+
+    noticeManager($event)->callAction(TestAction::make('edit')->table($draft), ['body' => ['es' => '<p>Corregido</p><script>alert(1)</script>']]);
+
+    $stored = (string) $draft->fresh()->getRawOriginal('body');
+
+    expect($stored)->toContain('Corregido');
+    expect($stored)->not->toContain('script', 'alert', 'Original');
+});

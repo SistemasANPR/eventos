@@ -28,7 +28,7 @@ uses(RefreshDatabase::class);
 function expectedMatrix(): array
 {
     $organizer = [
-        'events.manage', 'calls.manage', 'tracks.manage', 'forms.manage',
+        'events.manage', 'calls.manage', 'calls.view', 'tracks.manage', 'forms.manage',
         'submissions.view', 'submissions.export', 'files.download', 'mail-templates.view',
     ];
 
