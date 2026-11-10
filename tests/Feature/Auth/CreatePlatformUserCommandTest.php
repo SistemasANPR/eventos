@@ -2,11 +2,16 @@
 
 declare(strict_types=1);
 
+use App\Filament\Pages\Auth\ResetPassword;
 use App\Models\User;
 use App\Notifications\SetPasswordNotification;
+use Filament\Facades\Filament;
 use Illuminate\Database\Eloquent\MassAssignmentException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Notification;
+use Livewire\Livewire;
 use Spatie\Activitylog\Models\Activity;
 
 uses(RefreshDatabase::class);
@@ -55,4 +60,24 @@ it('CA-001-16: no HTTP request can set is_platform_admin', function (): void {
     $this->actingAs($user)->patch('/admin/profile', ['is_platform_admin' => true]);
 
     expect($user->refresh()->is_platform_admin)->toBeFalse();
+});
+
+it('CA-001-16: the set-password link from the real email sets the platform user password', function (): void {
+    Http::fake(['api.pwnedpasswords.com/*' => Http::response('0000000000000000000000000000000000A:1')]);
+    Filament::setCurrentPanel('admin');
+    $this->artisan('app:create-platform-user', ['email' => 'plataforma@example.test', 'name' => 'Plataforma'])
+        ->assertSuccessful();
+    $user = User::query()->where('email', 'plataforma@example.test')->sole();
+
+    $url = (new SetPasswordNotification)->toMail($user)->actionUrl;
+    $this->get($url)->assertOk();
+
+    parse_str((string) parse_url($url, PHP_URL_QUERY), $query);
+
+    Livewire::test(ResetPassword::class, ['email' => $user->email, 'token' => (string) $query['token']])
+        ->fillForm(['password' => 'a-brand-new-passphrase', 'passwordConfirmation' => 'a-brand-new-passphrase'])
+        ->call('resetPassword')
+        ->assertHasNoFormErrors();
+
+    expect(Hash::check('a-brand-new-passphrase', $user->fresh()->password))->toBeTrue();
 });

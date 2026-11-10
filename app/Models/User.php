@@ -51,6 +51,15 @@ class User extends Authenticatable implements FilamentUser, HasTenants
     }
 
     /**
+     * Puede restablecer su contraseña: el usuario de plataforma (sin
+     * membresías) o quien tiene acceso al panel. No concede acceso al panel.
+     */
+    public function canResetPassword(Panel $panel): bool
+    {
+        return $this->is_platform_admin || $this->canAccessPanel($panel);
+    }
+
+    /**
      * Organizaciones entre las que puede cambiar en el panel: solo las de
      * membresía activa (CA-001-18 y CA-001-22).
      *

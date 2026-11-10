@@ -91,11 +91,9 @@ it('CA-001-28: a queued auth.password_reset with a signed link is sent only to a
     Notification::assertNothingSent();
 
     requestReset('Ana@Example.test');
-    Notification::assertSentTo($user, PasswordResetNotification::class, function (PasswordResetNotification $notification): bool {
-        return str_contains($notification->url, 'signature=') && str_contains($notification->url, 'token=');
-    });
+    Notification::assertSentTo($user, PasswordResetNotification::class);
 
-    expect(new PasswordResetNotification('https://example.test'))->toBeInstanceOf(ShouldQueue::class)
+    expect(new PasswordResetNotification)->toBeInstanceOf(ShouldQueue::class)
         ->and(PasswordResetNotification::CATALOG_KEY)->toBe('auth.password_reset')
         ->and(config('auth.passwords.users.expire'))->toBe(60);
 });
@@ -229,4 +227,85 @@ it('CA-001-31: the application defaults require 12 characters and check exposed 
 
     pwnedPasswordsAnswer(compromised: null);
     expect(validator(['password' => NEW_PASSWORD], ['password' => PasswordRule::default()])->passes())->toBeTrue();
+});
+
+/** Arma el enlace del correo tal como lo recibe la persona (token creado al enviar). */
+function resetLinkFromMail(PasswordResetNotification $notification, User $user): string
+{
+    $mail = $notification->toMail($user);
+    expect($mail->actionUrl)->toBeString()
+        ->and((string) $mail->render())->toContain(htmlspecialchars($mail->actionUrl, ENT_QUOTES));
+
+    return $mail->actionUrl;
+}
+
+function tokenFromLink(string $url): string
+{
+    parse_str((string) parse_url($url, PHP_URL_QUERY), $query);
+
+    return (string) $query['token'];
+}
+
+it('CA-001-28: the queued notification does not carry the token or the link', function (): void {
+    $user = resetUser();
+    $notification = new PasswordResetNotification;
+
+    $payload = serialize($notification);
+    $token = Password::broker()->createToken($user);
+
+    expect($payload)->not->toContain('http')
+        ->and($payload)->not->toContain('signature')
+        ->and($payload)->not->toContain($token)
+        ->and(get_object_vars($notification))->not->toHaveKey('url');
+});
+
+it('CA-001-28: the token is not stored in the jobs table while the notification waits', function (): void {
+    config(['queue.default' => 'database']);
+    resetUser();
+
+    requestReset('ana@example.test');
+
+    $jobs = DB::table('jobs')->pluck('payload')->implode(' ');
+    expect($jobs)->toContain('PasswordResetNotification')
+        ->and($jobs)->not->toContain('signature')
+        ->and($jobs)->not->toContain('token=');
+});
+
+it('CA-001-28: the link in the rendered email changes the password end to end', function (): void {
+    $user = resetUser();
+
+    $url = resetLinkFromMail(new PasswordResetNotification, $user);
+    $this->get($url)->assertOk();
+    parse_str((string) parse_url($url, PHP_URL_QUERY), $query);
+    expect($query['email'])->toBe($user->email);
+
+    submitReset($user, tokenFromLink($url), NEW_PASSWORD)->assertHasNoFormErrors();
+
+    expect(Hash::check(NEW_PASSWORD, $user->fresh()->password))->toBeTrue();
+    submitReset($user, tokenFromLink($url), 'yet-another-passphrase-1')->assertNotified(__('access.reset_invalid'));
+});
+
+it('CA-001-28: a platform user without memberships can request and use a reset link', function (): void {
+    Notification::fake();
+    $platform = User::factory()->create(['email' => 'plat@example.test', 'password' => OLD_PASSWORD]);
+    $platform->is_platform_admin = true;
+    $platform->save();
+
+    requestReset('plat@example.test');
+    Notification::assertSentTo($platform, PasswordResetNotification::class);
+
+    $url = resetLinkFromMail(new PasswordResetNotification, $platform);
+    submitReset($platform, tokenFromLink($url), NEW_PASSWORD)->assertHasNoFormErrors();
+
+    expect(Hash::check(NEW_PASSWORD, $platform->fresh()->password))->toBeTrue()
+        ->and($platform->fresh()->canAccessPanel(Filament::getCurrentOrDefaultPanel()))->toBeFalse();
+});
+
+it('CA-001-30: a user without memberships nor platform role is refused with the generic message', function (): void {
+    $loner = User::factory()->create(['email' => 'loner@example.test', 'password' => OLD_PASSWORD]);
+    $token = Password::broker()->createToken($loner);
+
+    submitReset($loner, $token, NEW_PASSWORD)->assertNotified(__('access.reset_invalid'));
+
+    expect(Hash::check(OLD_PASSWORD, $loner->fresh()->password))->toBeTrue();
 });

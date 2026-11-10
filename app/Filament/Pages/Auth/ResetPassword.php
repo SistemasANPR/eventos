@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace App\Filament\Pages\Auth;
 
+use App\Models\User;
 use DanHarrin\LivewireRateLimiting\Exceptions\TooManyRequestsException;
 use Filament\Auth\Http\Responses\Contracts\PasswordResetResponse;
 use Filament\Auth\Pages\PasswordReset\ResetPassword as FilamentResetPassword;
 use Filament\Facades\Filament;
-use Filament\Models\Contracts\FilamentUser;
 use Filament\Notifications\Notification;
 use Filament\Support\Components\Attributes\Exposed;
 use Illuminate\Auth\Events\PasswordReset;
@@ -52,7 +52,7 @@ class ResetPassword extends FilamentResetPassword
         $status = Password::broker(Filament::getAuthPasswordBroker())->reset(
             $this->getCredentialsFromFormData($data),
             function (CanResetPassword|Model|Authenticatable $user) use ($data, &$hasPanelAccess): void {
-                if ($user instanceof FilamentUser && ! $user->canAccessPanel(Filament::getCurrentOrDefaultPanel())) {
+                if ($user instanceof User && ! $user->canResetPassword(Filament::getCurrentOrDefaultPanel())) {
                     $hasPanelAccess = false;
 
                     return;

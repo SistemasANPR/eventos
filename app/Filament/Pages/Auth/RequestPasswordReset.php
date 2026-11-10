@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace App\Filament\Pages\Auth;
 
+use App\Models\User;
 use App\Notifications\PasswordResetNotification;
 use App\Support\Auth\AccessThrottle;
 use Filament\Auth\Pages\PasswordReset\RequestPasswordReset as FilamentRequestPasswordReset;
 use Filament\Facades\Filament;
-use Filament\Models\Contracts\FilamentUser;
 use Filament\Notifications\Notification;
 use Filament\Support\Components\Attributes\Exposed;
 use Illuminate\Contracts\Auth\CanResetPassword;
@@ -44,12 +44,13 @@ class RequestPasswordReset extends FilamentRequestPasswordReset
             Password::broker(Filament::getAuthPasswordBroker())->sendResetLink(
                 ['email' => $email],
                 function (CanResetPassword $user, #[SensitiveParameter] string $token): void {
-                    if ($user instanceof FilamentUser && ! $user->canAccessPanel(Filament::getCurrentOrDefaultPanel())) {
+                    if ($user instanceof User && ! $user->canResetPassword(Filament::getCurrentOrDefaultPanel())) {
                         return;
                     }
 
-                    // `notify()` existe en el modelo de usuario (trait Notifiable).
-                    $user->notify(new PasswordResetNotification(Filament::getResetPasswordUrl($token, $user)));
+                    // El token del broker no se usa: la notificación crea el suyo al enviar,
+                    // para que el secreto no se guarde en la cola.
+                    $user->notify(new PasswordResetNotification);
                 },
             );
         }, (int) config('auth.timebox_duration', 200_000));
