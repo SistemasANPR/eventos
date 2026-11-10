@@ -30,7 +30,7 @@ class Organization extends Model implements HasName
     /** Segmentos que chocarían con rutas de la aplicación. */
     public const RESERVED_SLUGS = [
         'admin', 'up', 'login', 'register', 'api',
-        'livewire', 'horizon', 'filament', 'storage', 'build', 'logout', 'password',
+        'livewire', 'horizon', 'filament', 'storage', 'build', 'logout', 'password', 'platform',
     ];
 
     /** Nombre que Filament muestra en el selector de organización. */

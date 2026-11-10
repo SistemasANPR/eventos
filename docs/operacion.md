@@ -52,6 +52,7 @@ Solo nombres; nunca valores en el repositorio. Toda variable nueva se añade a `
 | `REDIS_*` | Colas y caché | Sí |
 | `FILESYSTEM_DISK` y credenciales del bucket | Archivos | Sí |
 | `PRIVATE_UPLOADS_DISK` | Disco privado de los archivos de propuestas (por defecto `local`). En staging y producción apunta a un bucket S3 compatible **privado**; nunca a `public` | Sí |
+| `PLATFORM_PANEL_ENABLED` | Habilita el panel de plataforma (`/platform`, plan 016). Por defecto solo en `local` y pruebas; en staging y producción queda apagado (404) y **no debe activarse hasta que exista la 2FA del plan 014** (DA-1) | No |
 | `MAIL_*` | Correo transaccional | Sí |
 | `[RELLENAR: proveedor de pagos]` | Pagos (ADR-0007) | Según módulo |
 | `[RELLENAR: errores]` | Registro de errores | Recomendada |

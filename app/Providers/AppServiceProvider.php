@@ -50,6 +50,9 @@ class AppServiceProvider extends ServiceProvider
         // La gestión del equipo se autoriza sobre el usuario (el integrante) con una Policy propia.
         Gate::policy(User::class, MembershipPolicy::class);
 
+        // Pantallas de solo lectura del panel de plataforma (plan 016). Deniega por defecto; no es un `Gate::before`.
+        Gate::define('platform.access', static fn (User $user): bool => $user->is_platform_admin);
+
         // Contraseñas: mínimo 12 caracteres y fuera de la lista de expuestas (CA-001-31).
         // `uncompromised()` consulta un servicio externo y, si falla, rechaza (falla cerrado).
         Password::defaults(fn (): Password => Password::min(12)->uncompromised());

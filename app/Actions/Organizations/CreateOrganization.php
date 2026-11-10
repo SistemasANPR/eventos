@@ -6,10 +6,10 @@ namespace App\Actions\Organizations;
 
 use App\Enums\OrganizationRole;
 use App\Exceptions\Domain\OrganizationAlreadyExists;
+use App\Http\Requests\Platform\CreateOrganizationRequest;
 use App\Models\Organization;
 use App\Models\User;
 use App\Notifications\SetPasswordNotification;
-use App\Rules\OrganizationSlug;
 use App\Support\Tenancy\CurrentOrganization;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
@@ -39,12 +39,7 @@ final class CreateOrganization
 
         Validator::make(
             ['slug' => $slug, 'name' => $name, 'email' => $adminEmail, 'admin_name' => $adminName],
-            [
-                'slug' => ['required', new OrganizationSlug],
-                'name' => ['required', 'string', 'max:255'],
-                'email' => ['required', 'email:rfc', 'max:255'],
-                'admin_name' => ['required', 'string', 'max:255'],
-            ],
+            CreateOrganizationRequest::rulesFor(),
         )->validate();
 
         [$organization, $admin] = DB::transaction(function () use ($slug, $name, $adminEmail, $adminName): array {

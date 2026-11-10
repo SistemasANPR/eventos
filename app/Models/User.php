@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Enums\OrganizationStatus;
 use Database\Factories\UserFactory;
 use Filament\Models\Contracts\FilamentUser;
 use Filament\Models\Contracts\HasTenants;
@@ -44,10 +45,30 @@ class User extends Authenticatable implements FilamentUser, HasTenants
         return $this->activeOrganizations()->whereKey($organization->id)->exists();
     }
 
-    /** Solo entra al panel quien tiene al menos una membresía activa. */
+    /**
+     * El acceso se decide por panel y se deniega por defecto: el de organizaciones
+     * exige una membresía activa; el de plataforma, `is_platform_admin` (plan 016).
+     * Un usuario de plataforma sin membresías no entra al panel de ninguna organización.
+     */
     public function canAccessPanel(Panel $panel): bool
     {
-        return $this->activeOrganizations()->exists();
+        return match ($panel->getId()) {
+            'admin' => $this->activeOrganizations()->exists(),
+            'platform' => $this->is_platform_admin,
+            default => false,
+        };
+    }
+
+    /**
+     * Panel al que apuntan sus avisos de contraseña y de dispositivo: el de
+     * plataforma para quien solo es de plataforma (y el panel está habilitado);
+     * en cualquier otro caso, el de organizaciones.
+     */
+    public function preferredPanelId(): string
+    {
+        $isPlatformOnly = $this->is_platform_admin && ! $this->activeOrganizations()->exists();
+
+        return $isPlatformOnly && config('platform.enabled') ? 'platform' : 'admin';
     }
 
     /**
@@ -115,9 +136,11 @@ class User extends Authenticatable implements FilamentUser, HasTenants
     /** @return BelongsToMany<Organization, $this> */
     private function activeOrganizations(): BelongsToMany
     {
+        // Una organización suspendida no cuenta: sus miembros pierden el panel (plan 016, CA-016-15).
         return $this->organizations()
             ->wherePivot('status', 'active')
-            ->wherePivotNull('deactivated_at');
+            ->wherePivotNull('deactivated_at')
+            ->where('organizations.status', OrganizationStatus::Active->value);
     }
 
     /**

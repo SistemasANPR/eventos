@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Notifications;
 
+use App\Models\User;
 use Filament\Facades\Filament;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Auth\CanResetPassword;
@@ -31,7 +32,7 @@ final class SetPasswordNotification extends Notification implements ShouldQueue
     public function toMail(CanResetPassword $notifiable): MailMessage
     {
         $token = Password::broker()->createToken($notifiable);
-        $url = Filament::getPanel('admin')->getResetPasswordUrl($token, $notifiable);
+        $url = Filament::getPanel($notifiable instanceof User ? $notifiable->preferredPanelId() : 'admin')->getResetPasswordUrl($token, $notifiable);
 
         return (new MailMessage)
             ->subject(__('team.set_password.subject'))
