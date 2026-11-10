@@ -3,7 +3,7 @@
 > Plan de la épica E-07 (R0). Especificación SDD (ADR-0001). Se presenta y se espera aprobación antes de escribir código.
 
 - **Fecha:** 2026-11-09
-- **Estado:** Borrador
+- **Estado:** En curso
 - **Esfuerzo:** M
 - **Deuda relacionada:** RC-3 (sin antivirus en R0; deuda P2 propuesta, decisión el 18-dic-2026, dueño Antonio)
 
@@ -136,3 +136,4 @@ Al 2026-11-09 no existe el proyecto Laravel (no hay `composer.json` ni `artisan`
 
 | Fase | Commit | Fecha | Notas (salida real de las validaciones) |
 |---|---|---|---|
+| F1 (H-007-1) | sin commit aún | 2026-11-10 | Migración `submission_files` (aplicada solo a la base local), modelo, fábrica, `PrivateUploads` (validación por contenido), Actions `UploadSubmissionFile` y `AttachSubmissionFile`, ruta `POST .../call/{call}/files`. CA-007-1 a 15 con prueba (`tests/Feature/Submissions/`); CA-007-16 manual en `staging`. Salida real: ver el mensaje de cierre de la sesión. **Pendiente por depender de otros planes:** (1) la FK de `submission_id` hacia `submissions` la añade el plan 006; (2) `FileFieldRegistry` (campo de archivo existente, plan 005) y `UploadTokenVerifier` (emisión del `upload_token`, plan 006) tienen hoy una implementación que deniega todo, por lo que la ruta responde 403 hasta que existan; (3) la variable `PRIVATE_UPLOADS_DISK` (por defecto `local`) falta documentarla en `.env.example` y `docs/operacion.md`. La subida se acota además con `throttle:60,1` por IP en la ruta. |

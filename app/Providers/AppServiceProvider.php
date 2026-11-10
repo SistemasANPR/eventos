@@ -6,6 +6,10 @@ namespace App\Providers;
 
 use App\Models\User;
 use App\Policies\MembershipPolicy;
+use App\Support\Files\FileFieldRegistry;
+use App\Support\Files\NoFileFields;
+use App\Support\Files\NoIssuedUploadTokens;
+use App\Support\Files\UploadTokenVerifier;
 use App\Support\Tenancy\CurrentOrganization;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Queue\Events\JobExceptionOccurred;
@@ -24,7 +28,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        // Costuras hacia el formulario público (planes 005 y 006): deniegan todo hasta que existan.
+        $this->app->bind(FileFieldRegistry::class, NoFileFields::class);
+        $this->app->bind(UploadTokenVerifier::class, NoIssuedUploadTokens::class);
     }
 
     /**

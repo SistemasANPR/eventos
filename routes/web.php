@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Http\Controllers\Public\ShowEventController;
 use App\Http\Controllers\Public\ShowPrivacyNoticeController;
+use App\Http\Controllers\Public\SubmissionFileUploadController;
 use App\Http\Middleware\HandleInertiaRequests;
 use App\Http\Middleware\SetOrganizationFromRoute;
 use Illuminate\Support\Facades\Route;
@@ -26,4 +27,8 @@ Route::middleware([SetOrganizationFromRoute::class, HandleInertiaRequests::class
     ->group(function (): void {
         Route::get('events/{event:slug}', ShowEventController::class)->name('events.show');
         Route::get('events/{event:slug}/privacy', ShowPrivacyNoticeController::class)->name('events.privacy');
+        // Subida pública de archivos de propuesta (plan 007): responde JSON y se acota con token y cuotas.
+        Route::post('events/{event:slug}/call/{call}/files', SubmissionFileUploadController::class)
+            ->middleware('throttle:60,1')
+            ->name('calls.files.store');
     });
