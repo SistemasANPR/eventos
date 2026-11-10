@@ -28,3 +28,7 @@ _ide_helper.php
 Homestead.json
 Homestead.yaml
 Thumbs.db
+
+# Evidencia local de verificacion en navegador (no es codigo)
+/.playwright-mcp
+/verificacion-*.png

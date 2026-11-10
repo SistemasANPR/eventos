@@ -18,6 +18,9 @@ const TENANT_BYPASS_PATTERNS = [
     'saveQuietly' => '/->\s*saveQuietly\s*\(/',
     'withoutEvents' => '/::\s*withoutEvents\s*\(/',
     'DB::table' => '/\bDB::table\s*\(/',
+    'newQueryWithoutScopes' => '/->\s*newQueryWithoutScopes?\s*\(/',
+    'newModelQuery' => '/->\s*newModelQuery\s*\(/',
+    'DB:: SQL crudo' => '/\bDB::(select|selectOne|statement|unprepared|insert|update|delete)\s*\(/',
     'insert/upsert masivo' => '/(::|->)\s*(insert|insertOrIgnore|insertGetId|upsert)\s*\(/',
 ];
 

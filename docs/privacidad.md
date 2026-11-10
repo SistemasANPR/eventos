@@ -25,6 +25,8 @@ Mantener esta tabla al día: **todo dato personal nuevo se añade aquí en el mi
 | Datos de facturación | Pagos | Facturación electrónica | Obligación legal | Plazo fiscal aplicable | No |
 | Necesidades de accesibilidad o alimentarias | Registro | Atención en el evento | Consentimiento expreso | Hasta el fin del evento + `[RELLENAR]` | **Posible** (salud) |
 | Nombre, correo y país de personas de contacto (`contacts`) | Núcleo (autores y ponentes) | Comunicación con la persona dentro de la organización que la registró | Relación de trabajo con la organización y consentimiento | `[RELLENAR: plazo; el borrado es anonimización, no borrado físico]` | No |
+| Huella de dispositivo en hash (`known_devices`: HMAC de navegador, sistema y red /24; sin agente de usuario ni IP) | Núcleo (acceso) | Avisar de inicios de sesión desde un dispositivo nuevo | Interés legítimo (seguridad de la cuenta) | Mientras exista el usuario (se borra en cascada con la cuenta); `[RELLENAR: plazo de depuración de dispositivos sin uso]` | No |
+| IP y hash del correo en la auditoría de accesos (`activity_log`, registro `auth`) | Núcleo (acceso) | Detectar abuso: intentos limitados y restablecimientos | Interés legítimo (seguridad) | `[RELLENAR]`; la limpieza de `activitylog` es de 365 días | No |
 | [RELLENAR] | | | | | |
 
 ## 3. Reglas de ingeniería

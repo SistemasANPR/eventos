@@ -8,6 +8,9 @@ use App\Models\Organization;
 use App\Support\Tenancy\CurrentOrganization;
 use App\Support\Tenancy\Exceptions\OrganizationMismatch;
 use App\Support\Tenancy\OrganizationScope;
+use App\Support\Tenancy\OrganizationScopeBypass;
+use Illuminate\Database\Eloquent\Attributes\Scope;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -19,6 +22,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  *   `MissingOrganizationContext`. Con `organization_id` explícito (fábricas,
  *   plataforma) solo se acepta si coincide con el contexto, cuando lo hay.
  * - `organization_id` no es asignable en masa ni cambia después de creado.
+ * - `withoutOrganizationScope()` solo lo permite a un usuario de plataforma,
+ *   con auditoría (CA-001-11).
  *
  * @mixin Model
  */
@@ -47,6 +52,18 @@ trait BelongsToOrganization
                 throw new OrganizationMismatch('La organización de un registro no se puede cambiar');
             }
         });
+    }
+
+    /**
+     * Salta el scope de organización. Delega en `OrganizationScopeBypass`, que
+     * autoriza (usuario de plataforma) y audita; el trait no toca el scope.
+     *
+     * @param  Builder<static>  $query
+     */
+    #[Scope]
+    protected function withoutOrganizationScope(Builder $query): void
+    {
+        OrganizationScopeBypass::apply($query);
     }
 
     /** @return BelongsTo<Organization, $this> */

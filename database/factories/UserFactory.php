@@ -35,6 +35,14 @@ class UserFactory extends Factory
         ];
     }
 
+    /** Usuario de plataforma (la marca no es asignable en masa; la fábrica no valida `fillable`). */
+    public function platformAdmin(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'is_platform_admin' => true,
+        ]);
+    }
+
     /**
      * Indicate that the model's email address should be unverified.
      */

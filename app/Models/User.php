@@ -27,6 +27,9 @@ class User extends Authenticatable implements FilamentUser, HasTenants
     /** @use HasFactory<UserFactory> */
     use HasFactory, HasRoles, HasUuids, Notifiable;
 
+    /** Igual que el DEFAULT de la columna: un usuario recién creado no es de plataforma (modo estricto exige el atributo). */
+    protected $attributes = ['is_platform_admin' => false];
+
     /** @return BelongsToMany<Organization, $this> */
     public function organizations(): BelongsToMany
     {
@@ -80,6 +83,7 @@ class User extends Authenticatable implements FilamentUser, HasTenants
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'is_platform_admin' => 'boolean',
         ];
     }
 }
