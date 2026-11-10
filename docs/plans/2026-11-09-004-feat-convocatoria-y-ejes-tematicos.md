@@ -11,7 +11,7 @@
 
 Que el organizador de un evento cree su convocatoria (periodo en que el evento recibe propuestas de un tipo) con sus fechas de apertura, cierre y resultados, sus idiomas y sus **ejes temáticos propios**, la publique, y que el público la vea con su estado real. Nada del evento viene fijo: ejes, fechas y textos los captura el organizador desde el panel. **La convocatoria abre y cierra por fecha**; el control manual (pausar, cerrar, reabrir) es «Debería» (H-004-4) y el cierre de emergencia en R0 se hace moviendo `closes_at` al instante actual.
 
-**Dentro:** modelos `CallForSubmissions` y `Track`; recursos de Filament para ambos; publicación con validación del aviso de privacidad; estado calculado por fecha; página pública de la convocatoria (Inertia, sin SSR); contrato `TrackUsageChecker`; Policies y permisos; auditoría; estado manual como «Debería».
+**Dentro:** modelos `CallForSubmissions`, `Track` y `SubmissionType` (tipos de propuesta propios de cada evento); recursos de Filament para ambos; publicación con validación del aviso de privacidad; estado calculado por fecha; página pública de la convocatoria (Inertia, sin SSR); contrato `TrackUsageChecker`; Policies y permisos; auditoría; estado manual como «Debería».
 
 **Fuera:** el formulario de la convocatoria (plan 005), el envío de propuestas y la implementación real de `TrackUsageChecker` (plan 006), el aviso de privacidad (plan 003), la evaluación y los resultados (R1), el recordatorio de cierre (plan 012), SSR (RC-5), periodo de gracia al cierre y múltiples rondas de una misma convocatoria.
 
@@ -52,6 +52,10 @@ Un eje con propuestas no se borra: se archiva (`archived_at`), deja de ofrecerse
 
 El cierre es exacto: con el instante del servidor en `closes_at` o después, no se aceptan envíos (plan 006). No hay margen de gracia. Un organizador que quiera dar más tiempo mueve `closes_at` antes del cierre.
 
+### DA-7 · Tipos de propuesta — se recomienda **una lista propia de cada evento, gestionable por el organizador**
+
+El tipo de propuesta (sesión, panel, póster, taller…) deja de ser una lista fija en código: es una tabla `submission_types` por evento, con nombre traducible, orden y archivado (como los ejes, DA-4). Cada evento nuevo nace con Sesión, Panel, Póster y Taller (es, en, pt), que el organizador puede renombrar, reordenar, archivar o ampliar. Al elegir el tipo en una convocatoria hay un acceso para crear uno nuevo en el momento y una sección «Tipos de propuesta» dentro del evento para gestionarlos. Un tipo archivado no se ofrece en convocatorias nuevas pero se conserva en las existentes. Quien gestiona es quien ya gestiona convocatorias (`calls.manage`; consulta con `calls.view`): no hay permisos nuevos. No hay catálogo compartido entre eventos ni borrado (un tipo en uso es evidencia).
+
 ### DA-6 · Publicar exige aviso de privacidad — se recomienda **bloquear la publicación sin aviso**
 
 Una convocatoria solo pasa a `published` si el evento tiene el aviso de privacidad **publicado en cada uno de sus idiomas** (plan 003). Evita abrir sin un texto que consentir (plan 006, H-006-6).
@@ -70,6 +74,8 @@ Una convocatoria solo pasa a `published` si el evento tiene el aviso de privacid
 
 **Actions:** `CreateCallForSubmissions`, `UpdateCallForSubmissions`, `PublishCall`, `ChangeCallStatus`, `CreateTrack`, `UpdateTrack`, `ReorderTracks`, `ArchiveTrack`. Clase de apoyo `ResolveCallState` (puro, probado con `Carbon::setTestNow`). **Contratos:** `TrackUsageChecker` (nulo aquí, real en el plan 006) y el contrato del plan 003 que informa si el evento tiene aviso publicado por idioma (nombre definitivo en el plan 003).
 
+**Tipos de propuesta (DA-7):** Actions `CreateSubmissionType`, `RenameSubmissionType`, `MoveSubmissionType`, `ArchiveSubmissionType` y `RestoreSubmissionType`, más `SeedDefaultSubmissionTypes` que ejecuta `CreateEvent`. Policy `SubmissionTypePolicy` con los permisos de convocatorias. Sin rutas nuevas: solo Filament (sección del evento y acceso desde el selector de la convocatoria).
+
 **Props de Inertia** (`Calls/Show`): título, descripción, tipo, idiomas, `state`, `opensAt`, `closesAt`, `resultsAt` (ISO 8601 en UTC) y `tracks[]` activos. Los tipos TypeScript se escriben a mano en `resources/js/types/`.
 
 **Propuesta de datos** (`docs/database-design.md` §6):
@@ -77,10 +83,11 @@ Una convocatoria solo pasa a `published` si el evento tiene el aviso de privacid
 1. **Necesidad:** el evento recibe propuestas dentro de un periodo y las clasifica por eje. Módulo dueño: convocatoria. Ciclo de vida: de borrador a cerrada; se conserva como evidencia.
 2. **Inspección:** no hay esquema previo (proyecto sin migraciones). Se revisó la tabla `temas` y el catálogo de ejes del cpanel como referencia funcional, sin reutilizarlos.
 3. **Modelo:**
-   - `call_for_submissions`: `id uuid`, `organization_id uuid NOT NULL`, `event_id uuid NOT NULL`, `slug`, `submission_type` (`session`, `panel`, `poster`, `workshop`, con `CHECK`), `title` y `description` (`jsonb` traducible), `locales` (`jsonb` con códigos de idioma, validado contra los del evento), `opens_at`, `closes_at`, `results_at` (`timestamptz`, esta última nula hasta definirla), `status` (`draft`, `published`, `paused`, `closed`, con `CHECK`), `timestamps` y `SoftDeletes`. Ámbito: evento.
+   - `call_for_submissions`: `id uuid`, `organization_id uuid NOT NULL`, `event_id uuid NOT NULL`, `slug` (lo genera el sistema, CA-004-28), `submission_type_id uuid NOT NULL` (clave foránea compuesta `(submission_type_id, organization_id)` hacia `submission_types`, restrictiva; DA-7), `title` y `description` (`jsonb` traducible), `locales` (`jsonb` con códigos de idioma, validado contra los del evento), `opens_at`, `closes_at`, `results_at` (`timestamptz`, esta última nula hasta definirla), `status` (`draft`, `published`, `paused`, `closed`, con `CHECK`), `timestamps` y `SoftDeletes`. Ámbito: evento.
+   - `submission_types` (DA-7): `id uuid`, `organization_id`, `event_id`, `name` (`jsonb` traducible), `position int`, `archived_at`, `timestamps`. Ámbito: evento. `unique(id, organization_id)`, clave foránea compuesta `(event_id, organization_id)` hacia `events`, índice `(organization_id, event_id, position)` y disparador que impide cambiar `organization_id`. Sin `SoftDeletes`: no se borra, se archiva.
    - `tracks`: `id uuid`, `organization_id`, `event_id`, `name` y `description` (`jsonb` traducible), `position int`, `archived_at`, `timestamps`. Ámbito: evento.
 4. **Integridad:** `organization_id NOT NULL` con clave foránea; `unique(id, organization_id)` en ambas tablas (lo exigen las claves foráneas compuestas de los planes 005 y 006); clave foránea compuesta `(event_id, organization_id)` hacia `events` (que declara `unique(id, organization_id)` en el plan 003) para impedir cruces entre organizaciones; `unique(organization_id, event_id, slug)`; `CHECK (closes_at > opens_at)`; índices `(organization_id, event_id, status)` y `(organization_id, event_id, position)`; `status` y `submission_type` como `enum` de PHP con `CHECK`.
-5. **Cambio:** migraciones nuevas, sin datos previos. `down()` elimina las tablas. La migración la aplica el humano (acción 1 de `AGENTS.md`).
+5. **Cambio:** migraciones nuevas. La de `submission_types` crea los cuatro tipos por defecto en cada evento existente, enlaza las convocatorias que ya tenían un tipo y elimina la columna `submission_type` y su `CHECK`; `down()` la restaura desde el nombre del tipo. `down()` elimina las tablas. La migración la aplica el humano (acción 1 de `AGENTS.md`).
 6. **Alternativa descartada:** guardar los ejes como lista dentro de `events` o de la convocatoria (`jsonb`). Se descartó porque las propuestas los referencian por clave foránea, se filtran y se reportan entre eventos, y un arreglo impide integridad y archivado.
 7. **Preguntas de negocio:** `[PENDIENTE: fecha de resultados de la convocatoria 2027]`; DA-3.
 
@@ -104,6 +111,7 @@ Una convocatoria solo pasa a `published` si el evento tiene el aviso de privacid
 |---|---|---|
 | F0 | Permisos `calls.view`, `calls.manage`, `tracks.manage` y su asignación a roles, con pruebas de rol; enums `SubmissionType`, `CallStatus`, `CallState` y `ResolveCallState` con pruebas de fronteras de fecha; contrato `TrackUsageChecker` | S |
 | F1 | `Track`: migración, modelo, Policy, recurso de Filament con orden, traducción y archivado (H-004-2) | S |
+| F1b | Tipos de propuesta por evento (DA-7): migración con datos por defecto, modelo, Policy, Actions, sección del evento y acceso desde el selector (CA-004-29 a 36) | M |
 | F2 | `CallForSubmissions`: migración, modelo, Policy, recurso de Filament, validación de fechas e idiomas y publicación con aviso (H-004-1) | M |
 | F3 | Página pública `Calls/Show` con estados e i18n (es, en), accesible a ~375 px y ~1280 px (H-004-3) | M |
 | F4 | Estado manual: pausar, cerrar y reabrir con auditoría (H-004-4, «Debería») | S |
@@ -117,7 +125,7 @@ Cada uno tiene al menos una prueba cuyo nombre lo cita (`CA-004-n: ...`) o decla
 - **CA-004-1:** *Dado* un administrador de la organización A y un evento de A con zona horaria `America/Mexico_City`, *cuando* crea una convocatoria de tipo `session` con apertura, cierre e idiomas válidos, *entonces* queda en estado `draft` con las fechas guardadas en UTC y se muestran en la zona del evento.
 - **CA-004-2:** *Dado* un formulario de convocatoria, *cuando* el cierre es igual o anterior a la apertura, o los resultados son anteriores al cierre, *entonces* se rechaza con error de validación por campo; los resultados pueden quedar vacíos.
 - **CA-004-3:** *Dado* un evento con idiomas `es` y `en`, *cuando* se indica un idioma que el evento no tiene o ninguno, *entonces* se rechaza.
-- **CA-004-4:** *Dado* el tipo de propuesta, *cuando* el valor no pertenece a `session`, `panel`, `poster` o `workshop`, *entonces* se rechaza; y *cuando* se repite un `slug` en el mismo evento, *entonces* se rechaza, mientras que el mismo `slug` en otro evento o en otra organización se permite.
+- **CA-004-4:** *Dado* el tipo de propuesta, *cuando* no es un tipo activo del evento de la convocatoria, *entonces* se rechaza; y el mismo título en otro evento o en otra organización se permite.
 - **CA-004-5:** *Dado* un miembro sin `calls.manage`, *cuando* intenta crear, editar o publicar una convocatoria, *entonces* se deniega (403); *cuando* solo consulta con `calls.view`, *entonces* se permite.
 - **CA-004-6:** *Dado* el administrador de A, *cuando* intenta crear una convocatoria con el `event_id` de un evento de B, *entonces* se rechaza, y *cuando* abre por identificador una convocatoria de B, *entonces* la respuesta es 404.
 - **CA-004-7:** *Dado* una convocatoria creada, editada o publicada, *cuando* se guarda, *entonces* queda un registro de auditoría con quién, cuándo y los valores anterior y nuevo.
@@ -125,6 +133,19 @@ Cada uno tiene al menos una prueba cuyo nombre lo cita (`CA-004-n: ...`) o decla
 - **CA-004-9:** *Dado* una convocatoria en `draft` con fechas válidas y el aviso de privacidad del evento publicado en todos sus idiomas, *cuando* un administrador la publica, *entonces* pasa a `published` y queda auditado.
 - **CA-004-10:** *Dado* una convocatoria cuyo evento no tiene aviso de privacidad publicado en alguno de los idiomas de la convocatoria, *cuando* se intenta publicar, *entonces* se rechaza con `PRIVACY_NOTICE_MISSING` y sigue en `draft`.
 - **CA-004-11:** *Dado* una convocatoria publicada y abierta, *cuando* el administrador cambia `closes_at` al instante actual (cierre de emergencia), *entonces* el estado público es `closed` en la petición siguiente y los envíos se rechazan; *cuando* el instante indicado es anterior o igual a `opens_at`, *entonces* se rechaza por la regla de fechas.
+
+- **CA-004-28:** *Dado* un organizador que crea una convocatoria, *cuando* guarda, *entonces* el identificador de la URL (`slug`) se genera solo a partir del título en el idioma base del evento (o, si falta, de otro idioma; o `convocatoria` si no queda texto utilizable), sin que el organizador lo capture; si ya existe en el evento, incluso en una convocatoria eliminada, se añade un sufijo numérico (`-2`, `-3`); y *cuando* edita la convocatoria, *entonces* la URL no cambia.
+
+**Tipos de propuesta del evento (DA-7)**
+
+- **CA-004-29:** *Dado* un evento recién creado, *cuando* se consulta su lista de tipos, *entonces* tiene Sesión, Panel, Póster y Taller, activos y en ese orden, con nombre en es, en y pt.
+- **CA-004-30:** *Dado* un administrador, *cuando* agrega un tipo con nombre en el idioma base del evento, *entonces* queda al final de la lista de ese evento, se puede elegir en sus convocatorias y no aparece en otros eventos; *cuando* falta el nombre en el idioma base, *entonces* se rechaza; un idioma adicional sin traducir cae al idioma base al mostrarse.
+- **CA-004-31:** *Dado* un tipo, *cuando* el administrador lo renombra o lo sube o baja en la lista, *entonces* el cambio se guarda y las convocatorias que lo usan muestran el nombre nuevo; subir el primero o bajar el último no cambia nada.
+- **CA-004-32:** *Dado* un tipo que usa alguna convocatoria, *cuando* se archiva, *entonces* deja de ofrecerse en convocatorias nuevas y de aceptarse al editar para cambiar a él, las convocatorias que ya lo tienen lo conservan, y al restaurarlo vuelve a ofrecerse.
+- **CA-004-33:** *Dado* un administrador de A, *cuando* usa en una convocatoria el tipo de otro evento o de B, o abre por identificador un tipo de B, *entonces* se rechaza o responde 404; un miembro sin `calls.manage` recibe 403 al crear, renombrar, mover o archivar, y con `calls.view` puede consultar.
+- **CA-004-34:** *Dado* la base de datos, *cuando* se inserta directamente un tipo con el `organization_id` de A y el `event_id` de un evento de B, o una convocatoria con el tipo de otra organización, *entonces* la clave foránea compuesta lo rechaza.
+- **CA-004-35:** *Dado* un tipo creado, renombrado, movido o archivado, *cuando* se guarda, *entonces* queda auditado con quién, cuándo y los valores anterior y nuevo.
+- **CA-004-36:** *Dado* el formulario de la convocatoria en el panel, *cuando* el administrador usa el acceso «crear tipo» junto al selector, *entonces* el tipo se crea para ese evento y queda seleccionado, y el miembro sin `calls.manage` no ve ese acceso.
 
 **H-004-2 · Ejes temáticos**
 

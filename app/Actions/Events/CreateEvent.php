@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Actions\Events;
 
+use App\Actions\Calls\SeedDefaultSubmissionTypes;
 use App\Enums\EventStatus;
 use App\Http\Requests\Events\StoreEventRequest;
 use App\Models\Event;
@@ -19,8 +20,8 @@ use Illuminate\Validation\ValidationException;
 
 /**
  * Crea un evento en borrador dentro de una organización (plan 003, CA-003-1 a 4).
- * Las fechas llegan como hora local del evento y se guardan en UTC. Deja
- * auditoría de quién lo creó.
+ * Las fechas llegan como hora local del evento y se guardan en UTC. Nace con
+ * los tipos de propuesta por defecto (plan 004, DA-7). Deja auditoría de quién lo creó.
  *
  * @throws AuthorizationException si quien crea no tiene `events.manage` en la organización
  * @throws ValidationException si los datos no son válidos (no se guarda nada)
@@ -28,6 +29,8 @@ use Illuminate\Validation\ValidationException;
 final class CreateEvent
 {
     use AuthorizesInOrganization;
+
+    public function __construct(private readonly SeedDefaultSubmissionTypes $seedSubmissionTypes) {}
 
     /** @param  array<string, mixed>  $data */
     public function handle(User $actor, Organization $organization, array $data): Event
@@ -44,6 +47,8 @@ final class CreateEvent
                     ...EventAttributes::fromValidated($validated),
                     'status' => EventStatus::Draft,
                 ]);
+
+                $this->seedSubmissionTypes->handle($event);
 
                 activity()
                     ->causedBy($actor)

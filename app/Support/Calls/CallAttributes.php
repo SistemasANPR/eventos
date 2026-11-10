@@ -23,7 +23,7 @@ final class CallAttributes
         $timezone = $event->timezone;
 
         return [
-            'submission_type' => $validated['submission_type'],
+            'submission_type_id' => $validated['submission_type_id'],
             'title' => self::texts($validated['title'] ?? []),
             'description' => self::texts($validated['description'] ?? []),
             'locales' => array_values($validated['locales']),
@@ -39,7 +39,7 @@ final class CallAttributes
      * @param  array<string, mixed>  $texts
      * @return array<string, string>
      */
-    private static function texts(array $texts): array
+    public static function texts(array $texts): array
     {
         return array_filter(
             array_map(static fn (mixed $text): string => is_string($text) ? trim($text) : '', $texts),

@@ -10,6 +10,7 @@ use App\Filament\Resources\Events\Pages\ListEvents;
 use App\Filament\Resources\Events\Pages\ViewEvent;
 use App\Filament\Resources\Events\RelationManagers\CallsRelationManager;
 use App\Filament\Resources\Events\RelationManagers\PrivacyNoticesRelationManager;
+use App\Filament\Resources\Events\RelationManagers\SubmissionTypesRelationManager;
 use App\Filament\Resources\Events\Schemas\EventForm;
 use App\Filament\Resources\Events\Schemas\EventInfolist;
 use App\Filament\Resources\Events\Tables\EventsTable;
@@ -67,6 +68,7 @@ class EventResource extends Resource
     {
         return [
             CallsRelationManager::class,
+            SubmissionTypesRelationManager::class,
             PrivacyNoticesRelationManager::class,
         ];
     }

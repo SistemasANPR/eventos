@@ -5,13 +5,15 @@ declare(strict_types=1);
 namespace App\Filament\Resources\Events\RelationManagers;
 
 use App\Actions\Calls\CreateCallForSubmissions;
+use App\Actions\Calls\CreateSubmissionType;
 use App\Actions\Calls\PublishCall;
 use App\Actions\Calls\UpdateCallForSubmissions;
-use App\Enums\SubmissionType;
 use App\Filament\Support\ActionErrors;
+use App\Filament\Support\SubmissionTypeFields;
 use App\Http\Requests\Events\StoreEventRequest;
 use App\Models\CallForSubmissions;
 use App\Models\Event;
+use App\Models\SubmissionType;
 use App\Support\Calls\ResolveCallState;
 use Carbon\CarbonImmutable;
 use Filament\Actions\Action;
@@ -58,7 +60,11 @@ class CallsRelationManager extends RelationManager
                     ->label(__('calls.columns.title'))
                     ->state(fn (CallForSubmissions $record): string => (string) $record->getTranslation('title', $this->owner()->default_locale, true))
                     ->weight('medium'),
-                TextColumn::make('submission_type')->label(__('calls.columns.type'))->badge()->color('gray'),
+                TextColumn::make('submission_type_id')
+                    ->label(__('calls.columns.type'))
+                    ->state(fn (CallForSubmissions $record): string => (string) $record->submissionType?->label($this->owner()->default_locale))
+                    ->badge()
+                    ->color('gray'),
                 TextColumn::make('status')->label(__('calls.columns.status'))->badge(),
                 TextColumn::make('public_state')
                     ->label(__('calls.columns.public_state'))
@@ -94,7 +100,7 @@ class CallsRelationManager extends RelationManager
             ->icon(Heroicon::OutlinedPencilSquare)
             ->schema(fn (): array => $this->formFields())
             ->fillForm(fn (CallForSubmissions $record): array => [
-                'submission_type' => $record->submission_type->value,
+                'submission_type_id' => $record->submission_type_id,
                 'title' => $record->getTranslations('title'),
                 'description' => $record->getTranslations('description'),
                 'locales' => $record->locales,
@@ -132,10 +138,16 @@ class CallsRelationManager extends RelationManager
     private function formFields(): array
     {
         $fields = [
-            Select::make('submission_type')
+            Select::make('submission_type_id')
                 ->label(__('calls.fields.submission_type'))
-                ->options(SubmissionType::class)
-                ->required(),
+                ->options(fn (mixed $state): array => $this->typeOptions(is_string($state) ? $state : null))
+                ->required()
+                ->createOptionForm(fn (): array => SubmissionTypeFields::names($this->owner()))
+                ->createOptionModalHeading(__('calls.type_create_heading'))
+                ->createOptionUsing(fn (array $data): string => app(CreateSubmissionType::class)->handle(ActionErrors::actor(), $this->owner(), $data)->id)
+                ->createOptionAction(fn (Action $action): Action => $action
+                    ->tooltip(__('calls.type_create'))
+                    ->visible(fn (): bool => Gate::allows('create', [SubmissionType::class, $this->owner()]))),
             CheckboxList::make('locales')
                 ->label(__('calls.fields.locales'))
                 ->options(fn (): array => $this->localeOptions())
@@ -162,6 +174,24 @@ class CallsRelationManager extends RelationManager
             DateTimePicker::make('closes_at')->label(__('calls.fields.closes_at'))->seconds(false)->format('Y-m-d H:i')->required(),
             DateTimePicker::make('results_at')->label(__('calls.fields.results_at'))->seconds(false)->format('Y-m-d H:i'),
         ];
+    }
+
+    /**
+     * Tipos activos del evento en su orden, más el que la convocatoria ya tiene aunque esté archivado.
+     *
+     * @return array<string, string>
+     */
+    private function typeOptions(?string $currentId): array
+    {
+        $locale = $this->owner()->default_locale;
+
+        return SubmissionType::query()
+            ->where('event_id', $this->owner()->id)
+            ->where(fn ($query) => $query->whereNull('archived_at')->orWhere('id', $currentId))
+            ->orderBy('position')
+            ->get()
+            ->mapWithKeys(fn (SubmissionType $type): array => [$type->id => $type->label($locale)])
+            ->all();
     }
 
     /** @return array<string, string> */

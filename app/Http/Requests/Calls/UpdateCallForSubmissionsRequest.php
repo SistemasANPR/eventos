@@ -24,6 +24,6 @@ class UpdateCallForSubmissionsRequest extends StoreCallForSubmissionsRequest
         $call = $this->route('call');
         $event = $this->route('event');
 
-        return $call instanceof CallForSubmissions && $event instanceof Event ? self::rulesFor($event) : [];
+        return $call instanceof CallForSubmissions && $event instanceof Event ? self::rulesFor($event, $call->submission_type_id) : [];
     }
 }

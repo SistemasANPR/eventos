@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Models;
 
 use App\Enums\CallStatus;
-use App\Enums\SubmissionType;
 use App\Models\Concerns\BelongsToOrganization;
 use Database\Factories\CallForSubmissionsFactory;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
@@ -28,7 +27,7 @@ use Spatie\Translatable\HasTranslations;
  * @property string $organization_id
  * @property string $event_id
  * @property string $slug
- * @property SubmissionType $submission_type
+ * @property string $submission_type_id
  * @property list<string> $locales
  * @property Carbon $opens_at
  * @property Carbon $closes_at
@@ -54,13 +53,18 @@ class CallForSubmissions extends Model
     protected function casts(): array
     {
         return [
-            'submission_type' => SubmissionType::class,
             'status' => CallStatus::class,
             'locales' => 'array',
             'opens_at' => 'datetime',
             'closes_at' => 'datetime',
             'results_at' => 'datetime',
         ];
+    }
+
+    /** @return BelongsTo<SubmissionType, $this> */
+    public function submissionType(): BelongsTo
+    {
+        return $this->belongsTo(SubmissionType::class);
     }
 
     /** @return BelongsTo<Event, $this> */

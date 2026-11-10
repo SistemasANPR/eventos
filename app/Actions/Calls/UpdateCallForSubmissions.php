@@ -40,7 +40,7 @@ final class UpdateCallForSubmissions
             $this->authorizeActor($actor, 'update', $call);
 
             $event = Event::query()->findOrFail($call->event_id);
-            $validated = Validator::make($data, StoreCallForSubmissionsRequest::rulesFor($event))->validate();
+            $validated = Validator::make($data, StoreCallForSubmissionsRequest::rulesFor($event, $call->submission_type_id))->validate();
 
             return DB::transaction(function () use ($actor, $call, $event, $validated): CallForSubmissions {
                 $call->forceFill(CallAttributes::fromValidated($validated, $event));

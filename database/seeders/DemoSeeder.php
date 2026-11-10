@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Database\Seeders;
 
+use App\Actions\Calls\SeedDefaultSubmissionTypes;
 use App\Actions\Organizations\SyncOrganizationRoles;
 use App\Enums\EventStatus;
 use App\Models\Event;
@@ -19,7 +20,7 @@ use RuntimeException;
  */
 class DemoSeeder extends Seeder
 {
-    public function run(SyncOrganizationRoles $syncRoles): void
+    public function run(SyncOrganizationRoles $syncRoles, SeedDefaultSubmissionTypes $seedSubmissionTypes): void
     {
         if (app()->isProduction()) {
             throw new RuntimeException('DemoSeeder no se puede ejecutar en producción.');
@@ -32,8 +33,8 @@ class DemoSeeder extends Seeder
 
         $syncRoles->handle($organization);
 
-        CurrentOrganization::run($organization, function (): void {
-            Event::query()->firstOrCreate(
+        CurrentOrganization::run($organization, function () use ($seedSubmissionTypes): void {
+            $event = Event::query()->firstOrCreate(
                 ['slug' => 'congreso-demo'],
                 [
                     'name' => ['es' => 'Congreso de demostración', 'en' => 'Demo congress'],
@@ -53,6 +54,8 @@ class DemoSeeder extends Seeder
                     'status' => EventStatus::Published,
                 ],
             );
+
+            $seedSubmissionTypes->handle($event);
         });
     }
 }

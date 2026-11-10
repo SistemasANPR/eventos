@@ -81,6 +81,12 @@ class Event extends Model
         return $this->hasMany(CallForSubmissions::class);
     }
 
+    /** @return HasMany<SubmissionType, $this> */
+    public function submissionTypes(): HasMany
+    {
+        return $this->hasMany(SubmissionType::class);
+    }
+
     /** @return HasMany<PrivacyNotice, $this> */
     public function privacyNotices(): HasMany
     {

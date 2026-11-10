@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace Database\Factories;
 
 use App\Enums\CallStatus;
-use App\Enums\SubmissionType;
 use App\Models\CallForSubmissions;
 use App\Models\Event;
 use App\Models\Organization;
+use App\Models\SubmissionType;
 use App\Support\Tenancy\CurrentOrganization;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -41,7 +41,9 @@ class CallForSubmissionsFactory extends Factory
                 ->create(['organization_id' => $attributes['organization_id']])
                 ->id,
             'slug' => 'convocatoria-'.fake()->unique()->numerify('########'),
-            'submission_type' => SubmissionType::Session,
+            'submission_type_id' => fn (array $attributes): string => SubmissionType::factory()
+                ->create(['organization_id' => $attributes['organization_id'], 'event_id' => $attributes['event_id']])
+                ->id,
             'title' => ['es' => 'Convocatoria de prueba'],
             'description' => ['es' => fake()->sentence()],
             'locales' => ['es'],

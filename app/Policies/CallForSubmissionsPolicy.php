@@ -7,7 +7,7 @@ namespace App\Policies;
 use App\Models\CallForSubmissions;
 use App\Models\Event;
 use App\Models\User;
-use App\Support\Tenancy\CurrentOrganization;
+use App\Support\Auth\ChecksOrganizationPermissions;
 
 /**
  * Quién puede qué con las convocatorias (plan 004, CA-004-5): consultar con
@@ -19,6 +19,8 @@ use App\Support\Tenancy\CurrentOrganization;
  */
 final class CallForSubmissionsPolicy
 {
+    use ChecksOrganizationPermissions;
+
     public function viewAny(User $user): bool
     {
         return $this->allows($user, ['calls.view', 'calls.manage']);
@@ -42,31 +44,5 @@ final class CallForSubmissionsPolicy
     public function publish(User $user, CallForSubmissions $call): bool
     {
         return $this->allows($user, ['calls.manage'], $call->organization_id);
-    }
-
-    /** @param  list<string>  $anyOf  basta con uno de estos permisos */
-    private function allows(User $user, array $anyOf, ?string $organizationId = null): bool
-    {
-        if (! CurrentOrganization::has()) {
-            return false;
-        }
-
-        $organization = CurrentOrganization::get();
-
-        if ($organizationId !== null && $organizationId !== $organization->id) {
-            return false;
-        }
-
-        if (! $user->hasActiveMembershipIn($organization)) {
-            return false;
-        }
-
-        foreach ($anyOf as $permission) {
-            if ($user->checkPermissionTo($permission)) {
-                return true;
-            }
-        }
-
-        return false;
     }
 }

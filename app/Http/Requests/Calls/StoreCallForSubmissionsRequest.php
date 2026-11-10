@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\Calls;
 
-use App\Enums\SubmissionType;
 use App\Http\Requests\Events\StoreEventRequest;
 use App\Models\CallForSubmissions;
 use App\Models\Event;
@@ -39,10 +38,17 @@ class StoreCallForSubmissionsRequest extends FormRequest
     /**
      * @return array<string, mixed>
      */
-    public static function rulesFor(Event $event): array
+    public static function rulesFor(Event $event, ?string $currentTypeId = null): array
     {
         return [
-            'submission_type' => ['required', Rule::enum(SubmissionType::class)],
+            // Solo un tipo ACTIVO de este evento; al editar, también el que la convocatoria ya tiene (CA-004-32).
+            'submission_type_id' => [
+                'required', 'uuid',
+                Rule::exists('submission_types', 'id')
+                    ->where('organization_id', $event->organization_id)
+                    ->where('event_id', $event->id)
+                    ->where(fn ($query) => $query->where(fn ($inner) => $inner->whereNull('archived_at')->orWhere('id', $currentTypeId))),
+            ],
             'title' => ['required', 'array:'.implode(',', StoreEventRequest::LOCALES), self::atLeastOneText()],
             'title.*' => ['nullable', 'string', 'max:255'],
             'description' => ['nullable', 'array:'.implode(',', StoreEventRequest::LOCALES)],

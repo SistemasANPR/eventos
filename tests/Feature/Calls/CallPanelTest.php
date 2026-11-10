@@ -22,6 +22,7 @@ use Illuminate\Support\Facades\Auth;
 use Livewire\Features\SupportTesting\Testable;
 use Livewire\Livewire;
 use Tests\Support\Memberships;
+use Tests\Support\SubmissionTypes;
 
 uses(RefreshDatabase::class);
 
@@ -57,10 +58,10 @@ function callManager(Event $event): Testable
 }
 
 /** @return array<string, mixed> */
-function panelCallData(): array
+function panelCallData(Event $event): array
 {
     return [
-        'submission_type' => 'session',
+        'submission_type_id' => SubmissionTypes::for($event)->id,
         'title' => ['es' => 'Convocatoria de sesiones', 'en' => 'Call for sessions'],
         'locales' => ['es', 'en'],
         'opens_at' => '2027-01-10 09:00',
@@ -75,7 +76,7 @@ function publishNoticeInBothLanguages(Event $event, User $admin): void
 
 it('CA-004-1: an admin sees the calls of the event in the panel', function (): void {
     [$organization, $event, $admin] = callPanelScenario();
-    $call = app(CreateCallForSubmissions::class)->handle($admin, $event, panelCallData());
+    $call = app(CreateCallForSubmissions::class)->handle($admin, $event, panelCallData($event));
     CurrentOrganization::set($organization);
 
     callManager($event)->assertCanSeeTableRecords([$call]);
@@ -97,7 +98,7 @@ it('CA-004-1: an admin creates a draft call from the panel, with the dates in UT
     [$organization, $event] = callPanelScenario();
 
     callManager($event)
-        ->callAction(TestAction::make('createCall')->table(), panelCallData())
+        ->callAction(TestAction::make('createCall')->table(), panelCallData($event))
         ->assertHasNoFormErrors();
 
     CurrentOrganization::set($organization);
@@ -111,7 +112,7 @@ it('CA-004-1: an admin creates a draft call from the panel, with the dates in UT
 it('CA-004-2: the panel saves nothing when the dates are invalid', function (): void {
     [$organization, $event] = callPanelScenario();
 
-    callManager($event)->callAction(TestAction::make('createCall')->table(), [...panelCallData(), 'closes_at' => '2027-01-09 09:00']);
+    callManager($event)->callAction(TestAction::make('createCall')->table(), [...panelCallData($event), 'closes_at' => '2027-01-09 09:00']);
 
     CurrentOrganization::set($organization);
 
@@ -121,7 +122,7 @@ it('CA-004-2: the panel saves nothing when the dates are invalid', function (): 
 it('CA-004-9: an admin publishes a call from the panel when the notice is published', function (): void {
     [$organization, $event, $admin] = callPanelScenario();
     publishNoticeInBothLanguages($event, $admin);
-    $call = app(CreateCallForSubmissions::class)->handle($admin, $event, panelCallData());
+    $call = app(CreateCallForSubmissions::class)->handle($admin, $event, panelCallData($event));
     CurrentOrganization::set($organization);
 
     callManager($event)->callAction(TestAction::make('publish')->table($call));
@@ -131,7 +132,7 @@ it('CA-004-9: an admin publishes a call from the panel when the notice is publis
 
 it('CA-004-10: publishing without the privacy notice leaves the call in draft', function (): void {
     [$organization, $event, $admin] = callPanelScenario();
-    $call = app(CreateCallForSubmissions::class)->handle($admin, $event, panelCallData());
+    $call = app(CreateCallForSubmissions::class)->handle($admin, $event, panelCallData($event));
     CurrentOrganization::set($organization);
 
     callManager($event)->callAction(TestAction::make('publish')->table($call));
@@ -142,7 +143,7 @@ it('CA-004-10: publishing without the privacy notice leaves the call in draft', 
 it('CA-004-9: a published call offers no publish action again', function (): void {
     [$organization, $event, $admin] = callPanelScenario();
     publishNoticeInBothLanguages($event, $admin);
-    $call = app(CreateCallForSubmissions::class)->handle($admin, $event, panelCallData());
+    $call = app(CreateCallForSubmissions::class)->handle($admin, $event, panelCallData($event));
     $published = app(PublishCall::class)->handle($admin, $call);
     CurrentOrganization::set($organization);
 
@@ -151,7 +152,7 @@ it('CA-004-9: a published call offers no publish action again', function (): voi
 
 it('CA-004-1: the edit form shows the dates in the local time of the event, not in UTC', function (): void {
     [$organization, $event, $admin] = callPanelScenario();
-    $call = app(CreateCallForSubmissions::class)->handle($admin, $event, panelCallData());
+    $call = app(CreateCallForSubmissions::class)->handle($admin, $event, panelCallData($event));
     CurrentOrganization::set($organization);
 
     $manager = callManager($event)->mountAction(TestAction::make('editCall')->table($call));
@@ -162,17 +163,17 @@ it('CA-004-1: the edit form shows the dates in the local time of the event, not 
 
 it('CA-004-11: an admin edits a call from the panel and the new close is stored in UTC', function (): void {
     [$organization, $event, $admin] = callPanelScenario();
-    $call = app(CreateCallForSubmissions::class)->handle($admin, $event, panelCallData());
+    $call = app(CreateCallForSubmissions::class)->handle($admin, $event, panelCallData($event));
     CurrentOrganization::set($organization);
 
-    callManager($event)->callAction(TestAction::make('editCall')->table($call), [...panelCallData(), 'closes_at' => '2027-02-20 23:00']);
+    callManager($event)->callAction(TestAction::make('editCall')->table($call), [...panelCallData($event), 'closes_at' => '2027-02-20 23:00']);
 
     expect($call->fresh()->closes_at->utc()->format('Y-m-d H:i'))->toBe('2027-02-21 05:00');
 });
 
 it('CA-004-6: the panel offers no way to delete a call', function (): void {
     [$organization, $event, $admin] = callPanelScenario();
-    $call = app(CreateCallForSubmissions::class)->handle($admin, $event, panelCallData());
+    $call = app(CreateCallForSubmissions::class)->handle($admin, $event, panelCallData($event));
     CurrentOrganization::set($organization);
 
     callManager($event)

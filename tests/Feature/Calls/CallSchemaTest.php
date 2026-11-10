@@ -8,6 +8,7 @@ use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Tests\Support\SubmissionTypes;
 
 uses(RefreshDatabase::class);
 
@@ -22,7 +23,7 @@ function callRow(Event $event, array $overrides = []): array
         'organization_id' => $event->organization_id,
         'event_id' => $event->id,
         'slug' => 'sesiones-'.Str::random(6),
-        'submission_type' => 'session',
+        'submission_type_id' => SubmissionTypes::for($event)->id,
         'title' => json_encode(['es' => 'Convocatoria']),
         'locales' => json_encode(['es']),
         'opens_at' => '2027-01-10 15:00:00',
@@ -80,7 +81,6 @@ it('CA-004-4: the database refuses invalid values', function (string $column, mi
 
     expect(fn () => insertCall(callRow($event, [$column => $value])))->toThrow(QueryException::class);
 })->with([
-    'unknown type' => ['submission_type', 'conferencia'],
     'unknown status' => ['status', 'abierta'],
     'language outside es, en and pt' => ['locales', '["es","fr"]'],
 ]);
