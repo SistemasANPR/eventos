@@ -29,7 +29,6 @@ Lo que NO está aquí porque se decidió no cambiarlo: [RELLENAR: decisiones de 
 
 | # | Punto | Archivos | Esfuerzo |
 |---|---|---|---|
-| DT-06 | Catálogo de componentes incompleto: falta la ruta interna `/components` con demos y las guardianas `tokens.test.ts` y `classes.test.ts` de `design.md` §2.6 (hoy solo existen registry, conventions, no-hex y contraste). Dueño: [PENDIENTE]. Fecha límite sugerida: antes de añadir componentes nuevos al catálogo; [PENDIENTE] fecha | `resources/js/`, `design.md` §2.6 | M |
 
 ### P4 · Estilo
 
@@ -52,3 +51,4 @@ Lo que NO está aquí porque se decidió no cambiarlo: [RELLENAR: decisiones de 
 | DT-03 | Reactivación de un integrante desactivado: acción explícita del administrador (`ReactivateMember`) con el rol anterior precargado y confirmado, auditada (`member_reactivated`), y el alta por correo de un desactivado se rechaza apuntando a «Reactivar» (plan 003, DA-10, CA-003-32 a 38). 27 pruebas nuevas entre acción, política y panel; 233 pasan en el filtro Team/Membership/Roles/Lang | `7a29b8a` | 2026-11-11 |
 | DT-10 | Tabla de eventos del panel desplazable en móvil: la lista de eventos pasó a tarjetas (`Stack`/`Split` con `contentGrid` de 1 columna en móvil, 2 en `md` y 3 en `xl`), así que se apila en pantallas pequeñas. Lo hizo el plan 015 (F2) y lo cubre `EventCardsTest`. No verificado por mí en navegador | `d9056d0` | 2026-11-11 |
 | DT-05 | El 429 del acceso en Livewire mostraba el modal de error genérico. Ahora una notificación avisa «Demasiados intentos» con el tiempo de espera (de `Retry-After`, en minutos) en el login y en «olvidé mi contraseña»; el servidor no cambia (429, `Retry-After` y auditoría intactos). Cliente con `Livewire.interceptRequest` en un script del panel. CA-001-37, 2 pruebas nuevas; verificado en navegador a 375 y 1280 px | `29adc42` | 2026-11-11 |
+| DT-06 | Catálogo de componentes completo: ruta interna `/components` (solo local o usuario de plataforma, 404 en otro caso, `noindex`, sin enlace en menús) con una demo por componente, y guardianas `tokens.test.ts` (contraste AA contra el CSS real) y `classes.test.ts` (cadenas de `lib/classes.ts` sin reescribir en línea). CA-002-27 a 31; 9 pruebas Pest y Vitest 108 pasan; verificado en navegador a 375 y 1280 px. `no-hex.test.ts` no existe como archivo: la regla vive en `conventions.test.ts` | `525e691` | 2026-11-11 |
