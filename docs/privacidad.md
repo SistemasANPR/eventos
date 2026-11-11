@@ -49,7 +49,7 @@ Mantener esta tabla al día: **todo dato personal nuevo se añade aquí en el mi
 
 | Proveedor | Función | Datos que recibe | País | Contrato de tratamiento |
 |---|---|---|---|---|
-| `[RELLENAR: correo transaccional]` | Envío de correos | Nombre, correo, contenido | | |
+| Resend (ADR-0009) | Envío de correos | Nombre, correo, contenido | | |
 | `[RELLENAR: pagos]` | Cobros | Datos de pago (los gestiona el proveedor) | | |
 | `[RELLENAR: errores]` | Registro de errores | Sin PII | | |
 | `[RELLENAR: alojamiento]` | Aplicación y base | Todos | | |

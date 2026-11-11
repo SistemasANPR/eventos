@@ -25,7 +25,7 @@ Todo el desarrollo ocurre en `staging`; `main` solo recibe lo ya probado (ADR-00
 | PostgreSQL | Gestionado; respaldos automáticos |
 | Redis | Colas, caché y bloqueos |
 | Almacenamiento de archivos | Compatible con S3; bucket **privado**; versionado activado |
-| Correo transaccional | `[RELLENAR: proveedor]`; dominio con SPF, DKIM y DMARC |
+| Correo transaccional | Resend en R0, con Amazon SES como alternativa detrás de `TransactionalMailer` (ADR-0009); dominio con SPF, DKIM y DMARC |
 | CDN y protección | Cloudflare delante del sitio público |
 | Errores | `[RELLENAR: Sentry u otro]`; sin PII en los eventos |
 | Monitoreo de colas | Laravel Horizon |
