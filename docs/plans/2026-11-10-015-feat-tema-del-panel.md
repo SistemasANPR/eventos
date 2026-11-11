@@ -17,6 +17,7 @@ El panel de organizadores se ve como el Filament por defecto (`Color::Amber`, si
 - Login y recuperación de contraseña con la marca (logotipo, fondo, tipografía).
 - Anchos de modal coherentes y formularios largos en panel lateral (*slide-over*).
 - Lista de eventos como cuadrícula de tarjetas.
+- Acabado visual del panel (F3): superficies y elevación, menú lateral marino, barra superior, encabezados, tablas, formularios, modales, botones y movimiento, solo con el tema y los tokens de `design.md`.
 - Verificación a ~375 px y ~1280 px.
 
 **Fuera:**
@@ -93,6 +94,7 @@ Cada fase deja el repo en verde y termina en su propio commit.
 | F0 | Tema de Filament: CSS del tema con tokens y fuentes, `viteTheme`, paleta, tipografía, `darkMode(false)`, prueba de coherencia de hex con `app.css`. | S |
 | F1 | Login y recuperación con la marca; ancho de modal por defecto y *slide-over* según DA-5 (tras cerrarla). | S |
 | F2 | Lista de eventos en tarjetas (`EventsTable` con `contentGrid`), manteniendo selector de evento, orden, estado vacío y acciones. | M |
+| F3 | Acabado visual (aprobado el 2026-11-11): menú lateral marino con barra lima en el enlace activo, superficies con borde y sombra en dos niveles, radios 12/8/16 px, encabezados y tablas con jerarquía, tarjetas de evento con elevación al pasar el cursor, modales con sombra y fondo marino, una sola acción lima por pantalla y movimiento de 150–200 ms. Todo en `theme.css`. | M |
 
 ## 7. Criterios de aceptación
 
@@ -106,6 +108,14 @@ Cada fase deja el repo en verde y termina en su propio commit.
 - **CA-015-7:** *Dado* un usuario sin permiso para publicar o archivar, *cuando* ve una tarjeta, *entonces* esas acciones no aparecen y el servidor las rechaza igual que hoy.
 - **CA-015-8:** *Dado* el panel con el tema, *cuando* se revisa a ~375 px y ~1280 px con la consola abierta, *entonces* no hay errores de consola, el texto cumple contraste AA y el foco es visible.
   Manual: rutas `/admin/login`, lista de eventos, vista de un evento y un modal de acción, en ambos anchos; esperar o hacer scroll por las animaciones de entrada antes de concluir un fallo.
+- **CA-015-9:** *Dado* el tema del panel, *cuando* se revisan sus colores, *entonces* todo hexadecimal de `theme.css` pertenece a los tokens de `design.md` (los de `resources/css/app.css` o las escalas de `BrandPalette`); una prueba falla si aparece un color suelto.
+- **CA-015-10:** *Dados* los pares de texto y fondo nuevos del panel (menú lateral, encabezados, tablas, etiquetas, botones), *cuando* se calcula su contraste con luminancia WCAG, *entonces* todos alcanzan AA (4,5:1 para texto; 3:1 para bordes de campos y glifos).
+- **CA-015-11:** *Dado* el movimiento del tema, *cuando* se revisa `theme.css`, *entonces* solo anima `transform`, `opacity` y `box-shadow` con 150–200 ms, no usa `transition: all` y respeta `prefers-reduced-motion`.
+- **CA-015-12:** *Dadas* las páginas del panel, *cuando* se renderizan, *entonces* los selectores que el tema usa (`fi-sidebar`, `fi-topbar`, `fi-header-heading`, `fi-section`, `fi-modal-window`, `fi-ta-record`) existen en el HTML; una actualización de Filament que los renombre rompe la prueba y no el aspecto en silencio.
+- **CA-015-13:** *Dado* el panel con el acabado visual, *cuando* se revisa a ~375 px y ~1280 px, *entonces* hay una sola acción lima por pantalla, el menú lateral es legible, las tarjetas se elevan al pasar el cursor sin mover el diseño y no hay errores de consola.
+  Manual: login, lista de eventos, vista de un evento, un formulario y un modal, en ambos anchos; con `prefers-reduced-motion` activado no hay animación.
+- **CA-015-14:** *Dado* el menú lateral del panel, *cuando* se muestra en escritorio, *entonces* mide como máximo 16 rem, se puede contraer a solo iconos y, en pantallas menores a 1024 px, es un cajón que se abre y se cierra; *y* el nombre de la organización del selector se lee en blanco (y su etiqueta en `#CFDBF6`) sobre el fondo marino, con contraste AA.
+  Manual: a 1280 px el menú no ocupa más de 16 rem y se contrae; a 375 px se abre con el botón de menú; el nombre de la organización se lee sobre el marino.
 
 ## 8. Riesgos
 

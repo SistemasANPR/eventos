@@ -57,6 +57,11 @@ class AdminPanelProvider extends PanelProvider
             ->viteTheme('resources/css/filament/admin/theme.css')
             ->font('Roboto', provider: LocalFontProvider::class)
             ->darkMode(false)
+            // Menú lateral más estrecho que el de Filament (20 rem) y contraíble a solo iconos;
+            // en pantallas menores a 1024 px Filament ya lo muestra como cajón (plan 015, CA-015-14).
+            ->sidebarWidth('15rem')
+            ->collapsedSidebarWidth('4.5rem')
+            ->sidebarCollapsibleOnDesktop()
             ->userMenuItems([PanelSwitcher::toPlatform()])
             ->bootUsing(fn () => self::defaultModalWidth())
             ->colors([

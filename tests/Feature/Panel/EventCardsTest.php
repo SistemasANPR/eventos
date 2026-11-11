@@ -115,6 +115,17 @@ it('CA-015-4: a click on the card opens the event', function (): void {
     expect($table->getRecordUrl($event))->toBe(EventResource::getUrl('view', ['record' => $event]));
 });
 
+it('CA-015-4: each card carries the class of its status for the top edge', function (): void {
+    $organization = Memberships::organization();
+    $admin = Memberships::attach(User::factory()->create(), $organization, OrganizationRole::OrgAdmin);
+    $event = cardsEvent($organization, $admin);
+    cardsActAs($admin, $organization);
+
+    $table = cardsTable(Livewire::test(ListEvents::class));
+
+    expect($table->getRecordClasses($event))->toContain('eventos-card-draft');
+});
+
 it('CA-015-5: the cards of an organization never include the events of another', function (): void {
     $organizationA = Memberships::organization();
     $organizationB = Memberships::organization();

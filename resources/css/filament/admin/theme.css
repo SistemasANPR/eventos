@@ -124,3 +124,250 @@ h3,
 .fi-simple-header-subheading {
     color: #585b62;
 }
+
+/*
+ * Acabado visual del panel (plan 015, F3). Solo tokens de design.md §3.1: cada color
+ * sale de estas variables y PanelStyleTest vigila que no aparezcan colores sueltos,
+ * que los contrastes cumplan AA y que las clases de Filament que se tocan existan.
+ */
+:root {
+    --eventos-navy: #152b83;
+    --eventos-navy-deep: #0d1e70;
+    --eventos-navy-50: #f4f7fe;
+    --eventos-navy-200: #cfdbf6;
+    --eventos-lime: #bfcc36;
+    --eventos-bg: #f8fafe;
+    --eventos-border: #e2e6ef;
+    --eventos-surface-muted: #f1f3f8;
+    --eventos-text: #243342;
+    --eventos-muted: #585b62;
+    --eventos-field-border: #777a82;
+    --eventos-status-draft: #a1a5ac;
+    --eventos-status-published: #2e7d32;
+    --eventos-status-archived: #92400e;
+
+    /* Elevación en dos niveles: reposo y elevada (sombra marina, nunca negra pura). */
+    --eventos-shadow-rest: 0 1px 2px rgb(21 43 131 / 0.06), 0 1px 3px rgb(21 43 131 / 0.04);
+    --eventos-shadow-raised: 0 10px 28px rgb(21 43 131 / 0.14), 0 2px 6px rgb(21 43 131 / 0.08);
+
+    --eventos-radius-control: 8px;
+    --eventos-radius-card: 12px;
+    --eventos-radius-modal: 16px;
+}
+
+/* Foco visible de 2 px: marino sobre claro, lima sobre el menú marino (design.md §3.1). */
+.fi-main :focus-visible,
+.fi-topbar :focus-visible {
+    outline: 2px solid var(--eventos-navy);
+    outline-offset: 2px;
+}
+
+.fi-sidebar :focus-visible {
+    outline: 2px solid var(--eventos-lime);
+    outline-offset: 2px;
+}
+
+/* Menú lateral marino con barra lima en el enlace activo. */
+.fi-sidebar,
+.fi-sidebar-header-ctn,
+.fi-sidebar-header {
+    background-color: var(--eventos-navy);
+    box-shadow: none;
+}
+
+.fi-sidebar .fi-logo,
+.fi-sidebar .fi-tenant-menu-trigger {
+    color: #ffffff;
+}
+
+/* Selector de organización: sus textos llevan color propio y salían oscuros sobre el marino. */
+.fi-sidebar .fi-tenant-menu-trigger-tenant-name {
+    color: #ffffff;
+    font-weight: 600;
+}
+
+.fi-sidebar .fi-tenant-menu-trigger-current-tenant-label,
+.fi-sidebar .fi-tenant-menu-trigger .fi-icon {
+    color: var(--eventos-navy-200);
+}
+
+.fi-sidebar .fi-tenant-menu-trigger:hover {
+    background-color: rgb(255 255 255 / 0.08);
+}
+
+.fi-sidebar .fi-sidebar-group-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--eventos-navy-200);
+}
+
+.fi-sidebar .fi-sidebar-item-btn {
+    border-radius: var(--eventos-radius-control);
+    color: var(--eventos-navy-200);
+}
+
+.fi-sidebar .fi-sidebar-item-btn .fi-sidebar-item-label,
+.fi-sidebar .fi-sidebar-item-btn .fi-sidebar-item-icon {
+    color: var(--eventos-navy-200);
+}
+
+.fi-sidebar .fi-sidebar-item-btn:hover {
+    background-color: rgb(255 255 255 / 0.08);
+}
+
+.fi-sidebar .fi-sidebar-item.fi-active > .fi-sidebar-item-btn {
+    background-color: var(--eventos-navy-deep);
+    /* La lima es solo decoración (barra), nunca color de texto. */
+    box-shadow: inset 3px 0 0 var(--eventos-lime);
+}
+
+.fi-sidebar .fi-sidebar-item.fi-active > .fi-sidebar-item-btn .fi-sidebar-item-label,
+.fi-sidebar .fi-sidebar-item.fi-active > .fi-sidebar-item-btn .fi-sidebar-item-icon {
+    color: #ffffff;
+}
+
+/* Barra superior y encabezados de página. */
+.fi-topbar {
+    background-color: #ffffff;
+    border-bottom: 1px solid var(--eventos-border);
+    box-shadow: var(--eventos-shadow-rest);
+}
+
+.fi-header-heading {
+    font-family: 'Montserrat', system-ui, -apple-system, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+    font-size: 1.75rem;
+    font-weight: 700;
+    line-height: 2.25rem;
+    letter-spacing: -0.01em;
+    color: var(--eventos-navy);
+}
+
+.fi-header-subheading {
+    color: var(--eventos-muted);
+}
+
+/* Superficies: borde fino y sombra de reposo en secciones y tablas. */
+.fi-section,
+.fi-ta-ctn {
+    border: 1px solid var(--eventos-border);
+    border-radius: var(--eventos-radius-card);
+    background-color: #ffffff;
+    box-shadow: var(--eventos-shadow-rest);
+}
+
+/* Tablas: cabecera como etiqueta, fila con hover marino muy claro y cifras alineadas. */
+.fi-ta-header-cell {
+    background-color: var(--eventos-surface-muted);
+    color: var(--eventos-muted);
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.fi-ta-row:hover {
+    background-color: var(--eventos-navy-50);
+}
+
+.fi-ta-text {
+    font-variant-numeric: tabular-nums;
+}
+
+/* Tarjetas de evento (EventsTable): elevación al pasar el cursor, sin mover el diseño. */
+.fi-ta-content-grid .fi-ta-record {
+    border: 1px solid var(--eventos-border);
+    border-top-width: 3px;
+    border-radius: var(--eventos-radius-card);
+    background-color: #ffffff;
+    box-shadow: var(--eventos-shadow-rest);
+    cursor: pointer;
+    transition:
+        transform 180ms ease-out,
+        box-shadow 180ms ease-out;
+}
+
+.fi-ta-content-grid .fi-ta-record:hover,
+.fi-ta-content-grid .fi-ta-record:focus-within {
+    transform: translateY(-2px);
+    box-shadow: var(--eventos-shadow-raised);
+}
+
+/* El estado también va con icono y texto en la insignia: el filete solo lo refuerza. */
+.fi-ta-content-grid .eventos-card-draft {
+    border-top-color: var(--eventos-status-draft);
+}
+
+.fi-ta-content-grid .eventos-card-published {
+    border-top-color: var(--eventos-status-published);
+}
+
+.fi-ta-content-grid .eventos-card-archived {
+    border-top-color: var(--eventos-status-archived);
+}
+
+/* Formularios: etiqueta de 14 px y borde de campo con 3:1 (WCAG 1.4.11). */
+.fi-fo-field-label-content {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--eventos-text);
+}
+
+.fi-input-wrp {
+    border-radius: var(--eventos-radius-control);
+    --tw-ring-color: var(--eventos-field-border);
+}
+
+.fi-input-wrp:focus-within {
+    --tw-ring-color: var(--eventos-navy);
+    box-shadow: 0 0 0 2px var(--eventos-navy);
+}
+
+/* Botones e insignias. */
+.fi-btn {
+    border-radius: var(--eventos-radius-control);
+    font-weight: 600;
+}
+
+.fi-badge {
+    border-radius: 9999px;
+    font-weight: 600;
+}
+
+/* Una sola acción lima por pantalla: la primera acción primaria del encabezado. */
+.fi-header-actions-ctn .fi-btn.fi-color-primary:first-child {
+    background-color: var(--eventos-lime);
+    color: var(--eventos-navy);
+}
+
+.fi-header-actions-ctn .fi-btn.fi-color-primary:first-child:hover {
+    filter: brightness(0.94);
+}
+
+/* Modales: más radio, sombra elevada y fondo atenuado marino. */
+.fi-modal-window {
+    border-radius: var(--eventos-radius-modal);
+    box-shadow: var(--eventos-shadow-raised);
+}
+
+.fi-modal-heading {
+    font-family: 'Montserrat', system-ui, -apple-system, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+    font-weight: 600;
+    color: var(--eventos-navy);
+}
+
+.fi-modal-close-overlay {
+    background-color: rgb(13 30 112 / 0.5);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .fi-ta-content-grid .fi-ta-record {
+        transition: none;
+    }
+
+    .fi-ta-content-grid .fi-ta-record:hover,
+    .fi-ta-content-grid .fi-ta-record:focus-within {
+        transform: none;
+    }
+}

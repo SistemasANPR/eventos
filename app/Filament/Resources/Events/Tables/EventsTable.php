@@ -62,6 +62,8 @@ final class EventsTable
                         ->sortable(),
                 ])->space(3),
             ])
+            // Filete superior de la tarjeta según el estado; el estado sigue yendo con icono y texto.
+            ->recordClasses(fn (Event $record): string => 'eventos-card-'.$record->status->value)
             // Tarjetas: una columna en móvil, dos en tablet y tres en escritorio (plan 015, DA-4).
             ->contentGrid(['default' => 1, 'md' => 2, 'xl' => 3])
             ->defaultSort('starts_at', 'desc')
