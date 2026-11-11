@@ -32,8 +32,6 @@ Lo que NO está aquí porque se decidió no cambiarlo: [RELLENAR: decisiones de 
 | # | Punto | Archivos | Esfuerzo |
 |---|---|---|---|
 | DT-06 | Catálogo de componentes incompleto: falta la ruta interna `/components` con demos y las guardianas `tokens.test.ts` y `classes.test.ts` de `design.md` §2.6 (hoy solo existen registry, conventions, no-hex y contraste). Dueño: [PENDIENTE]. Fecha límite sugerida: antes de añadir componentes nuevos al catálogo; [PENDIENTE] fecha | `resources/js/`, `design.md` §2.6 | M |
-| DT-07 | `COVERAGE_MIN` del CI está en 0. Medir la cobertura real y fijarla redondeada hacia abajo (`AGENTS.md`: el umbral sube, nunca baja). Dueño: [PENDIENTE]. Fecha límite sugerida: [PENDIENTE] | `.github/workflows/ci.yml`, `composer.json` (`test:coverage`) | S |
-| DT-08 | `DB::unprepared` de las migraciones con funciones y triggers: documentar que `migrate:fresh` no borra las funciones (se usa `CREATE OR REPLACE`), para que nadie asuma un entorno limpio. Dueño: [PENDIENTE]. Fecha límite sugerida: [PENDIENTE] | migraciones con triggers, `docs/database-design.md` | S |
 
 ### P4 · Estilo
 
@@ -52,3 +50,5 @@ Lo que NO está aquí porque se decidió no cambiarlo: [RELLENAR: decisiones de 
 | # | Punto | Commit | Fecha |
 |---|---|---|---|
 | DT-01 | `organization_id` propio en la bitácora `activity_log`: columna nullable con clave foránea e índice, modelo de actividad propio que la fija desde `properties` o el contexto y relleno de lo existente. Se hizo en el plan 016 (F1) y 6 pruebas nuevas (`ActivityOrganizationTest`, incluida la de la migración). Queda pendiente, y no es parte de este punto, acotar la bitácora por organización antes de mostrarla a las organizaciones | `e1a0f02` | 2026-11-10 |
+| DT-07 | `COVERAGE_MIN` del CI estaba en 0. Se midió la cobertura real (95.0 %, 842 pruebas) y se fijó en 94 en `ci.yml` y en `composer test:coverage` (con `XDEBUG_MODE=coverage`: con Xdebug cargado en modo `develop` la medición da 0 %). Sin pruebas nuevas: es configuración | `e683076` | 2026-11-11 |
+| DT-08 | Documentado en `docs/database-design.md` §5 que `migrate:fresh` no borra las funciones de PostgreSQL (se usa `CREATE OR REPLACE` y `down()` las retira) y cómo vaciar de verdad una base local. Solo documentación | `e683076` | 2026-11-11 |
