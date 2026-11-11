@@ -99,7 +99,7 @@ it('CA-016-4: a wrong password and an unknown email give the same message in the
     expect($unknownEmail->errors()->get('data.email'))->toBe($wrongPassword->errors()->get('data.email'));
 });
 
-it('CA-016-5: a platform user asks for a password reset from the platform panel and the link points to it', function (): void {
+it('CA-016-5: a platform user asks for a password reset and the link points to the single panel (plan 017)', function (): void {
     Notification::fake();
     $user = platformUser();
 
@@ -108,7 +108,7 @@ it('CA-016-5: a platform user asks for a password reset from the platform panel 
     Notification::assertSentTo($user, PasswordResetNotification::class, function (PasswordResetNotification $notification) use ($user): bool {
         $url = (string) $notification->toMail($user)->actionUrl;
 
-        return str_contains($url, '/platform/password-reset/reset');
+        return str_contains($url, '/admin/password-reset/reset');
     });
 });
 
@@ -123,12 +123,12 @@ it('CA-016-5: an unknown email gets the same answer as a known one', function ()
     Notification::assertSentToTimes($user, PasswordResetNotification::class, 1);
 });
 
-it('CA-016-6: the panel answers 404 when it is not enabled and works when it is', function (): void {
+it('CA-016-6: the panel answers 404 when it is not enabled and its login redirects to the single login when it is', function (): void {
     config(['platform.enabled' => false]);
     $this->get('/platform/login')->assertNotFound();
 
     config(['platform.enabled' => true]);
-    $this->get('/platform/login')->assertOk();
+    $this->get('/platform/login')->assertRedirect('/admin/login');
 });
 
 it('CA-016-6: it is not enabled by default outside local and testing', function (): void {

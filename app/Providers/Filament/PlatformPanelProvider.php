@@ -4,9 +4,8 @@ declare(strict_types=1);
 
 namespace App\Providers\Filament;
 
-use App\Filament\Pages\Auth\Login;
-use App\Filament\Pages\Auth\RequestPasswordReset;
-use App\Filament\Pages\Auth\ResetPassword;
+use App\Filament\Pages\Auth\UnifiedLoginRedirect;
+use App\Filament\Support\PanelSwitcher;
 use App\Http\Middleware\EnsurePlatformPanelEnabled;
 use App\Support\Panel\BrandPalette;
 use Filament\FontProviders\LocalFontProvider;
@@ -40,12 +39,13 @@ class PlatformPanelProvider extends PanelProvider
             ->id('platform')
             ->path('platform')
             ->brandName(fn (): string => __('platform.brand'))
-            ->login(Login::class)
-            ->passwordReset(RequestPasswordReset::class, ResetPassword::class)
+            // El acceso y la recuperación de contraseña son únicos y viven en `/admin` (plan 017).
+            ->login(UnifiedLoginRedirect::class)
             ->middleware([EnsurePlatformPanelEnabled::class], isPersistent: true)
             ->viteTheme('resources/css/filament/admin/theme.css')
             ->font('Roboto', provider: LocalFontProvider::class)
             ->darkMode(false)
+            ->userMenuItems([PanelSwitcher::toOrganization()])
             ->colors([
                 'primary' => BrandPalette::primary(),
                 'gray' => BrandPalette::gray(),

@@ -3,6 +3,11 @@
 declare(strict_types=1);
 
 return [
+    'switch' => [
+        'to_platform' => 'Go to the platform panel',
+        'to_organization' => 'Go to my organization',
+    ],
+
     'reset_request' => [
         'sent' => [
             'title' => 'Check your email',

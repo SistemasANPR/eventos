@@ -45,6 +45,11 @@ class User extends Authenticatable implements FilamentUser, HasTenants
         return $this->activeOrganizations()->whereKey($organization->id)->exists();
     }
 
+    public function canAccessPanel(Panel $panel): bool
+    {
+        return $this->canAccessPanelId($panel->getId());
+    }
+
     /** Membresía desactivada: existe en la organización con estado `deactivated` (plan 003, DA-10). */
     public function hasDeactivatedMembershipIn(Organization $organization): bool
     {
@@ -56,28 +61,37 @@ class User extends Authenticatable implements FilamentUser, HasTenants
 
     /**
      * El acceso se decide por panel y se deniega por defecto: el de organizaciones
-     * exige una membresía activa; el de plataforma, `is_platform_admin` (plan 016).
-     * Un usuario de plataforma sin membresías no entra al panel de ninguna organización.
+     * exige una membresía activa en una organización activa; el de plataforma,
+     * `is_platform_admin` y que el panel esté habilitado (planes 016 y 017). Un
+     * usuario de plataforma sin membresías no entra al panel de ninguna organización.
      */
-    public function canAccessPanel(Panel $panel): bool
+    public function canAccessPanelId(string $panelId): bool
     {
-        return match ($panel->getId()) {
+        return match ($panelId) {
             'admin' => $this->activeOrganizations()->exists(),
-            'platform' => $this->is_platform_admin,
+            'platform' => $this->is_platform_admin && (bool) config('platform.enabled'),
             default => false,
         };
     }
 
     /**
-     * Panel al que apuntan sus avisos de contraseña y de dispositivo: el de
-     * plataforma para quien solo es de plataforma (y el panel está habilitado);
-     * en cualquier otro caso, el de organizaciones.
+     * Panel al que va tras iniciar sesión (plan 017): plataforma primero si puede
+     * entrar a ambos, después el de organizaciones; `null` si no puede entrar a ninguno.
      */
-    public function preferredPanelId(): string
+    public function homePanelId(): ?string
     {
-        $isPlatformOnly = $this->is_platform_admin && ! $this->activeOrganizations()->exists();
+        foreach (['platform', 'admin'] as $panelId) {
+            if ($this->canAccessPanelId($panelId)) {
+                return $panelId;
+            }
+        }
 
-        return $isPlatformOnly && config('platform.enabled') ? 'platform' : 'admin';
+        return null;
+    }
+
+    public function canAccessAnyPanel(): bool
+    {
+        return $this->homePanelId() !== null;
     }
 
     /**

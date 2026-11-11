@@ -26,6 +26,7 @@ El cpanel que dio origen al proyecto sufría estos fallos. Cada uno tiene aquí 
 - Verificación de correo y recuperación de contraseña con enlaces firmados y de un solo uso, con caducidad corta.
 - Verificación en dos pasos disponible; **obligatoria** para administradores de organización y roles de plataforma. El panel de plataforma (`/platform`, plan 016) permanece apagado fuera de local hasta que exista (`PLATFORM_PANEL_ENABLED`, `docs/operacion.md`).
 - Límite de intentos en inicio de sesión, recuperación y registro; mensajes que no revelan si un correo existe.
+- **Acceso único (plan 017):** hay un solo formulario de acceso (`/admin/login`) para organizaciones y plataforma. Quien puede entrar a algún panel llega a su portal; quien no, recibe el mismo mensaje que ante una contraseña incorrecta. La URL a la que iba solo se respeta si es del propio sitio y la persona puede entrar a ese panel.
 - Regenerar la sesión al iniciar sesión; cookies `Secure`, `HttpOnly`, `SameSite=Lax` como mínimo; caducidad de sesión definida.
 - Las invitaciones por «enlace mágico» para ponentes o evaluadores son de un solo uso, con caducidad y ligadas a un correo y a una organización.
 

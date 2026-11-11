@@ -77,6 +77,8 @@ CA-014-5 pide que plataforma reinicie la 2FA de un administrador sin pares, con 
 
 Con RLS activa (rol sin `BYPASSRLS`), `withoutOrganizationScope()` por sí solo no atraviesa la segunda barrera. El plan 014 debe definir el contexto de plataforma para lecturas entre organizaciones (por ejemplo una variable de sesión fijada solo por `OrganizationScopeBypass`, con políticas de solo lectura). Este plan solo **lee** entre organizaciones y **escribe** únicamente en `organizations` (tabla global) y, para crear, con `CurrentOrganization::run()`, así que no pide cambios de RLS por adelantado.
 
+> **Nota (plan 017, 2026-11-11):** el acceso de plataforma es ahora el inicio de sesión único `/admin/login`; `/platform/login` solo redirige y la recuperación de contraseña es la de `/admin`. Donde estos criterios dicen «inicia sesión en `/platform/login`» (CA-016-1, CA-016-4 y CA-016-5) se entiende el acceso único; las pruebas lo ejercen así.
+
 ### DA-9 · Adelantar RC-7 — se recomienda **sí**
 
 RC-7 aceptó vivir sin panel de plataforma hasta R5. Se adelanta porque soporte necesita ver y suspender organizaciones antes de una segunda organización y porque el único acceso hoy es la consola. Cerrada el 2026-11-10: se adelanta. Se actualiza `docs/plan-de-desarrollo.md` §3.4 (RC-7) en la fase F5.

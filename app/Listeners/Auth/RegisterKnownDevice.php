@@ -31,7 +31,7 @@ final class RegisterKnownDevice
         // `Login` se emite al validar la contraseña, antes de que Filament compruebe el
         // acceso al panel: sin acceso no se registra el dispositivo ni se avisa (no se
         // revela que la contraseña era válida).
-        if (! $user instanceof User || ! $user->canAccessPanel(Filament::getPanel($user->preferredPanelId()))) {
+        if (! $user instanceof User || ! $user->canAccessAnyPanel()) {
             return;
         }
 

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Providers;
 
+use App\Http\Responses\Auth\LoginResponse;
 use App\Models\User;
 use App\Policies\MembershipPolicy;
 use App\Support\Calls\NoTrackUsage;
@@ -13,6 +14,7 @@ use App\Support\Files\NoFileFields;
 use App\Support\Files\NoIssuedUploadTokens;
 use App\Support\Files\UploadTokenVerifier;
 use App\Support\Tenancy\CurrentOrganization;
+use Filament\Auth\Http\Responses\Contracts\LoginResponse as LoginResponseContract;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Queue\Events\JobExceptionOccurred;
 use Illuminate\Queue\Events\JobFailed;
@@ -35,6 +37,8 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(UploadTokenVerifier::class, NoIssuedUploadTokens::class);
         // Costura hacia las propuestas (plan 006): hasta entonces ningún eje está en uso.
         $this->app->bind(TrackUsageChecker::class, NoTrackUsage::class);
+        // Acceso único (plan 017): cada persona llega a su portal, no al panel desde el que inició sesión.
+        $this->app->bind(LoginResponseContract::class, LoginResponse::class);
     }
 
     /**
