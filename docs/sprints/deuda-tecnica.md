@@ -37,7 +37,6 @@ Lo que NO está aquí porque se decidió no cambiarlo: [RELLENAR: decisiones de 
 | # | Punto | Archivos | Esfuerzo |
 |---|---|---|---|
 | DT-09 | ESLint fijado en 9 por compatibilidad con `eslint-plugin-jsx-a11y` (marcado como no soportado en 10). Subir a 10 cuando el plugin lo soporte. Dueño: [PENDIENTE]. Fecha límite sugerida: revisar al actualizar dependencias; [PENDIENTE] fecha | `package.json`, `eslint.config.*` | S |
-| DT-10 | Tabla de eventos del panel desplazable en móvil; podría apilarse en pantallas pequeñas. Dueño: [PENDIENTE]. Fecha límite sugerida: [PENDIENTE] | `app/Filament/**/EventResource` | S |
 | DT-11 | Informativo: el aviso de privacidad no cubre portugués en el panel de eventos hasta que un evento declare ese idioma. Sin acción hasta entonces. Dueño: [PENDIENTE]. Fecha límite sugerida: cuando el primer evento declare `pt`; [PENDIENTE] fecha | `lang/pt`, gestor del aviso de privacidad | S |
 
 ---
@@ -52,3 +51,4 @@ Lo que NO está aquí porque se decidió no cambiarlo: [RELLENAR: decisiones de 
 | DT-07 | `COVERAGE_MIN` del CI estaba en 0. Se midió la cobertura real (95.0 %, 842 pruebas) y se fijó en 94 en `ci.yml` y en `composer test:coverage` (con `XDEBUG_MODE=coverage`: con Xdebug cargado en modo `develop` la medición da 0 %). Sin pruebas nuevas: es configuración | `e683076` | 2026-11-11 |
 | DT-08 | Documentado en `docs/database-design.md` §5 que `migrate:fresh` no borra las funciones de PostgreSQL (se usa `CREATE OR REPLACE` y `down()` las retira) y cómo vaciar de verdad una base local. Solo documentación | `e683076` | 2026-11-11 |
 | DT-03 | Reactivación de un integrante desactivado: acción explícita del administrador (`ReactivateMember`) con el rol anterior precargado y confirmado, auditada (`member_reactivated`), y el alta por correo de un desactivado se rechaza apuntando a «Reactivar» (plan 003, DA-10, CA-003-32 a 38). 27 pruebas nuevas entre acción, política y panel; 233 pasan en el filtro Team/Membership/Roles/Lang | `7a29b8a` | 2026-11-11 |
+| DT-10 | Tabla de eventos del panel desplazable en móvil: la lista de eventos pasó a tarjetas (`Stack`/`Split` con `contentGrid` de 1 columna en móvil, 2 en `md` y 3 en `xl`), así que se apila en pantallas pequeñas. Lo hizo el plan 015 (F2) y lo cubre `EventCardsTest`. No verificado por mí en navegador | `d9056d0` | 2026-11-11 |
