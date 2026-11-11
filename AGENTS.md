@@ -107,6 +107,8 @@ Toda funcionalidad o módulo nuevo sigue **SDD** (ADR-0001). Orden fijo: especif
 
 Proporcionalidad: un cambio trivial (texto, typo, formato) no necesita especificación. Todo lo que añada comportamiento, contrato, datos, permisos o dinero sigue el flujo completo. Un trabajo grande se hace por fases, cada una deja el repo en verde y termina en su commit; el plan registra el hash de cada fase.
 
+Delegación (Antonio, 2026-11-11): Gabriel aprueba por sí mismo las especificaciones, los ADR y las propuestas de datos (`docs/database-design.md` §6) de los módulos que tiene asignados (formularios, envío de propuestas, correos y panel de propuestas: planes 005, 006, 008 y 009) y puede implementarlos sin esperar a Antonio; registra la aprobación en el campo `Estado` del plan o ADR y en el commit. La delegación no cubre las acciones 1 (aplicar migraciones a una base real), 4 (dependencias fuera de §Dependencias), 12 (push a `main`, despliegue, secretos, infraestructura), 13 (pagos) ni 14 (Docker y entorno local), que siguen requiriendo a Antonio.
+
 ## Convenciones de código
 
 Detalle y ejemplos en `docs/convenciones.md`.
