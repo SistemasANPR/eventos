@@ -50,7 +50,8 @@
 5. Evita migraciones que bloqueen tablas grandes sin evaluar su impacto (índices con `CONCURRENTLY`, columnas nulas primero).
 6. Describe cómo volver a una versión operativa; no prometas revertir automáticamente una transformación destructiva. Cada migración implementa `down()` cuando sea posible.
 7. Actualiza modelos, fábricas, consultas, documentación y pruebas en el mismo cambio.
-8. El agente genera la migración; **solo el humano la aplica contra una base real** (en despliegue, con aprobación manual; `docs/operacion.md`).
+8. Funciones y *triggers* de PostgreSQL (`DB::unprepared`, p. ej. `prevent_organization_id_change()`): `migrate:fresh` borra las **tablas** pero **no las funciones**, así que una base «limpia» puede conservar una versión vieja de la función. Por eso las funciones se crean con `CREATE OR REPLACE FUNCTION` (el *trigger* de una tabla sí desaparece con ella) y `down()` las retira con `DROP FUNCTION IF EXISTS`; nunca se asuma un entorno sin restos de la ejecución anterior. Para vaciar de verdad una base local de desarrollo, recrear el esquema (`DROP SCHEMA public CASCADE; CREATE SCHEMA public;`) y no solo `migrate:fresh`. Una función compartida se redefine en una migración nueva, no editando la aplicada (regla 1).
+9. El agente genera la migración; **solo el humano la aplica contra una base real** (en despliegue, con aprobación manual; `docs/operacion.md`).
 
 ## 6. Formato obligatorio de propuesta antes de implementar
 

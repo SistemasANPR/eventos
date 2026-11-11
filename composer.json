@@ -85,7 +85,8 @@
         "test:coverage": [
             "Composer\\Config::disableProcessTimeout",
             "@php artisan config:clear --ansi",
-            "pest --coverage --min=0"
+            "@putenv XDEBUG_MODE=coverage",
+            "pest --coverage --min=94"
         ],
         "lint": "pint --test",
         "format": "pint",

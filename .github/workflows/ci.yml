@@ -18,7 +18,7 @@ env:
   PHP_VERSION: "8.4"
   NODE_VERSION: "22"
   # Umbral de cobertura: el valor medido redondeado hacia abajo. Sube, nunca baja.
-  COVERAGE_MIN: "0"
+  COVERAGE_MIN: "94"
 
 jobs:
   backend:
