@@ -33,6 +33,7 @@ final class TeamMembersTable
                 TeamMemberActions::resendInvitation(),
                 TeamMemberActions::changeRole(),
                 TeamMemberActions::deactivate(),
+                TeamMemberActions::reactivate(),
             ]);
     }
 

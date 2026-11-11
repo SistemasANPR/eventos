@@ -48,6 +48,12 @@ final class MembershipPolicy
         return $this->manage($actor) && $member->hasActiveMembershipIn(CurrentOrganization::get());
     }
 
+    /** El destinatario es un integrante DESACTIVADO de esta organización (DA-10). */
+    public function reactivate(User $actor, User $member): bool
+    {
+        return $this->manage($actor) && $member->hasDeactivatedMembershipIn(CurrentOrganization::get());
+    }
+
     public function resendInvitation(User $actor, User $member): bool
     {
         return $this->manage($actor) && $member->hasActiveMembershipIn(CurrentOrganization::get());

@@ -68,6 +68,24 @@ it('CA-003-24: members from another organization or already deactivated are not 
         ->and($gate->allows('deactivate', $deactivated))->toBeFalse();
 });
 
+it('CA-003-35: only an administrator may reactivate, and only a deactivated member of the organization', function (OrganizationRole $role, bool $allowed): void {
+    $organization = Memberships::organization();
+    $actor = Memberships::attach(User::factory()->create(), $organization, $role);
+    $deactivated = Memberships::attach(User::factory()->create(), $organization, OrganizationRole::Reviewer, 'deactivated');
+    $active = Memberships::attach(User::factory()->create(), $organization, OrganizationRole::Reviewer);
+    $outsider = Memberships::attach(User::factory()->create(), Memberships::organization(), OrganizationRole::Reviewer, 'deactivated');
+    CurrentOrganization::set($organization);
+    $gate = Gate::forUser($actor);
+
+    expect($gate->allows('reactivate', $deactivated))->toBe($allowed)
+        ->and($gate->allows('reactivate', $active))->toBeFalse()
+        ->and($gate->allows('reactivate', $outsider))->toBeFalse();
+})->with([
+    'org_admin' => [OrganizationRole::OrgAdmin, true],
+    'organizer' => [OrganizationRole::Organizer, false],
+    'reviewer' => [OrganizationRole::Reviewer, false],
+]);
+
 it('CA-003-26: without an organization context the policy fails instead of answering', function (): void {
     $actor = User::factory()->create();
 

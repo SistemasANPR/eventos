@@ -38,6 +38,12 @@ return [
         'sent' => 'Member added. If the email is new they will receive a link to set their password.',
         'throttled' => 'Too many additions in a short time. Wait a minute and try again.',
         'already_member' => 'That email already belongs to this organization\'s team.',
+        'deactivated_member' => 'That email belongs to a deactivated member of this organization. Use "Reactivate" in the team list.',
+    ],
+    'reactivate' => [
+        'action' => 'Reactivate',
+        'submit' => 'Reactivate',
+        'done' => 'Member reactivated. They regain access with the confirmed role.',
     ],
     'resend' => [
         'action' => 'Resend invitation',
@@ -57,5 +63,6 @@ return [
         'last_admin' => 'The organization must keep at least one active administrator.',
         'not_pending' => 'This person has already signed in: they can use "Forgot your password?" if they lost it.',
         'not_active' => 'The person is no longer an active member of this organization.',
+        'not_deactivated' => 'The person is not deactivated in this organization: there is nothing to reactivate.',
     ],
 ];

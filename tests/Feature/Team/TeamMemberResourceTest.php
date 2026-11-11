@@ -226,6 +226,62 @@ it('CA-003-24: a user of another organization cannot be reached from the table o
     expect($outsider->fresh()->hasActiveMembershipIn($organizationB))->toBeTrue();
 });
 
+it('CA-003-32: the reactivate action reactivates the member with the confirmed role and audits it', function (): void {
+    [$organization, $admin] = teamPanelOrganizationWithAdmin();
+    $member = Memberships::attach(User::factory()->create(), $organization, OrganizationRole::Reviewer, 'deactivated');
+    actInTeamPanel($admin, $organization);
+
+    Livewire::test(ListTeamMembers::class)
+        ->callTableAction('reactivate', $member, ['role' => 'organizer'])
+        ->assertHasNoActionErrors()
+        ->assertNotified(__('team.reactivate.done'));
+
+    expect($member->fresh()->hasActiveMembershipIn($organization))->toBeTrue()
+        ->and(CurrentOrganization::run($organization, fn () => $member->fresh()->getRoleNames()->all()))->toBe(['organizer'])
+        ->and(Activity::query()->where('event', 'member_reactivated')->count())->toBe(1);
+});
+
+it('CA-003-33: the reactivate form comes with the previous role preloaded and rejects roles outside the list', function (): void {
+    [$organization, $admin] = teamPanelOrganizationWithAdmin();
+    $member = Memberships::attach(User::factory()->create(), $organization, OrganizationRole::Reviewer, 'deactivated');
+    actInTeamPanel($admin, $organization);
+
+    Livewire::test(ListTeamMembers::class)
+        ->mountTableAction('reactivate', $member)
+        ->assertTableActionDataSet(['role' => 'reviewer']);
+
+    Livewire::test(ListTeamMembers::class)
+        ->callTableAction('reactivate', $member, ['role' => 'platform'])
+        ->assertHasActionErrors(['role']);
+
+    expect($member->fresh()->hasActiveMembershipIn($organization))->toBeFalse();
+});
+
+it('CA-003-34: the reactivate action is hidden for an active member and a user of another organization cannot be reached', function (): void {
+    [$organization, $admin] = teamPanelOrganizationWithAdmin();
+    $active = Memberships::attach(User::factory()->create(), $organization, OrganizationRole::Reviewer);
+    $outsider = Memberships::attach(User::factory()->create(), Memberships::organization(), OrganizationRole::Organizer, 'deactivated');
+    actInTeamPanel($admin, $organization);
+
+    Livewire::test(ListTeamMembers::class)->assertTableActionHidden('reactivate', $active);
+
+    expect(fn () => Livewire::test(ListTeamMembers::class)->callTableAction('reactivate', $outsider, ['role' => 'organizer']))
+        ->toThrow(Exception::class, 'no longer exists');
+});
+
+it('CA-003-35: the reactivate action is visible only for deactivated members and only with permission', function (): void {
+    [$organization, $admin] = teamPanelOrganizationWithAdmin();
+    $deactivated = Memberships::attach(User::factory()->create(), $organization, OrganizationRole::Reviewer, 'deactivated');
+    actInTeamPanel($admin, $organization);
+
+    Livewire::test(ListTeamMembers::class)->assertTableActionVisible('reactivate', $deactivated);
+
+    $organizer = Memberships::attach(User::factory()->create(), $organization, OrganizationRole::Organizer);
+    actInTeamPanel($organizer, $organization);
+
+    Livewire::test(ListTeamMembers::class)->assertForbidden();
+});
+
 it('CA-003-26: the actions are hidden for a deactivated member and for the member in the row it cannot touch', function (): void {
     [$organization, $admin] = teamPanelOrganizationWithAdmin();
     $deactivated = Memberships::attach(User::factory()->create(), $organization, OrganizationRole::Reviewer, 'deactivated');

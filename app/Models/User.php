@@ -45,6 +45,15 @@ class User extends Authenticatable implements FilamentUser, HasTenants
         return $this->activeOrganizations()->whereKey($organization->id)->exists();
     }
 
+    /** Membresía desactivada: existe en la organización con estado `deactivated` (plan 003, DA-10). */
+    public function hasDeactivatedMembershipIn(Organization $organization): bool
+    {
+        return $this->organizations()
+            ->whereKey($organization->id)
+            ->wherePivot('status', 'deactivated')
+            ->exists();
+    }
+
     /**
      * El acceso se decide por panel y se deniega por defecto: el de organizaciones
      * exige una membresía activa; el de plataforma, `is_platform_admin` (plan 016).

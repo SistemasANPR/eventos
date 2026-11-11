@@ -98,6 +98,11 @@ final class InviteTeamMember
         $member = User::query()->where('email', $data['email'])->first();
         $isNew = $member === null;
 
+        if ($member !== null && $member->hasDeactivatedMembershipIn($organization)) {
+            // Volver a darlo de alta no es el camino: la reactivación confirma el rol (DA-10, CA-003-38).
+            throw ValidationException::withMessages(['email' => __('team.invite.deactivated_member')]);
+        }
+
         if ($member !== null && $organization->users()->whereKey($member->id)->exists()) {
             throw ValidationException::withMessages(['email' => __('team.invite.already_member')]);
         }

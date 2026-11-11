@@ -67,6 +67,11 @@ Filament usa la organización como tenant; dentro de ella, las pantallas por eve
 
 Se conservan etiquetas básicas de formato (párrafos, énfasis, listas, enlaces `http` y `https`); todo lo demás se elimina en el servidor antes de guardar. No se rechaza el texto ni se guarda el original.
 
+### DA-10 · Reactivar a un integrante desactivado — se recomienda **acción explícita del administrador con el rol anterior precargado y confirmado**
+
+La reactivación es una acción propia (`ReactivateMember`) del administrador con `team.manage`, no un efecto de volver a invitar. El formulario muestra el rol que tenía y permite confirmarlo o cambiarlo; no se concede acceso en silencio. Queda auditada con el rol anterior y el nuevo y no toca las membresías de otras organizaciones. Invitar por correo a un integrante desactivado sigue rechazándose, con un mensaje que apunta a «Reactivar». Aprobada por Antonio el 2026-11-11 (cierra DT-03).
+
+
 ## 4. Contrato
 
 - **Clases:** `App\Models\Event` (creado en el plan 002), `App\Models\PrivacyNotice`; enums `EventType` (`Congress`, `Forum`, `Workshop`, `Webinar`, `Expo`), `EventStatus` (`Draft`, `Published`, `Archived`) y `OrganizationRole` (solo enumera los nombres de los roles de spatie `OrgAdmin`, `Organizer` y `Reviewer`; **no es una fuente de verdad**); Actions `CreateEvent`, `UpdateEvent`, `PublishEvent`, `ArchiveEvent`, `CreatePrivacyNoticeDraft`, `UpdatePrivacyNoticeDraft`, `PublishPrivacyNotice`, `InviteTeamMember`, `ChangeMemberRole`, `DeactivateMember`; `PrivacyNotice::currentPublished(Event)`; `EventPolicy`, `PrivacyNoticePolicy`, `MembershipPolicy`.
@@ -151,6 +156,16 @@ Cada uno tiene al menos una prueba cuyo nombre lo cita (`CA-003-n: ...`) o decla
 - **CA-003-29:** *Dado* más de 10 altas en un minuto desde el mismo usuario, *cuando* se intenta otra, *entonces* responde 429 y no se envía correo.
 - **CA-003-30:** *Dado* un alta o un cambio de rol, *cuando* se intenta asignar el rol `platform`, la marca `is_platform_admin` o un rol que no está en la lista, *entonces* se rechaza y no cambia nada.
 
+**Reactivación de un integrante desactivado (DT-03; DA-10)**
+
+- **CA-003-32:** *Dado* un administrador de A con `team.manage` y un integrante desactivado de A, *cuando* lo reactiva confirmando un rol de la lista, *entonces* `status` vuelve a `active`, `deactivated_at` queda en nulo, el rol del integrante en A es el confirmado y recupera el acceso a A en la siguiente petición.
+- **CA-003-33:** *Dado* el formulario de reactivación, *cuando* se abre, *entonces* trae precargado el rol que el integrante tenía al desactivarse; *cuando* se envía un rol fuera de la lista (`org_admin`, `organizer`, `reviewer`), incluido `platform`, *entonces* se rechaza y no cambia nada.
+- **CA-003-34:** *Dado* un integrante activo de A o un usuario que no es integrante de A, *cuando* se intenta reactivar, *entonces* se rechaza con `MEMBER_NOT_DEACTIVATED` y no cambia nada; un identificador de un usuario ajeno a la organización responde 404.
+- **CA-003-35:** *Dado* un usuario sin `team.manage` (`organizer` o `reviewer`), *cuando* intenta reactivar a alguien, *entonces* recibe 403 y no cambia nada.
+- **CA-003-36:** *Dado* un usuario con membresías en A y en B, *cuando* el administrador de A reactiva su membresía en A, *entonces* su membresía y sus roles en B no cambian.
+- **CA-003-37:** *Dado* una reactivación, *cuando* ocurre, *entonces* queda auditada (`member_reactivated`) con quién, a quién, el rol anterior y el nuevo, sin contraseñas ni tokens.
+- **CA-003-38:** *Dado* un correo que ya es integrante desactivado de A, *cuando* un administrador intenta darlo de alta como si fuera nuevo, *entonces* se rechaza con un mensaje que indica usar «Reactivar» y no se envía correo.
+
 ## 8. Riesgos
 
 | Riesgo | Mitigación |
@@ -170,4 +185,5 @@ Cada uno tiene al menos una prueba cuyo nombre lo cita (`CA-003-n: ...`) o decla
 |---|---|---|---|
 | H-003-1 | `fd7d689` | 2026-11-10 | Actions `CreateEvent`, `UpdateEvent`, `PublishEvent` y `ArchiveEvent` con `EventPolicy`; fechas en hora local del evento guardadas en UTC; `EventResource` de Filament. Cubre CA-003-1 a 10 (CA-003-9 y 10 también verificados en navegador). Incluye la corrección del contexto de organización del panel en peticiones de Livewire |
 | H-003-3 | `9b5ae24` | 2026-11-10 | `InviteTeamMember` (respuesta idéntica exista o no el usuario, límite de 10 altas por minuto), `DeactivateMember`, regla del último administrador con bloqueo de fila, `MembershipPolicy` y `TeamMemberResource`. Cubre CA-003-21 a 30 |
+| DT-03 (DA-10) | sin commit aún | 2026-11-11 | `ReactivateMember` + `MemberNotDeactivated` (`MEMBER_NOT_DEACTIVATED`), habilidad `reactivate` en `MembershipPolicy`, acción «Reactivar» en la tabla del equipo con el rol anterior precargado, y mensaje de `InviteTeamMember` que apunta a «Reactivar» para un integrante desactivado. Cubre CA-003-32 a 38. `composer test --filter="Team\|Membership\|Roles\|Lang"`: 233 pasadas; `lint` y `check:criteria` limpios (0 errores, CA-003-32..38 con prueba). `analyse` falla solo por `LoginResponse.php` (cambios ajenos del plan 017) |
 | H-003-2 | `8db7e0a` | 2026-11-10 | Tabla `privacy_notices` con versiones inmutables al publicarse (trigger), sanitizador de lista blanca, Actions con `PrivacyNoticePolicy` (solo org_admin), página pública `/{org}/events/{evento}/privacy`. Cubre CA-003-11 a 20. Verificado en navegador a 375 px |

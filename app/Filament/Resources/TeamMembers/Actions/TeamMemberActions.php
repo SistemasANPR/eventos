@@ -7,11 +7,13 @@ namespace App\Filament\Resources\TeamMembers\Actions;
 use App\Actions\Organizations\ChangeMemberRole;
 use App\Actions\Organizations\DeactivateMember;
 use App\Actions\Organizations\InviteTeamMember;
+use App\Actions\Organizations\ReactivateMember;
 use App\Actions\Organizations\ResendTeamInvitation;
 use App\Enums\OrganizationRole;
 use App\Exceptions\Domain\InvitationNotPending;
 use App\Exceptions\Domain\LastOrganizationAdmin;
 use App\Exceptions\Domain\MemberNotActive;
+use App\Exceptions\Domain\MemberNotDeactivated;
 use App\Filament\Support\ActionErrors;
 use App\Http\Requests\ChangeMemberRoleRequest;
 use App\Http\Requests\InviteTeamMemberRequest;
@@ -119,6 +121,30 @@ final class TeamMemberActions
             });
     }
 
+    public static function reactivate(): Action
+    {
+        return Action::make('reactivate')
+            ->label(__('team.reactivate.action'))
+            ->modalSubmitActionLabel(__('team.reactivate.submit'))
+            ->icon(Heroicon::OutlinedUserPlus)
+            ->authorize('reactivate')
+            // La desactivación conserva los roles: se precarga el anterior para confirmarlo o cambiarlo (CA-003-33).
+            ->fillForm(fn (User $record): array => ['role' => $record->getRoleNames()->first()])
+            ->schema([self::roleSelect()])
+            ->action(function (User $record, array $data, Schema $schema): void {
+                self::run(
+                    fn () => app(ReactivateMember::class)->handle(
+                        ActionErrors::actor(),
+                        CurrentOrganization::get(),
+                        $record,
+                        self::roleOf($data),
+                    ),
+                    __('team.reactivate.done'),
+                    $schema,
+                );
+            });
+    }
+
     private static function roleSelect(): Select
     {
         return Select::make('role')
@@ -163,6 +189,10 @@ final class TeamMemberActions
             return;
         } catch (MemberNotActive) {
             Notification::make()->title(__('team.errors.not_active'))->danger()->send();
+
+            return;
+        } catch (MemberNotDeactivated) {
+            Notification::make()->title(__('team.errors.not_deactivated'))->danger()->send();
 
             return;
         }

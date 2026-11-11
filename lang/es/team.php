@@ -38,6 +38,12 @@ return [
         'sent' => 'Alta registrada. Si el correo es nuevo recibirá un enlace para definir su contraseña.',
         'throttled' => 'Demasiadas altas en poco tiempo. Espera un minuto e inténtalo de nuevo.',
         'already_member' => 'Ese correo ya pertenece al equipo de esta organización.',
+        'deactivated_member' => 'Ese correo pertenece a un integrante desactivado de esta organización. Usa «Reactivar» en la lista del equipo.',
+    ],
+    'reactivate' => [
+        'action' => 'Reactivar',
+        'submit' => 'Reactivar',
+        'done' => 'Integrante reactivado. Recupera el acceso con el rol confirmado.',
     ],
     'resend' => [
         'action' => 'Reenviar invitación',
@@ -57,5 +63,6 @@ return [
         'last_admin' => 'La organización debe conservar al menos un administrador activo.',
         'not_pending' => 'Esa persona ya inició sesión: puede usar «¿Olvidaste tu contraseña?» si la perdió.',
         'not_active' => 'La persona ya no es integrante activo de esta organización.',
+        'not_deactivated' => 'La persona no está desactivada en esta organización: no hay nada que reactivar.',
     ],
 ];
