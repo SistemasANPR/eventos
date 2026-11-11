@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Filament\Resources\Events\Tables;
 
+use App\Enums\EventStatus;
 use App\Filament\Resources\Events\Actions\LifecycleActions;
 use App\Filament\Resources\Events\EventResource;
 use App\Models\Event;
@@ -11,11 +12,16 @@ use Filament\Actions\ActionGroup;
 use Filament\Actions\CreateAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
+use Filament\Support\Enums\FontWeight;
+use Filament\Support\Enums\TextSize;
+use Filament\Support\Icons\Heroicon;
+use Filament\Tables\Columns\Layout\Split;
+use Filament\Tables\Columns\Layout\Stack;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 
 /**
- * Lista de eventos de la organización. Es también el SELECTOR de evento
+ * Lista de eventos de la organización, como tarjetas (plan 015). Es también el SELECTOR de evento
  * (plan 003, DA-8): sin evento elegido, las pantallas por evento piden elegir
  * uno aquí; nunca toman uno al azar.
  */
@@ -25,22 +31,39 @@ final class EventsTable
     {
         return $table
             ->columns([
-                TextColumn::make('name')
-                    ->label(__('events.table.name'))
-                    ->state(fn (Event $record): string => self::displayName($record))
-                    ->weight('medium'),
-                TextColumn::make('status')
-                    ->label(__('events.fields.status'))
-                    ->badge(),
-                TextColumn::make('type')
-                    ->label(__('events.fields.type'))
-                    ->badge()
-                    ->color('gray'),
-                TextColumn::make('starts_at')
-                    ->label(__('events.table.starts_at'))
-                    ->state(fn (Event $record): string => self::displayDates($record))
-                    ->sortable(),
+                Stack::make([
+                    Split::make([
+                        TextColumn::make('status')
+                            ->label(__('events.fields.status'))
+                            ->badge()
+                            // El estado no se comunica solo con color (design.md §3.1): lleva icono y texto.
+                            ->icon(fn (EventStatus $state): Heroicon => match ($state) {
+                                EventStatus::Draft => Heroicon::OutlinedPencilSquare,
+                                EventStatus::Published => Heroicon::OutlinedCheckCircle,
+                                EventStatus::Archived => Heroicon::OutlinedArchiveBox,
+                            })
+                            ->grow(false),
+                        TextColumn::make('type')
+                            ->label(__('events.fields.type'))
+                            ->badge()
+                            ->color('gray')
+                            ->grow(false),
+                    ]),
+                    TextColumn::make('name')
+                        ->label(__('events.table.name'))
+                        ->state(fn (Event $record): string => self::displayName($record))
+                        ->weight(FontWeight::SemiBold)
+                        ->size(TextSize::Large),
+                    TextColumn::make('starts_at')
+                        ->label(__('events.table.starts_at'))
+                        ->state(fn (Event $record): string => self::displayDates($record))
+                        ->icon(Heroicon::OutlinedCalendarDays)
+                        ->color('gray')
+                        ->sortable(),
+                ])->space(3),
             ])
+            // Tarjetas: una columna en móvil, dos en tablet y tres en escritorio (plan 015, DA-4).
+            ->contentGrid(['default' => 1, 'md' => 2, 'xl' => 3])
             ->defaultSort('starts_at', 'desc')
             ->recordUrl(fn (Event $record): string => EventResource::getUrl('view', ['record' => $record]))
             ->recordActions([
