@@ -1,7 +1,7 @@
 # ADR-0010: Formularios dinámicos
 
 - **Fecha:** 2026-11-11
-- **Estado:** Propuesta (pendiente de aprobación; plan 005, DA-1)
+- **Estado:** Aceptada (2026-11-11, aprobada por Antonio; incluye la excepción acotada al ADR-0004 de la vista previa en React)
 - **Alcance:** definición, publicación y validación de los formularios que cada evento usa para recibir propuestas
 
 ## Contexto

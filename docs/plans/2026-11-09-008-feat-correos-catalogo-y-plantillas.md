@@ -3,7 +3,7 @@
 > Plan de la épica E-08 (R0). Especificación SDD (ADR-0001). Se presenta y se espera aprobación antes de escribir código. El nivel evento en la interfaz, el logotipo y colores, pt, versiones, envío de prueba y registro de envíos son del plan 013 (R1).
 
 - **Fecha:** 2026-11-09
-- **Estado:** Borrador
+- **Estado:** Aprobado
 - **Esfuerzo:** L
 - **Deuda relacionada:** RC-6 (edición de plantillas por organización como «Debería»)
 

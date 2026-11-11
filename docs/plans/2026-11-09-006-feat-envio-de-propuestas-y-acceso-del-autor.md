@@ -3,7 +3,7 @@
 > Plan de la épica E-06 (R0). Es la especificación de SDD (ADR-0001). Se presenta y se espera aprobación antes de escribir código. Fuente: `docs/plan-de-desarrollo.md` §10.1. Es una de las superficies públicas más expuestas del producto: la seguridad no se recorta.
 
 - **Fecha:** 2026-11-09
-- **Estado:** Borrador
+- **Estado:** Aprobado
 - **Esfuerzo:** L
 - **Deuda relacionada:** ninguna
 

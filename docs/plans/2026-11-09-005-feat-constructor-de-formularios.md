@@ -3,7 +3,7 @@
 > Plan de la épica E-05 (R0). Es la especificación de SDD (ADR-0001). Se presenta y se espera aprobación antes de escribir código. Fuente: `docs/plan-de-desarrollo.md` §10.1. Es el diferenciador del producto: cada organizador define los campos que su evento necesita, sin programar.
 
 - **Fecha:** 2026-11-09
-- **Estado:** Borrador
+- **Estado:** Aprobado
 - **Esfuerzo:** L
 - **Deuda relacionada:** ninguna
 

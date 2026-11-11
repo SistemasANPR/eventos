@@ -3,7 +3,7 @@
 > Plan de la épica E-09 (R0). Especificación SDD (ADR-0001). Se presenta y se espera aprobación antes de escribir código.
 
 - **Fecha:** 2026-11-09
-- **Estado:** Borrador
+- **Estado:** Aprobado
 - **Esfuerzo:** M
 - **Deuda relacionada:** ninguna
 - **Responsable:** Gabriel (`docs/plan-de-desarrollo.md` §6.2: H-009-1, H-009-2 y H-009-3 el 17-nov). Pendiente: no existe aún ningún visualizador de propuestas; depende de `Submission` (plan 006) y del formulario (plan 005), que tampoco existen en el repositorio
