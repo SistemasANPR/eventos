@@ -5,6 +5,7 @@ import { TextLink } from '@/components/atoms/TextLink';
 import { LocaleSwitcher } from '@/components/molecules/LocaleSwitcher';
 import { useTranslation } from '@/hooks/useTranslation';
 import { PublicLayout } from '@/layouts/PublicLayout';
+import { PAGE_TITLE } from '@/lib/classes';
 import { formatPublishedAt } from '@/lib/date-format';
 import type { PrivacyNotice, PrivacyPageEvent, PublicOrganization } from '@/types/event';
 
@@ -28,7 +29,7 @@ export default function Privacy({ event, organization, notice, eventUrl }: Priva
             <Head title={`${title} · ${event.name} · ${organization.name}`} />
             <article aria-labelledby="privacy-title" className="flex flex-col gap-6">
                 <header className="flex flex-col gap-2">
-                    <h1 id="privacy-title" className="text-3xl font-bold tracking-tight text-text sm:text-4xl">
+                    <h1 id="privacy-title" className={PAGE_TITLE}>
                         {title}
                     </h1>
                     <p className="text-lg text-text">{event.name}</p>

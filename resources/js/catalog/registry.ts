@@ -26,7 +26,7 @@ export const registry: CatalogEntry[] = [
         category: 'Data display',
         useWhen: 'Mostrar texto enriquecido (párrafos, énfasis, listas, enlaces) ya sanitizado en el servidor, como el aviso de privacidad',
         avoidFor: 'HTML arbitrario o contenido con imágenes, tablas o formularios; texto plano (usar un <p>)',
-        preview: 'none',
+        preview: 'demo',
     },
     {
         name: 'TextLink',
@@ -35,7 +35,7 @@ export const registry: CatalogEntry[] = [
         category: 'Navigation',
         useWhen: 'Un enlace de texto para navegar entre páginas o variantes',
         avoidFor: 'Acciones que cambian datos (usar un botón con router.post)',
-        preview: 'none',
+        preview: 'demo',
     },
     {
         name: 'EventFact',
@@ -44,7 +44,7 @@ export const registry: CatalogEntry[] = [
         category: 'Data display',
         useWhen: 'Un dato con su etiqueta dentro de un <dl> (fechas, sede, zona horaria)',
         avoidFor: 'Texto corrido o listas largas',
-        preview: 'none',
+        preview: 'demo',
     },
     {
         name: 'LocaleSwitcher',
@@ -53,7 +53,7 @@ export const registry: CatalogEntry[] = [
         category: 'Navigation',
         useWhen: 'Ofrecer la página en otro de sus idiomas con ?lang=',
         avoidFor: 'Cambiar el idioma de la interfaz de un usuario con sesión',
-        preview: 'none',
+        preview: 'demo',
     },
     {
         name: 'EventHero',
@@ -62,7 +62,7 @@ export const registry: CatalogEntry[] = [
         category: 'Events',
         useWhen: 'Presentar un evento: nombre, descripción, fechas, sede, zona horaria y enlace a su aviso de privacidad',
         avoidFor: 'Listados de eventos (usar una tarjeta compacta)',
-        preview: 'none',
+        preview: 'demo',
     },
     {
         name: 'SkipToContent',
@@ -71,6 +71,6 @@ export const registry: CatalogEntry[] = [
         category: 'Accessibility',
         useWhen: 'Una vez por layout, para saltar la cabecera con el teclado',
         avoidFor: 'Cualquier otro enlace interno',
-        preview: 'none',
+        preview: 'demo',
     },
 ];

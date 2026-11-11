@@ -5,6 +5,7 @@ import { EventFact } from '@/components/molecules/EventFact';
 import { LocaleSwitcher } from '@/components/molecules/LocaleSwitcher';
 import { useTranslation } from '@/hooks/useTranslation';
 import { PublicLayout } from '@/layouts/PublicLayout';
+import { FACTS_PANEL, PAGE_TITLE } from '@/lib/classes';
 import { formatEventInstant } from '@/lib/date-format';
 import type { CallState, PublicCall } from '@/types/call';
 import type { PublicOrganization } from '@/types/event';
@@ -46,7 +47,7 @@ export default function Show({ call, event, organization, eventUrl, privacyUrl }
             <article aria-labelledby="call-title" className="flex flex-col gap-8">
                 <header className="flex flex-col gap-3">
                     <p className="text-base font-medium text-text-muted">{event.name}</p>
-                    <h1 id="call-title" className="text-3xl font-bold tracking-tight text-text sm:text-4xl">
+                    <h1 id="call-title" className={PAGE_TITLE}>
                         {call.title}
                     </h1>
                     <div className="flex flex-col items-start gap-2">
@@ -62,7 +63,7 @@ export default function Show({ call, event, organization, eventUrl, privacyUrl }
                     {call.description !== null && <p className="max-w-prose text-lg text-text">{call.description}</p>}
                 </header>
 
-                <dl className="grid gap-4 rounded-lg border border-border bg-surface p-4 sm:grid-cols-2 sm:p-6">
+                <dl className={FACTS_PANEL}>
                     <EventFact label={t('call.type')}>{call.submissionType}</EventFact>
                     <EventFact label={t('call.timezone')}>{call.timezone}</EventFact>
                     <EventFact label={t('call.opens_at')}>{formatDate(call.opensAt)}</EventFact>

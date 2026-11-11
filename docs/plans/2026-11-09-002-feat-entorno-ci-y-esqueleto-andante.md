@@ -153,6 +153,16 @@ Cada uno tiene al menos una prueba cuyo nombre lo cita (`CA-002-n: ...`) o decla
 - **CA-002-25:** *Dado* el repositorio sin `vendor/`, `node_modules/`, `.git/`, las plantillas `docs/plans/0000-plantilla-plan.md` y `docs/adr/0000-plantilla-adr.md` y los `PROMPT-*.md`, *cuando* se ejecuta `grep -rn "RELLEN[A]R\|CONFIRMA[R]" .`, *entonces* cada línea que devuelve contiene `[PENDIENTE`.
 - **CA-002-26:** *Dado* los ADR 0003, 0004, 0005 y 0008, *cuando* se revisan, *entonces* su estado es «Aceptada» con fecha y cada decisión abierta (DA) está cerrada según lo acordado (ADR-0004 DA-1 con SSR diferido y DA-4 con marca blanca fuera de R0; ADR-0008 DA-2 y DA-3 según este plan); el ADR-0007 queda en «Propuesta» y el ADR-0001 lleva su fecha de adopción.
 
+### Adenda · Catálogo interno de componentes (cierra DT-06; design.md §1.4 y §2.6)
+
+Herramienta del equipo, sin datos ni permisos de negocio nuevos: reutiliza `Gate platform.access`. Ruta `GET /components` (`components.index`), página `Components/Index`, demos en `catalog/demos-*.tsx` y guardianas `tokens.test.ts` y `lib/classes.test.ts`.
+
+- **CA-002-27:** *Dado* un entorno `local` o `testing`, *cuando* cualquiera abre `/components`, *entonces* responde 200 con la página `Components/Index`.
+- **CA-002-28:** *Dado* un entorno distinto de local, *cuando* abre `/components` un visitante sin sesión o un usuario sin acceso de plataforma, *entonces* responde 404 (no 403); *y cuando* lo abre un usuario de plataforma, *entonces* responde 200.
+- **CA-002-29:** *Dado* la ruta del catálogo, *cuando* se responde, *entonces* lleva `X-Robots-Tag: noindex, nofollow` y la página incluye `meta robots noindex`; *y* ningún menú ni página enlaza a ella.
+- **CA-002-30:** *Dado* `catalog/registry.ts`, *cuando* se abre el catálogo, *entonces* lista cada entrada (nivel, categoría, `useWhen`, `avoidFor`) y renderiza sin error la demo de toda entrada con `preview: 'demo'`.
+- **CA-002-31:** *Dado* el CSS real, `design.md` y el código del frontend, *cuando* corren `tokens.test.ts` y `classes.test.ts`, *entonces* cada par de `lib/contrast.ts` cumple AA (4,5:1 texto, 3:1 componentes) contra los valores de `app.css`, los tokens de `design.md` coinciden con el CSS, la lima no se usa como color de texto, y las cadenas de `lib/classes.ts` no se reescriben en línea ni queda una cadena larga repetida entre archivos.
+
 ## 8. Riesgos
 
 | Riesgo | Mitigación |
@@ -174,3 +184,4 @@ Cada uno tiene al menos una prueba cuyo nombre lo cita (`CA-002-n: ...`) o decla
 | Cuenta de GitHub del repositorio | `17df86e`, `f983d2f` | 2026-11-09 | Documentación de la cuenta de GitHub del repositorio y corrección del helper de credenciales (`docs(env)`) |
 | CI backend corregido | `0bc51f5`, `bfffcbe` | 2026-11-09 | `0bc51f5`: instalar dependencias antes de generar la clave de la aplicación. `bfffcbe`: conservar `tests/Unit` con `.gitkeep` (el CI fallaba con «Test directory tests/Unit not found») y registrar el spike S-1 |
 | H-002-3 | `7692044` | 2026-11-10 | Migración final de `events`, modelo `Event` traducible, `DemoSeeder` que se niega en producción, ruta pública `/{organization:slug}/events/{event:slug}` (404 para borrador, archivado u otra organización), frontend React + TypeScript con catálogo y guardianas Vitest. Cubre CA-002-13 a 19 (CA-002-16 manual). Verificado en navegador a 375 y 1280 px; `composer check` y npm `typecheck`, `lint`, `test` y `build` en verde, según el commit |
+| Catálogo interno (DT-06) | sin commit aún | 2026-11-11 | Ruta `/components` (404 fuera de local salvo plataforma, `X-Robots-Tag`), demos de los 6 componentes, `tokens.test.ts` y `classes.test.ts` con `lib/classes.ts` (PAGE_TITLE, FACTS_PANEL, FOCUS_RING). Cubre CA-002-27 a 31. Verificado en navegador a 375 y 1280 px sin errores de consola |

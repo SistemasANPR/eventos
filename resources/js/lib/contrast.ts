@@ -11,6 +11,8 @@ export const TEXT_ON_BACKGROUND_PAIRS: ReadonlyArray<readonly [string, string]> 
     ['text', 'surface'],
     ['text-muted', 'bg'],
     ['text-muted', 'surface'],
+    ['text', 'surface-raised'],
+    ['text-muted', 'surface-raised'],
     ['primary', 'bg'],
     ['primary', 'surface'],
     ['primary-contrast', 'primary'],
@@ -25,10 +27,14 @@ export const TEXT_ON_BACKGROUND_PAIRS: ReadonlyArray<readonly [string, string]> 
     ['error', 'bg'],
 ];
 
-/** Pares de componentes de interfaz (borde de campo sobre su fondo) que exigen 3:1 (WCAG 1.4.11). */
+/** Pares de componentes de interfaz (borde de campo y anillo de foco) que exigen 3:1 (WCAG 1.4.11). */
 export const UI_COMPONENT_PAIRS: ReadonlyArray<readonly [string, string]> = [
     ['border-input', 'bg'],
     ['border-input', 'surface'],
+    // Foco visible (design.md §3.1): `primary` sobre claro y `accent` sobre fondo marino.
+    ['primary', 'bg'],
+    ['primary', 'surface'],
+    ['accent', 'primary'],
 ];
 
 function luminance(hex: string): number {

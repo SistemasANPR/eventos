@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Http\Controllers\Internal\ShowComponentCatalogController;
 use App\Http\Controllers\Panel\SubmissionFileDownloadController;
 use App\Http\Controllers\Public\ShowCallController;
 use App\Http\Controllers\Public\ShowEventController;
@@ -19,6 +20,12 @@ Route::get('/', function () {
 // La ruta con nombre `login` existe porque el framework redirige a ella a los invitados;
 // `/register` no existe y responde 404.
 Route::redirect('/login', '/admin/login')->name('login');
+
+// Catálogo interno de componentes (design.md §1.4): sin organización, sin enlace en menús y con
+// acceso restringido por entorno o por plataforma (404 si no se cumple). Ver el controlador.
+Route::middleware(HandleInertiaRequests::class)
+    ->get('components', ShowComponentCatalogController::class)
+    ->name('components.index');
 
 // Sitio público (ADR-0004, Inertia sin SSR). Un solo esquema de URL: `/{organization:slug}/...`
 // (plan 001 D1). `SetOrganizationFromRoute` fija la organización antes del binding y

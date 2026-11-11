@@ -1,6 +1,6 @@
 @import 'tailwindcss';
 
-@source '../js/**/*.tsx';
+@source '../js/**/*.{ts,tsx}';
 
 /*
  * Fuentes alojadas en el proyecto (descargadas de Google Fonts): el navegador no
