@@ -14,6 +14,11 @@ return [
             'body' => 'If the email is registered, we sent you a link to reset your password.',
         ],
     ],
+    'throttled' => [
+        'title' => 'Too many attempts',
+        'body_one' => 'Try again in :minutes minute.',
+        'body_other' => 'Try again in :minutes minutes.',
+    ],
     'reset_invalid' => 'The link is invalid or has expired. Request a new one.',
     'password_reset' => [
         'subject' => 'Reset your password',

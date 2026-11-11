@@ -100,3 +100,26 @@ it('CA-001-27: the limit is lifted once the 15 minute window passes', function (
     attemptLogin('ana@example.test', LOGIN_PASSWORD)->assertHasNoFormErrors();
     expect(auth()->check())->toBeTrue();
 });
+
+it('CA-001-37: the login and password reset screens carry the friendly throttle notice, in Spanish and English', function (): void {
+    foreach (['/admin/login', '/admin/password-reset/request'] as $path) {
+        $this->get($path)
+            ->assertOk()
+            ->assertSee('Livewire.interceptRequest', false)
+            ->assertSee('Demasiados intentos');
+    }
+
+    app()->setLocale('en');
+
+    $this->get('/admin/login')->assertSee('Too many attempts');
+});
+
+it('CA-001-37: the HTTP status of the throttled attempt stays 429', function (): void {
+    organizerWithPassword();
+
+    for ($attempt = 1; $attempt <= 5; $attempt++) {
+        attemptLogin('ana@example.test', 'wrong-password');
+    }
+
+    attemptLogin('ana@example.test', 'wrong-password')->assertStatus(429);
+});

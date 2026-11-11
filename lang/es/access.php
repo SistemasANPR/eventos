@@ -14,6 +14,11 @@ return [
             'body' => 'Si el correo está registrado, te enviamos un enlace para restablecer la contraseña.',
         ],
     ],
+    'throttled' => [
+        'title' => 'Demasiados intentos',
+        'body_one' => 'Vuelve a intentarlo en :minutes minuto.',
+        'body_other' => 'Vuelve a intentarlo en :minutes minutos.',
+    ],
     'reset_invalid' => 'El enlace no es válido o ya caducó. Solicita uno nuevo.',
     'password_reset' => [
         'subject' => 'Restablece tu contraseña',

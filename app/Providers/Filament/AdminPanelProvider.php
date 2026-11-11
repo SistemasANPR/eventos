@@ -21,7 +21,9 @@ use Filament\Pages\Dashboard;
 use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\Support\Enums\Width;
+use Filament\View\PanelsRenderHook;
 use Filament\Widgets\AccountWidget;
+use Illuminate\Contracts\View\View;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Illuminate\Cookie\Middleware\EncryptCookies;
 use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
@@ -45,6 +47,11 @@ class AdminPanelProvider extends PanelProvider
             ->path('admin')
             ->login(Login::class)
             ->passwordReset(RequestPasswordReset::class, ResetPassword::class)
+            ->renderHook(
+                PanelsRenderHook::SCRIPTS_AFTER,
+                fn (): View => view('filament.auth.throttle-notice'),
+                scopes: [Login::class, RequestPasswordReset::class],
+            )
             ->tenant(Organization::class, slugAttribute: 'slug')
             ->tenantMiddleware([ApplyOrganizationContext::class], isPersistent: true)
             ->viteTheme('resources/css/filament/admin/theme.css')
