@@ -125,3 +125,4 @@ Cada fase deja el repo en verde y termina en su propio commit.
 |---|---|---|---|
 | F0 | 120d192 | 2026-11-10 | Pest completo 672 pasan; pint, typecheck, lint y build en verde; login a 375 y 1280 px sin errores de consola. Opcache de desarrollo aparte en abb327b (~4 s a ~0,45 s). |
 | F1 | 805f172 | 2026-11-10 | Paneles, Convocatorias, Equipo, Auth, Eventos y LangParity: 428 pasan, 1 fallo por interferencia de otra ejecucion sobre la base compartida (`relation users does not exist`); repetido en aislado, pasa. Pendiente la revision manual de CA-015-3 y de CA-015-8 en los modales a 375 y 1280 px. |
+| F2 | d9056d0 | 2026-11-11 | Tarjetas de eventos: EventCardsTest 7 pasan; Eventos completos 73 pasan; Arch 26 pasan; Larastan sin errores. Pendiente la revision visual manual de CA-015-8 (y CA-015-3) a 375 y 1280 px, a cargo de la persona responsable. |
