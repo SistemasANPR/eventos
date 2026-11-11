@@ -141,7 +141,7 @@ Autorizadas desde el inicio. Cualquier otra exige permiso (acción 4). Mantener 
 | Ámbito | Paquetes |
 |---|---|
 | Backend | `laravel/framework`, `filament/filament`, `inertiajs/inertia-laravel`, `spatie/laravel-permission`, `spatie/laravel-activitylog`, `spatie/laravel-medialibrary`, `spatie/laravel-translatable`, `laravel/horizon` |
-| Backend (sujeto a ADR) | `laravel/cashier` o SDK de pagos (ADR-0007); cliente de errores como Sentry (`docs/operacion.md`) |
+| Backend (sujeto a ADR) | `laravel/cashier` o SDK de pagos (ADR-0007); cliente de Resend, aprobado en ADR-0009; cliente de errores como Sentry (`docs/operacion.md`) |
 | Informes | `maatwebsite/excel`, `barryvdh/laravel-dompdf` |
 | Calidad | `pestphp/pest` (con Arch), `larastan/larastan`, `laravel/pint` |
 | Entorno local | Docker y `laravel/sail` (solo desarrollo, ADR-0008) |
@@ -180,6 +180,7 @@ npm run typecheck && npm run lint && npm run test && npm run build
 - Registrar un ADR para decisiones arquitectónicas costosas de revertir; no para implementaciones locales rutinarias.
 - Una tarea está terminada cuando lo pedido está implementado, los riesgos relevantes tienen cobertura, las validaciones proporcionales pasan y se informan las que no se ejecutaron.
 - Una **funcionalidad o módulo nuevo** está terminado cuando, además: la especificación está al día y viaja con el código; cada criterio tiene su prueba (o comprobación manual registrada) y pasa; `composer check` y, si toca el frontend, `npm run typecheck`, `lint`, `test` y `build` pasan con salida real; hay una prueba de aislamiento si se añadió un modelo con datos de organización; se revisó el diff; las decisiones costosas tienen ADR y la deuda dejada está en `docs/sprints/deuda-tecnica.md`.
+- Toda notificación o correo nuevo se registra en el catálogo (`NotificationCatalog`) con su plantilla predeterminada es/en y su prueba; nadie envía correo con `Mail::` fuera de `SendNotification` (ADR-0009).
 - Al cerrar un punto de deuda, moverlo a «Resueltos» con su commit, en un commit `docs(debt)` aparte.
 - Commits: Conventional Commits; scope en inglés; descripción en español sin tildes (`docs/convenciones.md`).
 

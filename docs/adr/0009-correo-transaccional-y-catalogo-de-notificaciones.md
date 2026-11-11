@@ -1,7 +1,7 @@
 # ADR-0009: Correo transaccional y catálogo de notificaciones
 
 - **Fecha:** 2026-11-10
-- **Estado:** Propuesta (pendiente de aprobación; plan 008, DA-1)
+- **Estado:** Aceptada (2026-11-11, aprobada por Antonio; incluye la dependencia del cliente de Resend, que instala quien implemente el plan 008)
 - **Alcance:** todo correo que dispara el sistema (módulo transversal)
 
 ## Contexto
@@ -36,7 +36,7 @@ El producto envía correos desde varios módulos: restablecer contraseña (plan 
 
 ## Decisiones abiertas
 
-- Aprobación de la dependencia del cliente de Resend (plan 008, DA-6).
+- ~~Aprobación de la dependencia del cliente de Resend (plan 008, DA-6).~~ Aprobada por Antonio el 2026-11-11 junto con este ADR.
 - Límites y precio vigentes de Resend (plan 008, riesgos).
 
 ## Referencias
