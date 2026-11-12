@@ -1,0 +1,25 @@
+/*
+ * Estilos de la vista previa de formularios dentro del panel (plan 005, H-005-2).
+ * Solo el tema y las utilidades de Tailwind, SIN la capa base (preflight) ni las reglas
+ * globales de `app.css` (html, h1-h3): el panel de Filament trae las suyas y no debe
+ * cambiar de aspecto. Los tokens son los de `app.css` que usa el `FormRenderer`.
+ */
+@import 'tailwindcss/theme.css' layer(theme);
+@import 'tailwindcss/utilities.css' layer(utilities);
+
+@source '../js/form-preview.tsx';
+@source '../js/components/organisms/FormRenderer.tsx';
+@source '../js/components/molecules/FormFieldInput.tsx';
+@source '../js/lib/classes.ts';
+
+@theme {
+    --color-surface: #ffffff;
+    --color-border: #e2e6ef;
+    --color-border-input: #777a82;
+    --color-text: #243342;
+    --color-text-muted: #585b62;
+    --color-primary: #152b83;
+    --color-primary-hover: #0d1e70;
+    --color-primary-contrast: #ffffff;
+    --color-error: #b42318;
+}

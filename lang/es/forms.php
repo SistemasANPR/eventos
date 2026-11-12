@@ -77,6 +77,22 @@ return [
     'max_selections_exceeds_options' => 'El máximo de selecciones no puede superar el número de opciones.',
     'key_repeated' => 'Dos campos no pueden usar la misma clave.',
     'definition_too_large' => 'El formulario es demasiado grande. Reduce campos, opciones o textos.',
+    'preview' => [
+        'action' => 'Vista previa',
+        'title' => 'Vista previa: :name',
+        'language' => 'Idioma de la vista previa',
+    ],
+    'renderer' => [
+        'required' => 'obligatorio',
+        'select_placeholder' => 'Selecciona una opción',
+        'select_country' => 'Selecciona un país',
+        'file_types' => 'Tipos permitidos: :types',
+        'file_max' => 'Máximo de archivos: :max',
+        'submit' => 'Enviar propuesta',
+        'preview_notice' => 'Vista previa: el envío está desactivado y no se guarda nada.',
+        'empty' => 'Este formulario todavía no tiene campos.',
+        'form_label' => 'Formulario de propuesta',
+    ],
     'actions' => [
         'publish' => 'Publicar',
         'publish_help' => 'Elige la convocatoria que usará este formulario. Una vez publicado, los cambios deben respetar las propuestas ya recibidas.',

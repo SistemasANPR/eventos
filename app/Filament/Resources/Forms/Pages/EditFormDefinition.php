@@ -29,7 +29,14 @@ class EditFormDefinition extends EditRecord
     /** @return list<Action> */
     protected function getHeaderActions(): array
     {
-        return [$this->publishAction()];
+        return [
+            Action::make('preview')
+                ->label(__('forms.preview.action'))
+                ->icon('heroicon-o-eye')
+                ->color('gray')
+                ->url(fn (): string => FormDefinitionResource::getUrl('preview', ['record' => $this->getRecord()])),
+            $this->publishAction(),
+        ];
     }
 
     /** @param  array<string, mixed>  $data */

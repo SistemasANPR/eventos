@@ -7,6 +7,7 @@ namespace App\Filament\Resources\Forms;
 use App\Filament\Resources\Forms\Pages\CreateFormDefinition;
 use App\Filament\Resources\Forms\Pages\EditFormDefinition;
 use App\Filament\Resources\Forms\Pages\ListFormDefinitions;
+use App\Filament\Resources\Forms\Pages\PreviewFormDefinition;
 use App\Filament\Resources\Forms\Schemas\FormDefinitionForm;
 use App\Filament\Resources\Forms\Tables\FormDefinitionsTable;
 use App\Models\FormDefinition;
@@ -60,6 +61,7 @@ class FormDefinitionResource extends Resource
             'index' => ListFormDefinitions::route('/'),
             'create' => CreateFormDefinition::route('/create'),
             'edit' => EditFormDefinition::route('/{record}/edit'),
+            'preview' => PreviewFormDefinition::route('/{record}/preview'),
         ];
     }
 }

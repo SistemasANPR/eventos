@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace App\Filament\Resources\Forms\Tables;
 
 use App\Enums\FormDefinitionStatus;
+use App\Filament\Resources\Forms\FormDefinitionResource;
 use App\Models\FormDefinition;
+use Filament\Actions\Action;
 use Filament\Actions\EditAction;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
@@ -39,7 +41,14 @@ final class FormDefinitionsTable
                     ->state(fn (FormDefinition $record): int => count($record->fields)),
             ])
             ->defaultSort('created_at', 'desc')
-            ->recordActions([EditAction::make()])
+            ->recordActions([
+                Action::make('preview')
+                    ->label(__('forms.preview.action'))
+                    ->icon(Heroicon::OutlinedEye)
+                    ->url(fn (FormDefinition $record): string => FormDefinitionResource::getUrl('preview', ['record' => $record]))
+                    ->visible(fn (FormDefinition $record): bool => auth()->user()?->can('view', $record) === true),
+                EditAction::make(),
+            ])
             ->emptyStateHeading(__('forms.table.empty_heading'))
             ->emptyStateDescription(__('forms.table.empty_description'));
     }

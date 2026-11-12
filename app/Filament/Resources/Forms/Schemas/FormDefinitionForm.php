@@ -63,6 +63,8 @@ final class FormDefinitionForm
                         ->addActionLabel(__('forms.fields.add_field'))
                         ->maxItems(FormDefinitionRules::MAX_FIELDS)
                         ->collapsible()
+                        // Orden con flechas además de arrastrar: se puede reordenar con teclado (CA-005-11).
+                        ->reorderableWithButtons()
                         ->itemLabel(fn (array $state): string => self::itemLabel($state))
                         ->extraItemActions([self::retireAction()])
                         ->schema(self::fieldInputs()),

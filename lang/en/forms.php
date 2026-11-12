@@ -77,6 +77,22 @@ return [
     'max_selections_exceeds_options' => 'The maximum number of selections cannot exceed the number of options.',
     'key_repeated' => 'Two fields cannot use the same key.',
     'definition_too_large' => 'The form is too large. Reduce fields, options or texts.',
+    'preview' => [
+        'action' => 'Preview',
+        'title' => 'Preview: :name',
+        'language' => 'Preview language',
+    ],
+    'renderer' => [
+        'required' => 'required',
+        'select_placeholder' => 'Select an option',
+        'select_country' => 'Select a country',
+        'file_types' => 'Allowed types: :types',
+        'file_max' => 'Maximum files: :max',
+        'submit' => 'Submit proposal',
+        'preview_notice' => 'Preview: submitting is disabled and nothing is saved.',
+        'empty' => 'This form has no fields yet.',
+        'form_label' => 'Proposal form',
+    ],
     'actions' => [
         'publish' => 'Publish',
         'publish_help' => 'Choose the call that will use this form. Once published, changes must respect the proposals already received.',

@@ -124,9 +124,13 @@ it('CA-005-6: a reviewer cannot open the forms and the form of another organizat
     $reviewer = Memberships::attach(User::factory()->create(), $organizationA, OrganizationRole::Reviewer);
     $foreign = createForm($adminB, $eventB, [formField('short_text')]);
 
-    expect($this->actingAs($reviewer)->get("/admin/{$organizationA->slug}/form-definitions")->status())->toBeIn([403, 404]);
+    expect($this->actingAs($reviewer)->get("/admin/{$organizationA->slug}/forms/form-definitions")->status())->toBeIn([403, 404]);
 
-    $this->actingAs($adminA)->get("/admin/{$organizationA->slug}/form-definitions/{$foreign->id}/edit")->assertNotFound();
+    $own = createForm($adminA, $eventA, [formField('short_text')]);
+
+    // Control: la misma ruta con un formulario propio responde 200; así el 404 de abajo es por el aislamiento y no por una URL mal escrita.
+    $this->actingAs($adminA)->get("/admin/{$organizationA->slug}/forms/form-definitions/{$own->id}/edit")->assertOk();
+    $this->actingAs($adminA)->get("/admin/{$organizationA->slug}/forms/form-definitions/{$foreign->id}/edit")->assertNotFound();
 });
 
 it('CA-005-16: in the panel an admin publishes the form choosing a call of its event', function (): void {
