@@ -77,4 +77,7 @@ return [
     'max_selections_exceeds_options' => 'El máximo de selecciones no puede superar el número de opciones.',
     'key_repeated' => 'Dos campos no pueden usar la misma clave.',
     'definition_too_large' => 'El formulario es demasiado grande. Reduce campos, opciones o textos.',
+    'answer_unknown_field' => 'Este campo no existe en el formulario.',
+    'answers_too_large' => 'Las respuestas son demasiado grandes. Acorta los textos.',
+    'answer_file_invalid' => 'El archivo no es válido o ya no está disponible. Súbelo de nuevo.',
 ];

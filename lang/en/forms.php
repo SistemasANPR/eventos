@@ -77,4 +77,7 @@ return [
     'max_selections_exceeds_options' => 'The maximum number of selections cannot exceed the number of options.',
     'key_repeated' => 'Two fields cannot use the same key.',
     'definition_too_large' => 'The form is too large. Reduce fields, options or texts.',
+    'answer_unknown_field' => 'This field does not exist in the form.',
+    'answers_too_large' => 'The answers are too large. Shorten the texts.',
+    'answer_file_invalid' => 'The file is not valid or is no longer available. Upload it again.',
 ];
