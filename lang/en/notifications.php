@@ -7,6 +7,7 @@ declare(strict_types=1);
  * catalog screen; it is not the email text.
  */
 return [
+    'invalid_variable' => 'Variables not allowed: :variables.',
     'auth' => [
         'password_reset' => [
             'name' => 'Password reset',

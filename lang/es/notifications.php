@@ -7,6 +7,7 @@ declare(strict_types=1);
  * pantalla del catálogo del panel; no es el texto del correo.
  */
 return [
+    'invalid_variable' => 'Variables no permitidas: :variables.',
     'auth' => [
         'password_reset' => [
             'name' => 'Restablecer contraseña',
