@@ -36,7 +36,7 @@ final class BuildSubmissionRules
      * @param  list<array<string, mixed>>  $fields  definición guardada del formulario
      * @return array<string, list<mixed>> reglas por `answers.<clave>`
      */
-    public function rules(array $fields, string $uploadToken, string $organizationId): array
+    public function handle(array $fields, string $uploadToken, string $organizationId): array
     {
         $rules = [];
 
@@ -65,7 +65,7 @@ final class BuildSubmissionRules
     {
         $allowed = array_column($this->activeFields($fields), 'key');
         $clean = $this->withoutControlCharacters($answers);
-        $validator = Validator::make(['answers' => $clean], $this->rules($fields, $uploadToken, $organizationId));
+        $validator = Validator::make(['answers' => $clean], $this->handle($fields, $uploadToken, $organizationId));
 
         $validator->after(function (AnswersValidator $validator) use ($allowed, $clean): void {
             foreach (array_keys($clean) as $key) {

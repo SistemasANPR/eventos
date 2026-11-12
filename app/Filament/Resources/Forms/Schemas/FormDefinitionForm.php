@@ -4,11 +4,15 @@ declare(strict_types=1);
 
 namespace App\Filament\Resources\Forms\Schemas;
 
+use App\Actions\Forms\RetireFormField;
 use App\Enums\FieldType;
+use App\Filament\Resources\Forms\Pages\EditFormDefinition;
+use App\Filament\Support\ActionErrors;
 use App\Http\Requests\Events\StoreEventRequest;
 use App\Models\Event;
 use App\Models\FormDefinition;
 use App\Support\Forms\FormDefinitionRules;
+use Filament\Actions\Action;
 use Filament\Forms\Components\CheckboxList;
 use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Repeater;
@@ -16,9 +20,11 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
+use Filament\Notifications\Notification;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Schema;
+use Illuminate\Validation\ValidationException;
 
 /**
  * Editor de un formulario de propuestas (plan 005, H-005-1). Es solo presentación:
@@ -45,6 +51,8 @@ final class FormDefinitionForm
                         ->label(__('forms.fields.name'))
                         ->required()
                         ->maxLength(150),
+                    // Versión que se está editando: el servidor la compara para no pisar el cambio de otra persona.
+                    Hidden::make('version'),
                 ]),
             Section::make(__('forms.sections.fields'))
                 ->description(__('forms.fields.fields_help'))
@@ -56,9 +64,44 @@ final class FormDefinitionForm
                         ->maxItems(FormDefinitionRules::MAX_FIELDS)
                         ->collapsible()
                         ->itemLabel(fn (array $state): string => self::itemLabel($state))
+                        ->extraItemActions([self::retireAction()])
                         ->schema(self::fieldInputs()),
                 ]),
         ]);
+    }
+
+    /** Retira el campo: deja de ofrecerse en nuevos envíos y conserva sus datos (CA-005-21). */
+    private static function retireAction(): Action
+    {
+        return Action::make('retire')
+            ->label(__('forms.actions.retire'))
+            ->icon('heroicon-o-archive-box')
+            ->color('danger')
+            ->requiresConfirmation()
+            ->modalDescription(__('forms.actions.retire_help'))
+            ->visible(fn ($livewire): bool => $livewire instanceof EditFormDefinition)
+            ->action(function (array $arguments, Repeater $component, $livewire): void {
+                $key = $component->getRawItemState($arguments['item'])['key'] ?? null;
+
+                $record = $livewire instanceof EditFormDefinition ? $livewire->getRecord() : null;
+
+                if (! $record instanceof FormDefinition || ! is_string($key) || $key === '') {
+                    Notification::make()->warning()->title(__('forms.actions.retire_save_first'))->send();
+
+                    return;
+                }
+
+                try {
+                    app(RetireFormField::class)->handle(ActionErrors::actor(), $record, $key);
+                } catch (ValidationException $exception) {
+                    Notification::make()->danger()->title(ActionErrors::summary($exception))->send();
+
+                    return;
+                }
+
+                $livewire->refreshFormData(['fields', 'version']);
+                Notification::make()->success()->title(__('forms.actions.retired'))->send();
+            });
     }
 
     /** @return list<Hidden|Select|Toggle|TextInput|Textarea|Section|Repeater|CheckboxList> */
@@ -185,6 +228,7 @@ final class FormDefinitionForm
         $type = is_string($state['type'] ?? null) ? FieldType::tryFrom($state['type']) : null;
 
         $title = $text !== '' ? $text : __('forms.fields.untitled');
+        $title .= ($state['retiredAt'] ?? null) !== null ? ' · '.__('forms.actions.retired_label') : '';
 
         return $type === null ? $title : $title.' · '.__("forms.types.{$type->value}");
     }

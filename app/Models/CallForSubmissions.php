@@ -33,6 +33,7 @@ use Spatie\Translatable\HasTranslations;
  * @property Carbon $closes_at
  * @property Carbon|null $results_at
  * @property CallStatus $status
+ * @property string|null $form_definition_id formulario de propuestas; nulo hasta que se publica uno (plan 005)
  */
 class CallForSubmissions extends Model
 {
@@ -65,6 +66,12 @@ class CallForSubmissions extends Model
     public function submissionType(): BelongsTo
     {
         return $this->belongsTo(SubmissionType::class);
+    }
+
+    /** @return BelongsTo<FormDefinition, $this> */
+    public function formDefinition(): BelongsTo
+    {
+        return $this->belongsTo(FormDefinition::class);
     }
 
     /** @return BelongsTo<Event, $this> */

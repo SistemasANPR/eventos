@@ -19,7 +19,7 @@ use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Tests\Support\Memberships;
 
-/** @return array{0: Organization, 1: Event, 2: User} organización con roles, evento (es, en) y el usuario con el rol indicado */
+/** @return array{0: Organization, 1: Event, 2: User, 3: User} organización con roles, evento (es, en), el usuario con el rol indicado y un administrador (el mismo si el rol es administrador) */
 function formScenario(OrganizationRole $role = OrganizationRole::OrgAdmin): array
 {
     $organization = Memberships::organization();
@@ -37,7 +37,7 @@ function formScenario(OrganizationRole $role = OrganizationRole::OrgAdmin): arra
         'currency' => 'MXN',
     ]);
 
-    return [$organization, $event, $user];
+    return [$organization, $event, $user, $admin];
 }
 
 /**

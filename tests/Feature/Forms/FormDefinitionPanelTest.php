@@ -2,10 +2,12 @@
 
 declare(strict_types=1);
 
+use App\Enums\FormDefinitionStatus;
 use App\Enums\OrganizationRole;
 use App\Filament\Resources\Forms\Pages\CreateFormDefinition;
 use App\Filament\Resources\Forms\Pages\EditFormDefinition;
 use App\Filament\Resources\Forms\Pages\ListFormDefinitions;
+use App\Models\CallForSubmissions;
 use App\Models\FormDefinition;
 use App\Models\Organization;
 use App\Models\User;
@@ -125,4 +127,32 @@ it('CA-005-6: a reviewer cannot open the forms and the form of another organizat
     expect($this->actingAs($reviewer)->get("/admin/{$organizationA->slug}/form-definitions")->status())->toBeIn([403, 404]);
 
     $this->actingAs($adminA)->get("/admin/{$organizationA->slug}/form-definitions/{$foreign->id}/edit")->assertNotFound();
+});
+
+it('CA-005-16: in the panel an admin publishes the form choosing a call of its event', function (): void {
+    [$organization, $event, $admin] = formScenario();
+    $form = createForm($admin, $event, [formField('short_text')]);
+    $call = CurrentOrganization::run($organization, fn () => CallForSubmissions::factory()->create(['organization_id' => $organization->id, 'event_id' => $event->id]));
+    formPanelSession($organization, $admin);
+
+    Livewire::test(EditFormDefinition::class, ['record' => $form->id])
+        ->callAction('publish', ['call_id' => $call->id])
+        ->assertHasNoActionErrors();
+
+    $storedCall = CurrentOrganization::run($organization, fn () => CallForSubmissions::query()->findOrFail($call->id));
+
+    expect(storedForm($organization, $form->id)->status)->toBe(FormDefinitionStatus::Published)
+        ->and($storedCall->form_definition_id)->toBe($form->id);
+});
+
+it('CA-005-22: in the panel saving with an outdated version keeps the other change', function (): void {
+    [$organization, $event, $admin] = formScenario();
+    $form = createForm($admin, $event, [formField('short_text')]);
+    formPanelSession($organization, $admin);
+
+    Livewire::test(EditFormDefinition::class, ['record' => $form->id])
+        ->fillForm(['name' => 'Cambio tardio', 'version' => 99])
+        ->call('save');
+
+    expect(storedForm($organization, $form->id)->name)->toBe('Formulario de sesiones');
 });

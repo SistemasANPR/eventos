@@ -13,6 +13,8 @@ use App\Support\Files\FileFieldRegistry;
 use App\Support\Files\NoFileFields;
 use App\Support\Files\NoIssuedUploadTokens;
 use App\Support\Files\UploadTokenVerifier;
+use App\Support\Forms\NoSubmissionAnswers;
+use App\Support\Forms\SubmissionAnswerCounter;
 use App\Support\Tenancy\CurrentOrganization;
 use Filament\Auth\Http\Responses\Contracts\LoginResponse as LoginResponseContract;
 use Illuminate\Database\Eloquent\Model;
@@ -37,6 +39,8 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(UploadTokenVerifier::class, NoIssuedUploadTokens::class);
         // Costura hacia las propuestas (plan 006): hasta entonces ningún eje está en uso.
         $this->app->bind(TrackUsageChecker::class, NoTrackUsage::class);
+        // Costura hacia las respuestas (plan 006): hasta entonces ningún formulario tiene respuestas.
+        $this->app->bind(SubmissionAnswerCounter::class, NoSubmissionAnswers::class);
         // Acceso único (plan 017): cada persona llega a su portal, no al panel desde el que inició sesión.
         $this->app->bind(LoginResponseContract::class, LoginResponse::class);
     }

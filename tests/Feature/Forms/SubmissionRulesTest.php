@@ -245,5 +245,5 @@ it('CA-005-34: creating and editing a submission share the same rules', function
 
     expect($builder->validate($fields, $answers, 'token-1', 'org-1'))
         ->toBe($builder->validate($fields, $answers, 'token-1', 'org-1'))
-        ->and($builder->rules($fields, 'token-1', 'org-1'))->toHaveKeys(['answers.f_titulo', 'answers.f_pais']);
+        ->and($builder->handle($fields, 'token-1', 'org-1'))->toHaveKeys(['answers.f_titulo', 'answers.f_pais']);
 });
