@@ -23,7 +23,7 @@ Claude Code carga los `CLAUDE.md` del directorio activo hacia arriba. En conflic
 
 ## Lo que impone la herramienta, no el agente
 
-`.claude/settings.json` bloquea o pide confirmación para: leer o editar `.env*`, `git push`, `git reset --hard`, migraciones, instalación de dependencias y commits. Si una acción es rechazada, **no buscar otra vía para lograrlo**: informar al usuario y esperar.
+`.claude/settings.json` ya no bloquea ni pide confirmación para ninguna acción (Antonio, 2026-11-12); solo conserva el hook que ejecuta Pint tras cada edición. Si una acción es rechazada por la herramienta, **no buscar otra vía para lograrlo**: informar al usuario y esperar.
 
 Comandos propios (`.claude/commands/`): `/nueva-especificacion`, `/revisar-aislamiento`, `/verificar`.
 
