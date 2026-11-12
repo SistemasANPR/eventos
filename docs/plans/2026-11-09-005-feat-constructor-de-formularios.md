@@ -154,6 +154,7 @@ Cada uno tiene al menos una prueba cuyo nombre lo cita (`CA-005-n: ...`) o decla
 - **CA-005-22:** *Dado* dos organizadores que editan a la vez un formulario publicado, *cuando* el segundo guarda con una `version` anterior, *entonces* se rechaza con conflicto y no se pisa el cambio del primero.
 - **CA-005-23:** *Dado* un cambio que modifica la definición, *cuando* se guarda, *entonces* `version` aumenta en 1; *cuando* se guarda sin cambios, *entonces* `version` no cambia.
 - **CA-005-24:** *Dado* una edición del formulario y un envío de propuesta que ocurren al mismo tiempo (dos transacciones en paralelo sobre `LockedFormDefinition`), *cuando* ambas terminan, *entonces* no existe una respuesta guardada que viole la definición cuya `version` quedó registrada con ella: o el cambio se rechaza con `FIELD_HAS_ANSWERS`, o el envío se rechaza con `FORM_OUTDATED`.
+  Manual: la prueba automática comprueba que la definición se carga con `FOR UPDATE`; la carrera real entre una edición y un envío en dos transacciones paralelas se verifica cuando el plan 006 implemente `SubmitSubmission` (hasta entonces no existe un segundo escritor).
 
 **H-005-4 · Validación dinámica en el servidor**
 
@@ -194,3 +195,4 @@ Cada uno tiene al menos una prueba cuyo nombre lo cita (`CA-005-n: ...`) o decla
 |---|---|---|---|
 | F0 + F1 (H-005-1) | 825e2d0 | 2026-11-12 | Pint OK; Larastan sin errores; 29 pruebas del modulo y suite completa (940) en verde; check:criteria 0 errores. Desviaciones: `forms.view` queda para H-005-2; la validacion vive en `FormDefinitionRules` en vez de Form Requests; `form_definition_id` en la convocatoria y `form_templates` van en H-005-3 y F5. Pendiente: revision manual en navegador a 375 y 1280 px. |
 | F2 (H-005-4) | e29cc5c | 2026-11-12 | 72 pruebas de Forms en verde; Larastan sin errores; Pint OK; check:criteria 0 errores. La prueba detecto que `distinct` debe ir en la regla por elemento. `PendingUploadRepository` es un contrato propio con doble; el plan 007 aporta la implementacion y su binding. |
+| F4 (H-005-3) | 64a5197 | 2026-11-12 | 90 pruebas de Forms y guardianas Arch/Tenancy en verde; Larastan sin errores; Pint OK. Migracion `form_definition_id` aplicada en la base local. CA-005-24: carrera real pendiente del plan 006 (linea Manual). Sin prueba automatica: el boton de retirar campo del editor (la Action esta probada); revisar en navegador. |
