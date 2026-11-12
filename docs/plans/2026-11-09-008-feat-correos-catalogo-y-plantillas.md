@@ -3,7 +3,7 @@
 > Plan de la épica E-08 (R0). Especificación SDD (ADR-0001). Se presenta y se espera aprobación antes de escribir código. El nivel evento en la interfaz, el logotipo y colores, pt, versiones, envío de prueba y registro de envíos son del plan 013 (R1).
 
 - **Fecha:** 2026-11-09
-- **Estado:** Aprobado
+- **Estado:** En curso
 - **Esfuerzo:** L
 - **Deuda relacionada:** RC-6 (edición de plantillas por organización como «Debería»)
 
@@ -157,3 +157,4 @@ Al 2026-11-09 no existe el proyecto Laravel; el entorno local prevé Mailpit par
 
 | Fase | Commit | Fecha | Notas (salida real de las validaciones) |
 |---|---|---|---|
+| F1 (H-008-1) | 0bdbbbd | 2026-11-12 | 7 pruebas del catalogo y paridad es/en en verde (24 pruebas, 159 aserciones); Pint OK; Larastan sin errores de codigo (2 avisos de patrones ignorados por analizar un subconjunto). CA-008-1 a 3 cubiertos. Desviaciones: se anade `auth.new_device_login` al catalogo (la usa el plan 001 y la pide el plan maestro §7.5) y `team.membership_added` queda critica, como dice este plan. Las plantillas predeterminadas es/en de las 9 claves ya existen (adelanto de F2). No se ejecuto `composer check` completo. |
