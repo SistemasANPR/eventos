@@ -54,6 +54,8 @@ Solo nombres; nunca valores en el repositorio. Toda variable nueva se añade a `
 | `PRIVATE_UPLOADS_DISK` | Disco privado de los archivos de propuestas (por defecto `local`). En staging y producción apunta a un bucket S3 compatible **privado**; nunca a `public` | Sí |
 | `PLATFORM_PANEL_ENABLED` | Habilita el panel de plataforma (`/platform`, plan 016). Por defecto solo en `local` y pruebas; en staging y producción queda apagado (404) y **no debe activarse hasta que exista la 2FA del plan 014** (DA-1) | No |
 | `MAIL_*` | Correo transaccional | Sí |
+| `NOTIFICATIONS_MAILER` | Proveedor del correo transaccional: `resend` en staging y producción, `smtp` en local (Mailpit). Un valor desconocido falla al enviar; no cae a otro proveedor (ADR-0009, plan 008) | Sí |
+| `RESEND_API_KEY` | Clave de la API de Resend; solo cuando `NOTIFICATIONS_MAILER=resend`. Es un secreto: solo en variables del entorno, nunca en el repositorio | Sí, con `resend` |
 | `[RELLENAR: proveedor de pagos]` | Pagos (ADR-0007) | Según módulo |
 | `[RELLENAR: errores]` | Registro de errores | Recomendada |
 
