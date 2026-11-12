@@ -193,3 +193,4 @@ Cada uno tiene al menos una prueba cuyo nombre lo cita (`CA-005-n: ...`) o decla
 | Fase | Commit | Fecha | Notas (salida real de las validaciones) |
 |---|---|---|---|
 | F0 + F1 (H-005-1) | 825e2d0 | 2026-11-12 | Pint OK; Larastan sin errores; 29 pruebas del modulo y suite completa (940) en verde; check:criteria 0 errores. Desviaciones: `forms.view` queda para H-005-2; la validacion vive en `FormDefinitionRules` en vez de Form Requests; `form_definition_id` en la convocatoria y `form_templates` van en H-005-3 y F5. Pendiente: revision manual en navegador a 375 y 1280 px. |
+| F2 (H-005-4) | e29cc5c | 2026-11-12 | 72 pruebas de Forms en verde; Larastan sin errores; Pint OK; check:criteria 0 errores. La prueba detecto que `distinct` debe ir en la regla por elemento. `PendingUploadRepository` es un contrato propio con doble; el plan 007 aporta la implementacion y su binding. |
