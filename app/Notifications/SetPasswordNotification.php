@@ -22,6 +22,8 @@ final class SetPasswordNotification extends Notification implements ShouldQueue
 {
     use Queueable;
 
+    public const CATALOG_KEY = 'team.set_password';
+
     /** @return list<string> */
     public function via(object $notifiable): array
     {

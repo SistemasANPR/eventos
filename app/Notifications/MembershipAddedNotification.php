@@ -10,7 +10,7 @@ use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
 /**
- * `team.membership_added` (catálogo del plan 008, no crítica): avisa a una
+ * `team.membership_added` (catálogo del plan 008, crítica): avisa a una
  * persona que ya tenía cuenta de que una organización la dio de alta.
  *
  * No lleva token ni enlace para fijar contraseña: la persona entra con la
@@ -20,6 +20,8 @@ use Illuminate\Notifications\Notification;
 final class MembershipAddedNotification extends Notification implements ShouldQueue
 {
     use Queueable;
+
+    public const CATALOG_KEY = 'team.membership_added';
 
     public function __construct(private readonly string $organizationName) {}
 
