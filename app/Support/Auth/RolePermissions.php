@@ -32,6 +32,7 @@ final class RolePermissions
 
     private const ADMIN_ONLY = [
         'events.publish',
+        'event_assignments.manage',
         'privacy_notices.manage',
         'team.manage',
         'mail-templates.manage',

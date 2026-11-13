@@ -35,7 +35,7 @@ function expectedMatrix(): array
     return [
         'org_admin' => [
             ...$organizer,
-            'events.publish', 'privacy_notices.manage', 'team.manage',
+            'events.publish', 'event_assignments.manage', 'privacy_notices.manage', 'team.manage',
             'mail-templates.manage', 'personal_data.manage',
         ],
         'organizer' => $organizer,
