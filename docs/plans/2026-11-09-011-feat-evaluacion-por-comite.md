@@ -57,7 +57,7 @@ En modo ciego el evaluador no ve nombre, correo, empresa, país ni biografía de
 
 ### DA-5 · Cuándo una propuesta pasa a `under_review` — se recomienda **al recibir su primera asignación**
 
-`AssignReviewers` llama a `MarkSubmissionUnderReview` (plan 012) para pasar de `submitted` a `under_review` con historial. Un evento sin comité no pasa por aquí: el plan 012 permite decidir desde `submitted`.
+`AssignReviewers` solo acepta propuestas con `origin = call`: un conferencista invitado (plan 018) nace `accepted` y no se evalúa. `AssignReviewers` llama a `MarkSubmissionUnderReview` (plan 012) para pasar de `submitted` a `under_review` con historial. Un evento sin comité no pasa por aquí: el plan 012 permite decidir desde `submitted`.
 
 ## 4. Contrato
 

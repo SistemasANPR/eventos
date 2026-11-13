@@ -14,6 +14,8 @@ Que el equipo organizador vea, filtre, abra y exporte las propuestas recibidas e
 
 **Dentro:** recurso de Filament de propuestas **dentro del evento actual** (parámetro de ruta con binding acotado), con lista paginada y filtros; vista de detalle con las respuestas dinámicas del formulario, los participantes y los archivos; exportación **siempre por cola** con columnas del formulario, tope de filas y archivo temporal; resumen por eje, tipo y día (Debería).
 
+**Coordinación con el plan 018 (conferencistas invitados):** la lista y la exportación aceptan un filtro `origin`; la vista «Propuestas» se acota a `origin = call` y los invitados nunca entran en su resumen ni en sus conteos; el detalle muestra la marca «Invitado» cuando corresponde, y la exportación añade la columna «Origen». La vista «Invitados» la construye el plan 018.
+
 **Fuera:** cambiar el estado de una propuesta, aceptar o rechazar (plan 012); evaluar (plan 011); edición de las respuestas por el organizador; reportes comparativos entre eventos (E-34); vista previa de documentos dentro del panel.
 
 ### Historias

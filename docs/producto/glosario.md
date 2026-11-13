@@ -15,6 +15,7 @@
 | Serie de eventos | `EventSeries` | Agrupa ediciones del mismo evento recurrente. *(Opcional: decidir en el plan de eventos.)* | Organización |
 | Convocatoria | `CallForSubmissions` | Periodo en que un evento recibe propuestas de un tipo, con fechas de apertura, cierre y resultados | Evento |
 | Propuesta | `Submission` | Envío de un autor a una convocatoria | Evento |
+| Conferencista invitado | `Submission` con `origin = invited` (`SubmissionOrigin`) | Persona que el organizador da de alta directamente, sin convocatoria, con el formulario de las propuestas; nace `accepted` y no entra a evaluación ni a resultados (plan 018) | Evento |
 | Tipo de propuesta | `SubmissionType` | Sesión individual, panel, póster o taller | — (enum) |
 | Eje temático | `Track` | Tema que organiza propuestas y programa | Evento |
 | Ponente | `Speaker` | Persona que presenta (autor o coautor) | Organización (`Contact`) |
