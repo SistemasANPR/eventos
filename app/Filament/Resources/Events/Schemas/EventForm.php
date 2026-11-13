@@ -64,6 +64,8 @@ final class EventForm
                         ->label(__('events.fields.timezone'))
                         ->options(self::timezones())
                         ->searchable()
+                        // Filament muestra solo 50 opciones por defecto: sin esto la lista termina en África.
+                        ->optionsLimit(count(self::timezones()))
                         ->default('America/Mexico_City')
                         ->required(),
                 ]),
