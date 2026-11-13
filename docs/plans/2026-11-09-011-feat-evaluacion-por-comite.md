@@ -183,3 +183,5 @@ Cada uno tiene al menos una prueba cuyo nombre lo cita (`CA-011-n: ...`) o decla
 
 | Fase | Commit | Fecha | Notas (salida real de las validaciones) |
 |---|---|---|---|
+| F0 | 39161b8 | 2026-11-13 | Plan aprobado por Antonio; propuesta de datos de event_assignments y rubrics concretada. |
+| F1 (H-011-7) | 3d262fa | 2026-11-13 | 14 pruebas nuevas en verde (CA-011-29 a 32); guardianas Arch, Tenancy, LangParity y RolesMatrix: 239 pruebas en verde; Pint OK en 15 archivos; Larastan sin errores; check:criteria 0 errores. Desviaciones: (1) sin UI Filament (queda para el panel Reviewer). (2) CA-011-28 probado en el modelo (scope assignedTo), el 404 por ruta llega con el panel Reviewer (F4). (3) CA-011-10 parcial (isReviewerOf listo; el rechazo exige review_assignments, F3). CA-011-16 no cubierto (panel Reviewer y 2FA). Pruebas corridas en contenedor desechable con el repo montado, porque eventos-app-1 monta la copia WSL. No se ejecuto la suite completa. |
