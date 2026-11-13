@@ -25,6 +25,7 @@ final class RolePermissions
         'forms.manage',
         'submissions.view',
         'submissions.export',
+        'submissions.invite',
         'files.download',
         'mail-templates.view',
     ];

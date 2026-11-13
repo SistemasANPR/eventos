@@ -29,7 +29,7 @@ function expectedMatrix(): array
 {
     $organizer = [
         'events.manage', 'calls.manage', 'calls.view', 'tracks.manage', 'forms.manage',
-        'submissions.view', 'submissions.export', 'files.download', 'mail-templates.view',
+        'submissions.view', 'submissions.export', 'submissions.invite', 'files.download', 'mail-templates.view',
     ];
 
     return [

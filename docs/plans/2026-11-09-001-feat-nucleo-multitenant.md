@@ -71,6 +71,7 @@ Medido el 2026-11-09: el repositorio contiene solo la plantilla (documentos, reg
 | `forms.manage` | sí | sí | no |
 | `submissions.view` | sí | sí | no |
 | `submissions.export` | sí | sí | no |
+| `submissions.invite` | sí | sí | no |
 | `files.download` | sí | sí | no |
 | `mail-templates.view` | sí | sí | no |
 | `mail-templates.manage` | sí | no | no |
