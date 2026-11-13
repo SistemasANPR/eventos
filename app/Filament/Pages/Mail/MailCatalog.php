@@ -147,6 +147,10 @@ class MailCatalog extends Page implements HasTable
             return;
         }
 
+        // Los registros de la tabla se guardan en caché durante la petición: sin esto la fila se
+        // pinta con el estado anterior y el botón Activar/Desactivar no cambia.
+        $this->flushCachedTableRecords();
+
         Notification::make()->success()->title(__($enabled ? 'mail_admin.notifications.enabled' : 'mail_admin.notifications.disabled'))->send();
     }
 
@@ -158,6 +162,8 @@ class MailCatalog extends Page implements HasTable
         foreach ($locales as $locale) {
             $restore->handle(ActionErrors::actor(), CurrentOrganization::get(), $key, $locale);
         }
+
+        $this->flushCachedTableRecords();
 
         Notification::make()->success()->title(__('mail_admin.notifications.restored'))->send();
     }
