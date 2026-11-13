@@ -215,7 +215,7 @@ final class FormDefinitionForm
     }
 
     /** @return array<string, string> */
-    private static function eventOptions(): array
+    public static function eventOptions(): array
     {
         return Event::query()->orderBy('starts_at')->get()
             ->mapWithKeys(fn (Event $event): array => [$event->id => (string) $event->getTranslation('name', $event->default_locale, true)])

@@ -4,14 +4,18 @@ declare(strict_types=1);
 
 namespace App\Filament\Resources\Forms\Tables;
 
+use App\Actions\Forms\DuplicateFormDefinition;
 use App\Enums\FormDefinitionStatus;
 use App\Filament\Resources\Forms\FormDefinitionResource;
+use App\Filament\Support\ActionErrors;
 use App\Models\FormDefinition;
 use Filament\Actions\Action;
 use Filament\Actions\EditAction;
+use Filament\Notifications\Notification;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
+use Illuminate\Validation\ValidationException;
 
 /** Lista de formularios de la organización (plan 005, H-005-1): nombre, evento, estado y número de campos. */
 final class FormDefinitionsTable
@@ -47,6 +51,25 @@ final class FormDefinitionsTable
                     ->icon(Heroicon::OutlinedEye)
                     ->url(fn (FormDefinition $record): string => FormDefinitionResource::getUrl('preview', ['record' => $record]))
                     ->visible(fn (FormDefinition $record): bool => auth()->user()?->can('view', $record) === true),
+                Action::make('duplicate')
+                    ->label(__('forms.actions.duplicate'))
+                    ->icon(Heroicon::OutlinedDocumentDuplicate)
+                    ->requiresConfirmation()
+                    ->modalDescription(__('forms.actions.duplicate_help'))
+                    ->visible(fn (): bool => auth()->user()?->can('create', FormDefinition::class) === true)
+                    ->action(function (FormDefinition $record) {
+                        try {
+                            $copy = app(DuplicateFormDefinition::class)->handle(ActionErrors::actor(), $record);
+                        } catch (ValidationException $exception) {
+                            Notification::make()->danger()->title(ActionErrors::summary($exception))->send();
+
+                            return null;
+                        }
+
+                        Notification::make()->success()->title(__('forms.actions.duplicated'))->send();
+
+                        return redirect(FormDefinitionResource::getUrl('edit', ['record' => $copy]));
+                    }),
                 EditAction::make(),
             ])
             ->emptyStateHeading(__('forms.table.empty_heading'))
