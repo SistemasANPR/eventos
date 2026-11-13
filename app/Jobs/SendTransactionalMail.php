@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Jobs;
 
 use App\Actions\Notifications\RenderMailTemplate;
+use App\Actions\Notifications\ResolveMailTemplate;
 use App\Enums\MailDispatchStatus;
 use App\Models\MailDispatch;
 use App\Models\Organization;
@@ -43,6 +44,7 @@ final class SendTransactionalMail implements ShouldBeEncrypted, ShouldQueue
         public readonly string $notificationKey,
         public readonly MailRecipient $recipient,
         public readonly array $variables,
+        public readonly ?string $eventId = null,
     ) {}
 
     /** @return list<int> segundos de espera entre intentos, siempre crecientes */
@@ -51,9 +53,9 @@ final class SendTransactionalMail implements ShouldBeEncrypted, ShouldQueue
         return [30, 120, 600, 1800];
     }
 
-    public function handle(RenderMailTemplate $renderer, TransactionalMailer $mailer): void
+    public function handle(RenderMailTemplate $renderer, ResolveMailTemplate $resolver, TransactionalMailer $mailer): void
     {
-        $this->inOrganization(function () use ($renderer, $mailer): void {
+        $this->inOrganization(function () use ($renderer, $resolver, $mailer): void {
             $dispatch = MailDispatch::query()->findOrFail($this->dispatchId);
 
             if ($dispatch->status === MailDispatchStatus::Sent) {
@@ -62,9 +64,17 @@ final class SendTransactionalMail implements ShouldBeEncrypted, ShouldQueue
 
             $dispatch->forceFill(['attempts' => $dispatch->attempts + 1])->save();
 
-            $rendered = $renderer->handle($this->notificationKey, $this->recipient->locale, $this->variables);
+            $template = $resolver->handle($this->notificationKey, $this->recipient->locale, CurrentOrganization::get(), $this->eventId);
+            $rendered = $renderer->handle($this->notificationKey, $this->recipient->locale, $this->variables, $template->subject, $template->body);
 
-            $mailer->send(new OutgoingMail($this->recipient, $rendered->subject, $rendered->html, $rendered->text));
+            $mailer->send(new OutgoingMail(
+                $this->recipient,
+                $rendered->subject,
+                $rendered->html,
+                $rendered->text,
+                $template->fromName,
+                $template->replyTo,
+            ));
 
             $dispatch->forceFill(['status' => MailDispatchStatus::Sent, 'sent_at' => now()])->save();
         });

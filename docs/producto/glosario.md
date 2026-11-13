@@ -41,7 +41,10 @@
 | Voluntario | `Volunteer` | Persona que apoya la operación | Evento (`Contact`) |
 | Turno | `VolunteerShift` | Franja con cupo para voluntarios | Evento |
 | Hotel | `Hotel` | Alojamiento recomendado o con bloque | Evento |
-| Plantilla de correo | `MailTemplate` | Mensaje editable con variables, por organización | Organización |
+| Plantilla de correo | `MailTemplate` | Personalización de un correo del catálogo para un idioma, con variables de lista blanca; por organización y, desde R1, por evento (`event_id`). La predeterminada del sistema no es un modelo: vive en `lang/` (plan 008) | Organización |
+| Notificación del catálogo | `NotificationType` | Un correo que el sistema puede enviar, registrado en código en `NotificationCatalog` con su clave (`submission.received`), variables, criticidad y límite por destinatario. No es un modelo ni una tabla (ADR-0009) | — (código) |
+| Ajuste de notificación | `NotificationSetting` | Si una organización tiene activa una notificación no crítica; sin fila, está activa (plan 008, H-008-5) | Organización |
+| Envío de correo | `MailDispatch` | Registro de un envío del catálogo: hecho de negocio, estado (`queued`, `sent`, `failed`, `throttled`, `disabled`) y huella del destinatario, nunca su correo en claro (plan 008) | Organización |
 | Asignación a evento | `EventAssignment` | Acceso de un usuario a un evento con un rol (ADR-0003, DA-1) | Evento |
 
 ## Estados de una propuesta (`SubmissionStatus`)
