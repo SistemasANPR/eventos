@@ -15,6 +15,7 @@
 | Serie de eventos | `EventSeries` | Agrupa ediciones del mismo evento recurrente. *(Opcional: decidir en el plan de eventos.)* | Organización |
 | Convocatoria | `CallForSubmissions` | Periodo en que un evento recibe propuestas de un tipo, con fechas de apertura, cierre y resultados | Evento |
 | Propuesta | `Submission` | Envío de un autor a una convocatoria | Evento |
+| Conferencista invitado | `Submission` con `origin = invited` (`SubmissionOrigin`) | Persona que el organizador da de alta directamente, sin convocatoria, con el formulario de las propuestas; nace `accepted` y no entra a evaluación ni a resultados (plan 018) | Evento |
 | Tipo de propuesta | `SubmissionType` | Sesión individual, panel, póster o taller | — (enum) |
 | Eje temático | `Track` | Tema que organiza propuestas y programa | Evento |
 | Ponente | `Speaker` | Persona que presenta (autor o coautor) | Organización (`Contact`) |
@@ -41,7 +42,10 @@
 | Voluntario | `Volunteer` | Persona que apoya la operación | Evento (`Contact`) |
 | Turno | `VolunteerShift` | Franja con cupo para voluntarios | Evento |
 | Hotel | `Hotel` | Alojamiento recomendado o con bloque | Evento |
-| Plantilla de correo | `MailTemplate` | Mensaje editable con variables, por organización | Organización |
+| Plantilla de correo | `MailTemplate` | Personalización de un correo del catálogo para un idioma, con variables de lista blanca; por organización y, desde R1, por evento (`event_id`). La predeterminada del sistema no es un modelo: vive en `lang/` (plan 008) | Organización |
+| Notificación del catálogo | `NotificationType` | Un correo que el sistema puede enviar, registrado en código en `NotificationCatalog` con su clave (`submission.received`), variables, criticidad y límite por destinatario. No es un modelo ni una tabla (ADR-0009) | — (código) |
+| Ajuste de notificación | `NotificationSetting` | Si una organización tiene activa una notificación no crítica; sin fila, está activa (plan 008, H-008-5) | Organización |
+| Envío de correo | `MailDispatch` | Registro de un envío del catálogo: hecho de negocio, estado (`queued`, `sent`, `failed`, `throttled`, `disabled`) y huella del destinatario, nunca su correo en claro (plan 008) | Organización |
 | Asignación a evento | `EventAssignment` | Acceso de un usuario a un evento con un rol (ADR-0003, DA-1) | Evento |
 
 ## Estados de una propuesta (`SubmissionStatus`)

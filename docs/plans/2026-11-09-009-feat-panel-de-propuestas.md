@@ -3,15 +3,18 @@
 > Plan de la épica E-09 (R0). Especificación SDD (ADR-0001). Se presenta y se espera aprobación antes de escribir código.
 
 - **Fecha:** 2026-11-09
-- **Estado:** Borrador
+- **Estado:** Aprobado
 - **Esfuerzo:** M
 - **Deuda relacionada:** ninguna
+- **Responsable:** Gabriel (`docs/plan-de-desarrollo.md` §6.2: H-009-1, H-009-2 y H-009-3 el 17-nov). Pendiente: no existe aún ningún visualizador de propuestas; depende de `Submission` (plan 006) y del formulario (plan 005), que tampoco existen en el repositorio
 
 ## 1. Objetivo y alcance
 
 Que el equipo organizador vea, filtre, abra y exporte las propuestas recibidas en su convocatoria, en un panel de Filament con autorización real en el servidor. En el cpanel de origen la lista no filtraba por evento de forma fiable, la exportación a Excel era del lado del navegador y existía una exportación pública con contraseñas.
 
 **Dentro:** recurso de Filament de propuestas **dentro del evento actual** (parámetro de ruta con binding acotado), con lista paginada y filtros; vista de detalle con las respuestas dinámicas del formulario, los participantes y los archivos; exportación **siempre por cola** con columnas del formulario, tope de filas y archivo temporal; resumen por eje, tipo y día (Debería).
+
+**Coordinación con el plan 018 (conferencistas invitados):** la lista y la exportación aceptan un filtro `origin`; la vista «Propuestas» se acota a `origin = call` y los invitados nunca entran en su resumen ni en sus conteos; el detalle muestra la marca «Invitado» cuando corresponde, y la exportación añade la columna «Origen». La vista «Invitados» la construye el plan 018.
 
 **Fuera:** cambiar el estado de una propuesta, aceptar o rechazar (plan 012); evaluar (plan 011); edición de las respuestas por el organizador; reportes comparativos entre eventos (E-34); vista previa de documentos dentro del panel.
 
@@ -128,3 +131,4 @@ Al 2026-11-09 no existe el proyecto Laravel. Este plan consume `Submission`, `Su
 
 | Fase | Commit | Fecha | Notas (salida real de las validaciones) |
 |---|---|---|---|
+| F0 | a701fa6 | 2026-11-13 | `SubmissionPolicy` (`viewAny`, `view`, `export`) y `SubmissionResource` anidado bajo el evento (`/{tenant}/events/{event}/submissions`). `php artisan test --filter=SubmissionPanelTest` en base propia `testing_009`: 3 pasaron (CA-009-1, CA-009-5, CA-009-7); en `testing` chocó con otro agente (deadlock). Pint limpio; PHPStan sin errores en los archivos del cambio. Pendiente: verificacion en navegador a ~375 px y ~1280 px (el recurso no aparece en el menu: se enlaza desde el evento en F1); `composer check` completo no se ejecuto. |

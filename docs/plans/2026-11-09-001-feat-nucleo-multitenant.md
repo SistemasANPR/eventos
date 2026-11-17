@@ -3,7 +3,7 @@
 > Primer plan del proyecto y mínimo de R0 (épica E-02 de `docs/plan-de-desarrollo.md`). Es la base de todo lo demás. RLS de PostgreSQL y 2FA quedan fuera de este plan (RC-1 y RC-2) y pasan al plan 014 (R1).
 
 - **Fecha:** 2026-11-09
-- **Estado:** Borrador
+- **Estado:** En curso
 - **Esfuerzo:** L
 - **Deuda relacionada:** RLS de PostgreSQL (P1, RC-1) y 2FA (P1, RC-2), ambas con fecha límite 18-dic-2026 y dueño Antonio; se registrarán en `docs/sprints/deuda-tecnica.md` al aprobar el ADR-0011.
 
@@ -37,6 +37,13 @@ Medido el 2026-11-09: el repositorio contiene solo la plantilla (documentos, reg
 - **DA-3 · Personas y membresías** — `User` con tabla `organization_user` (membresía, `status` y `deactivated_at`); los datos de contacto por organización viven en `Contact` (ADR-0003 DA-3).
 - **DA-4 · Resolución del contexto** — esquema único de URL pública `/{organization:slug}/events/{event:slug}/...` (D1). El middleware `SetOrganizationFromRoute` resuelve la organización por su `slug` y establece `CurrentOrganization` **antes** del binding de modelos con tenant. `Organization` es modelo raíz sin scope. En el panel, tenant de Filament. Aunque en R0 solo exista una organización, la URL ya lleva su `slug`; subdominio y dominio propio quedan para R3 y R5 (ADR-0004 DA-4).
 - **DA-5 · Comprobación del spike S-1** — si Filament multi-tenant y los *teams* de spatie no encajan, se documenta la discrepancia y se pregunta antes de implementar H-001-3.
+  **Resultado del spike S-1 (2026-11-09, solo documentación oficial de Filament y de `spatie/laravel-permission`; nada instalado todavía): encajan, con estas condiciones para H-001-3.**
+  1. `config/permission.php` con `'teams' => true` **antes** de migrar, y la migración publicada del paquete con `uuid` en `team_id` y en la clave del modelo (el paquete usa enteros por defecto y nuestros `organizations` y `users` son UUID). La migración la genera el agente y solo una persona la aplica.
+  2. Un solo middleware de tenant del panel (`->tenantMiddleware([...], isPersistent: true)`, persistente para que corra también en las peticiones de Livewire) que establezca `CurrentOrganization` y `setPermissionsTeamId()` desde la organización del tenant de Filament, y los limpie al terminar. Debe ir antes de `SubstituteBindings`, igual que `SetOrganizationFromRoute`.
+  3. `User` implementa `HasTenants`: `getTenants()` devuelve solo las organizaciones con membresía activa y `canAccessTenant()` comprueba esa membresía (CA-001-18, CA-001-22 y CA-001-24); sin esto, adivinar el identificador en la URL daría acceso.
+  4. El panel usa `->tenant(Organization::class, slugAttribute: 'slug')` con prefijo `admin`, reservado en la regla de `slug` (CA-001-6), de modo que `/admin/{slug}` no choca con `/{organization:slug}/...`.
+  5. El scope de `BelongsToOrganization` sigue siendo la barrera real; el scope por relación de propiedad de Filament es una segunda capa, no la que decide.
+  **Sin verificar (se comprueba al instalar):** la versión de Filament compatible con Laravel 13 y PHP 8.4 (la documentación lista v4.16 y v5.1). Si `composer require` no resuelve, se pregunta antes de seguir.
 - **DA-6 · Valores de acceso propuestos** — inicio de sesión: 5 intentos por 15 minutos por correo e IP; solicitud de restablecimiento: 5 solicitudes por 15 minutos por correo y por IP; caducidad del enlace de restablecimiento: 60 minutos; contraseña mínima de 12 caracteres y fuera de la lista de expuestas; sesión inactiva: 120 minutos. Antonio los aprueba junto con el plan.
 - **DA-7 · Matriz rol × permiso** — la de §4; los permisos del `organizer` son una propuesta que Antonio aprueba con el plan.
 - **DA-8 · Usuario de plataforma** — marca `users.is_platform_admin` fuera de los *teams* de spatie (un rol con *team* obligaría a pertenecer a una organización). No es asignable por asignación masiva ni desde ninguna interfaz; solo lo crea el comando `app:create-platform-user`.
@@ -59,10 +66,12 @@ Medido el 2026-11-09: el repositorio contiene solo la plantilla (documentos, reg
 | `privacy_notices.manage` | sí | no | no |
 | `team.manage` | sí | no | no |
 | `calls.manage` | sí | sí | no |
+| `calls.view` | sí | sí | no |
 | `tracks.manage` | sí | sí | no |
 | `forms.manage` | sí | sí | no |
 | `submissions.view` | sí | sí | no |
 | `submissions.export` | sí | sí | no |
+| `submissions.invite` | sí | sí | no |
 | `files.download` | sí | sí | no |
 | `mail-templates.view` | sí | sí | no |
 | `mail-templates.manage` | sí | no | no |
@@ -167,6 +176,8 @@ Cada uno tiene al menos una prueba cuyo nombre lo cita (`CA-001-n: ...`) o decla
 - **CA-001-35:** *Dado* un usuario que inicia sesión desde un dispositivo no registrado en `known_devices`, *cuando* la sesión se establece, *entonces* se encola `auth.new_device_login` y el dispositivo queda registrado; *cuando* inicia desde un dispositivo ya conocido, *entonces* no se envía el aviso.
 - **CA-001-36:** *Dado* el aviso `auth.new_device_login`, *cuando* se inspecciona su contenido y su registro, *entonces* no incluye contraseñas ni tokens y solo muestra fecha y un dispositivo aproximado.
 
+- **CA-001-37:** *Dado* un 429 por el límite de acceso (CA-001-27 o CA-001-29), *cuando* la petición viene de la pantalla de acceso o de recuperación (Livewire), *entonces* el usuario ve un aviso con el tiempo de espera redondeado hacia arriba a minutos (sin revelar si el correo existe) y no el modal de error genérico de Livewire; el estado HTTP sigue siendo 429 con `Retry-After`. *Comprobación:* prueba de que las pantallas incluyen el aviso traducido y verificación manual en navegador a ~375 px y ~1280 px (cierra DT-05).
+
 ## 8. Riesgos
 
 | Riesgo | Mitigación |
@@ -185,3 +196,9 @@ Cada uno tiene al menos una prueba cuyo nombre lo cita (`CA-001-n: ...`) o decla
 
 | Fase | Commit | Fecha | Notas (salida real de las validaciones) |
 |---|---|---|---|
+| F1 (H-001-1) | `c3690b7` | 2026-11-09 | `composer check` exit 0: Pint sin cambios, Larastan sin errores, 61 pruebas (48 Feature + 13 Arch) en verde; CA-001-1 a CA-001-10 con prueba. Migraciones aplicadas en la base local con `migrate:fresh` (users pasa a UUID). Pendiente en F0: paquetes de roles (H-001-3) |
+| H-001-3 (parcial) | `b246f30` | 2026-11-09 | Roles por organización con `spatie/laravel-permission` (organización como team, uuid), matriz rol x permiso con `SyncOrganizationRoles`, `EnsureActiveMembership`, `CurrentOrganization::run()`. Cubre CA-001-12, 19, 20, 21, 22 y 24. `composer check` en verde (128 pruebas, según el commit) |
+| Panel con tenant y cambio de rol auditado | `2c25413` | 2026-11-09 | Panel Filament con tenant, `ChangeMemberRole` auditado (`activity_log`), trigger que impide cambiar `organization_id` y guardiana `TenantBypassTest` |
+| H-001-2 y H-001-4 | `1a822df` | 2026-11-10 | `withoutOrganizationScope()` solo para plataforma y auditado; comandos `app:create-organization` y `app:create-platform-user`; login con límite 5/15 min por correo+IP, recuperación sin enumeración, sesión Secure/HttpOnly/Lax, `/register` 404, aviso de dispositivo nuevo. Cubre CA-001-11 a 17 y 25 a 36 (CA-001-33 verificado a nivel de manejador de sesión). Revisado por un agente de seguridad independiente |
+| Corrección del contexto del panel en peticiones de Livewire | `fd7d689` | 2026-11-10 | Livewire ejecuta el middleware de tenant en una cadena aparte: el contexto de organización se fija y se limpia al terminar la petición (antes los formularios del panel respondían 403). Viaja en el commit de H-003-1 |
+| Aviso amable del 429 de acceso (DT-05, CA-001-37) | sin commit aún | 2026-11-11 | Script inline en `resources/views/filament/auth/throttle-notice.blade.php`, registrado con `renderHook(SCRIPTS_AFTER)` en `AdminPanelProvider` solo para `Login` y `RequestPasswordReset`: `Livewire.interceptRequest` + `onError` + `preventDefault()` para el 429 y notificación de Filament con los minutos de `Retry-After` (textos en `lang/{es,en}/access.php`). El servidor no cambia (429 y auditoría intactos). Pruebas CA-001-37 en `LoginTest`; verificado en navegador a 375 y 1280 px (login y recuperación): aviso visible, sin modal, el acceso vuelve tras limpiar el cubo. |

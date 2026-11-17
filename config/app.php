@@ -109,6 +109,22 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Proxies de confianza
+    |--------------------------------------------------------------------------
+    |
+    | Lista (IPs o CIDR, separadas por comas en TRUSTED_PROXIES) de los
+    | balanceadores cuyas cabeceras X-Forwarded-* se aceptan. Vacía = no se
+    | confía en ninguno. `*` confía en cualquier origen: solo con intención
+    | explícita, porque permite falsificar la IP del cliente.
+    |
+    */
+
+    'trusted_proxies' => array_values(array_filter(
+        array_map('trim', explode(',', (string) env('TRUSTED_PROXIES', '')))
+    )),
+
+    /*
+    |--------------------------------------------------------------------------
     | Maintenance Mode Driver
     |--------------------------------------------------------------------------
     |

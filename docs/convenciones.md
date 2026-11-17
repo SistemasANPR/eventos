@@ -68,7 +68,7 @@ chore(deps): actualizar filament a la ultima version menor
 - Prohibido: sin tipo ni scope; mensajes genéricos («fix bug», «cambios»); tildes en la descripción.
 - Un commit por cambio lógico. La especificación viaja con su código; el cierre de un punto de deuda (`docs(debt)`) y el avance de un plan (`docs(plans)`) van en commits propios.
 - Terminar con la línea de coautoría que indique la sesión de trabajo.
-- Política: se hace commit **solo si el usuario lo pide**; `git push` nunca sin petición explícita. `[RELLENAR: cuenta o remoto de push, si importa.]`
+- Política: se hace commit **solo si el usuario lo pide**; `git push` nunca sin petición explícita. El remoto es `SistemasANPR/eventos` y se usa con la cuenta `Antonio1491` (`docs/entorno-local.md` §8).
 
 ## 5. Ramas y pull requests
 
