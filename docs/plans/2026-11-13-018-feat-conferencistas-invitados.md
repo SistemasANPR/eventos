@@ -1,7 +1,9 @@
 # feat: alta directa de conferencistas invitados
 
+> **Reemplazado por el plan 021 (`2026-11-17-021-feat-ponentes-y-actividades.md`, DA-8 y DA-15).** Los invitados ya no son propuestas aceptadas con `origin = invited`: se dan de alta directo en Ponentes. La rama `feat/plan-018-invitados` se descarta sin mergear y el código de la fase F0 que quedó en `staging` sin uso (`ResolveInvitationForm`, `SuggestInvitationForm`, `InvitationTarget` y el permiso `submissions.invite`) se retiró en la fase F0 del plan 021. La columna `origin` y el enum `SubmissionOrigin` quedan inactivos (deuda DT-17). Este documento se conserva solo como histórico; los criterios CA-018-n ya no se exigen.
+
 - **Fecha:** 2026-11-13
-- **Estado:** Aprobado
+- **Estado:** Reemplazado por el plan 021 (2026-11-17)
 - **Esfuerzo:** M
 - **Deuda relacionada:** DT-12 y DT-13 (la FK de `submission_files` y la descarga llegan con los planes 006 y 009, de los que este plan depende); ninguna se cierra aquí
 
