@@ -22,6 +22,7 @@ final class RolePermissions
         'calls.manage',
         'calls.view',
         'tracks.manage',
+        'rubrics.manage',
         'forms.manage',
         'submissions.view',
         'submissions.export',
