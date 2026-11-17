@@ -23,7 +23,10 @@ afterEach(function (): void {
     CurrentOrganization::forget();
 });
 
-/** @param  array<string, mixed>  $attributes */
+/**
+ * @param  array<string, mixed>  $attributes
+ * @return array<string, mixed>
+ */
 function speakerRow(Event $event, array $attributes = []): array
 {
     return [

@@ -60,6 +60,7 @@ class Speaker extends Model
     }
 
     /** Nombre para mostrar: «nombre apellido». */
+    /** @return Attribute<string, never> */
     protected function fullName(): Attribute
     {
         return Attribute::get(fn (): string => trim("{$this->first_name} {$this->last_name}"));
