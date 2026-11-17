@@ -19,7 +19,7 @@ use App\Filament\Resources\Events\Schemas\EventInfolist;
 use App\Filament\Resources\Events\Tables\EventsTable;
 use App\Models\Event;
 use BackedEnum;
-use Filament\Resources\Pages\Page;
+use Filament\Navigation\NavigationItem;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
@@ -95,18 +95,13 @@ class EventResource extends Resource
     }
 
     /**
-     * Secciones del evento (plan 020, DA-1): la barra que ofrece el resumen y, solo a quien puede
-     * acceder, las secciones que cuelgan del evento. Ocultar una entrada no autoriza: cada ruta
-     * se niega por su Policy.
+     * «Eventos» y, dentro de un evento, sus secciones anidadas en el menú lateral (plan 020, DA-1
+     * revisada el 2026-11-17: submenú en el aside azul, no una columna dentro de la página).
      *
-     * @return array<int, mixed>
+     * @return array<int, NavigationItem>
      */
-    public static function getRecordSubNavigation(Page $page): array
+    public static function getNavigationItems(): array
     {
-        return $page->generateNavigationItems([
-            ViewEvent::class,
-            ManageEventFormDefinitions::class,
-            ManageEventSubmissions::class,
-        ]);
+        return [...parent::getNavigationItems(), ...EventSectionsNavigation::items(static::class)];
     }
 }
