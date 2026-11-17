@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Filament\Resources\Submissions;
 
 use App\Filament\Resources\Events\EventResource;
-use App\Filament\Resources\Submissions\Pages\ListSubmissions;
 use App\Filament\Resources\Submissions\Tables\SubmissionsTable;
 use App\Models\Submission;
 use BackedEnum;
@@ -17,7 +16,9 @@ use Filament\Tables\Table;
  * Propuestas del evento actual (plan 009, H-009-1). Vive bajo el evento
  * (`/{tenant}/events/{event}/submissions`): el evento de la ruta se resuelve con la
  * consulta de `EventResource`, que pasa por el scope de organización, así que un
- * evento de otra organización responde 404 (DA-6). Solo lectura: sin crear, editar
+ * evento de otra organización responde 404 (DA-6). La lista es la página del evento
+ * `ManageEventSubmissions` (plan 020, F2); este recurso aporta la tabla y, con el
+ * detalle de H-009-2, las páginas de cada propuesta. Solo lectura: sin crear, editar
  * ni borrar desde aquí. La Policy decide quién ve.
  */
 class SubmissionResource extends Resource
@@ -48,11 +49,9 @@ class SubmissionResource extends Resource
         return SubmissionsTable::configure($table);
     }
 
-    /** @return array<string, mixed> */
+    /** @return array<string, mixed> sin páginas propias todavía: el detalle llega con H-009-2 */
     public static function getPages(): array
     {
-        return [
-            'index' => ListSubmissions::route('/'),
-        ];
+        return [];
     }
 }

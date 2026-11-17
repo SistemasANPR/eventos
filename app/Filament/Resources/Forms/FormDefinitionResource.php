@@ -32,6 +32,9 @@ class FormDefinitionResource extends Resource
 
     protected static ?string $parentResource = EventResource::class;
 
+    // Sin él, el espacio de nombres `Forms` entra en la ruta (`/forms/form-definitions`) y no coincide con la lista del evento.
+    protected static ?string $slug = 'form-definitions';
+
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedClipboardDocumentList;
 
     public static function getNavigationLabel(): string

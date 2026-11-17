@@ -80,6 +80,10 @@ it('CA-020-7: a form created from the page of an event is born in that event', f
 it('CA-020-7: the create page of an event offers no event selector', function (): void {
     [$organization, $event, $admin] = formScenario();
 
+    // La ruta cuelga de `form-definitions`, igual que la lista del evento (sin el `forms/` del espacio de nombres).
+    expect(eventFormUrl($organization, $event, 'create'))->toEndWith("/events/{$event->id}/form-definitions/create")
+        ->and(eventFormsUrl($organization, $event))->toEndWith("/events/{$event->id}/form-definitions");
+
     $this->actingAs($admin)->get(eventFormUrl($organization, $event, 'create'))
         ->assertOk()
         ->assertSee('data.name', false)

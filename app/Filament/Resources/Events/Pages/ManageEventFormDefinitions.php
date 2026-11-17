@@ -42,6 +42,12 @@ class ManageEventFormDefinitions extends ManageRelatedRecords
         return __('forms.navigation');
     }
 
+    /** Filament pone «Administrar Formularios Evento»; la sección se llama como su entrada de menú. */
+    public function getTitle(): string
+    {
+        return __('forms.navigation');
+    }
+
     /** @return array<int, mixed> */
     protected function getHeaderActions(): array
     {

@@ -8,6 +8,7 @@ use App\Filament\Resources\Events\Pages\CreateEvent;
 use App\Filament\Resources\Events\Pages\EditEvent;
 use App\Filament\Resources\Events\Pages\ListEvents;
 use App\Filament\Resources\Events\Pages\ManageEventFormDefinitions;
+use App\Filament\Resources\Events\Pages\ManageEventSubmissions;
 use App\Filament\Resources\Events\Pages\ViewEvent;
 use App\Filament\Resources\Events\RelationManagers\CallsRelationManager;
 use App\Filament\Resources\Events\RelationManagers\PrivacyNoticesRelationManager;
@@ -89,6 +90,7 @@ class EventResource extends Resource
             'edit' => EditEvent::route('/{record}/edit'),
             // Nombre = ruta del recurso anidado (`FormDefinitionResource`): Filament lo usa como su índice.
             'form-definitions' => ManageEventFormDefinitions::route('/{record}/form-definitions'),
+            'submissions' => ManageEventSubmissions::route('/{record}/submissions'),
         ];
     }
 
@@ -104,6 +106,7 @@ class EventResource extends Resource
         return $page->generateNavigationItems([
             ViewEvent::class,
             ManageEventFormDefinitions::class,
+            ManageEventSubmissions::class,
         ]);
     }
 }
