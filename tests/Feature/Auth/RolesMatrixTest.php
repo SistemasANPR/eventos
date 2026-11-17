@@ -28,14 +28,14 @@ uses(RefreshDatabase::class);
 function expectedMatrix(): array
 {
     $organizer = [
-        'events.manage', 'calls.manage', 'calls.view', 'tracks.manage', 'forms.manage',
+        'events.manage', 'calls.manage', 'calls.view', 'tracks.manage', 'rubrics.manage', 'forms.manage',
         'submissions.view', 'submissions.export', 'submissions.invite', 'files.download', 'mail-templates.view',
     ];
 
     return [
         'org_admin' => [
             ...$organizer,
-            'events.publish', 'privacy_notices.manage', 'team.manage',
+            'events.publish', 'event_assignments.manage', 'privacy_notices.manage', 'team.manage',
             'mail-templates.manage', 'personal_data.manage',
         ],
         'organizer' => $organizer,

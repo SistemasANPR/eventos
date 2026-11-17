@@ -9,6 +9,9 @@ return [
     'only_published_can_be_archived' => 'Only a published event can be archived.',
     'slug_change_needs_confirmation' => 'This event is already published: changing its identifier breaks the links you already shared. Confirm the change to continue.',
 
+    'assignment_user_not_member' => 'This person is not an active member of the organization.',
+    'assignment_already_exists' => 'This person already has that role in the event.',
+
     'navigation' => 'Events',
     'model' => 'event',
     'plural' => 'events',
