@@ -7,13 +7,17 @@ namespace App\Providers;
 use App\Http\Responses\Auth\LoginResponse;
 use App\Models\User;
 use App\Policies\MembershipPolicy;
-use App\Support\Calls\NoTrackUsage;
+use App\Support\Calls\SubmissionTrackUsage;
 use App\Support\Calls\TrackUsageChecker;
 use App\Support\Files\FileFieldRegistry;
-use App\Support\Files\NoFileFields;
-use App\Support\Files\NoIssuedUploadTokens;
+use App\Support\Files\PublishedFormFileFields;
+use App\Support\Files\SessionUploadTokenVerifier;
 use App\Support\Files\UploadTokenVerifier;
-use App\Support\Forms\NoSubmissionAnswers;
+use App\Support\Forms\EloquentPendingUploads;
+use App\Support\Forms\EloquentSubmissionAnswerCounter;
+use App\Support\Forms\IssuedUploadTokens;
+use App\Support\Forms\PendingUploadRepository;
+use App\Support\Forms\SessionIssuedUploadTokens;
 use App\Support\Forms\SubmissionAnswerCounter;
 use App\Support\Reviews\NoRecordedReviews;
 use App\Support\Reviews\RubricUsageChecker;
@@ -36,15 +40,15 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        // Costuras hacia el formulario público (planes 005 y 006): deniegan todo hasta que existan.
-        $this->app->bind(FileFieldRegistry::class, NoFileFields::class);
-        $this->app->bind(UploadTokenVerifier::class, NoIssuedUploadTokens::class);
-        // Costura hacia las propuestas (plan 006): hasta entonces ningún eje está en uso.
-        $this->app->bind(TrackUsageChecker::class, NoTrackUsage::class);
+        // Formulario público y propuestas (planes 005, 006 y 007).
+        $this->app->bind(FileFieldRegistry::class, PublishedFormFileFields::class);
+        $this->app->bind(IssuedUploadTokens::class, SessionIssuedUploadTokens::class);
+        $this->app->bind(UploadTokenVerifier::class, SessionUploadTokenVerifier::class);
+        $this->app->bind(PendingUploadRepository::class, EloquentPendingUploads::class);
+        $this->app->bind(TrackUsageChecker::class, SubmissionTrackUsage::class);
+        $this->app->bind(SubmissionAnswerCounter::class, EloquentSubmissionAnswerCounter::class);
         // Costura hacia las evaluaciones (plan 011, F4): hasta entonces ninguna rubrica tiene evaluaciones.
         $this->app->bind(RubricUsageChecker::class, NoRecordedReviews::class);
-        // Costura hacia las respuestas (plan 006): hasta entonces ningún formulario tiene respuestas.
-        $this->app->bind(SubmissionAnswerCounter::class, NoSubmissionAnswers::class);
         // Acceso único (plan 017): cada persona llega a su portal, no al panel desde el que inició sesión.
         $this->app->bind(LoginResponseContract::class, LoginResponse::class);
     }

@@ -17,7 +17,7 @@ use App\Models\Event;
 use App\Models\Organization;
 use App\Models\Track;
 use App\Models\User;
-use App\Support\Calls\NoTrackUsage;
+use App\Support\Calls\SubmissionTrackUsage;
 use App\Support\Calls\TrackUsageChecker;
 use App\Support\Tenancy\CurrentOrganization;
 use Filament\Actions\Testing\TestAction;
@@ -204,7 +204,7 @@ it('CA-004-14: a track that nobody uses can be deleted', function (): void {
     [, $event, $admin] = trackScenario();
     $track = trackCreate($admin, $event, ['es' => 'Ciencia']);
 
-    expect(app(TrackUsageChecker::class))->toBeInstanceOf(NoTrackUsage::class);
+    expect(app(TrackUsageChecker::class))->toBeInstanceOf(SubmissionTrackUsage::class);
 
     app(DeleteTrack::class)->handle($admin, $track);
 
