@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Author;
 
 use App\Actions\Submissions\ResolveAuthorSubmission;
+use App\Enums\SubmissionStatus;
 use App\Models\Event;
 use App\Models\Organization;
 use App\Support\Auth\AuthorSession;
@@ -31,6 +32,10 @@ final class ShowAuthorSubmissionController
             'event' => ['name' => $event->getTranslation('name', $locale)],
             'organization' => ['name' => $organization->name, 'slug' => $organization->slug],
             'submission' => AuthorSubmissionData::from($submission, $event, $locale),
+            // Solo se ofrece retirar mientras la propuesta sigue «enviada» (DA-7); el servidor lo vuelve a comprobar.
+            'withdrawUrl' => $submission->status === SubmissionStatus::Submitted
+                ? route('author.withdraw', ['organization' => $organization->slug, 'event' => $event->slug], false)
+                : null,
             'sessionMinutes' => (int) config('submissions.author.session_minutes'),
             'eventUrl' => route('events.show', ['organization' => $organization->slug, 'event' => $event->slug], false)."?lang={$locale}",
         ]);

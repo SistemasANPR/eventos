@@ -47,11 +47,21 @@ const translations = {
             primary: 'Principal',
             session_notice: 'Tu acceso dura :minutes minutos.',
             back_to_event: 'Volver al evento',
+            withdraw: {
+                action: 'Retirar mi propuesta',
+                confirm_title: '¿Retirar tu propuesta?',
+                confirm_body: 'Dejará de participar.',
+                confirm_action: 'Sí, retirar',
+                cancel: 'Cancelar',
+                withdrawing: 'Retirando…',
+            },
         },
     },
 };
 
 const post = vi.fn();
+const routerPost = vi.fn();
+let pageErrors: Record<string, string> = {};
 const transform = vi.fn();
 
 vi.mock('@/hooks/useTranslation', () => ({
@@ -60,7 +70,8 @@ vi.mock('@/hooks/useTranslation', () => ({
 
 vi.mock('@inertiajs/react', () => ({
     Head: ({ title }: { title?: string }): ReactNode => <title>{title}</title>,
-    usePage: () => ({ url: '/parques/events/congreso/my-submission/request-link' }),
+    usePage: () => ({ url: '/parques/events/congreso/my-submission/request-link', props: { errors: pageErrors } }),
+    router: { post: (...args: unknown[]) => routerPost(...args) },
     useForm: (initial: Record<string, string>) => ({
         data: initial,
         errors: {},
@@ -186,7 +197,13 @@ describe('Author/AccessInvalid page', () => {
 });
 
 describe('Author/Show page', () => {
-    const props = { event: { name: 'Congreso Parques' }, organization: requestProps.organization, submission, sessionMinutes: 60, eventUrl: '/parques/events/congreso?lang=es' };
+    const withdrawUrl = '/parques/events/congreso/my-submission/withdraw';
+    const props = { event: { name: 'Congreso Parques' }, organization: requestProps.organization, submission, sessionMinutes: 60, eventUrl: '/parques/events/congreso?lang=es', withdrawUrl };
+
+    beforeEach(() => {
+        routerPost.mockClear();
+        pageErrors = {};
+    });
 
     it('shows title, status, answers and participants', () => {
         render(<Show {...props} />);
@@ -217,6 +234,41 @@ describe('Author/Show page', () => {
 
         expect(screen.getByTestId('submission-status')).toHaveTextContent('Retirada');
         expect(screen.getByRole('status')).toHaveTextContent('Retiraste esta propuesta el');
+    });
+
+    it('asks for confirmation before withdrawing and only then posts', () => {
+        render(<Show {...props} />);
+
+        fireEvent.click(screen.getByRole('button', { name: 'Retirar mi propuesta' }));
+        expect(routerPost).not.toHaveBeenCalled();
+        expect(screen.getByText('¿Retirar tu propuesta?')).toBeInTheDocument();
+
+        fireEvent.click(screen.getByRole('button', { name: 'Sí, retirar' }));
+
+        expect(routerPost).toHaveBeenCalledWith(withdrawUrl, {}, expect.anything());
+    });
+
+    it('lets the person back out of withdrawing', () => {
+        render(<Show {...props} />);
+
+        fireEvent.click(screen.getByRole('button', { name: 'Retirar mi propuesta' }));
+        fireEvent.click(screen.getByRole('button', { name: 'Cancelar' }));
+
+        expect(screen.queryByText('¿Retirar tu propuesta?')).toBeNull();
+        expect(screen.getByRole('button', { name: 'Retirar mi propuesta' })).toBeInTheDocument();
+    });
+
+    it('does not offer withdrawing when the server says it is not possible', () => {
+        render(<Show {...props} withdrawUrl={null} />);
+
+        expect(screen.queryByRole('button', { name: 'Retirar mi propuesta' })).toBeNull();
+    });
+
+    it('announces a server error about withdrawing', () => {
+        pageErrors = { withdraw: 'Ya no se puede retirar.' };
+        render(<Show {...props} />);
+
+        expect(screen.getByRole('alert')).toHaveTextContent('Ya no se puede retirar.');
     });
 
     it('shows a message when there are no extra answers', () => {

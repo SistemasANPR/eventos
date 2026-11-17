@@ -1,10 +1,11 @@
-import { Head } from '@inertiajs/react';
+import { Head, router, usePage } from '@inertiajs/react';
+import { useState } from 'react';
 
 import { TextLink } from '@/components/atoms/TextLink';
 import { EventFact } from '@/components/molecules/EventFact';
 import { useTranslation } from '@/hooks/useTranslation';
 import { PublicLayout } from '@/layouts/PublicLayout';
-import { FACTS_PANEL, PAGE_TITLE } from '@/lib/classes';
+import { BUTTON_PRIMARY, BUTTON_SECONDARY, FACTS_PANEL, PAGE_TITLE } from '@/lib/classes';
 import { formatPublishedAt } from '@/lib/date-format';
 import type { AuthorAnswer, AuthorParticipant, AuthorSubmission, SubmissionStatus } from '@/types/author';
 import type { PublicOrganization } from '@/types/event';
@@ -16,6 +17,8 @@ interface ShowProps {
     /** Minutos que dura la sesión del autor. */
     sessionMinutes: number;
     eventUrl: string;
+    /** Destino del POST que retira la propuesta, o `null` si ya no se puede retirar (la decide el servidor). */
+    withdrawUrl: string | null;
 }
 
 /** Marca y colores de cada estado (par texto/fondo de los semánticos): el estado no depende solo del color. */
@@ -34,7 +37,7 @@ const STATUS_STYLE: Record<SubmissionStatus, { classes: string; mark: string }> 
  * el autor envió —título, eje, estado, respuestas y participantes—; nada de lo que es del equipo organizador.
  * Los textos de las respuestas se muestran escapados (React), nunca como HTML.
  */
-export default function Show({ event, organization, submission, sessionMinutes, eventUrl }: ShowProps) {
+export default function Show({ event, organization, submission, sessionMinutes, eventUrl, withdrawUrl }: ShowProps) {
     const { t, locale } = useTranslation();
     const style = STATUS_STYLE[submission.status];
     const title = t('author.show.title');
@@ -99,6 +102,8 @@ export default function Show({ event, organization, submission, sessionMinutes, 
                     </ul>
                 </section>
 
+                {withdrawUrl !== null && <WithdrawSection withdrawUrl={withdrawUrl} />}
+
                 <footer className="flex flex-col gap-2 border-t border-border pt-4">
                     <p className="text-sm text-text-muted">{t('author.show.session_notice', { minutes: String(sessionMinutes) })}</p>
                     <TextLink href={eventUrl} className="-ml-3 self-start">
@@ -107,6 +112,55 @@ export default function Show({ event, organization, submission, sessionMinutes, 
                 </footer>
             </article>
         </PublicLayout>
+    );
+}
+
+/**
+ * Retirar la propuesta en dos pasos (un clic no basta): primero se pide confirmar y solo el segundo botón envía el
+ * POST. El servidor vuelve a comprobar que se puede retirar y es idempotente.
+ */
+function WithdrawSection({ withdrawUrl }: { withdrawUrl: string }) {
+    const { t } = useTranslation();
+    const { props } = usePage<{ errors?: Record<string, string> }>();
+    const [isConfirming, setIsConfirming] = useState(false);
+    const [isWithdrawing, setIsWithdrawing] = useState(false);
+    const error = props.errors?.withdraw;
+
+    const handleWithdraw = () => {
+        router.post(withdrawUrl, {}, { onStart: () => setIsWithdrawing(true), onFinish: () => setIsWithdrawing(false) });
+    };
+
+    return (
+        <section aria-labelledby="withdraw-title" className="flex max-w-prose flex-col gap-3 rounded-lg border border-border bg-surface p-4">
+            <h2 id="withdraw-title" className="text-xl font-semibold text-text">
+                {t('author.show.withdraw.action')}
+            </h2>
+            {error !== undefined && (
+                <p role="alert" className="text-base text-error">
+                    {error}
+                </p>
+            )}
+            {isConfirming ? (
+                <div role="group" aria-labelledby="withdraw-confirm-title" className="flex flex-col gap-3">
+                    <p id="withdraw-confirm-title" className="text-base font-medium text-text">
+                        {t('author.show.withdraw.confirm_title')}
+                    </p>
+                    <p className="text-base text-text-muted">{t('author.show.withdraw.confirm_body')}</p>
+                    <div className="flex flex-col gap-2 sm:flex-row">
+                        <button type="button" onClick={handleWithdraw} disabled={isWithdrawing} className={BUTTON_PRIMARY}>
+                            {isWithdrawing ? t('author.show.withdraw.withdrawing') : t('author.show.withdraw.confirm_action')}
+                        </button>
+                        <button type="button" onClick={() => setIsConfirming(false)} disabled={isWithdrawing} className={BUTTON_SECONDARY}>
+                            {t('author.show.withdraw.cancel')}
+                        </button>
+                    </div>
+                </div>
+            ) : (
+                <button type="button" onClick={() => setIsConfirming(true)} className={`${BUTTON_SECONDARY} self-start`}>
+                    {t('author.show.withdraw.action')}
+                </button>
+            )}
+        </section>
     );
 }
 
