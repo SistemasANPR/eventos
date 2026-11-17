@@ -7,6 +7,8 @@ namespace App\Filament\Resources\Events;
 use App\Filament\Resources\Events\Pages\CreateEvent;
 use App\Filament\Resources\Events\Pages\EditEvent;
 use App\Filament\Resources\Events\Pages\ListEvents;
+use App\Filament\Resources\Events\Pages\ManageEventFormDefinitions;
+use App\Filament\Resources\Events\Pages\ManageEventSubmissions;
 use App\Filament\Resources\Events\Pages\ViewEvent;
 use App\Filament\Resources\Events\RelationManagers\CallsRelationManager;
 use App\Filament\Resources\Events\RelationManagers\PrivacyNoticesRelationManager;
@@ -17,6 +19,7 @@ use App\Filament\Resources\Events\Schemas\EventInfolist;
 use App\Filament\Resources\Events\Tables\EventsTable;
 use App\Models\Event;
 use BackedEnum;
+use Filament\Navigation\NavigationItem;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
@@ -33,6 +36,8 @@ class EventResource extends Resource
     protected static ?string $model = Event::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedCalendarDays;
+
+    protected static ?int $navigationSort = 10;
 
     public static function getNavigationLabel(): string
     {
@@ -83,6 +88,20 @@ class EventResource extends Resource
             'create' => CreateEvent::route('/create'),
             'view' => ViewEvent::route('/{record}'),
             'edit' => EditEvent::route('/{record}/edit'),
+            // Nombre = ruta del recurso anidado (`FormDefinitionResource`): Filament lo usa como su índice.
+            'form-definitions' => ManageEventFormDefinitions::route('/{record}/form-definitions'),
+            'submissions' => ManageEventSubmissions::route('/{record}/submissions'),
         ];
+    }
+
+    /**
+     * «Eventos» y, dentro de un evento, sus secciones anidadas en el menú lateral (plan 020, DA-1
+     * revisada el 2026-11-17: submenú en el aside azul, no una columna dentro de la página).
+     *
+     * @return array<int, NavigationItem>
+     */
+    public static function getNavigationItems(): array
+    {
+        return [...parent::getNavigationItems(), ...EventSectionsNavigation::items(static::class)];
     }
 }

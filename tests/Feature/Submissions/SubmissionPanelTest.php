@@ -23,7 +23,8 @@ afterEach(function (): void {
 
 function submissionsUrl(Organization $organization, Event $event): string
 {
-    return SubmissionResource::getUrl('index', ['event' => $event], panel: 'admin', tenant: $organization);
+    // La lista es la página `submissions` del evento (plan 020, F2): Filament la usa como índice del recurso anidado.
+    return EventResource::getUrl('submissions', ['record' => $event], panel: 'admin', tenant: $organization);
 }
 
 it('CA-009-1: the list only shows submissions of the route event and its organization, and 404 for an event of another organization', function (): void {

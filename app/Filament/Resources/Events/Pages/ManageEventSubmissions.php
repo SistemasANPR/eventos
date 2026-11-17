@@ -2,10 +2,11 @@
 
 declare(strict_types=1);
 
-namespace App\Filament\Resources\Submissions\Pages;
+namespace App\Filament\Resources\Events\Pages;
 
 use App\Actions\SubmissionExports\ExportSubmissions;
 use App\Exceptions\Domain\SubmissionExportTooLarge;
+use App\Filament\Resources\Events\EventResource;
 use App\Filament\Resources\Submissions\SubmissionResource;
 use App\Filament\Resources\Submissions\Tables\SubmissionsTable;
 use App\Models\Event;
@@ -13,27 +14,71 @@ use App\Models\Submission;
 use App\Models\User;
 use App\Support\SubmissionExport\RecentExports;
 use App\Support\Tenancy\CurrentOrganization;
+use BackedEnum;
 use Filament\Actions\Action;
 use Filament\Forms\Components\Select;
 use Filament\Notifications\Notification;
-use Filament\Resources\Pages\ListRecords;
+use Filament\Resources\Pages\ManageRelatedRecords;
 use Filament\Support\Icons\Heroicon;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\ValidationException;
 use LogicException;
 
-/** Lista de propuestas del evento de la ruta (plan 009, H-009-1) y su exportación (H-009-3). */
-class ListSubmissions extends ListRecords
+/**
+ * Propuestas del evento (plan 020, F2; recurso del plan 009): la lista que antes se abría solo por URL
+ * pasa a ser una sección del evento. La tabla viene de `SubmissionResource`, anidado bajo el evento;
+ * el evento sale de la ruta, así que un evento de otra organización responde 404. Quién la ve lo
+ * decide `SubmissionPolicy`. Solo lectura, salvo la exportación (plan 009, H-009-3): las acciones
+ * «Exportar» y «Exportaciones recientes» aparecen solo con `submissions.export`.
+ */
+class ManageEventSubmissions extends ManageRelatedRecords
 {
-    protected static string $resource = SubmissionResource::class;
+    protected static string $resource = EventResource::class;
+
+    protected static string $relationship = 'submissions';
+
+    protected static ?string $relatedResource = SubmissionResource::class;
+
+    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedInboxArrowDown;
+
+    public static function getNavigationLabel(): string
+    {
+        return __('submission_panel.navigation');
+    }
+
+    /** La sección se llama como su entrada de menú, no «Administrar Propuestas Evento». */
+    public function getTitle(): string
+    {
+        return __('submission_panel.navigation');
+    }
+
+    /**
+     * La página de relación arma su consulta desde `$evento->submissions()` y no pasa por
+     * `SubmissionResource::getEloquentQuery()`: sin esto volverían los invitados (plan 018) y se
+     * perdería la carga anticipada. Se aplican las reglas de la lista a la relación del evento
+     * (Filament exige una relación aquí, no una consulta).
+     *
+     * @return HasMany<Submission, Event>
+     */
+    public function getRelationship(): HasMany
+    {
+        $event = $this->getOwnerRecord();
+
+        if (! $event instanceof Event) {
+            throw new LogicException('La página de propuestas no tiene un evento.');
+        }
+
+        return SubmissionResource::scopeToList($event->submissions());
+    }
 
     /**
      * Un filtro con un valor que no es del evento actual se limpia y produce el mismo error de
-     * validación genérico, sea ajeno, inexistente o mal formado (CA-009-4).
+     * validación genérico, sea ajeno, inexistente o mal formado (plan 009, CA-009-4).
      */
     public function updatedTableFilters(): void
     {
-        $event = $this->getParentRecord();
+        $event = $this->getOwnerRecord();
 
         if ($event instanceof Event) {
             $invalid = SubmissionsTable::invalidSelectFilters($this->tableFilters ?? [], $event);
@@ -83,15 +128,15 @@ class ListSubmissions extends ListRecords
     }
 
     /**
-     * Pide la exportación con los filtros aplicados. El servidor los vuelve a validar y recalcula la
-     * consulta: lo que seleccionó la persona no se toma como cierto. Un fallo se muestra, no se oculta.
+     * Pide la exportación con los filtros aplicados (plan 009, H-009-3). El servidor los vuelve a validar
+     * y recalcula la consulta: lo que seleccionó la persona no se toma como cierto. Un fallo se muestra.
      */
     private function requestExport(string $format): void
     {
-        $event = $this->getParentRecord();
+        $event = $this->getOwnerRecord();
 
         if (! $event instanceof Event) {
-            throw new LogicException('La lista no tiene un evento.');
+            throw new LogicException('La página de propuestas no tiene un evento.');
         }
 
         try {

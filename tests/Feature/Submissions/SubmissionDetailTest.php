@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Enums\OrganizationRole;
+use App\Filament\Resources\Events\EventResource;
 use App\Filament\Resources\Submissions\SubmissionResource;
 use App\Models\Event;
 use App\Models\Organization;
@@ -202,7 +203,8 @@ it('CA-009-6: the list links every row to its detail', function (): void {
     [$organization, $event, $user] = formScenario(OrganizationRole::Organizer);
     $submission = detailedSubmission($organization, $event);
 
-    $this->actingAs($user)->get(SubmissionResource::getUrl('index', ['event' => $event], panel: 'admin', tenant: $organization))
+    // La lista es la sección `submissions` del evento (plan 020, F2).
+    $this->actingAs($user)->get(EventResource::getUrl('submissions', ['record' => $event], panel: 'admin', tenant: $organization))
         ->assertOk()
         ->assertSee(detailUrl($organization, $event, $submission), false);
 });
@@ -210,6 +212,6 @@ it('CA-009-6: the list links every row to its detail', function (): void {
 it('CA-009-7: an unknown submission id is a 404', function (): void {
     [$organization, $event, $user] = formScenario(OrganizationRole::Organizer);
 
-    $this->actingAs($user)->get(SubmissionResource::getUrl('index', ['event' => $event], panel: 'admin', tenant: $organization).'/'.Str::uuid())
+    $this->actingAs($user)->get(EventResource::getUrl('submissions', ['record' => $event], panel: 'admin', tenant: $organization).'/'.Str::uuid())
         ->assertNotFound();
 });

@@ -167,7 +167,7 @@ h3,
     outline-offset: 2px;
 }
 
-/* Menú lateral marino con barra lima en el enlace activo. */
+/* Menú lateral marino; el enlace activo lleva fondo marino profundo. */
 .fi-sidebar,
 .fi-sidebar-header-ctn,
 .fi-sidebar-header {
@@ -217,10 +217,9 @@ h3,
     background-color: rgb(255 255 255 / 0.08);
 }
 
+/* El ítem activo se distingue por el fondo marino profundo y el texto blanco; sin barra lateral de color. */
 .fi-sidebar .fi-sidebar-item.fi-active > .fi-sidebar-item-btn {
     background-color: var(--eventos-navy-deep);
-    /* La lima es solo decoración (barra), nunca color de texto. */
-    box-shadow: inset 3px 0 0 var(--eventos-lime);
 }
 
 .fi-sidebar .fi-sidebar-item.fi-active > .fi-sidebar-item-btn .fi-sidebar-item-label,

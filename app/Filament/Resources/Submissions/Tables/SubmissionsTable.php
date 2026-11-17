@@ -185,11 +185,12 @@ final class SubmissionsTable
             ->all();
     }
 
+    /** El evento es el dueño de la lista: `ManageEventSubmissions` (plan 020, F2) es la página del evento. */
     private static function event(mixed $livewire): Event
     {
-        $event = $livewire->getParentRecord();
+        $event = $livewire->getOwnerRecord();
 
-        return $event instanceof Event ? $event : throw new LogicException('La tabla de propuestas necesita un evento en la ruta.');
+        return $event instanceof Event ? $event : throw new LogicException('La tabla de propuestas necesita un evento (el dueño de la página).');
     }
 
     /**

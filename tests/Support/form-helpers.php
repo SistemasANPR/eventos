@@ -11,13 +11,50 @@ declare(strict_types=1);
 use App\Actions\Events\CreateEvent;
 use App\Actions\Forms\CreateFormDefinition;
 use App\Enums\OrganizationRole;
+use App\Filament\Resources\Events\EventResource;
+use App\Filament\Resources\Forms\FormDefinitionResource;
 use App\Models\Event;
 use App\Models\FormDefinition;
 use App\Models\Organization;
 use App\Models\User;
+use Illuminate\Http\Request;
+use Illuminate\Routing\Route;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Tests\Support\Memberships;
+
+/** Lista de formularios de un evento (plan 020): `/admin/{tenant}/events/{event}/form-definitions`. */
+function eventFormsUrl(Organization $organization, Event $event): string
+{
+    return EventResource::getUrl('form-definitions', ['record' => $event], panel: 'admin', tenant: $organization);
+}
+
+/** Página de un formulario bajo su evento; `create` no lleva formulario. */
+function eventFormUrl(Organization $organization, Event $event, string $page, ?FormDefinition $form = null): string
+{
+    $parameters = ['event' => $event];
+
+    if ($form !== null) {
+        $parameters['record'] = $form;
+    }
+
+    return FormDefinitionResource::getUrl($page, $parameters, panel: 'admin', tenant: $organization);
+}
+
+/**
+ * Simula la ruta `/events/{event}/...` de una página anidada para `Livewire::test`: Filament lee el
+ * evento padre de la petición original, que en una prueba de Livewire no tiene ruta.
+ */
+function withEventRoute(Event $event): void
+{
+    $uri = "/events/{$event->id}/form-definitions";
+    $request = Request::create($uri);
+    $route = new Route('GET', '/events/{event}/form-definitions', fn () => null);
+    $route->bind($request);
+    $request->setRouteResolver(fn (): Route => $route);
+
+    app()->instance('originalRequest', $request);
+}
 
 /** @return array{0: Organization, 1: Event, 2: User, 3: User} organización con roles, evento (es, en), el usuario con el rol indicado y un administrador (el mismo si el rol es administrador) */
 function formScenario(OrganizationRole $role = OrganizationRole::OrgAdmin): array

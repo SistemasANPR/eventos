@@ -181,7 +181,7 @@ Cada uno tiene al menos una prueba cuyo nombre lo cita (`CA-018-n: ...`) o decla
 - **CA-018-13:** *Dado* un evento con propuestas de convocatoria e invitados, *cuando* el organizador abre «Propuestas», *entonces* ve solo las de origen `call`; *cuando* abre «Invitados», *entonces* ve solo las de origen `invited`.
 - **CA-018-14:** *Dado* la lista de invitados, *cuando* se filtra por tipo, eje, estado y rango de fechas, *entonces* se aplican igual que en propuestas (plan 009), con paginación y máximo de 100 por página.
 - **CA-018-15:** *Dado* un invitado, *cuando* se consulta la lista de «Propuestas», *entonces* no aparece, y un invitado nunca se cuenta en el resumen de propuestas del plan 009.
-- **CA-018-16:** *Dado* la navegación del evento, *cuando* el usuario tiene `submissions.view`, *entonces* ve las dos entradas por separado; sin ese permiso no ve ninguna y la ruta responde 403.
+- **CA-018-16:** *Dado* la navegación del evento (la sub-navegación del plan 020: `EventResource::getRecordSubNavigation`, que ya ofrece Resumen, Formularios y Propuestas), *cuando* el usuario tiene `submissions.view`, *entonces* ve las dos entradas por separado; sin ese permiso no ve ninguna y la ruta responde 403.
 - **CA-018-17:** *Dado* un evento de la organización B, *cuando* el organizador de A abre las listas por URL, *entonces* responde 404.
 - **CA-018-18:** *Dado* la lista de invitados sin registros, *cuando* se abre, *entonces* muestra el estado vacío con la acción «Dar de alta» solo si el usuario tiene `submissions.invite`.
   Manual: abrir «Invitados» en un evento sin invitados a ~375 px y ~1280 px, con y sin permiso, y revisar la consola.

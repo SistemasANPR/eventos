@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Actions\Forms\UpdateFormDefinition;
 use App\Enums\OrganizationRole;
+use App\Filament\Resources\Forms\FormDefinitionResource;
 use App\Filament\Resources\Forms\Pages\PreviewFormDefinition;
 use App\Models\FormDefinition;
 use App\Models\Organization;
@@ -25,19 +26,23 @@ afterEach(function (): void {
     Filament::setTenant(null);
 });
 
-/** Un miembro sin permisos de organizador al que se le concede solo `forms.view`. */
+/**
+ * Un miembro sin permisos de organizador al que se le concede `forms.view` y el acceso al evento
+ * (`events.manage`): desde el plan 020 los formularios heredan el acceso al evento padre.
+ */
 function viewerOf(Organization $organization): User
 {
     $viewer = Memberships::attach(User::factory()->create(), $organization, OrganizationRole::Reviewer);
     Permission::findOrCreate('forms.view', 'web');
-    CurrentOrganization::run($organization, fn () => $viewer->givePermissionTo('forms.view'));
+    Permission::findOrCreate('events.manage', 'web');
+    CurrentOrganization::run($organization, fn () => $viewer->givePermissionTo(['forms.view', 'events.manage']));
 
     return $viewer->refresh();
 }
 
 function previewUrl(Organization $organization, FormDefinition $form): string
 {
-    return "/admin/{$organization->slug}/forms/form-definitions/{$form->id}/preview";
+    return FormDefinitionResource::getUrl('preview', ['event' => $form->event_id, 'record' => $form], panel: 'admin', tenant: $organization);
 }
 
 it('CA-005-11: reordering the fields keeps every key and leaves contiguous positions that survive a reload', function (): void {
@@ -109,13 +114,14 @@ it('CA-005-13: a member without forms.view or forms.manage cannot open the previ
     expect($this->actingAs($reviewer)->get(previewUrl($organization, $form))->status())->toBeIn([403, 404]);
 });
 
-it('CA-005-12: in the panel the preview changes language and ignores a language the event does not have', function (): void {
+it('CA-005-12 and CA-020-14: in the panel the preview changes language and ignores a language the event does not have', function (): void {
     [$organization, $event, $admin] = formScenario();
     $form = createForm($admin, $event, [formField('short_text')]);
     Auth::login($admin);
     Filament::setCurrentPanel('admin');
     Filament::setTenant($organization);
     CurrentOrganization::set($organization);
+    withEventRoute($event);
 
     Livewire::test(PreviewFormDefinition::class, ['record' => $form->id])
         ->set('locale', 'en')

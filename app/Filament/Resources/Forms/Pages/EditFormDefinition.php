@@ -34,7 +34,10 @@ class EditFormDefinition extends EditRecord
                 ->label(__('forms.preview.action'))
                 ->icon('heroicon-o-eye')
                 ->color('gray')
-                ->url(fn (): string => FormDefinitionResource::getUrl('preview', ['record' => $this->getRecord()])),
+                ->url(fn (): string => FormDefinitionResource::getUrl('preview', [
+                    'event' => $this->formOf($this->getRecord())->event_id,
+                    'record' => $this->getRecord(),
+                ])),
             $this->publishAction(),
         ];
     }

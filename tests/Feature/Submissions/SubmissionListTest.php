@@ -5,7 +5,7 @@ declare(strict_types=1);
 use App\Actions\SubmissionExports\ExportSubmissions;
 use App\Enums\OrganizationRole;
 use App\Enums\SubmissionStatus;
-use App\Filament\Resources\Submissions\Pages\ListSubmissions;
+use App\Filament\Resources\Events\Pages\ManageEventSubmissions;
 use App\Filament\Resources\Submissions\Tables\SubmissionsTable;
 use App\Jobs\ExportSubmissionsJob;
 use App\Models\Event;
@@ -36,23 +36,11 @@ afterEach(function (): void {
 });
 
 /**
- * Lista de propuestas con el evento padre fijado desde la prueba: Livewire monta el componente en una
- * ruta de prueba sin el parámetro `{event}`. El enrutamiento real lo cubre `SubmissionPanelTest` por HTTP.
- */
-class ListSubmissionsForEvent extends ListSubmissions
-{
-    public static ?Event $event = null;
-
-    public function mountParentRecord(): void
-    {
-        $this->parentRecord = self::$event;
-    }
-}
-
-/**
- * Monta la lista de propuestas como organizador.
+ * Monta la lista de propuestas como organizador. Desde el plan 020 (F2) la lista es la página
+ * `ManageEventSubmissions` del evento, que recibe el evento como `record`; el enrutamiento real
+ * lo cubre `SubmissionPanelTest` por HTTP.
  *
- * @return Testable<ListSubmissionsForEvent>
+ * @return Testable<ManageEventSubmissions>
  */
 function submissionList(Organization $organization, User $user, Event $event): Testable
 {
@@ -60,9 +48,8 @@ function submissionList(Organization $organization, User $user, Event $event): T
     Filament::setCurrentPanel('admin');
     Filament::setTenant($organization);
     CurrentOrganization::set($organization);
-    ListSubmissionsForEvent::$event = $event;
 
-    return Livewire::test(ListSubmissionsForEvent::class);
+    return Livewire::test(ManageEventSubmissions::class, ['record' => $event->id]);
 }
 
 /**
@@ -121,7 +108,7 @@ it('CA-009-3: the page size never goes above 100', function (): void {
     $list = submissionList($organization, $user, $event)->set('tableRecordsPerPage', 500);
 
     $page = $list->instance();
-    assert($page instanceof ListSubmissions);
+    assert($page instanceof ManageEventSubmissions);
 
     expect($page->getTableRecordsPerPage())->toBeLessThanOrEqual(SubmissionsTable::MAX_PER_PAGE)
         ->and(max($page->getTable()->getPaginationPageOptions()))->toBe(SubmissionsTable::MAX_PER_PAGE);

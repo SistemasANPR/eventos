@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Actions\Calls\ChangeCallStatus;
 use App\Actions\Calls\CreateCallForSubmissions;
 use App\Actions\Calls\PublishCall;
 use App\Actions\Privacy\CreatePrivacyNoticeDraft;
@@ -179,4 +180,68 @@ it('CA-004-6: the panel offers no way to delete a call', function (): void {
     callManager($event)
         ->assertActionDoesNotExist(TestAction::make('delete')->table($call))
         ->assertActionDoesNotExist(TestAction::make('forceDelete')->table($call));
+});
+
+function callInStatus(Event $event, User $admin, CallStatus $status): CallForSubmissions
+{
+    $call = app(CreateCallForSubmissions::class)->handle($admin, $event, panelCallData($event));
+
+    if ($status === CallStatus::Draft) {
+        return $call;
+    }
+
+    publishNoticeInBothLanguages($event, $admin);
+    $call = app(PublishCall::class)->handle($admin, $call);
+
+    return $status === CallStatus::Published ? $call : app(ChangeCallStatus::class)->handle($admin, $call, $status);
+}
+
+it('CA-004-37: a published, paused or closed call offers its public page, opened in a new tab, with the URL of its own organization, event and call', function (CallStatus $status): void {
+    [$organization, $event, $admin] = callPanelScenario();
+    $call = callInStatus($event, $admin, $status);
+    CurrentOrganization::set($organization);
+
+    $publicUrl = route('calls.show', ['organization' => $organization->slug, 'event' => $event->slug, 'call' => $call->slug]);
+
+    callManager($event)
+        ->assertActionVisible(TestAction::make('viewPublicPage')->table($call))
+        ->assertActionHasUrl(TestAction::make('viewPublicPage')->table($call), $publicUrl)
+        ->assertActionShouldOpenUrlInNewTab(TestAction::make('viewPublicPage')->table($call))
+        ->assertActionVisible(TestAction::make('copyPublicLink')->table($call));
+})->with([
+    'published' => [CallStatus::Published],
+    'paused' => [CallStatus::Paused],
+    'closed' => [CallStatus::Closed],
+]);
+
+it('CA-004-38: a draft call offers neither the public page nor the link, because its URL answers 404', function (): void {
+    [$organization, $event, $admin] = callPanelScenario();
+    $call = callInStatus($event, $admin, CallStatus::Draft);
+    CurrentOrganization::set($organization);
+
+    callManager($event)
+        ->assertActionHidden(TestAction::make('viewPublicPage')->table($call))
+        ->assertActionHidden(TestAction::make('copyPublicLink')->table($call));
+});
+
+it('CA-004-39: a reviewer does not reach the calls manager, so the public page actions are not offered either', function (): void {
+    [, $event] = callPanelScenario(OrganizationRole::Reviewer);
+
+    expect(CallsRelationManager::canViewForRecord($event, ViewEvent::class))->toBeFalse();
+});
+
+it('CA-004-40: the public URL never carries the slug of another organization', function (): void {
+    [$organization, $event, $admin] = callPanelScenario();
+    $call = callInStatus($event, $admin, CallStatus::Published);
+
+    $otherOrganization = Organization::factory()->create();
+    $otherEvent = CurrentOrganization::run($otherOrganization, fn (): Event => Event::factory()->create(['organization_id' => $otherOrganization->id]));
+    CurrentOrganization::set($organization);
+
+    $expected = route('calls.show', ['organization' => $organization->slug, 'event' => $event->slug, 'call' => $call->slug]);
+
+    callManager($event)->assertActionHasUrl(TestAction::make('viewPublicPage')->table($call), $expected);
+
+    expect($expected)->not->toContain($otherOrganization->slug)
+        ->and($expected)->not->toContain($otherEvent->slug);
 });

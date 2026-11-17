@@ -40,6 +40,13 @@ class MailCatalog extends Page implements HasTable
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedEnvelope;
 
+    protected static ?int $navigationSort = 20;
+
+    public static function getNavigationGroup(): ?string
+    {
+        return __('navigation.groups.organization');
+    }
+
     public static function getNavigationLabel(): string
     {
         return __('mail_admin.navigation');

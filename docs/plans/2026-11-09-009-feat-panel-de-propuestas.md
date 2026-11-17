@@ -42,7 +42,7 @@ Al 2026-11-09 no existe el proyecto Laravel. Este plan consume `Submission`, `Su
 
 ## 4. Contrato
 
-- **Panel (Filament):** `SubmissionResource` (lista y detalle) en `app/Filament/Admin/`, anidado bajo el evento; sin rutas JSON públicas, nada que añadir a `docs/api/endpoints.md`.
+- **Panel (Filament):** `SubmissionResource` (lista y detalle) en `app/Filament/Admin/`, anidado bajo el evento; sin rutas JSON públicas, nada que añadir a `docs/api/endpoints.md`. *Desde el plan 020 (F2) la lista es la página `ManageEventSubmissions` del evento (`/admin/{tenant}/events/{record}/submissions`), con entrada «Propuestas» en la sub-navegación del evento; `SubmissionResource` aporta la tabla y no tiene página `index` propia.*
 - **Form Requests / filtros:** los filtros se validan (convocatoria, eje y tipo existentes en el evento actual; rango de fechas válido; estado dentro del enum). Un valor inválido o ajeno produce el mismo error de validación genérico.
 - **Actions:** `ExportSubmissions::handle($event, $filters, $user)` valida el permiso, recalcula la consulta desde la base (nunca confía en la selección del cliente), aplica el tope y encola `ExportSubmissionsJob`, que genera el archivo y registra la exportación. Tarea programada que borra los archivos de exportación de más de 24 horas.
 - **Permisos (matriz del plan 001):** `submissions.view`, `submissions.export` y `files.download`.

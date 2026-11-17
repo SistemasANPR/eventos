@@ -100,6 +100,9 @@ return [
     ],
     'actions' => [
         'edit' => 'Editar',
+        'view_public' => 'Ver página pública',
+        'copy_link' => 'Copiar enlace',
+        'link_copied' => 'Enlace copiado',
         'publish' => 'Publicar',
         'publish_confirm' => '¿Publicar esta convocatoria? Se abrirá y cerrará sola en las fechas indicadas (hora del evento).',
         'published' => 'Convocatoria publicada',

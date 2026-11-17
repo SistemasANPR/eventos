@@ -33,6 +33,13 @@ class TeamMemberResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedUsers;
 
+    protected static ?int $navigationSort = 10;
+
+    public static function getNavigationGroup(): ?string
+    {
+        return __('navigation.groups.organization');
+    }
+
     public static function getNavigationLabel(): string
     {
         return __('team.resource.plural');

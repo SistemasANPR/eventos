@@ -28,14 +28,12 @@ return [
     ],
     'table' => [
         'name' => 'Form',
-        'event' => 'Event',
         'status' => 'Status',
         'fields' => 'Fields',
         'empty_heading' => 'There are no forms yet',
         'empty_description' => 'Create a form to define what data your event asks from whoever submits a proposal.',
     ],
     'fields' => [
-        'event' => 'Event',
         'name' => 'Form name',
         'fields' => 'Fields',
         'fields_help' => 'Each field gets an internal key that does not change when you edit it. Once proposals have been received, a field cannot be deleted or change its type.',

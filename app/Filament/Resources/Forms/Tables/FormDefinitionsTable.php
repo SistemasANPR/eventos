@@ -17,7 +17,7 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Validation\ValidationException;
 
-/** Lista de formularios de la organización (plan 005, H-005-1): nombre, evento, estado y número de campos. */
+/** Lista de formularios del evento (plan 005, H-005-1; plan 020): nombre, estado y número de campos. */
 final class FormDefinitionsTable
 {
     public static function configure(Table $table): Table
@@ -28,9 +28,6 @@ final class FormDefinitionsTable
                     ->label(__('forms.table.name'))
                     ->searchable()
                     ->weight('medium'),
-                TextColumn::make('event.name')
-                    ->label(__('forms.table.event'))
-                    ->state(fn (FormDefinition $record): string => (string) $record->event?->getTranslation('name', $record->event->default_locale, true)),
                 TextColumn::make('status')
                     ->label(__('forms.table.status'))
                     ->badge()
@@ -49,7 +46,7 @@ final class FormDefinitionsTable
                 Action::make('preview')
                     ->label(__('forms.preview.action'))
                     ->icon(Heroicon::OutlinedEye)
-                    ->url(fn (FormDefinition $record): string => FormDefinitionResource::getUrl('preview', ['record' => $record]))
+                    ->url(fn (FormDefinition $record): string => FormDefinitionResource::getUrl('preview', ['event' => $record->event_id, 'record' => $record]))
                     ->visible(fn (FormDefinition $record): bool => auth()->user()?->can('view', $record) === true),
                 Action::make('duplicate')
                     ->label(__('forms.actions.duplicate'))
@@ -68,9 +65,10 @@ final class FormDefinitionsTable
 
                         Notification::make()->success()->title(__('forms.actions.duplicated'))->send();
 
-                        return redirect(FormDefinitionResource::getUrl('edit', ['record' => $copy]));
+                        return redirect(FormDefinitionResource::getUrl('edit', ['event' => $copy->event_id, 'record' => $copy]));
                     }),
-                EditAction::make(),
+                EditAction::make()
+                    ->url(fn (FormDefinition $record): string => FormDefinitionResource::getUrl('edit', ['event' => $record->event_id, 'record' => $record])),
             ])
             ->emptyStateHeading(__('forms.table.empty_heading'))
             ->emptyStateDescription(__('forms.table.empty_description'));

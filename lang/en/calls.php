@@ -100,6 +100,9 @@ return [
     ],
     'actions' => [
         'edit' => 'Edit',
+        'view_public' => 'View public page',
+        'copy_link' => 'Copy link',
+        'link_copied' => 'Link copied',
         'publish' => 'Publish',
         'publish_confirm' => 'Publish this call? It will open and close by itself on the given dates (event time).',
         'published' => 'Call published',
