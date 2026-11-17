@@ -36,7 +36,8 @@ Lo que NO está aquí porque se decidió no cambiarlo: [RELLENAR: decisiones de 
 
 | # | Punto | Archivos | Esfuerzo |
 |---|---|---|---|
-| DT-09 | ESLint fijado en 9 por compatibilidad con `eslint-plugin-jsx-a11y` (marcado como no soportado en 10). Subir a 10 cuando el plugin lo soporte. Dueño: [PENDIENTE]. Fecha límite sugerida: revisar al actualizar dependencias; [PENDIENTE] fecha | `package.json`, `eslint.config.*` | S |
+| DT-09 | ESLint fijado en 9 por compatibilidad con `eslint-plugin-jsx-a11y` (marcado como no soportado en 10). Subir a 10 cuando el plugin lo soporte, y hacerlo con `eslint` y `@eslint/js` a la vez: `@eslint/js@10` exige `eslint@10` como peer, y por eso falló en `npm ci` el PR #9 de dependabot (2026-11-17), cerrado con «ignore this major version». Confirmar también `typescript-eslint` y `eslint-plugin-react-hooks`. Dueño: [PENDIENTE]. Fecha límite sugerida: revisar al actualizar dependencias; [PENDIENTE] fecha | `package.json`, `eslint.config.*` | S |
+| DT-16 | TypeScript fijado en 6: `typescript-eslint@8.72.2` declara `typescript >=4.8.4 <6.1.0`, y por eso falló en `npm ci` el PR #11 de dependabot (2026-11-17). Subir a 7 cuando `typescript-eslint` lo soporte; TS 7 es el compilador nativo, así que además comprobar `npm run typecheck` y `build`. Dueño: [PENDIENTE]. Fecha límite sugerida: revisar al actualizar dependencias; [PENDIENTE] fecha | `package.json`, `tsconfig*.json` | S |
 | DT-11 | Informativo: el aviso de privacidad no cubre portugués en el panel de eventos hasta que un evento declare ese idioma. Sin acción hasta entonces. Dueño: [PENDIENTE]. Fecha límite sugerida: cuando el primer evento declare `pt`; [PENDIENTE] fecha | `lang/pt`, gestor del aviso de privacidad | S |
 
 ---
