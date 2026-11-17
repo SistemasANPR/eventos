@@ -13,6 +13,7 @@ use BackedEnum;
 use Filament\Resources\Pages\ManageRelatedRecords;
 use Filament\Support\Icons\Heroicon;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use LogicException;
 
 /**
  * Propuestas del evento (plan 020, F2; recurso del plan 009): la lista que antes se abría solo por URL
@@ -52,7 +53,10 @@ class ManageEventSubmissions extends ManageRelatedRecords
     public function getRelationship(): HasMany
     {
         $event = $this->getOwnerRecord();
-        assert($event instanceof Event);
+
+        if (! $event instanceof Event) {
+            throw new LogicException('La página de propuestas no tiene un evento.');
+        }
 
         return SubmissionResource::scopeToList($event->submissions());
     }
