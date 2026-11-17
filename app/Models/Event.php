@@ -111,6 +111,12 @@ class Event extends Model
         return $this->hasMany(SpeakerCategory::class);
     }
 
+    /** @return HasMany<Speaker, $this> */
+    public function speakers(): HasMany
+    {
+        return $this->hasMany(Speaker::class);
+    }
+
     /** @return HasMany<ActivityCategory, $this> */
     public function activityCategories(): HasMany
     {
