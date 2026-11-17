@@ -8,6 +8,7 @@ use App\Filament\Resources\Events\EventResource;
 use App\Filament\Resources\Events\Pages\ManageEventFormDefinitions;
 use App\Filament\Resources\Forms\Pages\CreateFormDefinition;
 use App\Models\Event;
+use App\Models\EventAssignment;
 use App\Models\FormDefinition;
 use App\Models\User;
 use App\Support\Tenancy\CurrentOrganization;
@@ -164,6 +165,17 @@ it('CA-020-11: a member without a role gets 403 on the forms of an event', funct
     $member = Memberships::attach(User::factory()->create(), $organization);
 
     $this->actingAs($member)->get(eventFormsUrl($organization, $event))->assertForbidden();
+});
+
+it('CA-020-11: a member assigned to the event through event_assignments but without organization permissions still gets 403', function (): void {
+    [$organization, $event] = formScenario();
+    $assignee = Memberships::attach(User::factory()->create(), $organization, OrganizationRole::Reviewer);
+    EventAssignment::factory()->create(['organization_id' => $organization->id, 'event_id' => $event->id, 'user_id' => $assignee->id]);
+
+    // Control: el evento asignado sí es suyo (el filtro del plan 011 lo reconoce); la autorización de formularios no se amplía.
+    expect(CurrentOrganization::run($organization, fn (): bool => Event::query()->assignedTo($assignee)->whereKey($event->id)->exists()))->toBeTrue();
+
+    $this->actingAs($assignee)->get(eventFormsUrl($organization, $event))->assertForbidden();
 });
 
 it('CA-020-12: the event sub-navigation offers Forms only to who can access them', function (): void {
