@@ -4,7 +4,7 @@
 > `composer check:criteria` lee el **Estado** y los criterios de este archivo: no cambiar el formato de esas líneas.
 
 - **Fecha:** 2026-11-09
-- **Estado:** Borrador
+- **Estado:** Aprobado (Antonio, 2026-11-13: especificacion y propuesta de datos de §4; alcance autorizado F0 a F2; F3 a F6 en espera de los planes 006, 012 y 014)
 - **Esfuerzo:** L
 - **Deuda relacionada:** ninguna (depende de RC-2: la 2FA obligatoria, H-014-1, debe estar activa antes de dar acceso a evaluadores externos; ver plan 014)
 
@@ -57,7 +57,7 @@ En modo ciego el evaluador no ve nombre, correo, empresa, país ni biografía de
 
 ### DA-5 · Cuándo una propuesta pasa a `under_review` — se recomienda **al recibir su primera asignación**
 
-`AssignReviewers` llama a `MarkSubmissionUnderReview` (plan 012) para pasar de `submitted` a `under_review` con historial. Un evento sin comité no pasa por aquí: el plan 012 permite decidir desde `submitted`.
+`AssignReviewers` solo acepta propuestas con `origin = call`: un conferencista invitado (plan 018) nace `accepted` y no se evalúa. `AssignReviewers` llama a `MarkSubmissionUnderReview` (plan 012) para pasar de `submitted` a `under_review` con historial. Un evento sin comité no pasa por aquí: el plan 012 permite decidir desde `submitted`.
 
 ## 4. Contrato
 
@@ -68,6 +68,7 @@ En modo ciego el evaluador no ve nombre, correo, empresa, país ni biografía de
 - **Propuesta de datos (`docs/database-design.md` §6):**
   1. *Necesidad:* evaluar propuestas con criterios propios del evento y acceso acotado; dueño: módulo de evaluación; ciclo de vida: vigente hasta archivar el evento.
   2. *Modelo:* `rubrics` (evento, tipo de propuesta, versión, estado `draft|published`, `blind_review` bool, `min_reviewers`, `discrepancy_threshold` en unidades de la escala); `rubric_criteria` (rúbrica, posición, `label` traducible, `scale_min`, `scale_max`, `weight`, `kind` `scale|text`); `event_assignments` (usuario, evento, rol `reviewer|coordinator`, único por usuario, evento y rol); `review_assignments` (propuesta, evaluador, estado `pending|in_progress|submitted|declined_conflict`); `reviews` (asignación, versión de rúbrica, enviada en, `revision` entero); `review_answers` (evaluación, criterio, valor entero o texto); `review_history` de negocio para reevaluaciones. Todas con `organization_id` NOT NULL, UUID, y `event_id` donde aplique; ámbito: organización y evento.
+  2b. *Concreción de `event_assignments` y `rubrics` (F0):* `event_assignments(id uuid, organization_id, event_id, user_id, role, created_at, updated_at)` con `role` `string` y `CHECK (role IN ('reviewer','coordinator'))` (`speaker` llega en R2); `unique(id, organization_id)`; `unique(event_id, user_id, role)`; FK compuesta `(event_id, organization_id)` hacia `events` y FK compuesta `(organization_id, user_id)` hacia `organization_user` (garantiza la membresía en la base; el estado `deactivated` lo vigilan la Action y la Policy); trigger de inmutabilidad de `organization_id`. `rubrics(id, organization_id, event_id, submission_type_id, version, status, blind_review, min_reviewers, discrepancy_threshold)` con `unique(event_id, submission_type_id, version)`. Permisos nuevos en `RolePermissions` con migración de sincronización; el rol de evento `coordinator` se resuelve en las Policies consultando `event_assignments`, no con spatie.
   3. *Integridad:* claves foráneas compuestas para que propuesta, evaluador y evento compartan la organización (con `unique(id, organization_id)` en las tablas referenciadas); `CHECK` de `scale_min < scale_max`, `weight > 0` y `discrepancy_threshold > 0`; único por `(submission_id, reviewer_id)`; `SoftDeletes` en `reviews`.
   4. *Cambio:* tablas nuevas, sin datos existentes; migraciones generadas por el agente y aplicadas por una persona.
   5. *Alternativa descartada:* guardar la rúbrica como `jsonb` dentro del evento; impide consultas de resultados y versionado limpio.
@@ -91,7 +92,7 @@ En modo ciego el evaluador no ve nombre, correo, empresa, país ni biografía de
 
 | Fase | Qué se hace | Esfuerzo |
 |---|---|---|
-| F0 | Propuesta de datos aprobada; Policies y guardianas con modelos vacíos | S |
+| F0 | Propuesta de datos aprobada (2026-11-13); Policies y guardianas con modelos vacíos | S |
 | F1 | `event_assignments` y su Policy (H-011-7) | M |
 | F2 | Rúbrica, criterios, versionado y publicación (H-011-1) | M |
 | F3 | Asignación de evaluadores, paso a `under_review` e invitación (H-011-2, H-011-8) | M |
@@ -182,3 +183,6 @@ Cada uno tiene al menos una prueba cuyo nombre lo cita (`CA-011-n: ...`) o decla
 
 | Fase | Commit | Fecha | Notas (salida real de las validaciones) |
 |---|---|---|---|
+| F0 | 39161b8 | 2026-11-13 | Plan aprobado por Antonio; propuesta de datos de event_assignments y rubrics concretada. |
+| F1 (H-011-7) | 3d262fa | 2026-11-13 | 14 pruebas nuevas en verde (CA-011-29 a 32); guardianas Arch, Tenancy, LangParity y RolesMatrix: 239 pruebas en verde; Pint OK en 15 archivos; Larastan sin errores; check:criteria 0 errores. Desviaciones: (1) sin UI Filament (queda para el panel Reviewer). (2) CA-011-28 probado en el modelo (scope assignedTo), el 404 por ruta llega con el panel Reviewer (F4). (3) CA-011-10 parcial (isReviewerOf listo; el rechazo exige review_assignments, F3). CA-011-16 no cubierto (panel Reviewer y 2FA). Pruebas corridas en contenedor desechable con el repo montado, porque eventos-app-1 monta la copia WSL. No se ejecuto la suite completa. |
+| F2 (H-011-1) | 72e2821 | 2026-11-17 | composer check completo en el contenedor: Pint OK en 507 archivos, Larastan sin errores, 1300 pruebas en verde (47 en tests/Feature/Reviews), check:criteria 0 errores. Migraciones aplicadas solo en la base de pruebas. Desviaciones: sin UI Filament (queda para F4); la costura RubricUsageChecker queda enlazada a NoRecordedReviews hasta que F4 traiga las evaluaciones.
