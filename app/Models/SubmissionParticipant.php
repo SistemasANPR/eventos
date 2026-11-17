@@ -21,7 +21,9 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property string $contact_id
  * @property int $position
  * @property bool $is_primary
- * @property string $full_name
+ * @property string|null $first_name nulo solo en participantes anteriores al plan 021
+ * @property string|null $last_name nulo solo en participantes anteriores al plan 021
+ * @property string $full_name «nombre apellido» calculado por el servidor
  * @property string $email
  * @property string $country
  * @property string|null $job_title
