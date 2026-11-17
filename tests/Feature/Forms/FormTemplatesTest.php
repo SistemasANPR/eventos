@@ -9,7 +9,7 @@ use App\Actions\Forms\RetireFormField;
 use App\Actions\Forms\UpdateFormDefinition;
 use App\Enums\FormDefinitionStatus;
 use App\Enums\OrganizationRole;
-use App\Filament\Resources\Forms\Pages\ListFormDefinitions;
+use App\Filament\Resources\Events\Pages\ManageEventFormDefinitions;
 use App\Models\CallForSubmissions;
 use App\Models\FormDefinition;
 use App\Models\Organization;
@@ -153,15 +153,15 @@ it('CA-005-37: a member without forms.manage cannot duplicate', function (): voi
         ->toThrow(AuthorizationException::class);
 });
 
-it('CA-005-35: in the panel an admin creates a form from a template choosing the event', function (): void {
+it('CA-005-35: in the event forms page an admin creates a form from a template in that event', function (): void {
     [$organization, $event, $admin] = formScenario();
     Auth::login($admin);
     Filament::setCurrentPanel('admin');
     Filament::setTenant($organization);
     CurrentOrganization::set($organization);
 
-    Livewire::test(ListFormDefinitions::class)
-        ->callAction('fromTemplate', ['template' => 'panel', 'event_id' => $event->id])
+    Livewire::test(ManageEventFormDefinitions::class, ['record' => $event->id])
+        ->callAction('fromTemplate', ['template' => 'panel'])
         ->assertHasNoActionErrors();
 
     $form = CurrentOrganization::run($organization, fn (): FormDefinition => FormDefinition::query()->sole());
@@ -178,7 +178,7 @@ it('CA-005-36: in the panel the table action duplicates a form into an independe
     Filament::setTenant($organization);
     CurrentOrganization::set($organization);
 
-    Livewire::test(ListFormDefinitions::class)
+    Livewire::test(ManageEventFormDefinitions::class, ['record' => $event->id])
         ->callTableAction('duplicate', formInOrganization($organization, $source->id))
         ->assertHasNoTableActionErrors();
 

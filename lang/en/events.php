@@ -76,4 +76,8 @@ return [
         'archived' => 'Event archived',
         'failed' => 'The action could not be completed',
     ],
+
+    'sub_navigation' => [
+        'summary' => 'Summary',
+    ],
 ];

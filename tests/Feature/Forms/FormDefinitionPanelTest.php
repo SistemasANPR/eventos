@@ -4,10 +4,11 @@ declare(strict_types=1);
 
 use App\Enums\FormDefinitionStatus;
 use App\Enums\OrganizationRole;
+use App\Filament\Resources\Events\Pages\ManageEventFormDefinitions;
 use App\Filament\Resources\Forms\Pages\CreateFormDefinition;
 use App\Filament\Resources\Forms\Pages\EditFormDefinition;
-use App\Filament\Resources\Forms\Pages\ListFormDefinitions;
 use App\Models\CallForSubmissions;
+use App\Models\Event;
 use App\Models\FormDefinition;
 use App\Models\Organization;
 use App\Models\User;
@@ -27,12 +28,17 @@ afterEach(function (): void {
     Filament::setTenant(null);
 });
 
-function formPanelSession(Organization $organization, User $user): void
+/** Sesión del panel; con evento, simula su ruta para las páginas anidadas bajo él (plan 020). */
+function formPanelSession(Organization $organization, User $user, ?Event $event = null): void
 {
     Auth::login($user);
     Filament::setCurrentPanel('admin');
     Filament::setTenant($organization);
     CurrentOrganization::set($organization);
+
+    if ($event !== null) {
+        withEventRoute($event);
+    }
 }
 
 /** @return FormDefinition el formulario guardado, leído dentro de su organización */
@@ -43,11 +49,10 @@ function storedForm(Organization $organization, string $id): FormDefinition
 
 it('CA-005-1: in the panel an admin creates a form with fields and every field gets a server-generated key', function (): void {
     [$organization, $event, $admin] = formScenario();
-    formPanelSession($organization, $admin);
+    formPanelSession($organization, $admin, $event);
 
     Livewire::test(CreateFormDefinition::class)
         ->fillForm([
-            'event_id' => $event->id,
             'name' => 'Formulario de sesiones',
             'fields' => [
                 ['type' => 'short_text', 'required' => true, 'label' => ['es' => 'Título', 'en' => 'Title'], 'config' => ['maxLength' => 200]],
@@ -76,7 +81,7 @@ it('CA-005-7: in the panel editing a form keeps the key of every field and the v
     $created = createForm($admin, $event, [formField('short_text'), formField('single_choice')]);
     $keys = array_column($created->fields, 'key');
     $values = array_column($created->fields[1]['config']['options'], 'value');
-    formPanelSession($organization, $admin);
+    formPanelSession($organization, $admin, $event);
 
     Livewire::test(EditFormDefinition::class, ['record' => $created->id])
         ->fillForm(['name' => 'Renombrado'])
@@ -92,11 +97,10 @@ it('CA-005-7: in the panel editing a form keeps the key of every field and the v
 
 it('CA-005-3: in the panel a field without a label in the base language shows the error and saves nothing', function (): void {
     [$organization, $event, $admin] = formScenario();
-    formPanelSession($organization, $admin);
+    formPanelSession($organization, $admin, $event);
 
     Livewire::test(CreateFormDefinition::class)
         ->fillForm([
-            'event_id' => $event->id,
             'name' => 'Sin etiqueta',
             'fields' => [['type' => 'short_text', 'label' => ['en' => 'Only english']]],
         ])
@@ -113,7 +117,7 @@ it('CA-005-6: the list shows only the forms of the organization', function (): v
     $foreign = createForm($adminB, $eventB, [formField('short_text')], 'Ajeno');
     formPanelSession($organizationA, $adminA);
 
-    Livewire::test(ListFormDefinitions::class)
+    Livewire::test(ManageEventFormDefinitions::class, ['record' => $eventA->id])
         ->assertCanSeeTableRecords([$own])
         ->assertCanNotSeeTableRecords([$foreign]);
 });
@@ -124,20 +128,20 @@ it('CA-005-6: a reviewer cannot open the forms and the form of another organizat
     $reviewer = Memberships::attach(User::factory()->create(), $organizationA, OrganizationRole::Reviewer);
     $foreign = createForm($adminB, $eventB, [formField('short_text')]);
 
-    expect($this->actingAs($reviewer)->get("/admin/{$organizationA->slug}/forms/form-definitions")->status())->toBeIn([403, 404]);
+    expect($this->actingAs($reviewer)->get(eventFormsUrl($organizationA, $eventA))->status())->toBeIn([403, 404]);
 
     $own = createForm($adminA, $eventA, [formField('short_text')]);
 
     // Control: la misma ruta con un formulario propio responde 200; así el 404 de abajo es por el aislamiento y no por una URL mal escrita.
-    $this->actingAs($adminA)->get("/admin/{$organizationA->slug}/forms/form-definitions/{$own->id}/edit")->assertOk();
-    $this->actingAs($adminA)->get("/admin/{$organizationA->slug}/forms/form-definitions/{$foreign->id}/edit")->assertNotFound();
+    $this->actingAs($adminA)->get(eventFormUrl($organizationA, $eventA, 'edit', $own))->assertOk();
+    $this->actingAs($adminA)->get(eventFormUrl($organizationA, $eventA, 'edit', $foreign))->assertNotFound();
 });
 
-it('CA-005-16: in the panel an admin publishes the form choosing a call of its event', function (): void {
+it('CA-005-16 and CA-020-14: in the panel an admin publishes the form choosing a call of its event', function (): void {
     [$organization, $event, $admin] = formScenario();
     $form = createForm($admin, $event, [formField('short_text')]);
     $call = CurrentOrganization::run($organization, fn () => CallForSubmissions::factory()->create(['organization_id' => $organization->id, 'event_id' => $event->id]));
-    formPanelSession($organization, $admin);
+    formPanelSession($organization, $admin, $event);
 
     Livewire::test(EditFormDefinition::class, ['record' => $form->id])
         ->callAction('publish', ['call_id' => $call->id])
@@ -149,10 +153,10 @@ it('CA-005-16: in the panel an admin publishes the form choosing a call of its e
         ->and($storedCall->form_definition_id)->toBe($form->id);
 });
 
-it('CA-005-22: in the panel saving with an outdated version keeps the other change', function (): void {
+it('CA-005-22 and CA-020-14: in the panel saving with an outdated version keeps the other change', function (): void {
     [$organization, $event, $admin] = formScenario();
     $form = createForm($admin, $event, [formField('short_text')]);
-    formPanelSession($organization, $admin);
+    formPanelSession($organization, $admin, $event);
 
     Livewire::test(EditFormDefinition::class, ['record' => $form->id])
         ->fillForm(['name' => 'Cambio tardio', 'version' => 99])

@@ -28,14 +28,12 @@ return [
     ],
     'table' => [
         'name' => 'Formulario',
-        'event' => 'Evento',
         'status' => 'Estado',
         'fields' => 'Campos',
         'empty_heading' => 'Aún no hay formularios',
         'empty_description' => 'Crea un formulario para definir qué datos pide tu evento a quien envía una propuesta.',
     ],
     'fields' => [
-        'event' => 'Evento',
         'name' => 'Nombre del formulario',
         'fields' => 'Campos',
         'fields_help' => 'Cada campo recibe una clave interna que no cambia al editarlo. Con propuestas recibidas, un campo no se elimina ni cambia de tipo.',

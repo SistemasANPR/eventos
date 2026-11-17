@@ -9,7 +9,6 @@ use App\Enums\FieldType;
 use App\Filament\Resources\Forms\Pages\EditFormDefinition;
 use App\Filament\Support\ActionErrors;
 use App\Http\Requests\Events\StoreEventRequest;
-use App\Models\Event;
 use App\Models\FormDefinition;
 use App\Support\Forms\FormDefinitionRules;
 use Filament\Actions\Action;
@@ -39,14 +38,7 @@ final class FormDefinitionForm
         return $schema->components([
             Section::make(__('forms.sections.general'))
                 ->schema([
-                    Select::make('event_id')
-                        ->label(__('forms.fields.event'))
-                        ->options(fn (): array => self::eventOptions())
-                        ->required()
-                        ->searchable()
-                        // El evento de un formulario no cambia: solo se elige al crearlo.
-                        ->disabled(fn (?FormDefinition $record): bool => $record !== null)
-                        ->dehydrated(fn (?FormDefinition $record): bool => $record === null),
+                    // El evento sale de la ruta (recurso anidado, plan 020) y no cambia nunca.
                     TextInput::make('name')
                         ->label(__('forms.fields.name'))
                         ->required()
@@ -212,14 +204,6 @@ final class FormDefinitionForm
         }
 
         return $options;
-    }
-
-    /** @return array<string, string> */
-    public static function eventOptions(): array
-    {
-        return Event::query()->orderBy('starts_at')->get()
-            ->mapWithKeys(fn (Event $event): array => [$event->id => (string) $event->getTranslation('name', $event->default_locale, true)])
-            ->all();
     }
 
     /** @param  array<string, mixed>  $state */

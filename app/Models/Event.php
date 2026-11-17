@@ -99,6 +99,12 @@ class Event extends Model
         return $this->hasMany(PrivacyNotice::class);
     }
 
+    /** @return HasMany<FormDefinition, $this> */
+    public function formDefinitions(): HasMany
+    {
+        return $this->hasMany(FormDefinition::class);
+    }
+
     public function isPublished(): bool
     {
         return $this->status === EventStatus::Published;

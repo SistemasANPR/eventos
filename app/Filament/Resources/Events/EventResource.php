@@ -7,6 +7,7 @@ namespace App\Filament\Resources\Events;
 use App\Filament\Resources\Events\Pages\CreateEvent;
 use App\Filament\Resources\Events\Pages\EditEvent;
 use App\Filament\Resources\Events\Pages\ListEvents;
+use App\Filament\Resources\Events\Pages\ManageEventFormDefinitions;
 use App\Filament\Resources\Events\Pages\ViewEvent;
 use App\Filament\Resources\Events\RelationManagers\CallsRelationManager;
 use App\Filament\Resources\Events\RelationManagers\PrivacyNoticesRelationManager;
@@ -17,6 +18,7 @@ use App\Filament\Resources\Events\Schemas\EventInfolist;
 use App\Filament\Resources\Events\Tables\EventsTable;
 use App\Models\Event;
 use BackedEnum;
+use Filament\Resources\Pages\Page;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
@@ -85,6 +87,23 @@ class EventResource extends Resource
             'create' => CreateEvent::route('/create'),
             'view' => ViewEvent::route('/{record}'),
             'edit' => EditEvent::route('/{record}/edit'),
+            // Nombre = ruta del recurso anidado (`FormDefinitionResource`): Filament lo usa como su índice.
+            'form-definitions' => ManageEventFormDefinitions::route('/{record}/form-definitions'),
         ];
+    }
+
+    /**
+     * Secciones del evento (plan 020, DA-1): la barra que ofrece el resumen y, solo a quien puede
+     * acceder, las secciones que cuelgan del evento. Ocultar una entrada no autoriza: cada ruta
+     * se niega por su Policy.
+     *
+     * @return array<int, mixed>
+     */
+    public static function getRecordSubNavigation(Page $page): array
+    {
+        return $page->generateNavigationItems([
+            ViewEvent::class,
+            ManageEventFormDefinitions::class,
+        ]);
     }
 }

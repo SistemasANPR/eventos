@@ -17,6 +17,12 @@ class ViewEvent extends ViewRecord
 {
     protected static string $resource = EventResource::class;
 
+    /** Etiqueta de la sección en la sub-navegación del evento (plan 020). */
+    public static function getNavigationLabel(): string
+    {
+        return __('events.sub_navigation.summary');
+    }
+
     public function getTitle(): string
     {
         $event = $this->getRecord();

@@ -11,6 +11,7 @@ use App\Models\Event;
 use Filament\Resources\Pages\CreateRecord;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Validation\ValidationException;
+use LogicException;
 
 class CreateFormDefinition extends CreateRecord
 {
@@ -19,8 +20,12 @@ class CreateFormDefinition extends CreateRecord
     /** @param  array<string, mixed>  $data */
     protected function handleRecordCreation(array $data): Model
     {
-        // `findOrFail` pasa por el scope de la organización: un evento de otra responde 404.
-        $event = Event::query()->findOrFail($data['event_id']);
+        // El evento sale de la ruta, ya acotado por la organización (un evento de otra responde 404); no viaja en el formulario.
+        $event = $this->getParentRecord();
+
+        if (! $event instanceof Event) {
+            throw new LogicException('La página de alta no tiene un evento en la ruta.');
+        }
 
         try {
             return app(CreateFormDefinitionAction::class)->handle(ActionErrors::actor(), $event, $data);

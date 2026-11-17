@@ -2,36 +2,58 @@
 
 declare(strict_types=1);
 
-namespace App\Filament\Resources\Forms\Pages;
+namespace App\Filament\Resources\Events\Pages;
 
 use App\Actions\Forms\CreateFormFromTemplate;
+use App\Filament\Resources\Events\EventResource;
 use App\Filament\Resources\Forms\FormDefinitionResource;
-use App\Filament\Resources\Forms\Schemas\FormDefinitionForm;
 use App\Filament\Support\ActionErrors;
 use App\Models\Event;
 use App\Models\FormDefinition;
 use App\Support\Forms\FormTemplates;
+use BackedEnum;
 use Filament\Actions\Action;
 use Filament\Actions\CreateAction;
 use Filament\Forms\Components\Select;
 use Filament\Notifications\Notification;
-use Filament\Resources\Pages\ListRecords;
+use Filament\Resources\Pages\ManageRelatedRecords;
+use Filament\Support\Icons\Heroicon;
 use Illuminate\Validation\ValidationException;
+use LogicException;
 
-class ListFormDefinitions extends ListRecords
+/**
+ * Formularios del evento (plan 020, F1): la lista que antes era un recurso de la organización.
+ * La tabla y las acciones de fila vienen de `FormDefinitionResource`, anidado bajo el evento;
+ * el evento sale de la ruta, así que un evento de otra organización responde 404 y no hay selector.
+ * Quién ve la lista y quién crea lo decide `FormDefinitionPolicy`.
+ */
+class ManageEventFormDefinitions extends ManageRelatedRecords
 {
-    protected static string $resource = FormDefinitionResource::class;
+    protected static string $resource = EventResource::class;
+
+    protected static string $relationship = 'formDefinitions';
+
+    protected static ?string $relatedResource = FormDefinitionResource::class;
+
+    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedClipboardDocumentList;
+
+    public static function getNavigationLabel(): string
+    {
+        return __('forms.navigation');
+    }
 
     /** @return array<int, mixed> */
     protected function getHeaderActions(): array
     {
         return [
             $this->fromTemplateAction(),
-            CreateAction::make(),
+            CreateAction::make()
+                ->url(fn (): string => FormDefinitionResource::getUrl('create', ['event' => $this->eventOfPage()]))
+                ->visible(fn (): bool => auth()->user()?->can('create', FormDefinition::class) === true),
         ];
     }
 
-    /** Crea un formulario propio, en borrador, a partir de una plantilla del sistema (CA-005-35). */
+    /** Crea un formulario propio, en borrador, a partir de una plantilla del sistema, en el evento de la ruta (CA-005-35, CA-020-8). */
     private function fromTemplateAction(): Action
     {
         return Action::make('fromTemplate')
@@ -46,14 +68,9 @@ class ListFormDefinitions extends ListRecords
                     ->label(__('forms.actions.template'))
                     ->options(self::templateOptions())
                     ->required(),
-                Select::make('event_id')
-                    ->label(__('forms.fields.event'))
-                    ->options(fn (): array => FormDefinitionForm::eventOptions())
-                    ->required()
-                    ->searchable(),
             ])
             ->action(function (array $data) {
-                $event = Event::query()->findOrFail($data['event_id']);
+                $event = $this->eventOfPage();
 
                 try {
                     $form = app(CreateFormFromTemplate::class)->handle(ActionErrors::actor(), $event, (string) $data['template']);
@@ -65,7 +82,7 @@ class ListFormDefinitions extends ListRecords
 
                 Notification::make()->success()->title(__('forms.actions.created_from_template'))->send();
 
-                return redirect(FormDefinitionResource::getUrl('edit', ['record' => $form]));
+                return redirect(FormDefinitionResource::getUrl('edit', ['event' => $event, 'record' => $form]));
             });
     }
 
@@ -79,5 +96,12 @@ class ListFormDefinitions extends ListRecords
         }
 
         return $options;
+    }
+
+    private function eventOfPage(): Event
+    {
+        $record = $this->getRecord();
+
+        return $record instanceof Event ? $record : throw new LogicException('La página de formularios no tiene un evento.');
     }
 }
