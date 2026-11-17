@@ -22,7 +22,8 @@ return new class extends Migration
             ALTER TABLE submission_participants ADD CONSTRAINT submission_participants_name_parts_check CHECK (
                 (first_name IS NULL AND last_name IS NULL)
                 OR (
-                    btrim(first_name) <> '' AND btrim(last_name) <> ''
+                    first_name IS NOT NULL AND last_name IS NOT NULL
+                    AND btrim(first_name) <> '' AND btrim(last_name) <> ''
                     AND first_name = btrim(first_name) AND last_name = btrim(last_name)
                     AND full_name = first_name || ' ' || last_name
                 )
