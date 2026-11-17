@@ -105,6 +105,18 @@ class Event extends Model
         return $this->hasMany(Track::class);
     }
 
+    /** @return HasMany<SpeakerCategory, $this> */
+    public function speakerCategories(): HasMany
+    {
+        return $this->hasMany(SpeakerCategory::class);
+    }
+
+    /** @return HasMany<ActivityCategory, $this> */
+    public function activityCategories(): HasMany
+    {
+        return $this->hasMany(ActivityCategory::class);
+    }
+
     /** @return HasMany<PrivacyNotice, $this> */
     public function privacyNotices(): HasMany
     {

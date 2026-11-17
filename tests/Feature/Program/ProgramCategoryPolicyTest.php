@@ -11,6 +11,7 @@ use App\Models\User;
 use App\Support\Tenancy\CurrentOrganization;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Gate;
+use Spatie\Permission\Models\Role;
 use Tests\Support\Memberships;
 
 uses(RefreshDatabase::class);
@@ -94,7 +95,10 @@ it('CA-021-15: the speaker and activity permissions are independent', function (
     CurrentOrganization::run($event->organization, function () use ($user): void {
         $user->unsetRelation('roles')->unsetRelation('permissions');
         $role = $user->roles()->first();
-        $role?->revokePermissionTo(['speakers.manage', 'speakers.delete']);
+
+        if ($role instanceof Role) {
+            $role->revokePermissionTo(['speakers.manage', 'speakers.delete']);
+        }
     });
 
     expect(policyAllows($user, 'update', $speakerCategory, $event))->toBeFalse()

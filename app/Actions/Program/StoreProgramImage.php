@@ -88,7 +88,7 @@ final class StoreProgramImage
         // Un archivo con cabecera de imagen pero corrupto, o que dice ser otra cosa, no pasa el decodificador.
         $info = @getimagesize($path);
 
-        if ($info === false || $info[2] === 0 || ($info['mime'] ?? null) !== $mime || $info[0] < 1 || $info[1] < 1) {
+        if ($info === false || $info[2] === 0 || $info['mime'] !== $mime || $info[0] < 1 || $info[1] < 1) {
             throw $this->rejected('files.image_invalid');
         }
 
