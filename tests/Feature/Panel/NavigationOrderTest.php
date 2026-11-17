@@ -155,6 +155,7 @@ function eventSectionLabels(): array
         __('events.sub_navigation.summary'),
         __('forms.navigation'),
         __('submission_panel.navigation'),
+        __('program.activities.navigation'),
         __('program.categories.speakers.navigation'),
         __('program.categories.activities.navigation'),
     ];
