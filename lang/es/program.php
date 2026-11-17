@@ -76,6 +76,7 @@ return [
             'bio' => 'Biografía',
             'photo' => 'Fotografía',
             'photo_help' => 'JPEG, PNG o WebP de hasta 5 MB.',
+            'remove_photo' => 'Quitar la fotografía actual',
             'social_links' => 'Redes',
             'social_network' => 'Red',
             'social_url' => 'Dirección (https)',

@@ -10,6 +10,7 @@ use App\Filament\Resources\Events\Pages\ListEvents;
 use App\Filament\Resources\Events\Pages\ManageEventActivityCategories;
 use App\Filament\Resources\Events\Pages\ManageEventFormDefinitions;
 use App\Filament\Resources\Events\Pages\ManageEventSpeakerCategories;
+use App\Filament\Resources\Events\Pages\ManageEventSpeakers;
 use App\Filament\Resources\Events\Pages\ManageEventSubmissions;
 use App\Filament\Resources\Events\Pages\ViewEvent;
 use App\Filament\Resources\Events\RelationManagers\CallsRelationManager;
@@ -93,6 +94,8 @@ class EventResource extends Resource
             // Nombre = ruta del recurso anidado (`FormDefinitionResource`): Filament lo usa como su índice.
             'form-definitions' => ManageEventFormDefinitions::route('/{record}/form-definitions'),
             'submissions' => ManageEventSubmissions::route('/{record}/submissions'),
+            // Ponentes del evento (plan 021, F2).
+            'speakers' => ManageEventSpeakers::route('/{record}/speakers'),
             // Catálogos de categorías del programa (plan 021, F1).
             'speaker-categories' => ManageEventSpeakerCategories::route('/{record}/speaker-categories'),
             'activity-categories' => ManageEventActivityCategories::route('/{record}/activity-categories'),

@@ -7,6 +7,7 @@ namespace App\Filament\Resources\Events;
 use App\Filament\Resources\Forms\FormDefinitionResource;
 use App\Filament\Resources\Submissions\SubmissionResource;
 use App\Models\ActivityCategory;
+use App\Models\Speaker;
 use App\Models\SpeakerCategory;
 use Closure;
 use Filament\Navigation\NavigationItem;
@@ -33,7 +34,8 @@ final class EventSectionsNavigation
             self::section($parentKey, __('events.sub_navigation.summary'), Heroicon::OutlinedEye, 1, 'view', ['view', 'edit'], fn (): bool => EventResource::canAccess()),
             self::section($parentKey, __('forms.navigation'), Heroicon::OutlinedClipboardDocumentList, 2, 'form-definitions', ['form-definitions', 'form-definitions.*'], fn (): bool => FormDefinitionResource::canAccess()),
             self::section($parentKey, __('submission_panel.navigation'), Heroicon::OutlinedInboxArrowDown, 3, 'submissions', ['submissions', 'submissions.*'], fn (): bool => SubmissionResource::canAccess()),
-            // Ponentes (4) y Actividades (5) llegan con las fases F2 y F3 del plan 021, antes de sus categorías.
+            self::section($parentKey, __('program.speakers.navigation'), Heroicon::OutlinedMicrophone, 4, 'speakers', ['speakers'], fn (): bool => Gate::allows('viewAny', Speaker::class)),
+            // Actividades (5) llega con la fase F3 del plan 021, antes de las categorías.
             self::section($parentKey, __('program.categories.speakers.navigation'), Heroicon::OutlinedTag, 6, 'speaker-categories', ['speaker-categories'], fn (): bool => Gate::allows('viewAny', SpeakerCategory::class)),
             self::section($parentKey, __('program.categories.activities.navigation'), Heroicon::OutlinedRectangleStack, 7, 'activity-categories', ['activity-categories'], fn (): bool => Gate::allows('viewAny', ActivityCategory::class)),
         ];

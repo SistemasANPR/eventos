@@ -76,6 +76,7 @@ return [
             'bio' => 'Biography',
             'photo' => 'Photo',
             'photo_help' => 'JPEG, PNG or WebP up to 5 MB.',
+            'remove_photo' => 'Remove the current photo',
             'social_links' => 'Social networks',
             'social_network' => 'Network',
             'social_url' => 'Address (https)',
