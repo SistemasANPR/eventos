@@ -94,7 +94,7 @@ Cada fase deja el repo en verde y termina en su propio commit.
 | F0 | Tema de Filament: CSS del tema con tokens y fuentes, `viteTheme`, paleta, tipografía, `darkMode(false)`, prueba de coherencia de hex con `app.css`. | S |
 | F1 | Login y recuperación con la marca; ancho de modal por defecto y *slide-over* según DA-5 (tras cerrarla). | S |
 | F2 | Lista de eventos en tarjetas (`EventsTable` con `contentGrid`), manteniendo selector de evento, orden, estado vacío y acciones. | M |
-| F3 | Acabado visual (aprobado el 2026-11-11): menú lateral marino con barra lima en el enlace activo, superficies con borde y sombra en dos niveles, radios 12/8/16 px, encabezados y tablas con jerarquía, tarjetas de evento con elevación al pasar el cursor, modales con sombra y fondo marino, una sola acción lima por pantalla y movimiento de 150–200 ms. Todo en `theme.css`. | M |
+| F3 | Acabado visual (aprobado el 2026-11-11): menú lateral marino con barra lima en el enlace activo (*la barra se quitó el 2026-11-17 a petición de Antonio: el activo se distingue solo por el fondo marino profundo y el texto blanco*), superficies con borde y sombra en dos niveles, radios 12/8/16 px, encabezados y tablas con jerarquía, tarjetas de evento con elevación al pasar el cursor, modales con sombra y fondo marino, una sola acción lima por pantalla y movimiento de 150–200 ms. Todo en `theme.css`. | M |
 
 ## 7. Criterios de aceptación
 
