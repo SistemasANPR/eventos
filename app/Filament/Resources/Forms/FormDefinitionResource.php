@@ -29,6 +29,9 @@ class FormDefinitionResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedClipboardDocumentList;
 
+    // Transitorio: sale del menú cuando pase a vivir bajo el evento (plan 020, F1).
+    protected static ?int $navigationSort = 20;
+
     public static function getNavigationLabel(): string
     {
         return __('forms.navigation');

@@ -34,6 +34,8 @@ class EventResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedCalendarDays;
 
+    protected static ?int $navigationSort = 10;
+
     public static function getNavigationLabel(): string
     {
         return __('events.navigation');
