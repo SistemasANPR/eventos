@@ -3,7 +3,7 @@
 > Plan 021. Sustituye al plan 018 (conferencistas invitados como propuestas aceptadas). Referencia de comportamiento: Eventool.
 
 - **Fecha:** 2026-11-17
-- **Estado:** Borrador
+- **Estado:** Aprobado (2026-11-17: especificacion y DA-1 a DA-17 aprobadas por el usuario)
 - **Esfuerzo:** L
 - **Deuda relacionada:** ninguna
 
