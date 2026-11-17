@@ -19,6 +19,7 @@ use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Validation\ValidationException;
+use LogicException;
 
 /**
  * Tabla de propuestas del evento de la ruta (plan 009, H-009-1): paginada en el
@@ -185,9 +186,8 @@ final class SubmissionsTable
     private static function event(mixed $livewire): Event
     {
         $event = $livewire->getParentRecord();
-        assert($event instanceof Event);
 
-        return $event;
+        return $event instanceof Event ? $event : throw new LogicException('La tabla de propuestas necesita un evento en la ruta.');
     }
 
     /**
