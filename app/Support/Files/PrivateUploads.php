@@ -99,7 +99,7 @@ class PrivateUploads
             throw $this->rejected('files.content_mismatch');
         }
 
-        if ($extension === 'pptx' ? ! $this->hasPresentationStructure($path) : $this->isPolyglot($path)) {
+        if ($extension === 'pptx' ? ! $this->hasPresentationStructure($path) : self::isPolyglot($path)) {
             throw $this->rejected($extension === 'pptx' ? 'files.invalid_presentation' : 'files.suspicious_content');
         }
 
@@ -247,7 +247,7 @@ class PrivateUploads
      * Un PDF, JPG o PNG legítimo no lleva código PHP ni un ZIP pegado al final:
      * se rechaza `<?php` en cualquier punto y el fin de directorio central de un ZIP al final.
      */
-    private function isPolyglot(string $path): bool
+    public static function isPolyglot(string $path): bool
     {
         $handle = fopen($path, 'rb');
 

@@ -6,6 +6,8 @@ return [
     'upload_failed' => 'No se pudo recibir el archivo. Inténtalo de nuevo.',
     'too_large' => 'El archivo supera el límite de :max.',
     'empty' => 'El archivo está vacío.',
+    'image_type_not_allowed' => 'Solo se aceptan imágenes JPEG, PNG o WebP.',
+    'image_invalid' => 'El archivo no es una imagen válida.',
     'type_not_allowed' => 'Tipo de archivo no permitido. Solo se aceptan: :types.',
     'content_mismatch' => 'El contenido del archivo no corresponde a su extensión.',
     'invalid_presentation' => 'El archivo no es una presentación PPTX válida.',
