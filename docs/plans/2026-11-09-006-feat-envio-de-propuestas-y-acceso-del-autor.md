@@ -242,3 +242,4 @@ Cada uno tiene al menos una prueba cuyo nombre lo cita (`CA-006-n: ...`) o decla
 
 | Fase | Commit | Fecha | Notas (salida real de las validaciones) |
 |---|---|---|---|
+| F0 (datos) | `7c46820` | 2026-11-13 | Migraciones de `submissions`, `submission_participants`, `submission_access_tokens` y min/max de participantes; modelos, enums y factories. Pest: SubmissionSchemaTest 20, ModelsAreScopedTest 20, TenantIsolation 42, OrganizationIdImmutable 17, LangParity 19, Arch 29, todos verdes; Pint limpio. Desviaciones: columnas del plan 018 incluidas; `idempotency_key` y `payload_hash` nullable (invitados); CHECK `withdrawn_at` solo con `withdrawn`; `track_id` NOT NULL (DA-1); `privacy_notice_version_id` apunta a `privacy_notices`. Pendiente de F0: spikes S-6/S-7 y FK de `submission_files` (DT-12). Migraciones sin aplicar a la base de desarrollo. |

@@ -131,3 +131,4 @@ Al 2026-11-09 no existe el proyecto Laravel. Este plan consume `Submission`, `Su
 
 | Fase | Commit | Fecha | Notas (salida real de las validaciones) |
 |---|---|---|---|
+| F0 | a701fa6 | 2026-11-13 | `SubmissionPolicy` (`viewAny`, `view`, `export`) y `SubmissionResource` anidado bajo el evento (`/{tenant}/events/{event}/submissions`). `php artisan test --filter=SubmissionPanelTest` en base propia `testing_009`: 3 pasaron (CA-009-1, CA-009-5, CA-009-7); en `testing` chocó con otro agente (deadlock). Pint limpio; PHPStan sin errores en los archivos del cambio. Pendiente: verificacion en navegador a ~375 px y ~1280 px (el recurso no aparece en el menu: se enlaza desde el evento en F1); `composer check` completo no se ejecuto. |

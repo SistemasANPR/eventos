@@ -144,7 +144,10 @@ it('CA-008-13: the screen never shows a template customized by another organizat
     Livewire::test(EditMailTemplate::class, ['key' => 'submission.received'])
         ->assertSet('source', 'system')
         ->assertDontSee('ASUNTO-SECRETO-DE-B');
-    Livewire::test(MailCatalog::class)->assertDontSee(__('mail_admin.status.customized'));
+    // No se busca el texto «Personalizado» en la página: el encabezado «Personalizado en» lo contiene siempre.
+    $statuses = array_column(app(NotificationOverview::class)->forOrganization($organizationA), 'status');
+    expect($statuses)->not->toContain('customized');
+    Livewire::test(MailCatalog::class)->assertOk();
 });
 
 /* ---------------------------------------------- Desactivar (H-008-5) */
