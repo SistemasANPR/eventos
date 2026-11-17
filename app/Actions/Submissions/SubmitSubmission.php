@@ -66,7 +66,8 @@ final class SubmitSubmission
         'consent', 'privacy_notice_version_id', 'third_parties_authorized',
     ];
 
-    private const PARTICIPANT_KEYS = ['full_name', 'email', 'country', 'job_title', 'company', 'bio', 'is_primary'];
+    /** `full_name` no es del contrato: lo calcula el servidor a partir de nombre y apellido. */
+    private const PARTICIPANT_KEYS = ['first_name', 'last_name', 'email', 'country', 'job_title', 'company', 'bio', 'is_primary'];
 
     private const MAX_SNAPSHOT_BYTES = 65536;
 
@@ -317,7 +318,9 @@ final class SubmitSubmission
             'contact_id' => $contact->id,
             'position' => $position + 1,
             'is_primary' => filter_var($participant['is_primary'] ?? false, FILTER_VALIDATE_BOOLEAN),
-            'full_name' => $participant['full_name'],
+            'first_name' => $participant['first_name'],
+            'last_name' => $participant['last_name'],
+            'full_name' => self::fullName($participant),
             'email' => $participant['email'],
             'country' => $participant['country'],
             'job_title' => $participant['job_title'] ?? null,
@@ -344,13 +347,19 @@ final class SubmitSubmission
 
         try {
             return DB::transaction(fn (): Contact => Contact::query()->create([
-                'full_name' => $participant['full_name'],
+                'full_name' => self::fullName($participant),
                 'email' => $email,
                 'country' => $participant['country'],
             ]));
         } catch (UniqueConstraintViolationException $exception) {
             return $this->findContact($email) ?? throw $exception;
         }
+    }
+
+    /** @param  array<string, mixed>  $participant */
+    private static function fullName(array $participant): string
+    {
+        return $participant['first_name'].' '.$participant['last_name'];
     }
 
     private function findContact(string $email): ?Contact

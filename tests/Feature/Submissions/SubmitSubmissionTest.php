@@ -23,6 +23,7 @@ use App\Models\SubmissionParticipant;
 use App\Models\Track;
 use App\Support\Tenancy\CurrentOrganization;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event as EventBus;
@@ -98,7 +99,7 @@ function subInput(array $ctx, array $overrides = []): array
         'track_id' => $ctx['track']->id,
         'answers' => ['summary' => 'Un resumen', 'level' => 'Básico'],
         'participants' => [
-            ['full_name' => 'Ana Pérez', 'email' => 'Ana@Example.com ', 'country' => 'MX', 'job_title' => 'Dra.', 'company' => 'ACME', 'bio' => 'Bio', 'is_primary' => true],
+            ['first_name' => 'Ana', 'last_name' => 'Pérez', 'email' => 'Ana@Example.com ', 'country' => 'MX', 'job_title' => 'Dra.', 'company' => 'ACME', 'bio' => 'Bio', 'is_primary' => true],
         ],
         'consent' => true,
     ], $overrides);
@@ -119,7 +120,7 @@ function subSubmit(array $ctx, array $input): Submission
  */
 function subParticipant(string $email, array $overrides = []): array
 {
-    return array_replace(['full_name' => 'Persona '.$email, 'email' => $email, 'country' => 'CO', 'is_primary' => false], $overrides);
+    return array_replace(['first_name' => 'Persona', 'last_name' => $email, 'email' => $email, 'country' => 'CO', 'is_primary' => false], $overrides);
 }
 
 /**
@@ -218,7 +219,7 @@ it('CA-006-5: enforces participant count, required data, one primary and distinc
 })->with([
     'none' => [[], 'participants'],
     'four' => [[subParticipant('a@x.com', ['is_primary' => true]), subParticipant('b@x.com'), subParticipant('c@x.com'), subParticipant('d@x.com')], 'participants'],
-    'no name' => [[['full_name' => '', 'email' => 'a@x.com', 'country' => 'MX', 'is_primary' => true]], 'participants.0.full_name'],
+    'no name' => [[['first_name' => '', 'last_name' => 'Pérez', 'email' => 'a@x.com', 'country' => 'MX', 'is_primary' => true]], 'participants.0.first_name'],
     'bad email' => [[subParticipant('no-es-correo', ['is_primary' => true])], 'participants.0.email'],
     'bad country' => [[subParticipant('a@x.com', ['is_primary' => true, 'country' => 'ZZ'])], 'participants.0.country'],
     'no primary' => [[subParticipant('a@x.com')], 'participants'],
@@ -243,7 +244,8 @@ it('CA-006-6: rejects values over the length limits per field', function (string
     expect(array_keys(subErrors($ctx, $input)))->toContain($errorKey);
 })->with([
     'title' => ['title', ['title' => str_repeat('t', 201)], 'title'],
-    'name' => ['name', ['participants' => [['full_name' => str_repeat('n', 121)]]], 'participants.0.full_name'],
+    'first name' => ['name', ['participants' => [['first_name' => str_repeat('n', 101)]]], 'participants.0.first_name'],
+    'last name' => ['surname', ['participants' => [['last_name' => str_repeat('n', 101)]]], 'participants.0.last_name'],
     'job title' => ['job', ['participants' => [['job_title' => str_repeat('j', 121)]]], 'participants.0.job_title'],
     'company' => ['company', ['participants' => [['company' => str_repeat('c', 161)]]], 'participants.0.company'],
     'bio' => ['bio', ['participants' => [['bio' => str_repeat('b', 2001)]]], 'participants.0.bio'],
@@ -335,7 +337,7 @@ it('CA-006-10: reuses an existing contact without modifying it, and creates a ne
 
     $submission = subSubmit($ctx, subInput($ctx, [
         'participants' => [
-            ['full_name' => 'Ana Distinta', 'email' => 'ana@example.com', 'country' => 'MX', 'is_primary' => true],
+            ['first_name' => 'Ana', 'last_name' => 'Distinta', 'email' => 'ana@example.com', 'country' => 'MX', 'is_primary' => true],
             subParticipant('nueva@example.com'),
         ],
         'third_parties_authorized' => true,
@@ -546,4 +548,73 @@ it('CA-006-54: requires the third-party declaration only with more than one part
     expect(array_keys($without))->toBe(['third_parties_authorized'])
         ->and($with->third_parties_authorized_at)->not->toBeNull()
         ->and($alone->third_parties_authorized_at)->toBeNull();
+});
+
+it('CA-021-13: stores first and last name separately and computes full_name on the server', function (): void {
+    $ctx = subScenario();
+
+    $submission = subSubmit($ctx, subInput($ctx, ['participants' => [
+        ['first_name' => ' Ana  ', 'last_name' => 'Pérez Gómez', 'full_name' => 'Falso Cliente', 'email' => 'ana@example.com', 'country' => 'MX', 'is_primary' => true],
+    ]]));
+
+    $participant = $submission->participants()->sole();
+    expect($participant->first_name)->toBe('Ana')
+        ->and($participant->last_name)->toBe('Pérez Gómez')
+        ->and($participant->full_name)->toBe('Ana Pérez Gómez')
+        ->and($participant->contact->full_name)->toBe('Ana Pérez Gómez');
+});
+
+it('CA-021-13: requires both names, trimmed, within 100 characters and without control characters', function (array $names, string $errorKey): void {
+    $ctx = subScenario();
+    $participant = array_replace(['email' => 'a@x.com', 'country' => 'MX', 'is_primary' => true], $names);
+
+    $errors = subErrors($ctx, subInput($ctx, ['participants' => [$participant]]));
+
+    expect(array_keys($errors))->toContain($errorKey)
+        ->and(Submission::query()->count())->toBe(0);
+})->with([
+    'missing first name' => [['last_name' => 'Pérez'], 'participants.0.first_name'],
+    'missing last name' => [['first_name' => 'Ana'], 'participants.0.last_name'],
+    'blank first name' => [['first_name' => '   ', 'last_name' => 'Pérez'], 'participants.0.first_name'],
+    'blank last name' => [['first_name' => 'Ana', 'last_name' => "\n"], 'participants.0.last_name'],
+    'old payload only full_name' => [['full_name' => 'Ana Pérez'], 'participants.0.first_name'],
+    'newline inside' => [['first_name' => "Ana\nPérez", 'last_name' => 'Pérez'], 'participants.0.first_name'],
+    'tab inside' => [['first_name' => 'Ana', 'last_name' => "Pé\trez"], 'participants.0.last_name'],
+]);
+
+it('CA-021-13: accepts names of 100 characters and keeps full_name within its column', function (): void {
+    $ctx = subScenario();
+
+    $submission = subSubmit($ctx, subInput($ctx, ['participants' => [
+        ['first_name' => str_repeat('ñ', 100), 'last_name' => str_repeat('á', 100), 'email' => 'a@x.com', 'country' => 'MX', 'is_primary' => true],
+    ]]));
+
+    expect(mb_strlen($submission->participants()->sole()->full_name))->toBe(201);
+});
+
+it('CA-021-13: leaves earlier participants with only full_name and rejects inconsistent names in the database', function (): void {
+    $old = SubmissionParticipant::factory()->create();
+    DB::table('submission_participants')->where('id', $old->id)->update(['first_name' => null, 'last_name' => null, 'full_name' => 'Persona Anterior']);
+    $fresh = $old->fresh();
+
+    $rejects = static function (array $names) use ($old): bool {
+        DB::beginTransaction();
+        try {
+            DB::table('submission_participants')->where('id', $old->id)->update($names);
+
+            return false;
+        } catch (QueryException) {
+            return true;
+        } finally {
+            DB::rollBack();
+        }
+    };
+
+    expect($fresh->first_name)->toBeNull()
+        ->and($fresh->last_name)->toBeNull()
+        ->and($fresh->full_name)->toBe('Persona Anterior')
+        ->and($rejects(['first_name' => 'Ana', 'last_name' => null]))->toBeTrue()
+        ->and($rejects(['first_name' => '  ', 'last_name' => 'Pérez', 'full_name' => '   Pérez']))->toBeTrue()
+        ->and($rejects(['first_name' => 'Ana', 'last_name' => 'Pérez', 'full_name' => 'Otro Nombre']))->toBeTrue()
+        ->and($rejects(['first_name' => 'Ana', 'last_name' => 'Pérez', 'full_name' => 'Ana Pérez']))->toBeFalse();
 });

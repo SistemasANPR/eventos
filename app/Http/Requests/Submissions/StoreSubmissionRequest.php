@@ -61,7 +61,9 @@ final class StoreSubmissionRequest extends FormRequest
             'answers' => ['nullable', 'array'],
             'participants' => ['required', 'array', 'min:'.$minParticipants, 'max:'.$maxParticipants],
             'participants.*' => ['array'],
-            'participants.*.full_name' => ['required', 'string', 'max:120'],
+            // `full_name` lo calcula el servidor (plan 021, DA-9); sin controles ni saltos de línea.
+            'participants.*.first_name' => ['required', 'string', 'max:100', 'regex:/^[^\p{Cc}]+$/u'],
+            'participants.*.last_name' => ['required', 'string', 'max:100', 'regex:/^[^\p{Cc}]+$/u'],
             'participants.*.email' => ['required', 'string', 'email:rfc', 'max:254', 'distinct:ignore_case'],
             'participants.*.country' => ['required', 'string', Rule::in(Countries::CODES)],
             'participants.*.job_title' => ['nullable', 'string', 'max:120'],
