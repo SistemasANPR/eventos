@@ -17,6 +17,7 @@ use App\Models\CallForSubmissions;
 use App\Models\Event;
 use App\Models\SubmissionType;
 use App\Support\Calls\ResolveCallState;
+use App\Support\Tenancy\CurrentOrganization;
 use Carbon\CarbonImmutable;
 use Filament\Actions\Action;
 use Filament\Forms\Components\CheckboxList;
@@ -31,6 +32,7 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Js;
 use Illuminate\Validation\ValidationException;
 
 /**
@@ -84,6 +86,8 @@ class CallsRelationManager extends RelationManager
                 $this->statusAction('resumeCall', 'resume', 'resumed', CallStatus::Published, [CallStatus::Paused], Heroicon::OutlinedPlayCircle, 'success', true),
                 $this->statusAction('closeCall', 'close', 'closed', CallStatus::Closed, [CallStatus::Published, CallStatus::Paused], Heroicon::OutlinedLockClosed, 'danger', false, true),
                 $this->statusAction('reopenCall', 'reopen', 'reopened', CallStatus::Published, [CallStatus::Closed], Heroicon::OutlinedArrowPath, 'success', true),
+                $this->viewPublicPageAction(),
+                $this->copyPublicLinkAction(),
             ])
             ->emptyStateHeading(__('calls.empty_heading'))
             ->emptyStateDescription(__('calls.empty_description'));
@@ -140,6 +144,46 @@ class CallsRelationManager extends RelationManager
                 fn () => app(PublishCall::class)->handle(ActionErrors::actor(), $record),
                 __('calls.actions.published'),
             ));
+    }
+
+    /** Abre la página pública tal como la ve un visitante (CA-004-37). */
+    private function viewPublicPageAction(): Action
+    {
+        return Action::make('viewPublicPage')
+            ->label(__('calls.actions.view_public'))
+            ->icon(Heroicon::OutlinedArrowTopRightOnSquare)
+            ->color('gray')
+            ->url(fn (CallForSubmissions $record): string => $this->publicUrl($record))
+            ->openUrlInNewTab()
+            ->visible(fn (CallForSubmissions $record): bool => $this->hasPublicPage($record));
+    }
+
+    /** Copia la URL pública al portapapeles, sin ida al servidor. */
+    private function copyPublicLinkAction(): Action
+    {
+        return Action::make('copyPublicLink')
+            ->label(__('calls.actions.copy_link'))
+            ->icon(Heroicon::OutlinedClipboardDocument)
+            ->color('gray')
+            ->alpineClickHandler(fn (CallForSubmissions $record): string => 'window.navigator.clipboard.writeText('.Js::from($this->publicUrl($record))->toHtml().'); '
+                .'$tooltip('.Js::from(__('calls.actions.link_copied'))->toHtml().', { theme: $store.theme, timeout: 2000 })')
+            ->visible(fn (CallForSubmissions $record): bool => $this->hasPublicPage($record));
+    }
+
+    /** Un borrador responde 404 en la ruta pública (CA-004-20), así que no se ofrece su enlace (CA-004-38). */
+    private function hasPublicPage(CallForSubmissions $call): bool
+    {
+        return $call->status !== CallStatus::Draft;
+    }
+
+    /** Siempre con el contexto y el evento actuales, nunca con datos de otra organización (CA-004-40). */
+    private function publicUrl(CallForSubmissions $call): string
+    {
+        return route('calls.show', [
+            'organization' => CurrentOrganization::get()->slug,
+            'event' => $this->owner()->slug,
+            'call' => $call->slug,
+        ]);
     }
 
     /**
