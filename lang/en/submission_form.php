@@ -11,5 +11,6 @@ return [
     'participants_primary' => 'Select exactly one primary participant.',
     'participants_third_parties' => 'You must declare that you have the other participants\' authorization.',
     'track_invalid' => 'The selected track is not valid for this event.',
+    'too_many_requests' => 'You made too many attempts. Wait a few minutes and try again; what you typed is kept.',
     'privacy_notice_outdated' => 'The privacy notice changed. Read it and accept it again.',
 ];

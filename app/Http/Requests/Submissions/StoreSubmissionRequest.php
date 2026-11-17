@@ -4,12 +4,19 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\Submissions;
 
+use App\Actions\Forms\BuildSubmissionRules;
+use App\Enums\FormDefinitionStatus;
 use App\Models\CallForSubmissions;
+use App\Models\Event;
+use App\Models\FormDefinition;
+use App\Support\Calls\ResolveCallState;
 use App\Support\Forms\Countries;
 use Closure;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 use Illuminate\Validation\Validator;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 /**
  * Envío público de una propuesta (plan 006, H-006-1). Valida el bloque fijo (título, eje,
@@ -24,9 +31,21 @@ final class StoreSubmissionRequest extends FormRequest
 {
     public const TITLE_MAX = 200;
 
+    /**
+     * Formulario público: no hay usuario que autorizar; la protección es el límite de peticiones y el
+     * anti-robots. Sí se cierra el paso a lo que el público no ve: un evento sin publicar o una
+     * convocatoria en borrador responden 404 antes de validar nada (CA-006-2).
+     */
     public function authorize(): bool
     {
-        // Formulario público: la protección es el límite de peticiones y el anti-robots (F3).
+        $event = $this->route('event');
+        $call = $this->route('call');
+
+        if (! $event instanceof Event || ! $event->isPublished()
+            || ! $call instanceof CallForSubmissions || ResolveCallState::for($call) === null) {
+            throw new NotFoundHttpException;
+        }
+
         return true;
     }
 
@@ -34,16 +53,73 @@ final class StoreSubmissionRequest extends FormRequest
     public function rules(): array
     {
         $call = $this->route('call');
-
-        return $call instanceof CallForSubmissions
+        $fixed = $call instanceof CallForSubmissions
             ? self::fieldRules($call->min_participants, $call->max_participants, $call->locales)
             : self::fieldRules();
+
+        return $fixed + [
+            // Los verifican `VerifyTurnstile` y el almacén de cargas; aquí solo se acota su forma.
+            'turnstile_token' => ['nullable', 'string', 'max:2048'],
+            'upload_token' => ['nullable', 'string', 'max:255'],
+        ];
     }
 
     /** @return list<Closure> */
     public function after(): array
     {
-        return [static fn (Validator $validator) => self::crossFieldChecks($validator)];
+        return [
+            static fn (Validator $validator) => self::crossFieldChecks($validator),
+            fn (Validator $validator) => $this->checkAnswers($validator),
+        ];
+    }
+
+    /** Correo del participante principal: con él se cuentan los acuses por correo (CA-006-26). */
+    public function primaryEmail(): string
+    {
+        foreach ((array) $this->validated('participants') as $participant) {
+            if (is_array($participant) && filter_var($participant['is_primary'] ?? false, FILTER_VALIDATE_BOOLEAN)) {
+                return (string) ($participant['email'] ?? '');
+            }
+        }
+
+        return '';
+    }
+
+    /**
+     * Valida también las respuestas del formulario para devolver todos los errores a la vez y no en
+     * dos rondas. Es una comprobación previa y de solo lectura: la autoritativa es la de
+     * `SubmitSubmission`, que vuelve a validar con el formulario bloqueado.
+     */
+    private function checkAnswers(Validator $validator): void
+    {
+        $call = $this->route('call');
+
+        if (! $call instanceof CallForSubmissions || $call->form_definition_id === null) {
+            return;
+        }
+
+        $form = FormDefinition::query()->find($call->form_definition_id);
+
+        if (! $form instanceof FormDefinition || $form->status !== FormDefinitionStatus::Published) {
+            return;
+        }
+
+        $answers = $validator->getData()['answers'] ?? [];
+
+        try {
+            app(BuildSubmissionRules::class)->validate(
+                $form->fields,
+                is_array($answers) ? $answers : [],
+                (string) ($validator->getData()['upload_token'] ?? ''),
+                $call->organization_id,
+            );
+        } catch (ValidationException $exception) {
+            foreach ($exception->errors() as $key => $messages) {
+                foreach ($messages as $message) {
+                    $validator->errors()->add($key, $message);
+                }
+            }
+        }
     }
 
     /**

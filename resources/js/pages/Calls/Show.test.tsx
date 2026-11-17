@@ -27,6 +27,7 @@ const translations = {
         },
     },
     languages: { es: 'Español', en: 'English' },
+    submit: { send_action: 'Enviar propuesta' },
 };
 
 vi.mock('@/hooks/useTranslation', () => ({
@@ -56,7 +57,7 @@ const call: PublicCall = {
 const organization = { name: 'Parques de México', slug: 'parques' };
 const event = { name: 'Congreso Parques' };
 
-function renderPage(overrides: Partial<PublicCall> = {}, privacyUrl: string | null = null) {
+function renderPage(overrides: Partial<PublicCall> = {}, privacyUrl: string | null = null, submitUrl: string | null = null) {
     return render(
         <Show
             call={{ ...call, ...overrides }}
@@ -64,6 +65,7 @@ function renderPage(overrides: Partial<PublicCall> = {}, privacyUrl: string | nu
             organization={organization}
             eventUrl="/parques/events/congreso?lang=es"
             privacyUrl={privacyUrl}
+            submitUrl={submitUrl}
         />,
     );
 }
@@ -151,7 +153,17 @@ describe('Calls/Show page', () => {
         expect(within(nav).getByRole('link', { name: 'Ver en English' })).toHaveAttribute('href', '?lang=en');
     });
 
-    it('has no submit button: the form belongs to a later plan', () => {
+    it('CA-006-55: offers the link to the submission form only when the server provides it', () => {
+        const view = renderPage();
+        expect(screen.queryByRole('link', { name: 'Enviar propuesta' })).not.toBeInTheDocument();
+        view.unmount();
+
+        renderPage({}, null, '/parques/events/congreso/call/ponencias/submit?lang=es');
+
+        expect(screen.getByRole('link', { name: 'Enviar propuesta' })).toHaveAttribute('href', '/parques/events/congreso/call/ponencias/submit?lang=es');
+    });
+
+    it('has no submit button element: the entry to the form is a link', () => {
         renderPage();
 
         expect(screen.queryByRole('button')).not.toBeInTheDocument();

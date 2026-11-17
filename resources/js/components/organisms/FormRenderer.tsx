@@ -1,7 +1,7 @@
-import type { SyntheticEvent } from 'react';
+import type { ReactNode, SyntheticEvent } from 'react';
 
 import { FormFieldInput } from '@/components/molecules/FormFieldInput';
-import { FOCUS_RING } from '@/lib/classes';
+import { BUTTON_PRIMARY, FOCUS_RING } from '@/lib/classes';
 import { activeFields } from '@/lib/form-text';
 import type { Translate } from '@/lib/translate';
 import { cn } from '@/lib/utils';
@@ -20,6 +20,16 @@ interface FormRendererProps {
     onSubmit?: (answers: FormData) => void;
     idPrefix?: string;
     className?: string;
+    /** Contenido dentro del `<form>`, antes de los campos de la definición (bloque fijo del envío público). */
+    leading?: ReactNode;
+    /** Contenido dentro del `<form>`, entre los campos y el botón de envío (consentimiento, anti-robots). */
+    trailing?: ReactNode;
+    /** Solo `public`: mientras se envía, el botón se desactiva. */
+    isSubmitting?: boolean;
+    /** Solo `public`: texto del botón; por defecto `forms.renderer.submit`. */
+    submitLabel?: string;
+    /** Solo `public`: desactiva el envío (p. ej. la convocatoria ya cerró). */
+    isSubmitDisabled?: boolean;
 }
 
 /**
@@ -38,6 +48,11 @@ export function FormRenderer({
     onSubmit,
     idPrefix = 'form',
     className,
+    leading,
+    trailing,
+    isSubmitting = false,
+    submitLabel,
+    isSubmitDisabled = false,
 }: FormRendererProps) {
     const visibleFields = activeFields(fields);
     const isPreview = mode === 'preview';
@@ -50,7 +65,7 @@ export function FormRenderer({
         }
     };
 
-    if (visibleFields.length === 0) {
+    if (visibleFields.length === 0 && leading === undefined && trailing === undefined) {
         return <p className="text-base text-text-muted">{t('forms.renderer.empty')}</p>;
     }
 
@@ -61,6 +76,7 @@ export function FormRenderer({
             onSubmit={handleSubmit}
             className={cn('space-y-6', className)}
         >
+            {leading}
             {visibleFields.map((field) => (
                 <FormFieldInput
                     key={field.key}
@@ -72,13 +88,15 @@ export function FormRenderer({
                     error={errors[field.key]}
                 />
             ))}
+            {trailing}
             <div data-form-submit className="space-y-2">
                 <button
                     type="submit"
-                    disabled={isPreview}
-                    className={cn('inline-flex min-h-11 items-center rounded-md bg-primary px-6 text-base font-semibold text-primary-contrast hover:bg-primary-hover disabled:opacity-60', FOCUS_RING)}
+                    disabled={isPreview || isSubmitting || isSubmitDisabled}
+                    aria-busy={isSubmitting ? true : undefined}
+                    className={cn(BUTTON_PRIMARY, FOCUS_RING)}
                 >
-                    {t('forms.renderer.submit')}
+                    {submitLabel ?? t('forms.renderer.submit')}
                 </button>
                 {isPreview ? (
                     <p role="note" className="text-sm text-text-muted">

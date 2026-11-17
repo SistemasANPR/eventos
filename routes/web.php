@@ -7,8 +7,12 @@ use App\Http\Controllers\Panel\SubmissionFileDownloadController;
 use App\Http\Controllers\Public\ShowCallController;
 use App\Http\Controllers\Public\ShowEventController;
 use App\Http\Controllers\Public\ShowPrivacyNoticeController;
+use App\Http\Controllers\Public\ShowSubmissionConfirmationController;
+use App\Http\Controllers\Public\ShowSubmissionFormController;
+use App\Http\Controllers\Public\StoreSubmissionController;
 use App\Http\Controllers\Public\SubmissionFileUploadController;
 use App\Http\Middleware\HandleInertiaRequests;
+use App\Http\Middleware\PreventCaching;
 use App\Http\Middleware\SetOrganizationFromRoute;
 use Illuminate\Support\Facades\Route;
 
@@ -41,6 +45,14 @@ Route::middleware([SetOrganizationFromRoute::class, HandleInertiaRequests::class
         Route::post('events/{event:slug}/call/{call}/files', SubmissionFileUploadController::class)
             ->middleware('throttle:60,1')
             ->name('calls.files.store');
+        // Formulario público de envío (plan 006, H-006-7). Sin caché: lleva claves emitidas a la sesión.
+        Route::middleware(PreventCaching::class)->group(function (): void {
+            Route::get('events/{event:slug}/call/{call:slug}/submit', ShowSubmissionFormController::class)->name('calls.submit.show');
+            Route::post('events/{event:slug}/call/{call:slug}/submit', StoreSubmissionController::class)
+                ->middleware('throttle:60,1')
+                ->name('calls.submit.store');
+            Route::get('events/{event:slug}/call/{call:slug}/submitted', ShowSubmissionConfirmationController::class)->name('calls.submitted');
+        });
     });
 
 // Descarga de archivos de propuesta por organizadores (plan 007, H-007-2). Bajo el prefijo `admin/`

@@ -17,14 +17,29 @@ interface FormFieldInputProps {
     /** Mensaje de error del servidor para este campo. */
     error?: string;
     className?: string;
+    /** Solo en `short_text`: tipo del `<input>` (el correo del bloque fijo usa `email`). */
+    inputType?: 'text' | 'email';
+    /** Valor de `autocomplete` del control, para que el navegador pueda sugerir datos de la persona. */
+    autoComplete?: string;
 }
 
 /**
  * Un campo de un formulario de propuesta según su definición: etiqueta, ayuda, control y
  * error asociados por `for`, `aria-describedby` y `aria-invalid`. Los controles no tienen
- * estado propio (el formulario los lee al enviar). Usar solo dentro de `FormRenderer`.
+ * estado propio (el formulario los lee al enviar). Usar dentro de `FormRenderer` y del bloque
+ * fijo del envío público (`SubmissionBlock`), que describe sus campos con la misma estructura.
  */
-export function FormFieldInput({ field, locale, defaultLocale, idPrefix, t, error, className }: FormFieldInputProps) {
+export function FormFieldInput({
+    field,
+    locale,
+    defaultLocale,
+    idPrefix,
+    t,
+    error,
+    className,
+    inputType = 'text',
+    autoComplete,
+}: FormFieldInputProps) {
     const id = `${idPrefix}-${field.key}`;
     const helpId = `${id}-help`;
     const errorId = `${id}-error`;
@@ -38,6 +53,7 @@ export function FormFieldInput({ field, locale, defaultLocale, idPrefix, t, erro
         required: field.required,
         'aria-describedby': describedBy === '' ? undefined : describedBy,
         'aria-invalid': error !== undefined ? true : undefined,
+        autoComplete,
     };
 
     const caption = (
@@ -53,7 +69,7 @@ export function FormFieldInput({ field, locale, defaultLocale, idPrefix, t, erro
                 <fieldset aria-describedby={shared['aria-describedby']} className="space-y-2">
                     <legend className="block text-base font-medium text-text">{caption}</legend>
                     {renderHelp(help, helpId)}
-                    {renderGroup(field, shared.id, locale, defaultLocale)}
+                    {renderGroup(field, shared.id, locale, defaultLocale, error !== undefined)}
                     {renderError(error, errorId)}
                 </fieldset>
             ) : (
@@ -63,7 +79,7 @@ export function FormFieldInput({ field, locale, defaultLocale, idPrefix, t, erro
                             {caption}
                         </label>
                     )}
-                    {renderControl(field, shared, caption, locale, defaultLocale, t)}
+                    {renderControl(field, shared, caption, locale, defaultLocale, t, inputType)}
                     {renderHelp(help, helpId)}
                     {renderError(error, errorId)}
                 </>
@@ -78,6 +94,7 @@ type SharedControlProps = {
     required: boolean;
     'aria-describedby': string | undefined;
     'aria-invalid': boolean | undefined;
+    autoComplete: string | undefined;
 };
 
 function isGroup(field: FormField): boolean {
@@ -100,7 +117,7 @@ function renderError(error: string | undefined, id: string): ReactNode {
     );
 }
 
-function renderGroup(field: FormField, id: string, locale: string, defaultLocale: string): ReactNode {
+function renderGroup(field: FormField, id: string, locale: string, defaultLocale: string, hasError: boolean): ReactNode {
     const inputType = field.type === 'single_choice' ? 'radio' : 'checkbox';
 
     return (configOf(field).options ?? []).map((option) => (
@@ -111,6 +128,7 @@ function renderGroup(field: FormField, id: string, locale: string, defaultLocale
                 name={field.type === 'multiple_choice' ? `${field.key}[]` : field.key}
                 value={option.value}
                 required={field.type === 'single_choice' && field.required}
+                aria-invalid={hasError ? true : undefined}
                 className="size-5 accent-primary"
             />
             <label htmlFor={`${id}-${option.value}`} className="text-base text-text">
@@ -127,12 +145,13 @@ function renderControl(
     locale: string,
     defaultLocale: string,
     t: Translate,
+    inputType: 'text' | 'email',
 ): ReactNode {
     const config = configOf(field);
 
     switch (field.type) {
         case 'short_text':
-            return <input {...shared} type="text" minLength={config.minLength} maxLength={config.maxLength} className={FORM_CONTROL} />;
+            return <input {...shared} type={inputType} minLength={config.minLength} maxLength={config.maxLength} className={FORM_CONTROL} />;
         case 'long_text':
             return <textarea {...shared} rows={5} minLength={config.minLength} maxLength={config.maxLength} className={FORM_CONTROL} />;
         case 'number':
