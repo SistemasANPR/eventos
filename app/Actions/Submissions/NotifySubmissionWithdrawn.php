@@ -49,9 +49,9 @@ final class NotifySubmissionWithdrawn
             eventId: $event->id,
         );
 
-        $panelUrl = route('filament.admin.resources.events.submissions.index', [
+        $panelUrl = route('filament.admin.resources.events.submissions', [
             'tenant' => $organization->slug,
-            'event' => $event->id,
+            'record' => $event->id,
         ]);
 
         foreach (SubmissionOrganizers::current() as $organizer) {

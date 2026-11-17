@@ -60,6 +60,8 @@ it('CA-006-46: withdrawing a submitted proposal marks it withdrawn, audits it an
         ->and($recipients)->toBe(['ana@example.test', $organizer->email])
         ->and($authorMail->variables['panel_url'])->toContain('/my-submission/request-link')
         ->and($authorMail->variables['panel_url'])->not->toContain('/access/')
+        ->and(collect(withdrawnMails())->first(fn (SendTransactionalMail $job): bool => $job->recipient->email === $organizer->email)->variables['panel_url'])
+        ->toContain('/admin/'.$organization->slug.'/events/'.$submission->event_id.'/submissions')
         ->and(Activity::query()->where('event', 'submission_withdrawn')->count())->toBe(1);
 });
 

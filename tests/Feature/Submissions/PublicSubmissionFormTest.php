@@ -47,7 +47,7 @@ afterEach(function (): void {
  * @param  array<string, mixed>  $callAttributes
  * @return array{org: Organization, event: Event, call: CallForSubmissions, form: FormDefinition, track: Track, url: string}
  */
-function formScenario(string $slug = 'parques', array $callAttributes = [], bool $withNotice = true): array
+function publicFormScenario(string $slug = 'parques', array $callAttributes = [], bool $withNotice = true): array
 {
     $org = Organization::factory()->create(['slug' => $slug]);
     CurrentOrganization::set($org);
@@ -128,7 +128,7 @@ function submissionCount(): int
 }
 
 it('CA-006-55: renders the form with the published fields in the language of the visitor', function (): void {
-    $ctx = formScenario();
+    $ctx = publicFormScenario();
 
     $this->get($ctx['url'].'/submit?lang=en')
         ->assertOk()
@@ -152,7 +152,7 @@ it('CA-006-55: renders the form with the published fields in the language of the
 });
 
 it('CA-006-55: shows the state without a form when the call is scheduled, paused or closed', function (CallStatus $status, string $state): void {
-    $ctx = formScenario(callAttributes: ['status' => $status]);
+    $ctx = publicFormScenario(callAttributes: ['status' => $status]);
 
     $this->get($ctx['url'].'/submit')
         ->assertOk()
@@ -166,7 +166,7 @@ it('CA-006-55: shows the state without a form when the call is scheduled, paused
 ]);
 
 it('CA-006-55: a call that has not opened yet and one past its closing show no form', function (): void {
-    $ctx = formScenario();
+    $ctx = publicFormScenario();
 
     $this->travelTo('2027-01-01 00:00:00');
     $this->get($ctx['url'].'/submit')->assertInertia(fn (Assert $page) => $page->where('call.state', 'scheduled')->where('form', null));
@@ -176,14 +176,14 @@ it('CA-006-55: a call that has not opened yet and one past its closing show no f
 });
 
 it('CA-006-55: an open call without a published privacy notice is not ready and shows no form', function (): void {
-    $ctx = formScenario(withNotice: false);
+    $ctx = publicFormScenario(withNotice: false);
 
     $this->get($ctx['url'].'/submit')
         ->assertInertia(fn (Assert $page) => $page->where('call.state', 'open')->where('form', null));
 });
 
 it('CA-006-55: an open call without a published form is not ready and issues no keys', function (): void {
-    $ctx = formScenario();
+    $ctx = publicFormScenario();
     $ctx['form']->forceFill(['status' => FormDefinitionStatus::Draft])->save();
 
     $this->get($ctx['url'].'/submit')
@@ -193,7 +193,7 @@ it('CA-006-55: an open call without a published form is not ready and issues no 
 });
 
 it('CA-006-23: the page props carry the public Turnstile key and never the secret', function (): void {
-    $ctx = formScenario();
+    $ctx = publicFormScenario();
 
     $response = $this->get($ctx['url'].'/submit')->assertOk();
 
@@ -202,8 +202,8 @@ it('CA-006-23: the page props carry the public Turnstile key and never the secre
 });
 
 it('CA-006-18: a call of another organization under this URL, and drafts, answer 404', function (): void {
-    $a = formScenario('org-a');
-    $b = formScenario('org-b');
+    $a = publicFormScenario('org-a');
+    $b = publicFormScenario('org-b');
     $b['call']->forceFill(['slug' => 'solo-de-b'])->save();
     CurrentOrganization::forget();
 
@@ -228,7 +228,7 @@ it('CA-006-18: public controllers never call withoutOrganizationScope() and the 
 });
 
 it('CA-006-1: a valid submission is stored and redirects to the confirmation without identifiers in the URL', function (): void {
-    $ctx = formScenario();
+    $ctx = publicFormScenario();
     turnstileOk();
     $form = openForm($this->get(...), $ctx);
 
@@ -240,7 +240,7 @@ it('CA-006-1: a valid submission is stored and redirects to the confirmation wit
 });
 
 it('CA-006-57: the confirmation shows no personal data and redirects to the call without the session datum', function (): void {
-    $ctx = formScenario();
+    $ctx = publicFormScenario();
     turnstileOk();
 
     $this->get($ctx['url'].'/submitted')->assertRedirect($ctx['url']);
@@ -261,7 +261,7 @@ it('CA-006-57: the confirmation shows no personal data and redirects to the call
 });
 
 it('CA-006-14: a repeated submission with the same key redirects to the same confirmation and stores one proposal', function (): void {
-    $ctx = formScenario();
+    $ctx = publicFormScenario();
     turnstileOk();
     $form = openForm($this->get(...), $ctx);
     $body = formBody($ctx, $form);
@@ -273,7 +273,7 @@ it('CA-006-14: a repeated submission with the same key redirects to the same con
 });
 
 it('CA-006-21: rejects a missing or invalid Turnstile token with 422 and stores nothing', function (): void {
-    $ctx = formScenario();
+    $ctx = publicFormScenario();
     Http::fake(['turnstile.test/*' => Http::response(['success' => false])]);
     $form = openForm($this->get(...), $ctx);
 
@@ -288,7 +288,7 @@ it('CA-006-21: rejects a missing or invalid Turnstile token with 422 and stores 
 });
 
 it('CA-006-22: a Turnstile outage closes access with a retry message, logs without personal data and stores nothing', function (): void {
-    $ctx = formScenario();
+    $ctx = publicFormScenario();
     Http::fake(fn () => throw new ConnectionException('timeout'));
     $log = Log::spy();
     $form = openForm($this->get(...), $ctx);
@@ -303,7 +303,7 @@ it('CA-006-22: a Turnstile outage closes access with a retry message, logs witho
 });
 
 it('CA-006-24: a Turnstile token that was already used is rejected with 422', function (): void {
-    $ctx = formScenario();
+    $ctx = publicFormScenario();
     turnstileOk();
     $first = openForm($this->get(...), $ctx);
     $this->post($ctx['url'].'/submit', formBody($ctx, $first, ['turnstile_token' => 'token-unico']))->assertRedirect();
@@ -317,7 +317,7 @@ it('CA-006-24: a Turnstile token that was already used is rejected with 422', fu
 });
 
 it('CA-006-24: Turnstile is verified only on the final submission, not when the form is opened or a file is uploaded', function (): void {
-    $ctx = formScenario();
+    $ctx = publicFormScenario();
     Http::fake();
 
     $this->get($ctx['url'].'/submit')->assertOk();
@@ -327,7 +327,7 @@ it('CA-006-24: Turnstile is verified only on the final submission, not when the 
 });
 
 it('CA-006-20: a blocked IP receives 429 with Retry-After and no proposal is created', function (): void {
-    $ctx = formScenario();
+    $ctx = publicFormScenario();
     turnstileOk();
     config(['submissions.limits.submission_per_ip' => ['attempts' => 1, 'decay_seconds' => 600]]);
     $form = openForm($this->get(...), $ctx);
@@ -342,7 +342,7 @@ it('CA-006-20: a blocked IP receives 429 with Retry-After and no proposal is cre
 });
 
 it('CA-006-26: an email with 3 receipts in the last hour receives 429 and no proposal is created', function (): void {
-    $ctx = formScenario();
+    $ctx = publicFormScenario();
     turnstileOk();
     config(['submissions.limits.received_per_email' => ['attempts' => 1, 'decay_seconds' => 3600]]);
     $form = openForm($this->get(...), $ctx);
@@ -359,7 +359,7 @@ it('CA-006-26: an email with 3 receipts in the last hour receives 429 and no pro
 });
 
 it('CA-006-2: a call closed after the form was opened answers 409 CALL_NOT_OPEN and stores nothing', function (): void {
-    $ctx = formScenario();
+    $ctx = publicFormScenario();
     turnstileOk();
     $form = openForm($this->get(...), $ctx);
 
@@ -373,7 +373,7 @@ it('CA-006-2: a call closed after the form was opened answers 409 CALL_NOT_OPEN 
 });
 
 it('CA-006-12: an outdated form version answers 409 FORM_OUTDATED and stores nothing', function (): void {
-    $ctx = formScenario();
+    $ctx = publicFormScenario();
     turnstileOk();
     $form = openForm($this->get(...), $ctx);
 
@@ -385,7 +385,7 @@ it('CA-006-12: an outdated form version answers 409 FORM_OUTDATED and stores not
 });
 
 it('CA-006-4: reports every error at once, fixed block and answers, keyed by field', function (): void {
-    $ctx = formScenario();
+    $ctx = publicFormScenario();
     turnstileOk();
     $form = openForm($this->get(...), $ctx);
 
@@ -397,8 +397,8 @@ it('CA-006-4: reports every error at once, fixed block and answers, keyed by fie
 });
 
 it('CA-006-7: the body cannot choose the organization, event, call or status', function (): void {
-    $ctx = formScenario();
-    $other = formScenario('otra');
+    $ctx = publicFormScenario();
+    $other = publicFormScenario('otra');
     CurrentOrganization::set($ctx['org']);
     turnstileOk();
     $form = openForm($this->get(...), $ctx);

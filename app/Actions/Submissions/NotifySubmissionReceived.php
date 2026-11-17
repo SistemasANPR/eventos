@@ -52,9 +52,10 @@ final class NotifySubmissionReceived
             eventId: $event->id,
         );
 
-        $panelUrl = route('filament.admin.resources.events.submissions.index', [
+        // La lista de propuestas es la sección `submissions` del evento (plan 020, `ManageEventSubmissions`).
+        $panelUrl = route('filament.admin.resources.events.submissions', [
             'tenant' => $organization->slug,
-            'event' => $event->id,
+            'record' => $event->id,
         ]);
 
         foreach (SubmissionOrganizers::current() as $organizer) {
