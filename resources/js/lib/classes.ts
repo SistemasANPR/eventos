@@ -25,3 +25,7 @@ export const BUTTON_PRIMARY =
 /** Botón secundario: contorno `primary` sobre `surface`, mismo tamaño táctil. */
 export const BUTTON_SECONDARY =
     'inline-flex min-h-11 items-center justify-center rounded-md border border-primary bg-surface px-4 text-base font-semibold text-primary hover:bg-bg disabled:opacity-60';
+
+/** Pie de una página pública: enlace de regreso a la izquierda y selector de idioma a la derecha desde `sm`. */
+export const PAGE_FOOTER =
+    'flex flex-col gap-2 border-t border-border pt-4 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between';

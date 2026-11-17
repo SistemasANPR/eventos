@@ -5,7 +5,7 @@ import { TextLink } from '@/components/atoms/TextLink';
 import { LocaleSwitcher } from '@/components/molecules/LocaleSwitcher';
 import { useTranslation } from '@/hooks/useTranslation';
 import { PublicLayout } from '@/layouts/PublicLayout';
-import { PAGE_TITLE } from '@/lib/classes';
+import { PAGE_FOOTER, PAGE_TITLE } from '@/lib/classes';
 import { formatPublishedAt } from '@/lib/date-format';
 import type { PrivacyNotice, PrivacyPageEvent, PublicOrganization } from '@/types/event';
 
@@ -46,7 +46,7 @@ export default function Privacy({ event, organization, notice, eventUrl }: Priva
                     <RichText html={notice.body} />
                 </div>
 
-                <div className="flex flex-col gap-2 border-t border-border pt-4 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
+                <div className={PAGE_FOOTER}>
                     <TextLink href={eventUrl} className="-ml-3">
                         {t('privacy.back_to_event')}
                     </TextLink>

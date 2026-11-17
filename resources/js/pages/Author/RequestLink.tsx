@@ -7,7 +7,7 @@ import { TextLink } from '@/components/atoms/TextLink';
 import { LocaleSwitcher } from '@/components/molecules/LocaleSwitcher';
 import { useTranslation } from '@/hooks/useTranslation';
 import { PublicLayout } from '@/layouts/PublicLayout';
-import { BUTTON_PRIMARY, FORM_CONTROL, PAGE_TITLE } from '@/lib/classes';
+import { BUTTON_PRIMARY, FORM_CONTROL, PAGE_FOOTER, PAGE_TITLE } from '@/lib/classes';
 import type { AccessLinkPageProps } from '@/types/author';
 
 /**
@@ -140,7 +140,7 @@ export default function RequestLink({
                     </button>
                 </form>
 
-                <div className="flex flex-col gap-2 border-t border-border pt-4 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
+                <div className={PAGE_FOOTER}>
                     <TextLink href={eventUrl} className="-ml-3">
                         {t('author.request.back_to_event')}
                     </TextLink>
