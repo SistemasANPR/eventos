@@ -37,6 +37,15 @@ return [
         'files_attached' => '{0} No attached files|{1} :count attached file|[2,*] :count attached files',
     ],
 
+    'summary' => [
+        'action' => 'Summary',
+        'total' => 'Total call submissions: :count',
+        'by_track' => 'By track',
+        'by_type' => 'By type',
+        'by_day' => 'By submission day',
+        'empty' => 'There are no call submissions for this event yet, so there is nothing to summarize. When they arrive, you will see how many there are by track, by type and by day.',
+    ],
+
     'export' => [
         'action' => 'Export',
         'format' => 'Format',

@@ -37,6 +37,15 @@ return [
         'files_attached' => '{0} Sin archivos adjuntos|{1} :count archivo adjunto|[2,*] :count archivos adjuntos',
     ],
 
+    'summary' => [
+        'action' => 'Resumen',
+        'total' => 'Total de propuestas de la convocatoria: :count',
+        'by_track' => 'Por eje',
+        'by_type' => 'Por tipo',
+        'by_day' => 'Por día de envío',
+        'empty' => 'Todavía no hay propuestas de la convocatoria en este evento, así que no hay nada que resumir. Cuando lleguen, aquí verás cuántas hay por eje, por tipo y por día.',
+    ],
+
     'export' => [
         'action' => 'Exportar',
         'format' => 'Formato',

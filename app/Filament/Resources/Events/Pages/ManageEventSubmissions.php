@@ -13,6 +13,7 @@ use App\Models\Event;
 use App\Models\Submission;
 use App\Models\User;
 use App\Support\SubmissionExport\RecentExports;
+use App\Support\SubmissionSummary\SubmissionSummary;
 use App\Support\Tenancy\CurrentOrganization;
 use BackedEnum;
 use Filament\Actions\Action;
@@ -99,6 +100,17 @@ class ManageEventSubmissions extends ManageRelatedRecords
     protected function getHeaderActions(): array
     {
         return [
+            Action::make('summary')
+                ->label(__('submission_panel.summary.action'))
+                ->icon(Heroicon::OutlinedChartBar)
+                ->color('gray')
+                ->visible(fn (): bool => Gate::allows('viewAny', Submission::class))
+                ->modalHeading(__('submission_panel.summary.action'))
+                ->modalSubmitAction(false)
+                ->modalCancelActionLabel(__('filament-actions::modal.actions.close.label'))
+                ->modalContent(fn () => view('filament.submissions.summary', [
+                    'summary' => SubmissionSummary::for($this->eventRecord()),
+                ])),
             Action::make('export')
                 ->label(__('submission_panel.export.action'))
                 ->icon(Heroicon::OutlinedArrowDownTray)
@@ -171,6 +183,13 @@ class ManageEventSubmissions extends ManageRelatedRecords
             'from' => $filters['submitted_range']['from'] ?? null,
             'until' => $filters['submitted_range']['until'] ?? null,
         ];
+    }
+
+    private function eventRecord(): Event
+    {
+        $event = $this->getOwnerRecord();
+
+        return $event instanceof Event ? $event : throw new LogicException('La página de propuestas no tiene un evento.');
     }
 
     private function user(): User
