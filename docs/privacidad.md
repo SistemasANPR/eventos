@@ -24,6 +24,13 @@ Mantener esta tabla al día: **todo dato personal nuevo se añade aquí en el mi
 | Calificaciones y comentarios de evaluadores | Comité | Decisión de aceptación | Interés legítimo | `[RELLENAR]` | No |
 | Datos de facturación | Pagos | Facturación electrónica | Obligación legal | Plazo fiscal aplicable | No |
 | Necesidades de accesibilidad o alimentarias | Registro | Atención en el evento | Consentimiento expreso | Hasta el fin del evento + `[RELLENAR]` | **Posible** (salud) |
+| Nombre, correo y país de personas de contacto (`contacts`) | Núcleo (autores y ponentes) | Comunicación con la persona dentro de la organización que la registró | Relación de trabajo con la organización y consentimiento | `[RELLENAR: plazo; el borrado es anonimización, no borrado físico]` | No |
+| Huella de dispositivo en hash (`known_devices`: HMAC de navegador, sistema y red /24; sin agente de usuario ni IP) | Núcleo (acceso) | Avisar de inicios de sesión desde un dispositivo nuevo | Interés legítimo (seguridad de la cuenta) | Mientras exista el usuario (se borra en cascada con la cuenta); `[RELLENAR: plazo de depuración de dispositivos sin uso]` | No |
+| IP y hash del correo en la auditoría de accesos (`activity_log`, registro `auth`) | Núcleo (acceso) | Detectar abuso: intentos limitados y restablecimientos | Interés legítimo (seguridad) | `[RELLENAR]`; la limpieza de `activitylog` es de 365 días | No |
+| Nombre y correo de los miembros del equipo (`users`) y su pertenencia y rol en cada organización (membresías) | Núcleo (acceso y equipo) | Dar acceso al panel, asignar permisos y atribuir acciones auditadas | Relación de trabajo con la organización (contrato) | Mientras el miembro tenga acceso; la baja desactiva la membresía y conserva el registro para la auditoría; el equipo de plataforma (encargado) ve nombre, correo y membresías de todas las organizaciones, en solo lectura, desde el panel de plataforma (plan 016: no se guarda nada nuevo); `[RELLENAR: plazo de eliminación tras la baja]` | No |
+| Texto del aviso de privacidad por evento, quién lo publicó y cuándo (`privacy_notices`: versión, cuerpo, `published_by`, `published_at`) | Núcleo (privacidad) | Dar a las personas el aviso vigente y acreditar qué versión se publicó, por quién y en qué fecha | Obligación legal (aviso de privacidad del responsable) | Las versiones publicadas son inmutables y se conservan como evidencia; `[RELLENAR: plazo]` | No (el texto es de la organización; `published_by` es un miembro del equipo) |
+| Archivos de propuestas (`submission_files`: archivo en disco privado con nombre generado, nombre original saneado solo para mostrar, tipo, tamaño, hash del archivo y hash del token de subida; el contenido puede incluir datos personales) | Convocatoria (archivos) | Que el autor sustente su propuesta y que los organizadores la evalúen | Consentimiento al enviar la propuesta | Mientras viva la propuesta; los `pending` sin enviar se borran tras 24 h (H-007-3); `[RELLENAR: plazo]`; se borra o anonimiza con H-014-4 | No (el contenido puede incluir datos personales; sin antivirus en R0, RC-3) |
+| Quién dio de alta a un conferencista invitado y la declaración de autorización (`submissions.registered_by_user_id` y `authorization_declared_at`), más sus datos de participante (nombre, correo, país, cargo, empresa, biografía) | Convocatoria (invitados, plan 018) | Acreditar que el organizador registró a la persona con su autorización y quién lo hizo | Consentimiento declarado por el organizador y relación con la organización; el invitado recibe el aviso al acceder al portal (R2) | Como las propuestas: se anonimiza con H-014-4; `[RELLENAR: plazo]` | No |
 | [RELLENAR] | | | | | |
 
 ## 3. Reglas de ingeniería
@@ -43,7 +50,7 @@ Mantener esta tabla al día: **todo dato personal nuevo se añade aquí en el mi
 
 | Proveedor | Función | Datos que recibe | País | Contrato de tratamiento |
 |---|---|---|---|---|
-| `[RELLENAR: correo transaccional]` | Envío de correos | Nombre, correo, contenido | | |
+| Resend (ADR-0009) | Envío de correos | Nombre, correo, contenido | | |
 | `[RELLENAR: pagos]` | Cobros | Datos de pago (los gestiona el proveedor) | | |
 | `[RELLENAR: errores]` | Registro de errores | Sin PII | | |
 | `[RELLENAR: alojamiento]` | Aplicación y base | Todos | | |

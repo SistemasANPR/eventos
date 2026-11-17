@@ -19,6 +19,19 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Private Uploads Disk
+    |--------------------------------------------------------------------------
+    |
+    | Disco PRIVADO de los archivos que suben los usuarios (plan 007). Nunca debe
+    | apuntar a `public`. En local es `local` (storage/app/private); en
+    | staging y producción, un bucket S3 compatible privado (DA-3).
+    |
+    */
+
+    'private_uploads_disk' => env('PRIVATE_UPLOADS_DISK', 'local'),
+
+    /*
+    |--------------------------------------------------------------------------
     | Filesystem Disks
     |--------------------------------------------------------------------------
     |

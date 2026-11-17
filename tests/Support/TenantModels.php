@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace Tests\Support;
 
+use App\Models\Activity;
 use App\Models\Concerns\BelongsToOrganization;
+use App\Models\KnownDevice;
 use App\Models\Organization;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
@@ -29,6 +31,11 @@ final class TenantModels
     public const GLOBAL_MODELS = [
         Organization::class,
         User::class,
+        // Dispositivos conocidos: pertenecen al usuario (que puede estar en varias organizaciones),
+        // solo guardan una huella en hash y no contienen datos de ninguna organización (plan 001 §5).
+        KnownDevice::class,
+        // Bitácora: de plataforma; los hechos de plataforma no tienen organización (plan 016, DT-01).
+        Activity::class,
     ];
 
     /** @return list<class-string<Model>> */
@@ -70,7 +77,10 @@ final class TenantModels
         ));
     }
 
-    /** @return array<class-string<Model>, array{0: class-string<Model>}> */
+    /**
+     * @param  list<class-string<Model>>  $classes
+     * @return array<class-string<Model>, array{0: class-string<Model>}>
+     */
     public static function dataset(array $classes): array
     {
         return array_combine($classes, array_map(static fn (string $class): array => [$class], $classes));

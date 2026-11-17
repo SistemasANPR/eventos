@@ -3,7 +3,7 @@
 > Plan de la épica E-05 (R0). Es la especificación de SDD (ADR-0001). Se presenta y se espera aprobación antes de escribir código. Fuente: `docs/plan-de-desarrollo.md` §10.1. Es el diferenciador del producto: cada organizador define los campos que su evento necesita, sin programar.
 
 - **Fecha:** 2026-11-09
-- **Estado:** Borrador
+- **Estado:** Aprobado
 - **Esfuerzo:** L
 - **Deuda relacionada:** ninguna
 
@@ -86,7 +86,7 @@ El organizador marca los campos que pueden delatar al autor (por ejemplo, un tex
 
 1. **Necesidad:** cada evento define qué datos pide a quien envía una propuesta. Módulo dueño: formularios. Ciclo de vida: borrador, publicado, con campos retirados; se conserva mientras existan respuestas.
 2. **Inspección:** sin esquema previo. Del cpanel se toma la lista de campos de propuesta (título, descripción, objetivos, justificación, eje) solo como referencia para las plantillas.
-3. **Modelo:** `form_definitions`: `id uuid`, `organization_id`, `event_id`, `name`, `status` (`draft`, `published`, con `CHECK`), `fields jsonb NOT NULL`, `version integer NOT NULL` (sube en cada cambio; bloqueo optimista y marca de la instantánea), `published_at`, `timestamps`, `SoftDeletes`. Ámbito: evento. `form_templates` (global): plantillas del sistema con la misma forma; se declara en `TenantModels::GLOBAL_MODELS`.
+3. **Modelo:** `form_definitions`: `id uuid`, `organization_id`, `event_id`, `name`, `status` (`draft`, `published`, con `CHECK`), `fields jsonb NOT NULL`, `version integer NOT NULL` (sube en cada cambio; bloqueo optimista y marca de la instantánea), `published_at`, `timestamps`, `SoftDeletes`. Ámbito: evento. ~~`form_templates` (global): plantillas del sistema con la misma forma; se declara en `TenantModels::GLOBAL_MODELS`.~~ **Decisión de Gabriel (2026-11-13, delegación de Antonio):** las plantillas del sistema (sesión, panel, póster) viven en código (`App\Support\Forms\FormTemplates`), como el catálogo de notificaciones (ADR-0009). Son de solo lectura por construcción (CA-005-37), no necesitan migración ni modelo global, y se versionan con la aplicación. Si un día el equipo quiere editarlas desde el panel, se crea la tabla entonces.
 4. **Integridad:** `organization_id NOT NULL` con clave foránea; `unique(id, organization_id)`; clave foránea compuesta `(event_id, organization_id)` hacia `events`; `CHECK (jsonb_typeof(fields) = 'array')`; la forma de cada campo se valida en la aplicación con una clase de esquema probada, porque PostgreSQL no valida la estructura interna; índice `(organization_id, event_id, status)`.
 5. **Cambio:** migraciones nuevas sin datos previos; `down()` las elimina. La aplica el humano.
 6. **Alternativa descartada:** modelo EAV (`form_fields` y `answers` como filas) o una columna por campo. Se descartaron: el EAV multiplica las filas y las consultas para exportar y filtrar, y pierde la validación por tipo en la base; una columna por campo exige migrar el esquema por cada formulario, lo contrario del objetivo del producto. El `jsonb` con definición versionada da una instantánea simple y exportable.
@@ -154,6 +154,7 @@ Cada uno tiene al menos una prueba cuyo nombre lo cita (`CA-005-n: ...`) o decla
 - **CA-005-22:** *Dado* dos organizadores que editan a la vez un formulario publicado, *cuando* el segundo guarda con una `version` anterior, *entonces* se rechaza con conflicto y no se pisa el cambio del primero.
 - **CA-005-23:** *Dado* un cambio que modifica la definición, *cuando* se guarda, *entonces* `version` aumenta en 1; *cuando* se guarda sin cambios, *entonces* `version` no cambia.
 - **CA-005-24:** *Dado* una edición del formulario y un envío de propuesta que ocurren al mismo tiempo (dos transacciones en paralelo sobre `LockedFormDefinition`), *cuando* ambas terminan, *entonces* no existe una respuesta guardada que viole la definición cuya `version` quedó registrada con ella: o el cambio se rechaza con `FIELD_HAS_ANSWERS`, o el envío se rechaza con `FORM_OUTDATED`.
+  Manual: la prueba automática comprueba que la definición se carga con `FOR UPDATE`; la carrera real entre una edición y un envío en dos transacciones paralelas se verifica cuando el plan 006 implemente `SubmitSubmission` (hasta entonces no existe un segundo escritor).
 
 **H-005-4 · Validación dinámica en el servidor**
 
@@ -192,3 +193,8 @@ Cada uno tiene al menos una prueba cuyo nombre lo cita (`CA-005-n: ...`) o decla
 
 | Fase | Commit | Fecha | Notas (salida real de las validaciones) |
 |---|---|---|---|
+| F0 + F1 (H-005-1) | 825e2d0 | 2026-11-12 | Pint OK; Larastan sin errores; 29 pruebas del modulo y suite completa (940) en verde; check:criteria 0 errores. Desviaciones: `forms.view` queda para H-005-2; la validacion vive en `FormDefinitionRules` en vez de Form Requests; `form_definition_id` en la convocatoria y `form_templates` van en H-005-3 y F5. Pendiente: revision manual en navegador a 375 y 1280 px. |
+| F2 (H-005-4) | e29cc5c | 2026-11-12 | 72 pruebas de Forms en verde; Larastan sin errores; Pint OK; check:criteria 0 errores. La prueba detecto que `distinct` debe ir en la regla por elemento. `PendingUploadRepository` es un contrato propio con doble; el plan 007 aporta la implementacion y su binding. |
+| F4 (H-005-3) | 64a5197 | 2026-11-12 | 90 pruebas de Forms y guardianas Arch/Tenancy en verde; Larastan sin errores; Pint OK. Migracion `form_definition_id` aplicada en la base local. CA-005-24: carrera real pendiente del plan 006 (linea Manual). Sin prueba automatica: el boton de retirar campo del editor (la Action esta probada); revisar en navegador. |
+| F3 (H-005-2) | 1df518a | 2026-11-12 | 14 pruebas del panel/vista previa, Arch/Tenancy (152), Vitest 126, typecheck, lint y build en verde; Larastan sin errores en los archivos del plan (queda un aviso en SendTransactionalMail del plan 008). Desviaciones: `forms.view` solo en la Policy (ningun rol de la matriz lo trae); sin Form Request de orden (el orden viaja en UpdateFormDefinition). Pendiente: CA-005-15 Manual (Tab a 375 y 1280 px con los nueve tipos y consola) y revision visual de estilos de la vista previa dentro de Filament. |
+| F5 (H-005-5) | 9c6bb0b | 2026-11-13 | Forms + Arch + Tenancy: 275 pruebas en verde; Larastan sin errores; check:criteria 0 errores (plan 005 sin avisos). Plantillas en codigo en vez de tabla `form_templates` (decision en §4). CA-005-37 (editar plantilla): no existe operacion de edicion por diseno; se prueba que sin `forms.manage` no se crea ni duplica. Pendiente de la persona: revision manual en navegador (CA-005-15, boton Retirar campo, estilos de la vista previa, acciones Plantilla y Duplicar).

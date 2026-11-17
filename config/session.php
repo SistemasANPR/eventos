@@ -171,7 +171,10 @@ return [
     |
     */
 
-    'secure' => env('SESSION_SECURE_COOKIE'),
+    // Por defecto solo HTTPS (docs/seguridad.md §2). Chrome y Firefox aceptan cookies Secure en
+    // http://localhost, así que el desarrollo local no necesita relajarlo; quien use otro host sin
+    // TLS debe poner SESSION_SECURE_COOKIE=false de forma explícita.
+    'secure' => env('SESSION_SECURE_COOKIE', true),
 
     /*
     |--------------------------------------------------------------------------
