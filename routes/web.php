@@ -49,3 +49,6 @@ Route::middleware([SetOrganizationFromRoute::class, HandleInertiaRequests::class
 Route::middleware(['auth', SetOrganizationFromRoute::class])
     ->get('admin/{organization:slug}/submission-files/{file}', SubmissionFileDownloadController::class)
     ->name('submission-files.download');
+
+// Rutas del autor de una propuesta (plan 006).
+require __DIR__.'/author.php';

@@ -56,6 +56,8 @@ Solo nombres; nunca valores en el repositorio. Toda variable nueva se añade a `
 | `MAIL_*` | Correo transaccional | Sí |
 | `NOTIFICATIONS_MAILER` | Proveedor del correo transaccional: `resend` en staging y producción, `smtp` en local (Mailpit). Un valor desconocido falla al enviar; no cae a otro proveedor (ADR-0009, plan 008) | Sí |
 | `RESEND_API_KEY` | Clave de la API de Resend; solo cuando `NOTIFICATIONS_MAILER=resend`. Es un secreto: solo en variables del entorno, nunca en el repositorio | Sí, con `resend` |
+| `TURNSTILE_SITE_KEY` | Llave pública de Cloudflare Turnstile; va al formulario público (plan 006). En local, la llave de prueba que siempre aprueba | Sí, en producción |
+| `TURNSTILE_SECRET_KEY` | Llave secreta de Turnstile; solo la usa el servidor para verificar el envío. Es un secreto: solo en variables del entorno | Sí, en producción |
 | `[RELLENAR: proveedor de pagos]` | Pagos (ADR-0007) | Según módulo |
 | `[RELLENAR: errores]` | Registro de errores | Recomendada |
 

@@ -75,6 +75,18 @@ class Event extends Model
         return $query->where('status', EventStatus::Published);
     }
 
+    /**
+     * Eventos a los que el usuario está asignado con cualquier rol (plan 011,
+     * CA-011-28). Un evento ajeno no aparece, así que `findOrFail` responde 404.
+     *
+     * @param  Builder<Event>  $query
+     * @return Builder<Event>
+     */
+    public function scopeAssignedTo(Builder $query, User $user): Builder
+    {
+        return $query->whereIn('id', EventAssignment::query()->where('user_id', $user->id)->select('event_id'));
+    }
+
     /** @return HasMany<CallForSubmissions, $this> */
     public function calls(): HasMany
     {

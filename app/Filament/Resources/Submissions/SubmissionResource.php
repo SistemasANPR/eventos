@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Filament\Resources\Submissions;
 
+use App\Enums\SubmissionOrigin;
 use App\Filament\Resources\Events\EventResource;
 use App\Filament\Resources\Submissions\Tables\SubmissionsTable;
 use App\Models\Submission;
@@ -11,6 +12,9 @@ use BackedEnum;
 use Filament\Resources\Resource;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\Relation;
 
 /**
  * Propuestas del evento actual (plan 009, H-009-1). Vive bajo el evento
@@ -47,6 +51,33 @@ class SubmissionResource extends Resource
     public static function table(Table $table): Table
     {
         return SubmissionsTable::configure($table);
+    }
+
+    /**
+     * Solo las propuestas de la convocatoria: los invitados (plan 018) tienen su propia vista y
+     * nunca entran en esta lista. Carga lo que muestra la tabla para evitar N+1.
+     *
+     * @return Builder<Model>
+     */
+    public static function getEloquentQuery(): Builder
+    {
+        return self::scopeToList(parent::getEloquentQuery());
+    }
+
+    /**
+     * Las reglas de la lista, aplicables a una consulta o a una relación: la página del evento
+     * (`ManageEventSubmissions`) parte de `$evento->submissions()` y no pasa por `getEloquentQuery()`.
+     *
+     * @template TQuery of Builder|Relation
+     *
+     * @param  TQuery  $query
+     * @return TQuery
+     */
+    public static function scopeToList(Builder|Relation $query): Builder|Relation
+    {
+        return $query
+            ->where('origin', SubmissionOrigin::Call)
+            ->with(['event', 'call', 'submissionType', 'track']);
     }
 
     /** @return array<string, mixed> sin páginas propias todavía: el detalle llega con H-009-2 */

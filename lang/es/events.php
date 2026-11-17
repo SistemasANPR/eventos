@@ -9,6 +9,9 @@ return [
     'only_published_can_be_archived' => 'Solo se puede archivar un evento publicado.',
     'slug_change_needs_confirmation' => 'Este evento ya está publicado: cambiar su identificador rompe los enlaces que ya compartiste. Confirma el cambio para continuar.',
 
+    'assignment_user_not_member' => 'Esta persona no es integrante activo de la organización.',
+    'assignment_already_exists' => 'Esta persona ya tiene ese rol en el evento.',
+
     'navigation' => 'Eventos',
     'model' => 'evento',
     'plural' => 'eventos',

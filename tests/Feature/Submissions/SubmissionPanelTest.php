@@ -67,3 +67,12 @@ it('CA-009-7: a submission of another organization never appears in the list of 
         ->assertOk()
         ->assertDontSee('Titulo ajeno');
 });
+
+it('CA-009-5: the event screen links to the submissions list for who can view submissions', function (): void {
+    [$organization, $event, $user] = formScenario(OrganizationRole::Organizer);
+
+    $this->actingAs($user)
+        ->get(EventResource::getUrl('view', ['record' => $event], panel: 'admin', tenant: $organization))
+        ->assertOk()
+        ->assertSee(submissionsUrl($organization, $event), false);
+});

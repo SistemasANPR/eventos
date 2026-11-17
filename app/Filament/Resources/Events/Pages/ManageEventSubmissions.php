@@ -6,9 +6,13 @@ namespace App\Filament\Resources\Events\Pages;
 
 use App\Filament\Resources\Events\EventResource;
 use App\Filament\Resources\Submissions\SubmissionResource;
+use App\Filament\Resources\Submissions\Tables\SubmissionsTable;
+use App\Models\Event;
+use App\Models\Submission;
 use BackedEnum;
 use Filament\Resources\Pages\ManageRelatedRecords;
 use Filament\Support\Icons\Heroicon;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
  * Propuestas del evento (plan 020, F2; recurso del plan 009): la lista que antes se abría solo por URL
@@ -35,5 +39,44 @@ class ManageEventSubmissions extends ManageRelatedRecords
     public function getTitle(): string
     {
         return __('submission_panel.navigation');
+    }
+
+    /**
+     * La página de relación arma su consulta desde `$evento->submissions()` y no pasa por
+     * `SubmissionResource::getEloquentQuery()`: sin esto volverían los invitados (plan 018) y se
+     * perdería la carga anticipada. Se aplican las reglas de la lista a la relación del evento
+     * (Filament exige una relación aquí, no una consulta).
+     *
+     * @return HasMany<Submission, Event>
+     */
+    public function getRelationship(): HasMany
+    {
+        $event = $this->getOwnerRecord();
+        assert($event instanceof Event);
+
+        return SubmissionResource::scopeToList($event->submissions());
+    }
+
+    /**
+     * Un filtro con un valor que no es del evento actual se limpia y produce el mismo error de
+     * validación genérico, sea ajeno, inexistente o mal formado (plan 009, CA-009-4).
+     */
+    public function updatedTableFilters(): void
+    {
+        $event = $this->getOwnerRecord();
+
+        if ($event instanceof Event) {
+            $invalid = SubmissionsTable::invalidSelectFilters($this->tableFilters ?? [], $event);
+
+            foreach ($invalid as $name) {
+                $this->tableFilters[$name]['value'] = null;
+            }
+
+            if ($invalid !== []) {
+                throw SubmissionsTable::invalidFilter();
+            }
+        }
+
+        parent::updatedTableFilters();
     }
 }
