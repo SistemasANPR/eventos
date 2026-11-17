@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Http\Controllers\Internal\ShowComponentCatalogController;
+use App\Http\Controllers\Panel\SubmissionExportDownloadController;
 use App\Http\Controllers\Panel\SubmissionFileDownloadController;
 use App\Http\Controllers\Public\ShowCallController;
 use App\Http\Controllers\Public\ShowEventController;
@@ -61,6 +62,13 @@ Route::middleware([SetOrganizationFromRoute::class, HandleInertiaRequests::class
 Route::middleware(['auth', SetOrganizationFromRoute::class])
     ->get('admin/{organization:slug}/submission-files/{file}', SubmissionFileDownloadController::class)
     ->name('submission-files.download');
+
+// Descarga del archivo de una exportación de propuestas (plan 009, H-009-3, CA-009-19). Misma forma que
+// la descarga de archivos de propuesta: `auth`, organización fijada por la ruta y, además, URL firmada
+// de 5 minutos (`signed`) que lleva el identificador de quien la pidió.
+Route::middleware(['auth', 'signed', SetOrganizationFromRoute::class])
+    ->get('admin/{organization:slug}/submission-exports/{export}', SubmissionExportDownloadController::class)
+    ->name('submission-exports.download');
 
 // Rutas del autor de una propuesta (plan 006).
 require __DIR__.'/author.php';

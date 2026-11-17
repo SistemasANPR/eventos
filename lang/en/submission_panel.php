@@ -36,4 +36,20 @@ return [
         'no_participants' => 'This submission has no participants.',
         'files_attached' => '{0} No attached files|{1} :count attached file|[2,*] :count attached files',
     ],
+
+    'export' => [
+        'action' => 'Export',
+        'format' => 'Format',
+        'format_invalid' => 'The export format is not valid.',
+        'description' => 'The submissions matching the filters you have applied are exported. The file is prepared in the background and stays available for 24 hours under "Recent exports".',
+        'queued_title' => 'Export in progress',
+        'queued_body' => 'When the file is ready it will appear under "Recent exports".',
+        'too_large' => 'The export has :rows submissions and the maximum is :max. Narrow the filters (call, track, type, status or dates) and try again.',
+        'unavailable' => 'The export file is no longer available. Request a new export.',
+        'recent' => 'Recent exports',
+        'recent_empty' => 'There are no exports from the last 24 hours.',
+        'recent_row' => ':date · :rows submissions · :format',
+        'download' => 'Download',
+        'recent_note' => 'Download links expire after 5 minutes and only work for the person who requested the export.',
+    ],
 ];

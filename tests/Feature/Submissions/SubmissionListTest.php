@@ -2,22 +2,29 @@
 
 declare(strict_types=1);
 
+use App\Actions\SubmissionExports\ExportSubmissions;
 use App\Enums\OrganizationRole;
 use App\Enums\SubmissionStatus;
 use App\Filament\Resources\Submissions\Pages\ListSubmissions;
 use App\Filament\Resources\Submissions\Tables\SubmissionsTable;
+use App\Jobs\ExportSubmissionsJob;
 use App\Models\Event;
 use App\Models\Organization;
 use App\Models\Submission;
 use App\Models\Track;
 use App\Models\User;
+use App\Support\SubmissionExport\RecentExports;
 use App\Support\Tenancy\CurrentOrganization;
 use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Queue;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Livewire\Features\SupportTesting\Testable;
 use Livewire\Livewire;
+use Spatie\Activitylog\Models\Activity;
+use Tests\Support\Memberships;
 
 uses(RefreshDatabase::class);
 
@@ -156,4 +163,74 @@ it('CA-009-2: invited speakers (plan 018) never appear in the proposals list', f
     submissionList($organization, $user, $event)
         ->assertCanSeeTableRecords([$call])
         ->assertCanNotSeeTableRecords([$invited]);
+});
+
+it('CA-009-11: the export action exports only the rows of the active filters and tells the user it is in progress', function (): void {
+    Storage::fake(config('filesystems.private_uploads_disk'));
+    [$organization, $event, $user] = formScenario(OrganizationRole::Organizer);
+    $submitted = Submission::factory()->create(['organization_id' => $organization->id, 'event_id' => $event->id, 'title' => 'Enviada visible']);
+    siblingSubmission($submitted, ['title' => 'Retirada filtrada', 'status' => SubmissionStatus::Withdrawn, 'withdrawn_at' => '2027-01-11 10:00:00']);
+
+    submissionList($organization, $user, $event)
+        ->filterTable('status', 'submitted')
+        ->callAction('export', ['format' => 'csv'])
+        ->assertNotified(__('submission_panel.export.queued_title'));
+
+    $entry = Activity::query()->where('event', 'submissions_exported')->sole();
+    $file = "organizations/{$organization->id}/exports/{$entry->properties['export_id']}.csv";
+    $content = Storage::disk(config('filesystems.private_uploads_disk'))->get($file);
+
+    expect($entry->properties['rows'])->toBe(1)
+        ->and($entry->properties['filters']['status'])->toBe('submitted')
+        ->and($content)->toContain('Enviada visible')
+        ->and($content)->not->toContain('Retirada filtrada');
+});
+
+it('CA-009-15: the export action is hidden for a member without submissions.export', function (): void {
+    [$organization, $event] = formScenario(OrganizationRole::Organizer);
+    $viewer = Memberships::attach(User::factory()->create(), $organization);
+    CurrentOrganization::run($organization, fn () => $viewer->givePermissionTo(['events.manage', 'submissions.view']));
+
+    submissionList($organization, $viewer, $event)
+        ->assertActionHidden('export')
+        ->assertActionHidden('recentExports');
+});
+
+it('CA-009-16: the export action shows the too-large message and queues nothing', function (): void {
+    Storage::fake(config('filesystems.private_uploads_disk'));
+    Queue::fake();
+    [$organization, $event, $user] = formScenario(OrganizationRole::Organizer);
+    $base = Submission::factory()->create(['organization_id' => $organization->id, 'event_id' => $event->id]);
+    siblingSubmission($base);
+
+    // Con un tope de una fila, las dos propuestas del evento lo superan.
+    app()->bind(ExportSubmissions::class, fn (): ExportSubmissions => new ExportSubmissions(maxRows: 1));
+
+    submissionList($organization, $user, $event)
+        ->callAction('export', ['format' => 'csv'])
+        ->assertNotified();
+
+    // Crear propuestas encola otras cosas (avisos): solo importa que NO se encole la exportación.
+    Queue::assertNotPushed(ExportSubmissionsJob::class);
+    expect(Activity::query()->where('event', 'like', 'submissions_export%')->count())->toBe(0);
+});
+
+it('CA-009-19: the recent exports list shows only my exports with a signed download link', function (): void {
+    Storage::fake(config('filesystems.private_uploads_disk'));
+    [$organization, $event, $user] = formScenario(OrganizationRole::Organizer);
+    $other = Memberships::attach(User::factory()->create(), $organization, OrganizationRole::Organizer);
+    Submission::factory()->create(['organization_id' => $organization->id, 'event_id' => $event->id]);
+
+    Auth::login($user);
+    CurrentOrganization::set($organization);
+    app(ExportSubmissions::class)->handle($event, [], $user, 'csv');
+    Auth::login($other);
+    app(ExportSubmissions::class)->handle($event, [], $other, 'csv');
+
+    $mine = RecentExports::for($user, $organization);
+
+    expect($mine)->toHaveCount(1)
+        ->and($mine[0]['rows'])->toBe(1)
+        ->and($mine[0]['url'])->toContain('signature=')
+        ->and($mine[0]['url'])->toContain("user={$user->id}");
 });
