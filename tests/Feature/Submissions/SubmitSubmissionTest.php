@@ -46,6 +46,7 @@ afterEach(function (): void {
  * Convocatoria abierta con formulario publicado (un campo obligatorio y uno opcional), eje y aviso vigente.
  * Deja la organización en contexto.
  *
+ * @param  array<string, mixed>  $notice
  * @return array{org: Organization, event: Event, call: CallForSubmissions, form: FormDefinition, track: Track, notice: PrivacyNotice}
  */
 function subScenario(array $notice = [], bool $publishedNotice = true): array
@@ -103,19 +104,29 @@ function subInput(array $ctx, array $overrides = []): array
     ], $overrides);
 }
 
-/** @param  array<string, mixed>  $input */
+/**
+ * @param  array<string, mixed>  $ctx
+ * @param  array<string, mixed>  $input
+ */
 function subSubmit(array $ctx, array $input): Submission
 {
     return app(SubmitSubmission::class)->handle($ctx['call'], $input)->submission;
 }
 
-/** @param  array<string, mixed>  $overrides */
+/**
+ * @param  array<string, mixed>  $overrides
+ * @return array<string, mixed>
+ */
 function subParticipant(string $email, array $overrides = []): array
 {
     return array_replace(['full_name' => 'Persona '.$email, 'email' => $email, 'country' => 'CO', 'is_primary' => false], $overrides);
 }
 
-/** @return array<string, list<string>> errores de validación del envío (vacío si se aceptó) */
+/**
+ * @param  array<string, mixed>  $ctx
+ * @param  array<string, mixed>  $input
+ * @return array<string, list<string>> errores de validación del envío (vacío si se aceptó)
+ */
 function subErrors(array $ctx, array $input): array
 {
     try {
@@ -278,6 +289,7 @@ it('CA-006-8: rejects tracks from another event, another organization or archive
             return $created;
         })(),
         'archived' => tap(Track::factory()->create(['organization_id' => $ctx['org']->id, 'event_id' => $ctx['event']->id]), fn (Track $t) => $t->forceFill(['archived_at' => now()])->save()),
+        default => throw new InvalidArgumentException("Unknown track case: {$kind}"),
     };
 
     $errors = subErrors($ctx, subInput($ctx, ['track_id' => $track->id]));
