@@ -51,6 +51,7 @@ use Illuminate\Validation\ValidationException;
  * `(organization_id, idempotency_key)` resuelve a la propuesta ganadora, nunca a un 500.
  *
  * Un participante se vincula a un `Contact` por correo normalizado y NUNCA lo modifica (DA-2).
+ * Confirmada la transacción, `NotifySubmissionReceived` encola el acuse y el aviso a organizadores.
  *
  * @throws ModelNotFoundException si la convocatoria es un borrador
  * @throws CallNotOpen si la convocatoria no está abierta
@@ -75,12 +76,27 @@ final class SubmitSubmission
         private readonly BuildSubmissionRules $answerRules,
         private readonly AttachSubmissionFile $attachFiles,
         private readonly IdempotencyKeys $idempotencyKeys,
+        private readonly NotifySubmissionReceived $notifyReceived,
     ) {}
 
     /**
      * @param  array<string, mixed>  $input  cuerpo de la petición; se ignora todo lo que no sea del contrato
      */
     public function handle(CallForSubmissions $call, array $input, string $uploadToken = ''): SubmitOutcome
+    {
+        $outcome = $this->submit($call, $input, $uploadToken);
+
+        // Los correos se encolan DESPUÉS de confirmar la transacción (CA-006-29) y solo la primera vez:
+        // una repetición con la misma clave devuelve la misma propuesta sin repetir efectos (CA-006-14).
+        if ($outcome->created) {
+            $this->notifyReceived->handle($outcome->submission);
+        }
+
+        return $outcome;
+    }
+
+    /** @param  array<string, mixed>  $input */
+    private function submit(CallForSubmissions $call, array $input, string $uploadToken): SubmitOutcome
     {
         $data = $this->normalize($input);
         $key = is_string($data['idempotency_key'] ?? null) ? $data['idempotency_key'] : '';

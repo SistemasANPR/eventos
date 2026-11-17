@@ -23,4 +23,17 @@ return [
         'until' => 'Until',
         'invalid' => 'The filter is not valid. Check the values and try again.',
     ],
+
+    'detail' => [
+        'general' => 'General information',
+        'answers' => 'Answers',
+        'participants' => 'Participants',
+        'primary' => 'Primary',
+        'retired' => 'field removed from the form',
+        'yes' => 'Yes',
+        'no' => 'No',
+        'no_answers' => 'This submission has no answers.',
+        'no_participants' => 'This submission has no participants.',
+        'files_attached' => '{0} No attached files|{1} :count attached file|[2,*] :count attached files',
+    ],
 ];

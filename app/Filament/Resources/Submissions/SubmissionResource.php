@@ -7,6 +7,7 @@ namespace App\Filament\Resources\Submissions;
 use App\Enums\SubmissionOrigin;
 use App\Filament\Resources\Events\EventResource;
 use App\Filament\Resources\Submissions\Pages\ListSubmissions;
+use App\Filament\Resources\Submissions\Pages\ViewSubmission;
 use App\Filament\Resources\Submissions\Tables\SubmissionsTable;
 use App\Models\Submission;
 use BackedEnum;
@@ -64,11 +65,23 @@ class SubmissionResource extends Resource
             ->with(['event', 'call', 'submissionType', 'track']);
     }
 
+    /**
+     * El detalle abre también a un invitado (marca «Invitado», plan 018): la ruta de una propuesta
+     * no se restringe por origen, solo por organización y evento de la ruta.
+     *
+     * @return Builder<Model>
+     */
+    public static function getRecordRouteBindingEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()->with(['event', 'call', 'submissionType', 'track', 'participants']);
+    }
+
     /** @return array<string, mixed> */
     public static function getPages(): array
     {
         return [
             'index' => ListSubmissions::route('/'),
+            'view' => ViewSubmission::route('/{record}'),
         ];
     }
 }

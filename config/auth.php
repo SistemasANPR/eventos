@@ -44,6 +44,12 @@ return [
             'driver' => 'session',
             'provider' => 'users',
         ],
+
+        // Autor de una propuesta, sin cuenta (plan 006, DA-3): sesión propia acotada a UNA propuesta,
+        // separada del guard `web` del panel. Sin proveedor de usuarios: no hay credenciales ni cuentas.
+        'author' => [
+            'driver' => 'author',
+        ],
     ],
 
     /*

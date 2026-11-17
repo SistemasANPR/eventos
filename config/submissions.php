@@ -21,4 +21,20 @@ return [
         'access_link_per_ip' => ['attempts' => 10, 'decay_seconds' => 3600],
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Acceso del autor sin cuenta (plan 006, DA-3)
+    |--------------------------------------------------------------------------
+    |
+    | Plazos propuestos; se ajustan tras el primer ensayo. Un correo recibe un enlace por
+    | propuesta activa, con este máximo.
+    |
+    */
+
+    'author' => [
+        'access_link_minutes' => 30,
+        'session_minutes' => 60,
+        'max_links_per_email' => 5,
+    ],
+
 ];
