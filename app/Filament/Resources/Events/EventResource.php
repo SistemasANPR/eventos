@@ -7,6 +7,7 @@ namespace App\Filament\Resources\Events;
 use App\Filament\Resources\Events\Pages\CreateEvent;
 use App\Filament\Resources\Events\Pages\EditEvent;
 use App\Filament\Resources\Events\Pages\ListEvents;
+use App\Filament\Resources\Events\Pages\ManageEventActivities;
 use App\Filament\Resources\Events\Pages\ManageEventActivityCategories;
 use App\Filament\Resources\Events\Pages\ManageEventFormDefinitions;
 use App\Filament\Resources\Events\Pages\ManageEventSpeakerCategories;
@@ -96,6 +97,8 @@ class EventResource extends Resource
             'submissions' => ManageEventSubmissions::route('/{record}/submissions'),
             // Ponentes del evento (plan 021, F2).
             'speakers' => ManageEventSpeakers::route('/{record}/speakers'),
+            // Actividades del programa (plan 021, F3).
+            'activities' => ManageEventActivities::route('/{record}/activities'),
             // Catálogos de categorías del programa (plan 021, F1).
             'speaker-categories' => ManageEventSpeakerCategories::route('/{record}/speaker-categories'),
             'activity-categories' => ManageEventActivityCategories::route('/{record}/activity-categories'),

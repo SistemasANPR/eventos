@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Http\Controllers\Internal\ShowComponentCatalogController;
+use App\Http\Controllers\Panel\ActivityMediaController;
 use App\Http\Controllers\Panel\SubmissionFileDownloadController;
 use App\Http\Controllers\Public\ShowCallController;
 use App\Http\Controllers\Public\ShowEventController;
@@ -49,6 +50,13 @@ Route::middleware([SetOrganizationFromRoute::class, HandleInertiaRequests::class
 Route::middleware(['auth', SetOrganizationFromRoute::class])
     ->get('admin/{organization:slug}/submission-files/{file}', SubmissionFileDownloadController::class)
     ->name('submission-files.download');
+
+// Vista previa del icono o la imagen de una actividad para el organizador (plan 021, F3). Autenticada y
+// con la organización fijada por la ruta; el disco `media` es privado y no tiene URL pública.
+Route::middleware(['auth', SetOrganizationFromRoute::class])
+    ->get('admin/{organization:slug}/activities/{activity}/media/{type}', ActivityMediaController::class)
+    ->whereIn('type', ['icon', 'image'])
+    ->name('activities.media');
 
 // Rutas del autor de una propuesta (plan 006).
 require __DIR__.'/author.php';

@@ -123,6 +123,12 @@ class Event extends Model
         return $this->hasMany(ActivityCategory::class);
     }
 
+    /** @return HasMany<EventActivity, $this> */
+    public function activities(): HasMany
+    {
+        return $this->hasMany(EventActivity::class);
+    }
+
     /** @return HasMany<PrivacyNotice, $this> */
     public function privacyNotices(): HasMany
     {
