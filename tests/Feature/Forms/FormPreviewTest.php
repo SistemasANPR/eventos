@@ -14,6 +14,7 @@ use App\Support\Tenancy\CurrentOrganization;
 use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Vite;
 use Livewire\Livewire;
 use Spatie\Permission\Models\Permission;
 use Tests\Support\Memberships;
@@ -128,4 +129,24 @@ it('CA-005-12 and CA-020-14: in the panel the preview changes language and ignor
         ->assertSee('Submit proposal', false)
         ->set('locale', 'fr')
         ->assertSee('Enviar propuesta', false);
+});
+
+it('CA-005-12: with the Vite dev server the preview loads the React refresh preamble before its entry', function (): void {
+    [$organization, $event, $admin] = formScenario();
+    $form = createForm($admin, $event, [formField('short_text')]);
+    $hotFile = tempnam(sys_get_temp_dir(), 'vite-hot');
+    file_put_contents($hotFile, 'http://localhost:5173');
+    // `TestCase` desactiva Vite; aquí se restaura el real para comprobar lo que emite el servidor de desarrollo.
+    $this->withVite();
+    Vite::useHotFile($hotFile);
+
+    try {
+        $html = $this->actingAs($admin)->get(previewUrl($organization, $form))->assertOk()->getContent();
+    } finally {
+        unlink($hotFile);
+    }
+
+    // Sin el preámbulo, @vitejs/plugin-react falla en el navegador y el formulario no se monta.
+    expect($html)->toContain('RefreshRuntime')
+        ->and(strpos($html, 'RefreshRuntime'))->toBeLessThan(strpos($html, 'resources/js/form-preview.tsx'));
 });

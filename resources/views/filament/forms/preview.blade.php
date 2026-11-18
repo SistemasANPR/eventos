@@ -26,4 +26,6 @@
     ></div>
 </div>
 
+{{-- Con el servidor de desarrollo, @vitejs/plugin-react exige el preámbulo de refresco antes de la entrada; sin él React no se monta. --}}
+@viteReactRefresh
 @vite('resources/js/form-preview.tsx')
