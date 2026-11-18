@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Filament\Resources\Submissions\Pages;
 
 use App\Filament\Resources\Submissions\SubmissionResource;
+use App\Filament\Resources\Submissions\Support\SubmissionActivityLink;
 use App\Filament\Resources\Submissions\Support\SubmissionDetail;
 use App\Models\Event;
 use App\Models\Submission;
@@ -70,6 +71,7 @@ class ViewSubmission extends ViewRecord
         return [
             'submission' => $submission,
             'detail' => SubmissionDetail::for($submission, $user, CurrentOrganization::get()),
+            'activityLink' => SubmissionActivityLink::for($submission),
             'submittedAt' => $submission->submitted_at->setTimezone($timezone)->isoFormat('LLL').' ('.$timezone.')',
         ];
     }

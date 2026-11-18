@@ -9,6 +9,7 @@ use App\Actions\Program\DeleteActivity;
 use App\Actions\Program\SetActivityPublication;
 use App\Actions\Program\UpdateActivity;
 use App\Filament\Resources\Events\EventResource;
+use App\Filament\Resources\Submissions\SubmissionResource;
 use App\Filament\Support\ActionErrors;
 use App\Models\Event;
 use App\Models\EventActivity;
@@ -124,7 +125,9 @@ class ManageEventActivities extends ManageRelatedRecords
                 TextColumn::make('submission.title')
                     ->label(__('program.activities.columns.origin'))
                     ->state(fn (EventActivity $record): ?string => self::originTitle($record))
-                    ->url(fn (EventActivity $record): ?string => self::originTitle($record) === null ? null : EventResource::getUrl('submissions', ['record' => $record->event_id]))
+                    ->url(fn (EventActivity $record): ?string => self::originTitle($record) === null || $record->submission === null
+                        ? null
+                        : SubmissionResource::getUrl('view', ['event' => $record->event_id, 'record' => $record->submission]))
                     ->limit(40),
             ])
             ->defaultSort(fn (Builder $query): Builder => $query->orderBy('starts_on')->orderBy('starts_at')->orderBy('title'))

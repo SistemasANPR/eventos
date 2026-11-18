@@ -15,12 +15,14 @@ return [
         'track' => 'Eje',
         'status' => 'Estado',
         'submitted_at' => 'Enviada',
+        'activity' => 'Actividad',
     ],
 
     'filters' => [
         'range' => 'Fecha de envío',
         'from' => 'Desde',
         'until' => 'Hasta',
+        'show_accepted' => 'Mostrar también las aceptadas',
         'invalid' => 'El filtro no es válido. Revisa los valores e inténtalo de nuevo.',
     ],
 

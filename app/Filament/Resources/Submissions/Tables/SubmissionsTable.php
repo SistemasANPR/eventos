@@ -6,6 +6,7 @@ namespace App\Filament\Resources\Submissions\Tables;
 
 use App\Enums\SubmissionStatus;
 use App\Filament\Resources\Submissions\SubmissionResource;
+use App\Filament\Resources\Submissions\Support\SubmissionActivityLink;
 use App\Models\CallForSubmissions;
 use App\Models\Event;
 use App\Models\Submission;
@@ -55,6 +56,12 @@ final class SubmissionsTable
                 TextColumn::make('status')
                     ->label(__('submission_panel.columns.status'))
                     ->badge(),
+                TextColumn::make('activity')
+                    ->label(__('submission_panel.columns.activity'))
+                    ->state(fn (Submission $record): ?string => SubmissionActivityLink::for($record)['title'] ?? null)
+                    ->url(fn (Submission $record): ?string => SubmissionActivityLink::for($record)['url'] ?? null)
+                    ->limit(40)
+                    ->toggleable(),
                 TextColumn::make('submitted_at')
                     ->label(__('submission_panel.columns.submitted_at'))
                     ->state(fn (Submission $record): string => $record->submitted_at
@@ -69,6 +76,7 @@ final class SubmissionsTable
                 self::selectFilter('track_id', 'track', self::trackOptions(...)),
                 self::selectFilter('submission_type_id', 'type', self::typeOptions(...)),
                 self::statusFilter(),
+                self::showAcceptedFilter(),
                 self::dateRangeFilter(),
             ])
             ->paginated([10, 25, 50, self::MAX_PER_PAGE])
@@ -104,11 +112,14 @@ final class SubmissionsTable
         return SelectFilter::make('status')
             ->label(__('submission_panel.columns.status'))
             ->options(SubmissionStatus::class)
-            ->query(function (Builder $query, array $data): Builder {
+            ->query(function (Builder $query, array $data, $livewire): Builder {
                 $value = $data['value'] ?? null;
 
+                // Sin estado elegido, las aceptadas (ya en el programa, plan 021 DA-10) salen salvo que se pidan.
                 if (blank($value)) {
-                    return $query;
+                    return filter_var($livewire->tableFilters['show_accepted']['isActive'] ?? false, FILTER_VALIDATE_BOOLEAN)
+                        ? $query
+                        : $query->where('status', '!=', SubmissionStatus::Accepted);
                 }
 
                 if (SubmissionStatus::tryFrom((string) $value) === null) {
@@ -117,6 +128,18 @@ final class SubmissionsTable
 
                 return $query->where('status', $value);
             });
+    }
+
+    /**
+     * Interruptor que suma las aceptadas a las demás; la consulta la resuelve `statusFilter()`, que siempre
+     * se evalúa (un interruptor apagado no ejecuta su propia consulta).
+     */
+    private static function showAcceptedFilter(): Filter
+    {
+        return Filter::make('show_accepted')
+            ->label(__('submission_panel.filters.show_accepted'))
+            ->toggle()
+            ->query(fn (Builder $query): Builder => $query);
     }
 
     private static function dateRangeFilter(): Filter
