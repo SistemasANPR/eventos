@@ -19,7 +19,7 @@ use Illuminate\Support\Carbon;
  * No es `Activity`, que es la bitácora de auditoría. Sin `$fillable`: se crea y edita solo desde las
  * Actions. Fecha y hora son LOCALES del evento, sin zona (DA-12): `starts_on`/`ends_on` son fechas y
  * `starts_at`/`ends_at` horas `H:i:s`; o las cuatro o ninguna («sin programar», DA-4). `description`
- * guarda HTML: el saneado llega con el plan 021 F3b (`RichTextSanitizer`).
+ * guarda HTML ya saneado por las Actions (`RichTextSanitizer`).
  *
  * @property string $id
  * @property string $organization_id
@@ -80,5 +80,17 @@ class EventActivity extends Model
     public function categories(): BelongsToMany
     {
         return $this->belongsToMany(ActivityCategory::class, 'activity_activity_category', 'activity_id', 'activity_category_id');
+    }
+
+    /**
+     * Ponentes de la actividad en el orden asignado (`position`).
+     *
+     * @return BelongsToMany<Speaker, $this>
+     */
+    public function speakers(): BelongsToMany
+    {
+        return $this->belongsToMany(Speaker::class, 'activity_speaker', 'activity_id', 'speaker_id')
+            ->withPivot('position')
+            ->orderByPivot('position');
     }
 }

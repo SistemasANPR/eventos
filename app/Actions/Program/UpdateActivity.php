@@ -29,10 +29,11 @@ use Throwable;
  * Se ejecuta en la organización DE LA ACTIVIDAD y deja auditoría con los nombres de campos cambiados
  * (sin valores). Republicar a mano limpia la marca «oculto por reversa».
  *
- * `description` se guarda tal cual llega: el saneado del HTML (DA-16) se añade aquí en la fase F3b.
+ * `description` se guarda saneada (DA-16). `speaker_ids`, si viene, deja exactamente esos ponentes del
+ * evento (lista vacía: ninguno) con `SyncActivitySpeakers`, en la misma transacción.
  *
  * @throws AuthorizationException si quien edita no tiene `activities.manage` en la organización de la actividad
- * @throws ValidationException si falta un dato obligatorio, el fin es anterior al inicio, una categoría no es del evento o un archivo no es aceptable
+ * @throws ValidationException si falta un dato obligatorio, el fin es anterior al inicio, una categoría o un ponente no es del evento o un archivo no es aceptable
  */
 final class UpdateActivity
 {
@@ -70,10 +71,12 @@ final class UpdateActivity
                         'ends_at' => ActivityWrites::time($validated['ends_at']),
                     ];
 
-                    foreach (['summary', 'description'] as $field) {
-                        if (array_key_exists($field, $validated)) {
-                            $attributes[$field] = $validated[$field];
-                        }
+                    if (array_key_exists('summary', $validated)) {
+                        $attributes['summary'] = $validated['summary'];
+                    }
+
+                    if (array_key_exists('description', $validated)) {
+                        $attributes['description'] = ActivityWrites::description($validated['description']);
                     }
 
                     foreach (['icon' => $newIcon, 'image' => $newImage] as $field => $newPath) {
@@ -105,6 +108,11 @@ final class UpdateActivity
                         if ($sync['attached'] !== [] || $sync['detached'] !== []) {
                             $changed[] = 'categories';
                         }
+                    }
+
+                    // Los ponentes solo cambian si vienen en los datos; la Action deja su propia auditoría.
+                    if (array_key_exists('speaker_ids', $validated)) {
+                        app(SyncActivitySpeakers::class)->handle($actor, $current, array_values($validated['speaker_ids'] ?? []));
                     }
 
                     activity()

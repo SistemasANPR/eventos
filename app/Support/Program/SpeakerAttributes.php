@@ -45,6 +45,10 @@ final class SpeakerAttributes
             $result['category_ids'] = is_array($data['category_ids']) ? array_values($data['category_ids']) : $data['category_ids'];
         }
 
+        if (array_key_exists('activity_ids', $data)) {
+            $result['activity_ids'] = is_array($data['activity_ids']) ? array_values($data['activity_ids']) : $data['activity_ids'];
+        }
+
         foreach (['is_published', 'remove_photo'] as $flag) {
             if (array_key_exists($flag, $data)) {
                 $result[$flag] = $data[$flag];

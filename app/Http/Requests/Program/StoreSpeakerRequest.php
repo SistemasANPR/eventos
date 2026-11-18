@@ -6,6 +6,7 @@ namespace App\Http\Requests\Program;
 
 use App\Enums\ProgramSocialNetwork;
 use App\Models\Event;
+use App\Models\EventActivity;
 use App\Models\Speaker;
 use App\Models\SpeakerCategory;
 use App\Rules\SocialLinkUrl;
@@ -13,6 +14,7 @@ use App\Support\Forms\Countries;
 use Closure;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 
 /**
@@ -63,7 +65,30 @@ class StoreSpeakerRequest extends FormRequest
             'social_links.*.url' => ['required', 'string', 'max:255', new SocialLinkUrl],
             'category_ids' => ['nullable', 'array'],
             'category_ids.*' => ['string', 'distinct', self::categoryOfEvent($event)],
+            ...self::activityRules($event),
             'is_published' => ['sometimes', 'boolean'],
+        ];
+    }
+
+    /**
+     * Actividades en las que participa el ponente: solo del mismo evento y no borradas. Una lista vacía
+     * o ausente es válida.
+     *
+     * @return array<string, mixed>
+     */
+    public static function activityRules(Event $event): array
+    {
+        return [
+            'activity_ids' => ['nullable', 'array'],
+            'activity_ids.*' => ['string', static function (string $attribute, mixed $value, Closure $fail) use ($event): void {
+                $exists = is_string($value)
+                    && Str::isUuid($value)
+                    && EventActivity::query()->where('event_id', $event->id)->whereKey($value)->exists();
+
+                if (! $exists) {
+                    $fail('program.speakers.errors.activity_invalid')->translate();
+                }
+            }],
         ];
     }
 

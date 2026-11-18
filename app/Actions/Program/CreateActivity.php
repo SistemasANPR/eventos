@@ -27,11 +27,11 @@ use Throwable;
  * `StoreProgramImage`; si algo falla después, los archivos recién guardados se borran. Se ejecuta en
  * la organización DEL EVENTO, dentro de una transacción, y deja auditoría con ids (sin texto libre).
  *
- * `description` se guarda tal cual llega: el saneado del HTML (`RichTextSanitizer`, DA-16) se añade
- * aquí en la fase F3b, antes de `forceFill`.
+ * `description` se guarda saneada (`RichTextSanitizer`, DA-16; sin texto visible, nula). `speaker_ids`
+ * asigna ponentes del evento con `SyncActivitySpeakers` dentro de la misma transacción.
  *
  * @throws AuthorizationException si quien crea no tiene `activities.manage` en la organización del evento
- * @throws ValidationException si falta un dato obligatorio, el fin es anterior al inicio, una categoría no es del evento o un archivo no es aceptable
+ * @throws ValidationException si falta un dato obligatorio, el fin es anterior al inicio, una categoría o un ponente no es del evento o un archivo no es aceptable
  */
 final class CreateActivity
 {
@@ -66,13 +66,17 @@ final class CreateActivity
                         'starts_at' => ActivityWrites::time($validated['starts_at']),
                         'ends_at' => ActivityWrites::time($validated['ends_at']),
                         'summary' => $validated['summary'] ?? null,
-                        'description' => $validated['description'] ?? null,
+                        'description' => ActivityWrites::description($validated['description'] ?? null),
                         'icon_path' => $iconPath,
                         'image_path' => $imagePath,
                         'is_published' => $validated['is_published'] ?? true,
                     ])->save();
 
                     ActivityWrites::syncCategories($activity, array_values($validated['category_ids'] ?? []));
+
+                    if (($validated['speaker_ids'] ?? []) !== []) {
+                        app(SyncActivitySpeakers::class)->handle($actor, $activity, array_values($validated['speaker_ids']));
+                    }
 
                     activity()
                         ->causedBy($actor)

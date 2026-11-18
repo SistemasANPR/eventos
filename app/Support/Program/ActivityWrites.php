@@ -8,6 +8,7 @@ use App\Actions\Program\StoreProgramImage;
 use App\Enums\ProgramImageType;
 use App\Models\Event;
 use App\Models\EventActivity;
+use App\Support\Html\RichTextSanitizer;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Validation\ValidationException;
 
@@ -34,6 +35,14 @@ final class ActivityWrites
         }
 
         return $data;
+    }
+
+    /** Descripción enriquecida saneada (DA-16); sin texto visible, nula. */
+    public static function description(mixed $value): ?string
+    {
+        $clean = is_string($value) ? RichTextSanitizer::clean($value) : '';
+
+        return $clean === '' ? null : $clean;
     }
 
     /** Hora `HH:MM` o `HH:MM:SS` como la guarda la base (`time`). */

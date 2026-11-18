@@ -7,9 +7,11 @@ namespace App\Http\Requests\Program;
 use App\Models\ActivityCategory;
 use App\Models\Event;
 use App\Models\EventActivity;
+use App\Models\Speaker;
 use Closure;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 
 /**
@@ -58,11 +60,34 @@ class StoreActivityRequest extends FormRequest
             'description' => ['nullable', 'string', 'max:50000'],
             'category_ids' => ['nullable', 'array'],
             'category_ids.*' => ['string', self::categoryOfEvent($event)],
+            ...self::speakerRules($event),
             'is_published' => ['sometimes', 'boolean'],
             'icon' => ['nullable', 'file'],
             'image' => ['nullable', 'file'],
             'remove_icon' => ['sometimes', 'boolean'],
             'remove_image' => ['sometimes', 'boolean'],
+        ];
+    }
+
+    /**
+     * Ponentes de la actividad: solo del mismo evento y no borrados (la consulta pasa por el filtro de
+     * organización del modelo). Una lista vacía o ausente es válida: la actividad queda sin ponentes.
+     *
+     * @return array<string, mixed>
+     */
+    public static function speakerRules(Event $event): array
+    {
+        return [
+            'speaker_ids' => ['nullable', 'array'],
+            'speaker_ids.*' => ['string', static function (string $attribute, mixed $value, Closure $fail) use ($event): void {
+                $exists = is_string($value)
+                    && Str::isUuid($value)
+                    && Speaker::query()->where('event_id', $event->id)->whereKey($value)->exists();
+
+                if (! $exists) {
+                    $fail('program.activities.speaker_invalid')->translate();
+                }
+            }],
         ];
     }
 

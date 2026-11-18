@@ -24,7 +24,8 @@ use Throwable;
  * Edita la ficha de un ponente (plan 021, CA-021-1, CA-021-2, CA-021-3). Solo cambia las claves que
  * llegan en `$data`; el resto conserva su valor, y la validación corre sobre la ficha ya combinada
  * (nombre y apellido siguen siendo obligatorios). `photo` reemplaza la fotografía y `remove_photo`
- * la quita; el archivo anterior se borra DESPUÉS de confirmar la transacción. `is_published` publica
+ * la quita; `activity_ids`, si viene, deja al ponente exactamente en esas actividades del evento
+ * (`SyncSpeakerActivities`, misma transacción); el archivo anterior se borra DESPUÉS de confirmar la transacción. `is_published` publica
  * o despublica; al publicar se limpia la marca «oculto por reversa». Se ejecuta en la organización
  * DEL PONENTE, en una transacción, y audita qué campos cambiaron (nombres de campo, sin los valores).
  *
@@ -66,7 +67,8 @@ final class UpdateSpeaker
                     $categoryIds = array_key_exists('category_ids', $attributes) ? $attributes['category_ids'] : null;
                     $photo = $attributes['photo'] ?? null;
                     $removePhoto = (bool) ($attributes['remove_photo'] ?? false);
-                    unset($attributes['category_ids'], $attributes['photo'], $attributes['remove_photo']);
+                    $activityIds = array_key_exists('activity_ids', $attributes) ? array_values($attributes['activity_ids'] ?? []) : null;
+                    unset($attributes['category_ids'], $attributes['photo'], $attributes['remove_photo'], $attributes['activity_ids']);
 
                     $photoChanged = false;
 
@@ -92,6 +94,11 @@ final class UpdateSpeaker
                     if ($categoryIds !== null) {
                         $changes = $speaker->categories()->sync(SpeakerAttributes::categoryLinks($categoryIds, $speaker->organization_id, $event->id));
                         $categoriesChanged = $changes['attached'] !== [] || $changes['detached'] !== [];
+                    }
+
+                    // Las actividades solo cambian si vienen en los datos; la Action deja su propia auditoría.
+                    if ($activityIds !== null) {
+                        app(SyncSpeakerActivities::class)->handle($actor, $speaker, $activityIds);
                     }
 
                     $changed = array_values(array_intersect(self::AUDITED, array_keys($speaker->getChanges())));

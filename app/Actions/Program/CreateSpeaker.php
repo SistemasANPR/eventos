@@ -24,7 +24,7 @@ use Throwable;
  * Da de alta un ponente en un evento (plan 021, CA-021-1, CA-021-2, CA-021-3). Solo nombre y apellido
  * son obligatorios; nace publicado salvo que se indique lo contrario. La biografía se guarda saneada;
  * la fotografía se guarda por su contenido en el disco `media`; las categorías son del catálogo del
- * evento. Se ejecuta en la organización DEL EVENTO, en una transacción, y deja auditoría con los
+ * evento; `activity_ids` lo asigna a actividades del evento con `SyncSpeakerActivities`. Se ejecuta en la organización DEL EVENTO, en una transacción, y deja auditoría con los
  * identificadores (sin datos personales). Si algo falla, no queda ningún archivo huérfano.
  *
  * Regla de duplicados: el correo es único en el evento sin distinguir mayúsculas entre las fichas no
@@ -60,7 +60,8 @@ final class CreateSpeaker
                     $attributes = SpeakerAttributes::forStorage($validated);
                     $categoryIds = $attributes['category_ids'] ?? [];
                     $photo = $validated['photo'] ?? null;
-                    unset($attributes['category_ids'], $attributes['photo']);
+                    $activityIds = array_values($attributes['activity_ids'] ?? []);
+                    unset($attributes['category_ids'], $attributes['photo'], $attributes['activity_ids']);
 
                     if ($photo instanceof UploadedFile) {
                         $storedPhoto = $this->storePhoto($photo, $event);
@@ -76,6 +77,10 @@ final class CreateSpeaker
                     ])->save();
 
                     $speaker->categories()->sync(SpeakerAttributes::categoryLinks($categoryIds, $speaker->organization_id, $event->id));
+
+                    if ($activityIds !== []) {
+                        app(SyncSpeakerActivities::class)->handle($actor, $speaker, $activityIds);
+                    }
 
                     activity()
                         ->causedBy($actor)

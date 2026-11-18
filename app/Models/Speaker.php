@@ -89,4 +89,11 @@ class Speaker extends Model
     {
         return $this->belongsToMany(SpeakerCategory::class, 'speaker_speaker_category');
     }
+
+    /** @return BelongsToMany<EventActivity, $this> */
+    public function activities(): BelongsToMany
+    {
+        return $this->belongsToMany(EventActivity::class, 'activity_speaker', 'speaker_id', 'activity_id')
+            ->withPivot('position');
+    }
 }
