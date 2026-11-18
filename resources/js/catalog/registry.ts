@@ -1,0 +1,130 @@
+/**
+ * Catálogo de componentes propios (design.md §1.4). Lo primero que se consulta
+ * antes de crear uno: `useWhen` / `avoidFor`. `registry.test.ts` vigila que todo
+ * archivo de `components/` (salvo `ui/`) tenga entrada, que el nivel coincida con
+ * la carpeta y que nadie quede huérfano.
+ */
+export type ComponentLevel = 'atom' | 'molecule' | 'organism' | 'template' | 'infrastructure';
+
+export interface CatalogEntry {
+    name: string;
+    /** Ruta relativa a `components/`, sin extensión. */
+    path: string;
+    level: ComponentLevel;
+    category: string;
+    useWhen: string;
+    avoidFor: string;
+    /** `demo` exige una demo ejecutable en `catalog/demos-*.tsx`. */
+    preview: 'demo' | 'screenshot' | 'none';
+}
+
+export const registry: CatalogEntry[] = [
+    {
+        name: 'RichText',
+        path: 'atoms/RichText',
+        level: 'atom',
+        category: 'Data display',
+        useWhen: 'Mostrar texto enriquecido (párrafos, énfasis, listas, enlaces) ya sanitizado en el servidor, como el aviso de privacidad',
+        avoidFor: 'HTML arbitrario o contenido con imágenes, tablas o formularios; texto plano (usar un <p>)',
+        preview: 'demo',
+    },
+    {
+        name: 'TextLink',
+        path: 'atoms/TextLink',
+        level: 'atom',
+        category: 'Navigation',
+        useWhen: 'Un enlace de texto para navegar entre páginas o variantes',
+        avoidFor: 'Acciones que cambian datos (usar un botón con router.post)',
+        preview: 'demo',
+    },
+    {
+        name: 'EventFact',
+        path: 'molecules/EventFact',
+        level: 'molecule',
+        category: 'Data display',
+        useWhen: 'Un dato con su etiqueta dentro de un <dl> (fechas, sede, zona horaria)',
+        avoidFor: 'Texto corrido o listas largas',
+        preview: 'demo',
+    },
+    {
+        name: 'LocaleSwitcher',
+        path: 'molecules/LocaleSwitcher',
+        level: 'molecule',
+        category: 'Navigation',
+        useWhen: 'Ofrecer la página en otro de sus idiomas con ?lang=',
+        avoidFor: 'Cambiar el idioma de la interfaz de un usuario con sesión',
+        preview: 'demo',
+    },
+    {
+        name: 'FormFieldInput',
+        path: 'molecules/FormFieldInput',
+        level: 'molecule',
+        category: 'Forms',
+        useWhen: 'Un campo de un formulario de propuesta según su definición (nueve tipos), con etiqueta, ayuda y error asociados',
+        avoidFor: 'Formularios fuera de los de propuestas o campos sueltos sin definición (usar el HTML nativo con FORM_CONTROL)',
+        preview: 'none',
+    },
+    {
+        name: 'FormRenderer',
+        path: 'organisms/FormRenderer',
+        level: 'organism',
+        category: 'Forms',
+        useWhen: 'Dibujar un formulario de propuesta completo desde su definición: en la vista previa del panel y en el formulario público',
+        avoidFor: 'Formularios fijos del sitio (acceso, contacto) que no vienen de una definición',
+        preview: 'none',
+    },
+    {
+        name: 'AcceptanceField',
+        path: 'molecules/AcceptanceField',
+        level: 'molecule',
+        category: 'Forms',
+        useWhen: 'Una casilla de aceptación controlada con su texto (puede incluir un enlace) y su error asociado: consentimiento y declaraciones',
+        avoidFor: 'Casillas definidas por el organizador (las dibuja FormFieldInput) o grupos de opciones',
+        preview: 'none',
+    },
+    {
+        name: 'SubmissionBlock',
+        path: 'organisms/SubmissionBlock',
+        level: 'organism',
+        category: 'Forms',
+        useWhen: 'El bloque fijo del envío de una propuesta: título, eje y lista de participantes con mínimo y máximo, dentro de FormRenderer',
+        avoidFor: 'Cualquier otro formulario; los campos que define el organizador van en FormRenderer',
+        preview: 'none',
+    },
+    {
+        name: 'SubmissionForm',
+        path: 'organisms/SubmissionForm',
+        level: 'organism',
+        category: 'Forms',
+        useWhen: 'El formulario público completo de envío de una propuesta: bloque fijo, campos, consentimiento, Turnstile, subida de archivos y errores que conservan lo escrito',
+        avoidFor: 'Vistas previas del panel (usar FormRenderer en modo preview) o formularios sin definición',
+        preview: 'none',
+    },
+    {
+        name: 'TurnstileWidget',
+        path: 'infrastructure/TurnstileWidget',
+        level: 'infrastructure',
+        category: 'Security',
+        useWhen: 'La verificación anti-robots de Cloudflare en un formulario público; carga su script solo al montarse',
+        avoidFor: 'Páginas que no envían datos (no cargar el script de un tercero sin necesidad)',
+        preview: 'none',
+    },
+    {
+        name: 'EventHero',
+        path: 'organisms/EventHero',
+        level: 'organism',
+        category: 'Events',
+        useWhen: 'Presentar un evento: nombre, descripción, fechas, sede, zona horaria y enlace a su aviso de privacidad',
+        avoidFor: 'Listados de eventos (usar una tarjeta compacta)',
+        preview: 'demo',
+    },
+    {
+        name: 'SkipToContent',
+        path: 'infrastructure/SkipToContent',
+        level: 'infrastructure',
+        category: 'Accessibility',
+        useWhen: 'Una vez por layout, para saltar la cabecera con el teclado',
+        avoidFor: 'Cualquier otro enlace interno',
+        preview: 'demo',
+    },
+];

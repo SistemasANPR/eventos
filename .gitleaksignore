@@ -1,0 +1,4 @@
+# Falsos positivos de gitleaks: tokens de subida ficticios de una prueba (secuencias 0123456789abcdef), no credenciales.
+# Cada línea es la huella exacta del hallazgo (commit:archivo:regla:línea); no se excluyen carpetas enteras.
+b75fc4014b79b62c7c6557f098d4d2ebb1820e6c:tests/Feature/Submissions/SubmissionFileUploadTest.php:generic-api-key:28
+b75fc4014b79b62c7c6557f098d4d2ebb1820e6c:tests/Feature/Submissions/SubmissionFileUploadTest.php:generic-api-key:392

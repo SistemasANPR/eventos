@@ -24,8 +24,9 @@ El cpanel que dio origen al proyecto sufría estos fallos. Cada uno tiene aquí 
 
 - Autenticación del framework o del kit de inicio; **no escribir una propia**. Contraseñas con el hash de Laravel; reglas mínimas de longitud y lista de contraseñas expuestas.
 - Verificación de correo y recuperación de contraseña con enlaces firmados y de un solo uso, con caducidad corta.
-- Verificación en dos pasos disponible; **obligatoria** para administradores de organización y roles de plataforma.
+- Verificación en dos pasos disponible; **obligatoria** para administradores de organización y roles de plataforma. El panel de plataforma (`/platform`, plan 016) permanece apagado fuera de local hasta que exista (`PLATFORM_PANEL_ENABLED`, `docs/operacion.md`).
 - Límite de intentos en inicio de sesión, recuperación y registro; mensajes que no revelan si un correo existe.
+- **Acceso único (plan 017):** hay un solo formulario de acceso (`/admin/login`) para organizaciones y plataforma. Quien puede entrar a algún panel llega a su portal; quien no, recibe el mismo mensaje que ante una contraseña incorrecta. La URL a la que iba solo se respeta si es del propio sitio y la persona puede entrar a ese panel.
 - Regenerar la sesión al iniciar sesión; cookies `Secure`, `HttpOnly`, `SameSite=Lax` como mínimo; caducidad de sesión definida.
 - Las invitaciones por «enlace mágico» para ponentes o evaluadores son de un solo uso, con caducidad y ligadas a un correo y a una organización.
 
@@ -83,7 +84,7 @@ Complementa el ADR-0007.
 
 ## 9. Auditoría y registros
 
-- `spatie/laravel-activitylog` registra: inicios de sesión y fallos relevantes, cambios de rol o permiso, invitaciones, exportaciones, uso de `withoutOrganizationScope()`, cambios de configuración de pago y accesos de soporte.
+- `spatie/laravel-activitylog` registra: inicios de sesión y fallos relevantes, cambios de rol o permiso, invitaciones, exportaciones, uso de `withoutOrganizationScope()`, cambios de configuración de pago y accesos de soporte. Cada registro lleva su `organization_id` (nulo en los hechos de plataforma); el visor del panel de plataforma es de solo lectura y no muestra IP ni hash de correo de los registros de acceso (`auth`).
 - Los registros no contienen contraseñas, tokens ni datos personales completos. Se conservan según `docs/privacidad.md`.
 - Los registros de aplicación llevan un identificador de correlación por petición.
 

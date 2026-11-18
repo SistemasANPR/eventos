@@ -1,0 +1,158 @@
+<?php
+
+declare(strict_types=1);
+
+use App\Actions\Submissions\IssueFormSession;
+use App\Actions\Submissions\SubmitSubmission;
+use App\Enums\FormDefinitionStatus;
+use App\Enums\OrganizationRole;
+use App\Jobs\SendTransactionalMail;
+use App\Models\CallForSubmissions;
+use App\Models\Event;
+use App\Models\FormDefinition;
+use App\Models\Organization;
+use App\Models\PrivacyNotice;
+use App\Models\Submission;
+use App\Models\SubmissionParticipant;
+use App\Models\Track;
+use App\Models\User;
+use App\Support\Tenancy\CurrentOrganization;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Event as EventBus;
+use Illuminate\Support\Facades\Queue;
+use Tests\Support\FakeSubmissionForm;
+use Tests\Support\Memberships;
+
+/*
+ * Correos de un envío confirmado (plan 006, CA-006-29): siempre por `SendNotification`, encolados.
+ */
+
+uses(RefreshDatabase::class);
+
+beforeEach(function (): void {
+    FakeSubmissionForm::install();
+    $this->travelTo('2027-01-20 12:00:00');
+});
+
+afterEach(function (): void {
+    CurrentOrganization::forget();
+});
+
+/** @return array{org: Organization, call: CallForSubmissions, track: Track, event: Event} */
+function notifyScenario(): array
+{
+    $org = Memberships::organization();
+    CurrentOrganization::set($org);
+    $event = Event::factory()->published()->create(['organization_id' => $org->id, 'name' => ['es' => 'Congreso', 'en' => 'Congress']]);
+    $form = FormDefinition::factory()->create([
+        'organization_id' => $org->id,
+        'event_id' => $event->id,
+        'status' => FormDefinitionStatus::Published,
+        'published_at' => now(),
+        'version' => 1,
+        'fields' => [],
+    ]);
+    $call = CallForSubmissions::factory()->published()->create([
+        'organization_id' => $org->id,
+        'event_id' => $event->id,
+        'form_definition_id' => $form->id,
+        'locales' => ['es', 'en'],
+    ]);
+    $track = Track::factory()->create(['organization_id' => $org->id, 'event_id' => $event->id]);
+    PrivacyNotice::factory()->published()->create(['organization_id' => $org->id, 'event_id' => $event->id]);
+
+    return compact('org', 'call', 'track', 'event');
+}
+
+/**
+ * @param  array<string, mixed>  $ctx
+ * @return array<string, mixed>
+ */
+function notifyInput(array $ctx): array
+{
+    return [
+        'idempotency_key' => app(IssueFormSession::class)->handle($ctx['call'])['idempotency_key'],
+        'form_version' => 1,
+        'locale' => 'es',
+        'title' => 'Parques vivos',
+        'track_id' => $ctx['track']->id,
+        'answers' => [],
+        'participants' => [['first_name' => 'Ana', 'last_name' => 'Pérez', 'email' => 'ana@example.test', 'country' => 'MX', 'is_primary' => true]],
+        'consent' => true,
+    ];
+}
+
+/** @return list<SendTransactionalMail> */
+function pushedMails(string $key): array
+{
+    return Queue::pushed(SendTransactionalMail::class, fn (SendTransactionalMail $job): bool => $job->notificationKey === $key)->values()->all();
+}
+
+it('CA-006-29: queues the acknowledgement to the primary participant without an access link, and the organizer notice', function (): void {
+    Queue::fake();
+    $ctx = notifyScenario();
+    $organizer = Memberships::attach(User::factory()->create(['email' => 'org@example.test']), $ctx['org'], OrganizationRole::Organizer);
+    $reviewer = Memberships::attach(User::factory()->create(['email' => 'rev@example.test']), $ctx['org'], OrganizationRole::Reviewer);
+    $other = Memberships::attach(User::factory()->create(['email' => 'otra@example.test']), Memberships::organization(), OrganizationRole::OrgAdmin);
+
+    $submission = app(SubmitSubmission::class)->handle($ctx['call'], notifyInput($ctx))->submission;
+
+    $received = pushedMails('submission.received');
+    expect($received)->toHaveCount(1)
+        ->and($received[0]->recipient->email)->toBe('ana@example.test')
+        ->and($received[0]->variables)->not->toHaveKey('access_url')
+        ->and(implode(' ', $received[0]->variables))->not->toContain('my-submission/access')
+        ->and($received[0]->variables['submission_title'])->toBe('Parques vivos');
+
+    $notices = pushedMails('submission.new_for_organizers');
+    $emails = array_map(static fn (SendTransactionalMail $job): string => $job->recipient->email, $notices);
+    expect($emails)->toBe([$organizer->email])
+        ->and($emails)->not->toContain($reviewer->email)
+        ->and($emails)->not->toContain($other->email)
+        ->and($notices[0]->variables['panel_url'])->toContain('/admin/'.$ctx['org']->slug.'/events/'.$ctx['event']->id.'/submissions')
+        ->and(Submission::query()->whereKey($submission->id)->exists())->toBeTrue();
+});
+
+it('CA-006-29: every organizer with submissions.view gets their own notice', function (): void {
+    Queue::fake();
+    $ctx = notifyScenario();
+    Memberships::attach(User::factory()->create(['email' => 'a@example.test']), $ctx['org'], OrganizationRole::Organizer);
+    Memberships::attach(User::factory()->create(['email' => 'b@example.test']), $ctx['org'], OrganizationRole::OrgAdmin);
+
+    app(SubmitSubmission::class)->handle($ctx['call'], notifyInput($ctx));
+
+    $emails = array_map(static fn (SendTransactionalMail $job): string => $job->recipient->email, pushedMails('submission.new_for_organizers'));
+    sort($emails);
+    expect($emails)->toBe(['a@example.test', 'b@example.test']);
+});
+
+it('CA-006-9: queues no email when the transaction rolls back', function (): void {
+    Queue::fake();
+    $ctx = notifyScenario();
+    Memberships::attach(User::factory()->create(), $ctx['org'], OrganizationRole::Organizer);
+    EventBus::listen('eloquent.created: '.SubmissionParticipant::class, function (): void {
+        throw new RuntimeException('fallo simulado');
+    });
+
+    try {
+        expect(fn () => app(SubmitSubmission::class)->handle($ctx['call'], notifyInput($ctx)))->toThrow(RuntimeException::class);
+    } finally {
+        EventBus::forget('eloquent.created: '.SubmissionParticipant::class);
+    }
+
+    Queue::assertNotPushed(SendTransactionalMail::class);
+    expect(Submission::query()->count())->toBe(0);
+});
+
+it('CA-006-14: a repeated submission with the same key queues the emails only once', function (): void {
+    Queue::fake();
+    $ctx = notifyScenario();
+    Memberships::attach(User::factory()->create(), $ctx['org'], OrganizationRole::Organizer);
+    $input = notifyInput($ctx);
+
+    app(SubmitSubmission::class)->handle($ctx['call'], $input);
+    app(SubmitSubmission::class)->handle($ctx['call'], $input);
+
+    expect(pushedMails('submission.received'))->toHaveCount(1)
+        ->and(pushedMails('submission.new_for_organizers'))->toHaveCount(1);
+});

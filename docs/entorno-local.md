@@ -1,6 +1,6 @@
 # Entorno local (Docker y VS Code)
 
-> Decisión en ADR-0008. Todo corre en contenedores; los comandos se prefijan con `docker compose exec app`. Los comandos de esta guía existen una vez creado el proyecto con el entorno Docker (`[CONFIRMAR: opciones vigentes de Sail]`).
+> Decisión en ADR-0008. Todo corre en contenedores; los comandos se prefijan con `docker compose exec app`. Los comandos de esta guía existen una vez creado el proyecto con el entorno Docker (Laravel Sail v1.69.0 según `composer.lock`; el `compose.yaml` de la raíz define `app`, `pgsql`, `redis` y `mailpit`).
 
 ## 1. Requisitos
 
@@ -84,6 +84,18 @@ El correo no sale a Internet: `MAIL_*` apunta a **Mailpit**, que guarda cada men
 ## 8. Git y ramas
 
 `staging` es la rama de trabajo; `main`, producción (ADR-0008, `docs/convenciones.md` §5). Verificar la rama antes de empezar: `git branch --show-current`.
+
+### Cuenta de GitHub de este repositorio
+
+El remoto es `SistemasANPR/eventos` y se usa con la cuenta **`Antonio1491`**, que tiene permiso de escritura (comprobado el 2026-11-09). En esta máquina el Administrador de credenciales de Git guarda otra cuenta (`support-parksys`), sin acceso a este repo: empujar con ella da 403. La configuración es **local al repositorio** (no toca la configuración global de Git ni la otra cuenta):
+
+```bash
+git remote set-url origin https://Antonio1491@github.com/SistemasANPR/eventos.git
+git config --local --add credential.https://github.com.helper ""
+git config --local --add credential.https://github.com.helper '!f() { test "$1" = get && echo "username=Antonio1491" && echo "password=$(gh auth token --user Antonio1491)"; }; f'
+```
+
+El helper toma el token de la sesión de `Antonio1491` en `gh` (debe aparecer en `gh auth status`; si no, `gh auth login`). No sirve `!gh auth git-credential`: con varias cuentas no entrega credencial y el push se queda esperando una contraseña (comprobado el 2026-11-09). No cambiar la cuenta activa de `gh` ni borrar credenciales de otras cuentas. Al clonar de nuevo, repetir estos tres comandos. Verificar con `git config --local --list | grep -E "remote.origin.url|credential"`.
 
 ## 9. Problemas frecuentes
 

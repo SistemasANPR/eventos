@@ -15,16 +15,19 @@
 | Serie de eventos | `EventSeries` | Agrupa ediciones del mismo evento recurrente. *(Opcional: decidir en el plan de eventos.)* | Organización |
 | Convocatoria | `CallForSubmissions` | Periodo en que un evento recibe propuestas de un tipo, con fechas de apertura, cierre y resultados | Evento |
 | Propuesta | `Submission` | Envío de un autor a una convocatoria | Evento |
-| Tipo de propuesta | `SubmissionType` | Sesión individual, panel, póster o taller | — (enum) |
-| Eje temático | `Track` | Tema que organiza propuestas y programa | Evento |
-| Ponente | `Speaker` | Persona que presenta (autor o coautor) | Organización (`Contact`) |
+| Ponente invitado | `Speaker` sin propuesta | Persona que el organizador da de alta directamente en Ponentes, sin convocatoria y sin propuesta; la actividad es opcional y se enlaza después (plan 021, DA-8). **Sustituye** al «conferencista invitado» del plan 018 (`Submission` con `origin = invited`): ese plan quedó reemplazado y el valor `invited` de `SubmissionOrigin` queda inactivo (deuda técnica DT-17) | Evento |
+| Categoría de propuesta (antes «Tipo de propuesta»; en pantalla, «Categoría») | `SubmissionType` | Sesión individual, panel, póster o taller | — (enum) |
+| Tema (antes «Eje temático») | `Track` | Tema que organiza propuestas y programa | Evento |
+| Ponente | `Speaker` | Persona que presenta en un evento: su ficha (nombre, apellido, correo, país, organización, cargo, biografía, fotografía, redes). Nace al aceptar una propuesta (uno por participante) o se da de alta a mano. Editar la ficha de un evento no cambia la de otro. Vínculo **opcional** a un `Contact` para sugerir y copiar datos de eventos anteriores (plan 021, DA-1) | Evento (`Contact` opcional) |
+| Categoría de ponente | `SpeakerCategory` | Etiqueta propia de cada evento para clasificar ponentes (magistral, invitado, panelista); catálogo independiente del de actividades y de los ejes; un ponente admite varias (plan 021, DA-7) | Evento |
+| Categoría de actividad | `ActivityCategory` | Etiqueta propia de cada evento para clasificar actividades; catálogo independiente del de ponentes y de los ejes; una actividad admite varias (plan 021, DA-7) | Evento |
 | Comité evaluador | `ReviewCommittee` | Grupo de evaluadores de uno o más ejes | Evento |
 | Evaluador | `Reviewer` | Persona que califica propuestas | Evento |
 | Rúbrica | `Rubric` | Conjunto de criterios con su escala y peso. Versionada | Evento |
 | Criterio | `RubricCriterion` | Una pregunta de la rúbrica | Evento |
 | Evaluación | `Review` | Calificación de un evaluador a una propuesta | Evento |
-| Sesión del programa | `EventSession` | Actividad programada (conferencia, panel, póster, taller, social) | Evento |
-| Programa | `Schedule` | Conjunto de sesiones del evento, publicado por versiones | Evento |
+| Actividad | `EventActivity` (tabla `event_activities`) | Cada charla, panel, taller o evento social del programa. Nace al aceptar una propuesta (una por propuesta, sin fecha ni hora: «sin programar») o se da de alta a mano; se enlaza con ponentes de forma opcional y muchos a muchos (plan 021, DA-8 y DA-14). **Sustituye** a `EventSession`. No confundir con `Activity` (`App\Models\Activity`), que es la bitácora de auditoría | Evento |
+| Programa | `Schedule` | Conjunto de actividades del evento, publicado por versiones | Evento |
 | Bloque | `ScheduleBlock` | Rango de horario con un tipo (conferencias, magistral, talleres) | Evento |
 | Sede | `Venue` | Lugar del evento | Organización |
 | Sala | `Room` | Espacio dentro de una sede | Organización |
@@ -41,7 +44,10 @@
 | Voluntario | `Volunteer` | Persona que apoya la operación | Evento (`Contact`) |
 | Turno | `VolunteerShift` | Franja con cupo para voluntarios | Evento |
 | Hotel | `Hotel` | Alojamiento recomendado o con bloque | Evento |
-| Plantilla de correo | `MailTemplate` | Mensaje editable con variables, por organización | Organización |
+| Plantilla de correo | `MailTemplate` | Personalización de un correo del catálogo para un idioma, con variables de lista blanca; por organización y, desde R1, por evento (`event_id`). La predeterminada del sistema no es un modelo: vive en `lang/` (plan 008) | Organización |
+| Notificación del catálogo | `NotificationType` | Un correo que el sistema puede enviar, registrado en código en `NotificationCatalog` con su clave (`submission.received`), variables, criticidad y límite por destinatario. No es un modelo ni una tabla (ADR-0009) | — (código) |
+| Ajuste de notificación | `NotificationSetting` | Si una organización tiene activa una notificación no crítica; sin fila, está activa (plan 008, H-008-5) | Organización |
+| Envío de correo | `MailDispatch` | Registro de un envío del catálogo: hecho de negocio, estado (`queued`, `sent`, `failed`, `throttled`, `disabled`) y huella del destinatario, nunca su correo en claro (plan 008) | Organización |
 | Asignación a evento | `EventAssignment` | Acceso de un usuario a un evento con un rol (ADR-0003, DA-1) | Evento |
 
 ## Estados de una propuesta (`SubmissionStatus`)
@@ -72,8 +78,8 @@ Las transiciones válidas viven en una sola Action por transición; se registran
 |---|---|
 | Congreso, evento | `Event` (dentro de una `Organization`) |
 | Ponencia, conferencia (propuesta) | `Submission` |
-| Conferencia aceptada y agendada | `EventSession` |
-| Conferencista | `Speaker` (con `Contact`) |
+| Conferencia aceptada y agendada | `EventActivity` |
+| Conferencista | `Speaker` (del evento; `Contact` opcional) |
 | Aspirante | autor de una `Submission` en estado no confirmado |
 | Comité, consejo, evaluador (`id_categoria` 3 y 4) | `ReviewCommittee`, `Reviewer` |
 | Eje temático (`temas`) | `Track` |
