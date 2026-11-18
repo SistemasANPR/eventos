@@ -43,7 +43,7 @@ final class RenameSubmissionType
 
             return DB::transaction(function () use ($actor, $type, $validated, $event): SubmissionType {
                 $previous = $type->getTranslations('name');
-                // Los textos de idiomas que el evento dejó de ofrecer se conservan (plan 024, DA-1).
+                // Los textos de idiomas que el evento dejó de ofrecer se conservan (plan 025, DA-1).
                 $type->forceFill(['name' => OfferedLocaleTexts::withUnoffered(CallAttributes::texts($validated['name']), $previous, $event)])->save();
 
                 activity()

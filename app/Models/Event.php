@@ -154,7 +154,7 @@ class Event extends Model
     }
 
     /**
-     * Idiomas que el evento ofrece, con el idioma por defecto primero (plan 024, fuente única).
+     * Idiomas que el evento ofrece, con el idioma por defecto primero (plan 025, fuente única).
      *
      * @return list<string>
      */
@@ -164,7 +164,7 @@ class Event extends Model
     }
 
     /**
-     * Idiomas con que se muestra una convocatoria (plan 024, DA-4): los suyos que siguen en el evento;
+     * Idiomas con que se muestra una convocatoria (plan 025, DA-4): los suyos que siguen en el evento;
      * si no queda ninguno, el idioma por defecto del evento.
      *
      * @return list<string>

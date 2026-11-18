@@ -28,7 +28,7 @@ final class FormFieldsNormalizer
      * @param  list<array<string, mixed>>  $fields  campos validados por `FormDefinitionRules`
      * @param  list<array<string, mixed>>  $current  campos ya guardados, para conservar claves y valores
      * @param  Event|null  $event  si se indica, de los campos y opciones que ya existían se conservan los textos
-     *                             de los idiomas que el evento dejó de ofrecer (plan 024, DA-1)
+     *                             de los idiomas que el evento dejó de ofrecer (plan 025, DA-1)
      * @return list<array<string, mixed>>
      *
      * @throws ValidationException si la definición supera el tamaño máximo

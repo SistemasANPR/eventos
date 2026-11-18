@@ -46,7 +46,7 @@ final class FormDefinitionRules
     }
 
     /**
-     * Los textos de idiomas que el evento no ofrece se descartan sin error (plan 024, DA-5, CA-024-3): así
+     * Los textos de idiomas que el evento no ofrece se descartan sin error (plan 025, DA-5, CA-025-3): así
      * un formulario viejo abierto en el panel no falla, ni tampoco el que ya guardaba esos idiomas.
      *
      * @param  array<string, mixed>  $data

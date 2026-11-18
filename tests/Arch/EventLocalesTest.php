@@ -5,18 +5,18 @@ declare(strict_types=1);
 use Symfony\Component\Finder\Finder;
 
 /*
- * CA-024-12: los idiomas de un evento los decide `Event::offeredLocales()`. Una pantalla de Filament o un
+ * CA-025-12: los idiomas de un evento los decide `Event::offeredLocales()`. Una pantalla de Filament o un
  * Form Request que recorre la lista completa de idiomas del sistema (`StoreEventRequest::LOCALES`) vuelve
  * a pedir o aceptar texto en idiomas que el evento no ofrece. Solo se permite donde está en esta lista,
  * con su razón.
  */
-it('CA-024-12: no screen or request walks the full list of system languages outside the allowlist', function (): void {
+it('CA-025-12: no screen or request walks the full list of system languages outside the allowlist', function (): void {
     $allowlist = [
         // La validación genérica de claves: el evento mismo aún no tiene idiomas con los que acotar.
         'app/Http/Requests/Events/StoreEventRequest.php',
         // Muestra el nombre y la descripción de un evento cuyos idiomas se están eligiendo en vivo en ese mismo formulario.
         'app/Filament/Resources/Events/Schemas/EventForm.php',
-        // Pendiente (plan 024, fuera de F2): título y descripción de la convocatoria se acotan por `call.locales`, que ya se valida contra el evento.
+        // Pendiente (plan 025, fuera de F2): título y descripción de la convocatoria se acotan por `call.locales`, que ya se valida contra el evento.
         'app/Http/Requests/Calls/StoreCallForSubmissionsRequest.php',
     ];
 
@@ -35,7 +35,7 @@ it('CA-024-12: no screen or request walks the full list of system languages outs
     expect($offenders)->toBe([], 'Recorren la lista completa de idiomas; usa Event::offeredLocales() o LocalizedFields: '.implode(', ', $offenders));
 });
 
-it('CA-024-12: the allowlist has no stale entries', function (): void {
+it('CA-025-12: the allowlist has no stale entries', function (): void {
     $root = dirname(__DIR__, 2);
 
     foreach ([

@@ -30,7 +30,7 @@ afterEach(function (): void {
 });
 
 /**
- * Evento publicado con los idiomas dados y una convocatoria con los suyos (plan 024, F3).
+ * Evento publicado con los idiomas dados y una convocatoria con los suyos (plan 025, F3).
  *
  * @param  list<string>  $eventLocales
  * @param  list<string>  $callLocales
@@ -64,7 +64,7 @@ function effectiveScenario(array $eventLocales, array $callLocales, string $call
     return compact('org', 'event', 'call');
 }
 
-it('CA-024-10: the public call page shows only the effective languages of the call', function (): void {
+it('CA-025-10: the public call page shows only the effective languages of the call', function (): void {
     // La convocatoria quedó con en y pt, pero el evento ya solo ofrece es y en: queda en.
     effectiveScenario(['es', 'en'], ['en', 'pt']);
 
@@ -76,7 +76,7 @@ it('CA-024-10: the public call page shows only the effective languages of the ca
             ->where('call.title', 'Call'));
 });
 
-it('CA-024-10: a call whose languages all left the event falls back to the default language of the event', function (): void {
+it('CA-025-10: a call whose languages all left the event falls back to the default language of the event', function (): void {
     effectiveScenario(['es'], ['en', 'pt']);
 
     $this->get('/parques/events/congreso/call/ponencias?lang=en')
@@ -86,7 +86,7 @@ it('CA-024-10: a call whose languages all left the event falls back to the defau
             ->where('call.title', 'Convocatoria'));
 });
 
-it('CA-024-10: publishing requires the privacy notice only in the effective languages', function (): void {
+it('CA-025-10: publishing requires the privacy notice only in the effective languages', function (): void {
     $ctx = effectiveScenario(['es'], ['es', 'en'], 'draft');
     $admin = Memberships::attach(User::factory()->create(), $ctx['org'], OrganizationRole::OrgAdmin);
     app(PublishPrivacyNotice::class)->handle($admin, app(CreatePrivacyNoticeDraft::class)->handle($admin, $ctx['event'], ['es' => '<p>Aviso</p>']));
@@ -96,7 +96,7 @@ it('CA-024-10: publishing requires the privacy notice only in the effective lang
     expect($published->status)->toBe(CallStatus::Published);
 });
 
-it('CA-024-10: publishing still refuses when the notice lacks an effective language', function (): void {
+it('CA-025-10: publishing still refuses when the notice lacks an effective language', function (): void {
     $ctx = effectiveScenario(['es', 'en'], ['es', 'en', 'pt'], 'draft');
     $admin = Memberships::attach(User::factory()->create(), $ctx['org'], OrganizationRole::OrgAdmin);
     app(PublishPrivacyNotice::class)->handle($admin, app(CreatePrivacyNoticeDraft::class)->handle($admin, $ctx['event'], ['es' => '<p>Aviso</p>']));
@@ -110,7 +110,7 @@ it('CA-024-10: publishing still refuses when the notice lacks an effective langu
     }
 });
 
-it('CA-024-10: the public privacy notice page offers the languages of the event', function (): void {
+it('CA-025-10: the public privacy notice page offers the languages of the event', function (): void {
     $ctx = effectiveScenario(['es'], ['es']);
     PrivacyNotice::factory()->published()->create(['organization_id' => $ctx['org']->id, 'event_id' => $ctx['event']->id]);
 
@@ -119,7 +119,7 @@ it('CA-024-10: the public privacy notice page offers the languages of the event'
         ->assertInertia(fn (Assert $page) => $page->where('event.locales', ['es'])->where('event.locale', 'es'));
 });
 
-it('CA-024-11: with a single language the public pages carry one language, so no selector is shown', function (): void {
+it('CA-025-11: with a single language the public pages carry one language, so no selector is shown', function (): void {
     effectiveScenario(['es'], ['es']);
 
     $this->get('/parques/events/congreso')

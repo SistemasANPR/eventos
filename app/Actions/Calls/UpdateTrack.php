@@ -44,7 +44,7 @@ final class UpdateTrack
             return DB::transaction(function () use ($actor, $track, $validated, $event): Track {
                 $previous = ['name' => $track->getTranslations('name'), 'description' => $track->getTranslations('description')];
 
-                // Los textos de idiomas que el evento dejó de ofrecer se conservan (plan 024, DA-1).
+                // Los textos de idiomas que el evento dejó de ofrecer se conservan (plan 025, DA-1).
                 $track->forceFill([
                     'name' => OfferedLocaleTexts::withUnoffered(CallAttributes::texts($validated['name']), $previous['name'], $event),
                     'description' => OfferedLocaleTexts::withUnoffered(CallAttributes::texts($validated['description'] ?? []), $previous['description'], $event),

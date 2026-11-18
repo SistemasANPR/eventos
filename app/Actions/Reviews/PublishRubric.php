@@ -48,7 +48,7 @@ final class PublishRubric
 
                 $event = Event::query()->findOrFail($current->event_id);
                 $content = $this->content($current);
-                // Un idioma que el evento dejó de ofrecer no se valida: su texto queda guardado pero oculto (plan 024).
+                // Un idioma que el evento dejó de ofrecer no se valida: su texto queda guardado pero oculto (plan 025).
                 $content['criteria'] = array_values(OfferedLocaleTexts::discardInEach($content['criteria'], 'label', $event));
                 Validator::make($content, PublishRubricRequest::rulesFor($event, $content['criteria']))->validate();
 

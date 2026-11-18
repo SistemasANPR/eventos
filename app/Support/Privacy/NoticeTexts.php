@@ -14,7 +14,7 @@ use Illuminate\Validation\ValidationException;
  * Valida y sanitiza el texto de un aviso por idioma: se valida la forma y el
  * HTML se limpia ANTES de guardarlo (CA-003-15). Los idiomas que quedan vacíos
  * tras limpiar se descartan. Solo se aceptan los idiomas que ofrece el evento: los
- * demás se descartan sin error (plan 024, DA-5) y los textos ya guardados de un
+ * demás se descartan sin error (plan 025, DA-5) y los textos ya guardados de un
  * idioma que el evento dejó de ofrecer se conservan (DA-1).
  */
 final class NoticeTexts
