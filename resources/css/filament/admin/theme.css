@@ -291,6 +291,16 @@ h3,
     position: relative;
 }
 
+/*
+ * La tarjeta en uso (cursor, foco o menú abierto) va por encima de sus vecinas: su menú se despliega
+ * dentro de ella y, sin esto, la tarjeta siguiente del DOM lo tapa.
+ */
+.fi-ta-content-grid .fi-ta-record:hover,
+.fi-ta-content-grid .fi-ta-record:focus-within,
+.fi-ta-content-grid .fi-ta-record:has([aria-expanded='true']) {
+    z-index: 30;
+}
+
 .fi-ta-content-grid .fi-ta-record .fi-ta-actions {
     position: absolute;
     inset-block-start: 0.5rem;
