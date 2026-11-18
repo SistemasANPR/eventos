@@ -8,7 +8,7 @@ use App\Actions\Privacy\CreatePrivacyNoticeDraft;
 use App\Actions\Privacy\PublishPrivacyNotice;
 use App\Actions\Privacy\UpdatePrivacyNoticeDraft;
 use App\Filament\Support\ActionErrors;
-use App\Http\Requests\Events\StoreEventRequest;
+use App\Filament\Support\LocalizedFields;
 use App\Models\Event;
 use App\Models\PrivacyNotice;
 use Filament\Actions\Action;
@@ -127,16 +127,10 @@ class PrivacyNoticesRelationManager extends RelationManager
      */
     private function bodyFields(): array
     {
-        $fields = [];
-
-        foreach (StoreEventRequest::LOCALES as $locale) {
-            $fields[] = RichEditor::make("body.{$locale}")
-                ->label(__("privacy.fields.body_{$locale}"))
-                ->toolbarButtons([['bold', 'italic', 'link'], ['bulletList', 'orderedList'], ['undo', 'redo']])
-                ->visible(fn (): bool => in_array($locale, $this->owner()->locales, true));
-        }
-
-        return $fields;
+        /** @var list<RichEditor> */
+        return LocalizedFields::for($this->owner(), static fn (string $locale): RichEditor => RichEditor::make("body.{$locale}")
+            ->label(__("privacy.fields.body_{$locale}"))
+            ->toolbarButtons([['bold', 'italic', 'link'], ['bulletList', 'orderedList'], ['undo', 'redo']]));
     }
 
     private function owner(): Event

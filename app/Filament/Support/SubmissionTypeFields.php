@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Filament\Support;
 
-use App\Http\Requests\Events\StoreEventRequest;
 use App\Models\Event;
 use Filament\Forms\Components\TextInput;
 
@@ -18,16 +17,10 @@ final class SubmissionTypeFields
     /** @return list<TextInput> */
     public static function names(Event $event): array
     {
-        $fields = [];
-
-        foreach (StoreEventRequest::LOCALES as $locale) {
-            $fields[] = TextInput::make("name.{$locale}")
-                ->label(__("calls.fields.type_name_{$locale}"))
-                ->maxLength(100)
-                ->required($locale === $event->default_locale)
-                ->visible(in_array($locale, $event->locales, true));
-        }
-
-        return $fields;
+        /** @var list<TextInput> */
+        return LocalizedFields::for($event, static fn (string $locale, bool $isDefault): TextInput => TextInput::make("name.{$locale}")
+            ->label(__("calls.fields.type_name_{$locale}"))
+            ->maxLength(100)
+            ->required($isDefault));
     }
 }
