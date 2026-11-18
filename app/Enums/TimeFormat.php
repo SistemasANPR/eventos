@@ -16,4 +16,19 @@ enum TimeFormat: string implements HasLabel
     {
         return __("events.time_format.options.{$this->value}");
     }
+
+    /** Formato de PHP con el que un selector de hora MUESTRA la hora (el valor guardado no cambia). */
+    public function displayTime(): string
+    {
+        return match ($this) {
+            self::TwelveHour => 'g:i A',
+            self::TwentyFourHour => 'H:i',
+        };
+    }
+
+    /** Igual que `displayTime()`, para un selector de fecha y hora; `$dateFormat` es el de la fecha. */
+    public function displayDateTime(string $dateFormat): string
+    {
+        return $dateFormat.' '.$this->displayTime();
+    }
 }

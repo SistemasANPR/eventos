@@ -250,8 +250,8 @@ class ManageEventActivities extends ManageRelatedRecords
             Grid::make(['default' => 1, 'sm' => 2])->schema([
                 DatePicker::make('starts_on')->label(__('program.activities.form.starts_on'))->required()->format('Y-m-d'),
                 DatePicker::make('ends_on')->label(__('program.activities.form.ends_on'))->required()->format('Y-m-d'),
-                TimePicker::make('starts_at')->label(__('program.activities.form.starts_at'))->required()->seconds(false),
-                TimePicker::make('ends_at')->label(__('program.activities.form.ends_at'))->required()->seconds(false),
+                TimePicker::make('starts_at')->label(__('program.activities.form.starts_at'))->required()->seconds(false)->displayFormat($this->event()->time_format->displayTime()),
+                TimePicker::make('ends_at')->label(__('program.activities.form.ends_at'))->required()->seconds(false)->displayFormat($this->event()->time_format->displayTime()),
             ]),
             ...$this->fileFields($activity, 'icon', 256),
             ...$this->fileFields($activity, 'image', 5120),

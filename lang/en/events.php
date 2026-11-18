@@ -58,6 +58,7 @@ return [
         'starts_at' => 'Dates',
     ],
 
+    'date_format' => 'Y-m-d',
     'time_format' => [
         'options' => ['12h' => '12-hour (2:30 pm)', '24h' => '24-hour (14:30)'],
         'suffix_24h' => '',

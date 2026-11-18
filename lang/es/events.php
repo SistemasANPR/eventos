@@ -58,6 +58,8 @@ return [
         'starts_at' => 'Fechas',
     ],
 
+    // Formato de la fecha en los selectores del formulario; la hora la decide el formato del evento (plan 022).
+    'date_format' => 'd/m/Y',
     'time_format' => [
         'options' => ['12h' => '12 horas (2:30 p. m.)', '24h' => '24 horas (14:30 h)'],
         'suffix_24h' => ' h',

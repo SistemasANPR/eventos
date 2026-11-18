@@ -220,7 +220,8 @@ class CallsRelationManager extends RelationManager
                     ->label(__('calls.actions.new_close'))
                     ->helperText(__('calls.actions.new_close_help'))
                     ->seconds(false)
-                    ->format('Y-m-d H:i'),
+                    ->format('Y-m-d H:i')
+                    ->displayFormat($this->pickerFormat()),
             ]);
         }
 
@@ -271,9 +272,9 @@ class CallsRelationManager extends RelationManager
 
         return [
             ...$fields,
-            DateTimePicker::make('opens_at')->label(__('calls.fields.opens_at'))->seconds(false)->format('Y-m-d H:i')->required(),
-            DateTimePicker::make('closes_at')->label(__('calls.fields.closes_at'))->seconds(false)->format('Y-m-d H:i')->required(),
-            DateTimePicker::make('results_at')->label(__('calls.fields.results_at'))->seconds(false)->format('Y-m-d H:i'),
+            DateTimePicker::make('opens_at')->label(__('calls.fields.opens_at'))->seconds(false)->format('Y-m-d H:i')->displayFormat($this->pickerFormat())->required(),
+            DateTimePicker::make('closes_at')->label(__('calls.fields.closes_at'))->seconds(false)->format('Y-m-d H:i')->displayFormat($this->pickerFormat())->required(),
+            DateTimePicker::make('results_at')->label(__('calls.fields.results_at'))->seconds(false)->format('Y-m-d H:i')->displayFormat($this->pickerFormat()),
         ];
     }
 
@@ -312,6 +313,12 @@ class CallsRelationManager extends RelationManager
     }
 
     /** Instante UTC → hora local de la zona del evento. */
+    /** Cómo MUESTRAN la fecha y la hora los selectores: con el formato de hora del evento (plan 022, DA-3). */
+    private function pickerFormat(): string
+    {
+        return $this->owner()->time_format->displayDateTime(__('calls.date_format'));
+    }
+
     private function localTime(\DateTimeInterface $instant, string $format = 'Y-m-d H:i'): string
     {
         return CarbonImmutable::instance($instant)->setTimezone($this->owner()->timezone)->format($format);

@@ -59,7 +59,8 @@ it('CA-022-8: the event cards show the dates with the format of the event', func
 
     $text = EventsTable::displayDates($event);
 
-    expect($text)->toContain(...$contains)->not->toContain($absent);
+    expect($text)->toContain(...$contains);
+    expect($text)->not->toContain($absent);
 })->with([
     '12 hours' => [TimeFormat::TwelveHour, ['9:00 a. m.', '5:00 p. m.'], '09:00 h'],
     '24 hours' => [TimeFormat::TwentyFourHour, ['09:00 h', '17:00 h'], 'a. m.'],
