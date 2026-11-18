@@ -3,11 +3,12 @@
 declare(strict_types=1);
 
 use App\Http\Controllers\Internal\ShowComponentCatalogController;
-use App\Http\Controllers\Panel\ActivityMediaController;
 use App\Http\Controllers\Panel\SubmissionFileDownloadController;
+use App\Http\Controllers\Public\ShowActivityMediaController;
 use App\Http\Controllers\Public\ShowCallController;
 use App\Http\Controllers\Public\ShowEventController;
 use App\Http\Controllers\Public\ShowPrivacyNoticeController;
+use App\Http\Controllers\Public\ShowSpeakerPhotoController;
 use App\Http\Controllers\Public\SubmissionFileUploadController;
 use App\Http\Middleware\HandleInertiaRequests;
 use App\Http\Middleware\SetOrganizationFromRoute;
@@ -38,6 +39,12 @@ Route::middleware([SetOrganizationFromRoute::class, HandleInertiaRequests::class
         Route::get('events/{event:slug}', ShowEventController::class)->name('events.show');
         Route::get('events/{event:slug}/privacy', ShowPrivacyNoticeController::class)->name('events.privacy');
         Route::get('events/{event:slug}/call/{call:slug}', ShowCallController::class)->name('calls.show');
+        // Imágenes del programa (plan 021, CA-021-18): el disco `media` es privado y solo se sirven las
+        // de registros publicados y no borrados, de un evento publicado.
+        Route::get('events/{event:slug}/speakers/{speaker}/photo', ShowSpeakerPhotoController::class)->name('public.speakers.photo');
+        Route::get('events/{event:slug}/activities/{activity}/{type}', ShowActivityMediaController::class)
+            ->whereIn('type', ['icon', 'image'])
+            ->name('public.activities.media');
         // Subida pública de archivos de propuesta (plan 007): responde JSON y se acota con token y cuotas.
         Route::post('events/{event:slug}/call/{call}/files', SubmissionFileUploadController::class)
             ->middleware('throttle:60,1')
@@ -50,13 +57,6 @@ Route::middleware([SetOrganizationFromRoute::class, HandleInertiaRequests::class
 Route::middleware(['auth', SetOrganizationFromRoute::class])
     ->get('admin/{organization:slug}/submission-files/{file}', SubmissionFileDownloadController::class)
     ->name('submission-files.download');
-
-// Vista previa del icono o la imagen de una actividad para el organizador (plan 021, F3). Autenticada y
-// con la organización fijada por la ruta; el disco `media` es privado y no tiene URL pública.
-Route::middleware(['auth', SetOrganizationFromRoute::class])
-    ->get('admin/{organization:slug}/activities/{activity}/media/{type}', ActivityMediaController::class)
-    ->whereIn('type', ['icon', 'image'])
-    ->name('activities.media');
 
 // Rutas del autor de una propuesta (plan 006).
 require __DIR__.'/author.php';
