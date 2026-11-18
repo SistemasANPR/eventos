@@ -110,3 +110,4 @@ Cada fase deja el repo en verde y termina en su propio commit.
 
 | Fase | Commit | Fecha | Notas (salida real de las validaciones) |
 |---|---|---|---|
+| F1 | `978fde6` | 2026-11-18 | Suite completa: 1879 pasan, 26 fallan, todas ajenas (exportación CA-009-11..19 y SubmissionListTest CA-009-19 por falta del paquete Excel; CA-003-11/14 de PrivacyNoticePanelTest; Arch `preset → security` por `assert()` en ViewSubmission). PHPStan: solo errores de Maatwebsite/PhpSpreadsheet ajenos. Pint y `check:criteria` en verde (0 errores). Pendiente de F2: al guardar un formulario desde el panel, los textos de un idioma quitado salen del estado del formulario (campos no creados) y se perderían: conservarlos en `UpdateFormDefinition` (DA-1, CA-022-7). `EventForm` no cambia: sus idiomas salen del estado en vivo del propio formulario del evento. |
