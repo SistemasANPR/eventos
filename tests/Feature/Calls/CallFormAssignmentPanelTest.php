@@ -26,7 +26,7 @@ use Tests\Support\SubmissionTypes;
 require_once __DIR__.'/../../Support/form-helpers.php';
 
 /*
- * Plan 022 F2: el formulario se asigna, cambia y quita desde la lista de convocatorias del evento.
+ * Plan 025 F2: el formulario se asigna, cambia y quita desde la lista de convocatorias del evento.
  * Un solo rol por prueba: la caché de permisos de Spatie es compartida entre usuarios.
  */
 
@@ -107,7 +107,7 @@ function draftFormOf(User $actor, Event $event, string $name = 'Formulario de se
     return createForm($actor, $event, [formField('short_text')], $name);
 }
 
-it('CA-022-1: each call shows the name of its form or the no-form badge', function (): void {
+it('CA-025-1: each call shows the name of its form or the no-form badge', function (): void {
     [$organization, $event, $admin] = assignmentScenario();
     $withForm = assignmentCall($organization, $event);
     $withoutForm = assignmentCall($organization, $event);
@@ -119,7 +119,7 @@ it('CA-022-1: each call shows the name of its form or the no-form badge', functi
         ->assertTableColumnStateSet('form_definition_id', 'Sin formulario', $withoutForm);
 });
 
-it('CA-022-2: an admin assigns a draft form from the call and it ends up published and linked', function (): void {
+it('CA-025-2: an admin assigns a draft form from the call and it ends up published and linked', function (): void {
     [$organization, $event, $admin] = assignmentScenario();
     $call = assignmentCall($organization, $event);
     $form = draftFormOf($admin, $event);
@@ -132,7 +132,7 @@ it('CA-022-2: an admin assigns a draft form from the call and it ends up publish
         ->and(storedFormOf($organization, $form)->status)->toBe(FormDefinitionStatus::Published);
 });
 
-it('CA-022-3: the modal warns that a draft form will be published, and a form without fields is refused', function (): void {
+it('CA-025-3: the modal warns that a draft form will be published, and a form without fields is refused', function (): void {
     [$organization, $event, $admin] = assignmentScenario();
     $call = assignmentCall($organization, $event);
     $draft = draftFormOf($admin, $event, 'Borrador listo');
@@ -154,7 +154,7 @@ it('CA-022-3: the modal warns that a draft form will be published, and a form wi
         ->and(storedFormOf($organization, $empty)->status)->toBe(FormDefinitionStatus::Draft);
 });
 
-it('CA-022-2: changing the form preselects the current one of the call', function (): void {
+it('CA-025-2: changing the form preselects the current one of the call', function (): void {
     [$organization, $event, $admin] = assignmentScenario();
     $call = assignmentCall($organization, $event);
     $current = assignPublishedForm($admin, $call);
@@ -170,7 +170,7 @@ it('CA-022-2: changing the form preselects the current one of the call', functio
         ->assertSchemaStateSet(['form_definition_id' => null]);
 });
 
-it('CA-022-3: the required field of the row action does not say it is optional, the one of the create form does', function (): void {
+it('CA-025-3: the required field of the row action does not say it is optional, the one of the create form does', function (): void {
     [$organization, $event] = assignmentScenario();
     $call = assignmentCall($organization, $event);
     CurrentOrganization::set($organization);
@@ -186,7 +186,7 @@ it('CA-022-3: the required field of the row action does not say it is optional, 
             && str_contains((string) $field->getChildSchema($field::BELOW_CONTENT_SCHEMA_KEY)?->toHtmlString(), 'Opcional'));
 });
 
-it('CA-022-4: the selector only offers forms of the same event', function (): void {
+it('CA-025-4: the selector only offers forms of the same event', function (): void {
     [$organization, $event, $admin] = assignmentScenario();
     $call = assignmentCall($organization, $event);
     draftFormOf($admin, $event, 'Propio');
@@ -208,7 +208,7 @@ it('CA-022-4: the selector only offers forms of the same event', function (): vo
     expect(storedCallOf($organization, $call)->form_definition_id)->toBeNull();
 });
 
-it('CA-022-6: without forms.manage the assign action is not shown', function (): void {
+it('CA-025-6: without forms.manage the assign action is not shown', function (): void {
     // Ningún rol integrado ve las convocatorias sin gestionar formularios: se le da solo `calls.view` al revisor.
     [$organization, $event, $reviewer] = assignmentScenario(OrganizationRole::Reviewer);
     CurrentOrganization::run($organization, fn () => $reviewer->givePermissionTo('calls.view'));
@@ -218,7 +218,7 @@ it('CA-022-6: without forms.manage the assign action is not shown', function ():
         ->assertActionHidden(TestAction::make('assignForm')->table($call));
 });
 
-it('CA-022-8 and CA-022-9: the unassign action only shows on a draft call with a form, and removes it', function (): void {
+it('CA-025-8 and CA-025-9: the unassign action only shows on a draft call with a form, and removes it', function (): void {
     [$organization, $event, $admin] = assignmentScenario();
     $draftWithForm = assignmentCall($organization, $event);
     $draftWithout = assignmentCall($organization, $event);
@@ -238,7 +238,7 @@ it('CA-022-8 and CA-022-9: the unassign action only shows on a draft call with a
     expect(storedCallOf($organization, $draftWithForm)->form_definition_id)->toBeNull();
 });
 
-it('CA-022-10: changing the form warns that sent proposals keep their copy and leaves them untouched', function (): void {
+it('CA-025-10: changing the form warns that sent proposals keep their copy and leaves them untouched', function (): void {
     [$organization, $event, $admin] = assignmentScenario();
     $call = assignmentCall($organization, $event, CallStatus::Published);
     $old = assignPublishedForm($admin, $call);
@@ -263,7 +263,7 @@ it('CA-022-10: changing the form warns that sent proposals keep their copy and l
         ->and($stored->form_snapshot)->toBe(['fields' => [['key' => 'titulo']]]);
 });
 
-it('CA-022-11: creating a call can assign a form of the event, and leaving it empty leaves the call without one', function (): void {
+it('CA-025-11: creating a call can assign a form of the event, and leaving it empty leaves the call without one', function (): void {
     [$organization, $event, $admin] = assignmentScenario();
     $form = draftFormOf($admin, $event);
     $empty = createForm($admin, $event, [], 'Borrador vacio');
@@ -284,7 +284,7 @@ it('CA-022-11: creating a call can assign a form of the event, and leaving it em
         ->and(storedFormOf($organization, $form)->status)->toBe(FormDefinitionStatus::Published);
 });
 
-it('CA-022-12: the same form can be assigned to two calls of the event', function (): void {
+it('CA-025-12: the same form can be assigned to two calls of the event', function (): void {
     [$organization, $event, $admin] = assignmentScenario();
     $first = assignmentCall($organization, $event);
     $second = assignmentCall($organization, $event);

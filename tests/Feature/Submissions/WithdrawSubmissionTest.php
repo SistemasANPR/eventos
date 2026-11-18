@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Actions\Notifications\RenderMailTemplate;
 use App\Actions\Submissions\WithdrawSubmission;
 use App\Enums\OrganizationRole;
 use App\Enums\SubmissionStatus;
@@ -35,9 +36,9 @@ afterEach(function (): void {
 });
 
 /** @return list<SendTransactionalMail> */
-function withdrawnMails(): array
+function withdrawnMails(string $key = 'submission.withdrawn'): array
 {
-    return Queue::pushed(SendTransactionalMail::class, fn (SendTransactionalMail $job): bool => $job->notificationKey === 'submission.withdrawn')->values()->all();
+    return Queue::pushed(SendTransactionalMail::class, fn (SendTransactionalMail $job): bool => $job->notificationKey === $key)->values()->all();
 }
 
 it('CA-006-46: withdrawing a submitted proposal marks it withdrawn, audits it and queues the mail to the author and the team', function (): void {
@@ -51,15 +52,18 @@ it('CA-006-46: withdrawing a submitted proposal marks it withdrawn, audits it an
         ->assertRedirect(AuthorFixtures::path($submission));
 
     $fresh = Submission::query()->findOrFail($submission->id);
-    $recipients = array_map(static fn (SendTransactionalMail $job): string => $job->recipient->email, withdrawnMails());
-    sort($recipients);
-    $authorMail = collect(withdrawnMails())->first(fn (SendTransactionalMail $job): bool => $job->recipient->email === 'ana@example.test');
+    $teamRecipients = array_map(static fn (SendTransactionalMail $job): string => $job->recipient->email, withdrawnMails());
+    $authorMails = withdrawnMails('submission.withdrawn_author');
+    $authorMail = $authorMails[0];
     expect($fresh->status)->toBe(SubmissionStatus::Withdrawn)
         ->and($fresh->withdrawn_at?->equalTo(now()))->toBeTrue()
         ->and($fresh->version)->toBe(2)
-        ->and($recipients)->toBe(['ana@example.test', $organizer->email])
-        ->and($authorMail->variables['panel_url'])->toContain('/my-submission/request-link')
-        ->and($authorMail->variables['panel_url'])->not->toContain('/access/')
+        ->and($teamRecipients)->toBe([$organizer->email])
+        ->and($authorMails)->toHaveCount(1)
+        ->and($authorMail->recipient->email)->toBe('ana@example.test')
+        ->and($authorMail->variables)->not->toHaveKey('panel_url')
+        ->and($authorMail->variables['request_link_url'])->toContain('/my-submission/request-link')
+        ->and($authorMail->variables['request_link_url'])->not->toContain('/access/')
         ->and(collect(withdrawnMails())->first(fn (SendTransactionalMail $job): bool => $job->recipient->email === $organizer->email)->variables['panel_url'])
         ->toContain('/admin/'.$organization->slug.'/events/'.$submission->event_id.'/submissions')
         ->and(Activity::query()->where('event', 'submission_withdrawn')->count())->toBe(1);
@@ -79,7 +83,7 @@ it('CA-006-47: withdrawing an already withdrawn proposal changes nothing and sen
     $fresh = Submission::query()->findOrFail($submission->id);
     expect($fresh->withdrawn_at?->equalTo($withdrawnAt))->toBeTrue()
         ->and($fresh->version)->toBe(2)
-        ->and(withdrawnMails())->toHaveCount(1)
+        ->and(withdrawnMails('submission.withdrawn_author'))->toHaveCount(1)
         ->and(Activity::query()->where('event', 'submission_withdrawn')->count())->toBe(1);
 });
 
@@ -169,3 +173,20 @@ it('CA-006-46: the proposal page offers withdrawing only while the proposal is s
 
     $this->get($path)->assertInertia(fn ($page) => $page->where('withdrawUrl', null)->where('submission.status', 'withdrawn'));
 });
+
+it('CA-006-46: the author template is its own text in es and en, without panel wording and with the request-link page', function (string $locale, string $expected): void {
+    $mail = app(RenderMailTemplate::class)->handle('submission.withdrawn_author', $locale, [
+        'author_name' => 'Ana Pérez',
+        'submission_title' => '<b>Parques</b>',
+        'event_name' => 'Congreso Parques 2027',
+        'request_link_url' => 'https://app.example.test/parques/events/congreso/my-submission/request-link',
+    ]);
+
+    expect($mail->text)->toContain($expected)
+        ->and($mail->text)->toContain('/my-submission/request-link')
+        ->and($mail->html)->not->toContain('<b>')
+        ->and(mb_strtolower($mail->text.$mail->subject))->not->toContain('panel');
+})->with([
+    'es' => ['es', 'Confirmamos que retiraste tu propuesta'],
+    'en' => ['en', 'We confirm you withdrew your submission'],
+]);

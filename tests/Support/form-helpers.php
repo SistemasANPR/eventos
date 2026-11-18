@@ -145,7 +145,7 @@ function createForm(User $actor, Event $event, array $fields, string $name = 'Fo
     return app(CreateFormDefinition::class)->handle($actor, $event, ['name' => $name, 'fields' => $fields]);
 }
 
-/** Asigna a la convocatoria un formulario publicado y válido de su evento (plan 022: sin formulario no se publica). */
+/** Asigna a la convocatoria un formulario publicado y válido de su evento (plan 025: sin formulario no se publica). */
 function assignPublishedForm(User $actor, CallForSubmissions $call): FormDefinition
 {
     $event = CurrentOrganization::run(

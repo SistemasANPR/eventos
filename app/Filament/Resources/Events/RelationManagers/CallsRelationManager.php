@@ -23,6 +23,7 @@ use App\Models\FormDefinition;
 use App\Models\Submission;
 use App\Models\SubmissionType;
 use App\Support\Calls\ResolveCallState;
+use App\Support\Events\EventTime;
 use App\Support\Tenancy\CurrentOrganization;
 use Carbon\CarbonImmutable;
 use Filament\Actions\Action;
@@ -91,7 +92,7 @@ class CallsRelationManager extends RelationManager
                     ->state(fn (CallForSubmissions $record): string => $this->publicStateLabel($record)),
                 TextColumn::make('opens_at')
                     ->label(__('calls.columns.period'))
-                    ->state(fn (CallForSubmissions $record): string => $this->localTime($record->opens_at).' – '.$this->localTime($record->closes_at)),
+                    ->state(fn (CallForSubmissions $record): string => EventTime::for($this->owner())->range($record->opens_at, $record->closes_at, __('calls.date_format'), ' ')),
             ])
             // Sin N+1: el tipo y el formulario de toda la página se cargan de una vez (el modelo es estricto).
             ->modifyQueryUsing(fn (Builder $query): Builder => $query->with(['submissionType', 'formDefinition']))
@@ -145,7 +146,7 @@ class CallsRelationManager extends RelationManager
             });
     }
 
-    /** Asignar o cambiar el formulario (plan 022): la Action publica el borrador y valida el evento. */
+    /** Asignar o cambiar el formulario (plan 025): la Action publica el borrador y valida el evento. */
     private function assignFormAction(): Action
     {
         $label = fn (CallForSubmissions $record): string => __($record->form_definition_id === null ? 'calls.form.assign' : 'calls.form.change');
@@ -353,7 +354,8 @@ class CallsRelationManager extends RelationManager
                     ->label(__('calls.actions.new_close'))
                     ->helperText(__('calls.actions.new_close_help'))
                     ->seconds(false)
-                    ->format('Y-m-d H:i'),
+                    ->format('Y-m-d H:i')
+                    ->displayFormat($this->pickerFormat()),
             ]);
         }
 
@@ -404,9 +406,9 @@ class CallsRelationManager extends RelationManager
 
         return [
             ...$fields,
-            DateTimePicker::make('opens_at')->label(__('calls.fields.opens_at'))->seconds(false)->format('Y-m-d H:i')->required(),
-            DateTimePicker::make('closes_at')->label(__('calls.fields.closes_at'))->seconds(false)->format('Y-m-d H:i')->required(),
-            DateTimePicker::make('results_at')->label(__('calls.fields.results_at'))->seconds(false)->format('Y-m-d H:i'),
+            DateTimePicker::make('opens_at')->label(__('calls.fields.opens_at'))->seconds(false)->format('Y-m-d H:i')->displayFormat($this->pickerFormat())->required(),
+            DateTimePicker::make('closes_at')->label(__('calls.fields.closes_at'))->seconds(false)->format('Y-m-d H:i')->displayFormat($this->pickerFormat())->required(),
+            DateTimePicker::make('results_at')->label(__('calls.fields.results_at'))->seconds(false)->format('Y-m-d H:i')->displayFormat($this->pickerFormat()),
         ];
     }
 
@@ -445,6 +447,12 @@ class CallsRelationManager extends RelationManager
     }
 
     /** Instante UTC → hora local de la zona del evento. */
+    /** Cómo MUESTRAN la fecha y la hora los selectores: con el formato de hora del evento (plan 023, DA-3). */
+    private function pickerFormat(): string
+    {
+        return $this->owner()->time_format->displayDateTime(__('calls.date_format'));
+    }
+
     private function localTime(\DateTimeInterface $instant, string $format = 'Y-m-d H:i'): string
     {
         return CarbonImmutable::instance($instant)->setTimezone($this->owner()->timezone)->format($format);

@@ -166,7 +166,7 @@ it('CA-005-22 and CA-020-14: in the panel saving with an outdated version keeps 
     expect(storedForm($organization, $form->id)->name)->toBe('Formulario de sesiones');
 });
 
-it('CA-022-13: the forms list shows which calls use each form, or a dash', function (): void {
+it('CA-025-13: the forms list shows which calls use each form, or a dash', function (): void {
     [$organization, $event, $admin] = formScenario();
     $used = createForm($admin, $event, [formField('short_text')], 'Usado');
     $unused = createForm($admin, $event, [formField('short_text')], 'Libre');
@@ -184,7 +184,7 @@ it('CA-022-13: the forms list shows which calls use each form, or a dash', funct
         ->assertTableColumnStateSet('used_in', '—', $unused);
 });
 
-it('CA-022-14: the publish modal is titled publish and assign to a call', function (): void {
+it('CA-025-14: the publish modal is titled publish and assign to a call', function (): void {
     [$organization, $event, $admin] = formScenario();
     $form = createForm($admin, $event, [formField('short_text')]);
     formPanelSession($organization, $admin, $event);

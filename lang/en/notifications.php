@@ -65,7 +65,13 @@ return [
             'name' => 'Submission withdrawn',
             'description' => 'Tells that the author withdrew their submission.',
             'trigger' => 'The author withdraws their submission.',
-            'recipient' => 'The author and team members allowed to view submissions.',
+            'recipient' => 'Team members allowed to view submissions.',
+        ],
+        'withdrawn_author' => [
+            'name' => 'Withdrawal confirmed to the author',
+            'description' => 'Confirms to the author that their submission was withdrawn.',
+            'trigger' => 'The author withdraws their submission.',
+            'recipient' => 'The person who sent the submission.',
         ],
     ],
 ];

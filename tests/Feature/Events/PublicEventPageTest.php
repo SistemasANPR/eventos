@@ -58,6 +58,17 @@ it('CA-002-13: a visitor without session sees the published event', function ():
             ->where('event.locale', 'es'));
 });
 
+it('CA-023-12: the public page tells the client how to show the hours of the event', function (string $format, array $attributes): void {
+    $event = publishedEvent(null, $attributes);
+
+    $this->get("/{$event->organization->slug}/events/{$event->slug}")
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page->where('event.timeFormat', $format));
+})->with([
+    'default is 12 hours' => ['12h', []],
+    'event in 24 hours' => ['24h', ['time_format' => '24h']],
+]);
+
 it('CA-002-13: shows the text in the language of the visitor when the event has it', function (): void {
     $event = publishedEvent();
 

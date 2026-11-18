@@ -20,7 +20,7 @@ use Illuminate\Validation\ValidationException;
 /**
  * Publica una convocatoria en borrador (plan 004, CA-004-9 y -10, DA-6): exige
  * que el evento tenga su aviso de privacidad PUBLICADO en cada idioma de la
- * convocatoria; sin un texto que consentir no se abre. Exige además un formulario asignado (plan 022, CA-022-7). Un borrador de aviso no
+ * convocatoria; sin un texto que consentir no se abre. Exige además un formulario asignado (plan 025, CA-025-7). Un borrador de aviso no
  * cuenta. Queda auditado con el estado anterior y el nuevo.
  *
  * @throws AuthorizationException si quien publica no tiene `calls.manage` en la organización de la convocatoria

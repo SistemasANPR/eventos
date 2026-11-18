@@ -277,7 +277,6 @@ h3,
 /* Tarjetas de evento (EventsTable): elevación al pasar el cursor, sin mover el diseño. */
 .fi-ta-content-grid .fi-ta-record {
     border: 1px solid var(--eventos-border);
-    border-top-width: 3px;
     border-radius: var(--eventos-radius-card);
     background-color: #ffffff;
     box-shadow: var(--eventos-shadow-rest);
@@ -287,23 +286,43 @@ h3,
         box-shadow 180ms ease-out;
 }
 
+/* El menú de opciones va arriba a la derecha de la tarjeta; el título deja sitio para no quedar debajo. */
+.fi-ta-content-grid .fi-ta-record {
+    position: relative;
+}
+
+/*
+ * La tarjeta en uso (cursor, foco o menú abierto) va por encima de sus vecinas: su menú se despliega
+ * dentro de ella y, sin esto, la tarjeta siguiente del DOM lo tapa.
+ */
+.fi-ta-content-grid .fi-ta-record:hover,
+.fi-ta-content-grid .fi-ta-record:focus-within,
+.fi-ta-content-grid .fi-ta-record:has([aria-expanded='true']) {
+    z-index: 30;
+}
+
+.fi-ta-content-grid .fi-ta-record .fi-ta-actions {
+    position: absolute;
+    inset-block-start: 0.5rem;
+    inset-inline-end: 0.5rem;
+    padding: 0;
+    z-index: 1;
+}
+
+/* Objetivo táctil de 44 px (WCAG 2.5.5). */
+.fi-ta-content-grid .fi-ta-record .fi-ta-actions .fi-icon-btn {
+    min-width: 2.75rem;
+    min-height: 2.75rem;
+}
+
+.fi-ta-content-grid .eventos-card-title {
+    padding-inline-end: 2.75rem;
+}
+
 .fi-ta-content-grid .fi-ta-record:hover,
 .fi-ta-content-grid .fi-ta-record:focus-within {
     transform: translateY(-2px);
     box-shadow: var(--eventos-shadow-raised);
-}
-
-/* El estado también va con icono y texto en la insignia: el filete solo lo refuerza. */
-.fi-ta-content-grid .eventos-card-draft {
-    border-top-color: var(--eventos-status-draft);
-}
-
-.fi-ta-content-grid .eventos-card-published {
-    border-top-color: var(--eventos-status-published);
-}
-
-.fi-ta-content-grid .eventos-card-archived {
-    border-top-color: var(--eventos-status-archived);
 }
 
 /* Formularios: etiqueta de 14 px y borde de campo con 3:1 (WCAG 1.4.11). */

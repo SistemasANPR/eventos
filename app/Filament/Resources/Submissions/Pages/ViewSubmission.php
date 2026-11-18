@@ -7,9 +7,10 @@ namespace App\Filament\Resources\Submissions\Pages;
 use App\Filament\Resources\Submissions\SubmissionResource;
 use App\Filament\Resources\Submissions\Support\SubmissionActivityLink;
 use App\Filament\Resources\Submissions\Support\SubmissionDetail;
+use App\Filament\Support\ActionErrors;
 use App\Models\Event;
 use App\Models\Submission;
-use App\Models\User;
+use App\Support\Events\EventTime;
 use App\Support\Tenancy\CurrentOrganization;
 use Filament\Resources\Pages\ViewRecord;
 use Filament\Schemas\Components\View;
@@ -63,16 +64,15 @@ class ViewSubmission extends ViewRecord
     private function viewData(): array
     {
         $submission = $this->submission();
-        $user = auth()->user();
-        assert($user instanceof User);
+        $user = ActionErrors::actor();
         $event = $this->getParentRecord();
-        $timezone = $event instanceof Event ? $event->timezone : (string) config('app.timezone');
+        $event instanceof Event || throw new LogicException('El detalle de la propuesta necesita un evento en la ruta.');
 
         return [
             'submission' => $submission,
             'detail' => SubmissionDetail::for($submission, $user, CurrentOrganization::get()),
             'activityLink' => SubmissionActivityLink::for($submission),
-            'submittedAt' => $submission->submitted_at->setTimezone($timezone)->isoFormat('LLL').' ('.$timezone.')',
+            'submittedAt' => EventTime::for($event)->dateTime($submission->submitted_at, __('submission_panel.long_date_format'), ' ').' ('.$event->timezone.')',
         ];
     }
 

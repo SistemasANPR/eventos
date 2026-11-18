@@ -6,6 +6,7 @@ import { configOf, pickText } from '@/lib/form-text';
 import type { Translate } from '@/lib/translate';
 import { cn } from '@/lib/utils';
 import type { FormField } from '@/types/form';
+import type { AnswerValue } from '@/types/submission';
 
 interface FormFieldInputProps {
     field: FormField;
@@ -21,6 +22,8 @@ interface FormFieldInputProps {
     inputType?: 'text' | 'email';
     /** Valor de `autocomplete` del control, para que el navegador pueda sugerir datos de la persona. */
     autoComplete?: string;
+    /** Valor con que arranca el control (edición de una propuesta); sin él, el control nace vacío. */
+    initialValue?: AnswerValue;
 }
 
 /**
@@ -39,6 +42,7 @@ export function FormFieldInput({
     className,
     inputType = 'text',
     autoComplete,
+    initialValue,
 }: FormFieldInputProps) {
     const id = `${idPrefix}-${field.key}`;
     const helpId = `${id}-help`;
@@ -69,7 +73,7 @@ export function FormFieldInput({
                 <fieldset aria-describedby={shared['aria-describedby']} className="space-y-2">
                     <legend className="block text-base font-medium text-text">{caption}</legend>
                     {renderHelp(help, helpId)}
-                    {renderGroup(field, shared.id, locale, defaultLocale, error !== undefined)}
+                    {renderGroup(field, shared.id, locale, defaultLocale, error !== undefined, initialValue)}
                     {renderError(error, errorId)}
                 </fieldset>
             ) : (
@@ -79,7 +83,7 @@ export function FormFieldInput({
                             {caption}
                         </label>
                     )}
-                    {renderControl(field, shared, caption, locale, defaultLocale, t, inputType)}
+                    {renderControl(field, shared, caption, locale, defaultLocale, t, inputType, initialValue)}
                     {renderHelp(help, helpId)}
                     {renderError(error, errorId)}
                 </>
@@ -117,7 +121,7 @@ function renderError(error: string | undefined, id: string): ReactNode {
     );
 }
 
-function renderGroup(field: FormField, id: string, locale: string, defaultLocale: string, hasError: boolean): ReactNode {
+function renderGroup(field: FormField, id: string, locale: string, defaultLocale: string, hasError: boolean, initialValue?: AnswerValue): ReactNode {
     const inputType = field.type === 'single_choice' ? 'radio' : 'checkbox';
 
     return (configOf(field).options ?? []).map((option) => (
@@ -128,6 +132,7 @@ function renderGroup(field: FormField, id: string, locale: string, defaultLocale
                 name={field.type === 'multiple_choice' ? `${field.key}[]` : field.key}
                 value={option.value}
                 required={field.type === 'single_choice' && field.required}
+                defaultChecked={Array.isArray(initialValue) ? initialValue.includes(option.value) : initialValue === option.value}
                 aria-invalid={hasError ? true : undefined}
                 className="size-5 accent-primary"
             />
@@ -146,22 +151,24 @@ function renderControl(
     defaultLocale: string,
     t: Translate,
     inputType: 'text' | 'email',
+    initialValue?: AnswerValue,
 ): ReactNode {
     const config = configOf(field);
+    const text = typeof initialValue === 'string' ? initialValue : undefined;
 
     switch (field.type) {
         case 'short_text':
-            return <input {...shared} type={inputType} minLength={config.minLength} maxLength={config.maxLength} className={FORM_CONTROL} />;
+            return <input {...shared} type={inputType} defaultValue={text} minLength={config.minLength} maxLength={config.maxLength} className={FORM_CONTROL} />;
         case 'long_text':
-            return <textarea {...shared} rows={5} minLength={config.minLength} maxLength={config.maxLength} className={FORM_CONTROL} />;
+            return <textarea {...shared} rows={5} defaultValue={text} minLength={config.minLength} maxLength={config.maxLength} className={FORM_CONTROL} />;
         case 'number':
-            return <input {...shared} type="number" step="any" min={config.min} max={config.max} className={FORM_CONTROL} />;
+            return <input {...shared} type="number" step="any" defaultValue={text} min={config.min} max={config.max} className={FORM_CONTROL} />;
         case 'date':
-            return <input {...shared} type="date" className={FORM_CONTROL} />;
+            return <input {...shared} type="date" defaultValue={text} className={FORM_CONTROL} />;
         case 'checkbox':
             return (
                 <div className="flex min-h-11 items-center gap-3">
-                    <input {...shared} type="checkbox" className="size-5 accent-primary" />
+                    <input {...shared} type="checkbox" defaultChecked={initialValue === true} className="size-5 accent-primary" />
                     <label htmlFor={shared.id} className="text-base text-text">
                         {caption}
                     </label>
@@ -169,7 +176,7 @@ function renderControl(
             );
         case 'country':
             return (
-                <select {...shared} defaultValue="" className={FORM_CONTROL}>
+                <select {...shared} defaultValue={text ?? ''} className={FORM_CONTROL}>
                     <option value="">{t('forms.renderer.select_country')}</option>
                     {countryOptions(locale).map(([code, name]) => (
                         <option key={code} value={code}>

@@ -35,6 +35,8 @@ final class EventAttributes
             'locales' => array_values($validated['locales']),
             'default_locale' => $validated['default_locale'],
             'currency' => $validated['currency'],
+            // Solo si llegó: al crear, el modelo trae el valor por defecto; al editar, no se pisa el actual.
+            ...(isset($validated['time_format']) ? ['time_format' => $validated['time_format']] : []),
         ];
     }
 

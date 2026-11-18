@@ -23,7 +23,7 @@ use Spatie\Activitylog\Models\Activity;
 require_once __DIR__.'/../../Support/form-helpers.php';
 
 /*
- * Plan 022 F1: la convocatoria exige formulario para publicarse y se le quita solo en borrador.
+ * Plan 025 F1: la convocatoria exige formulario para publicarse y se le quita solo en borrador.
  * Un solo rol por prueba: la caché de permisos de Spatie es compartida entre usuarios.
  */
 
@@ -49,7 +49,7 @@ function callFormId(Organization $organization, CallForSubmissions $call): ?stri
     return CurrentOrganization::run($organization, fn (): ?string => CallForSubmissions::query()->findOrFail($call->id)->form_definition_id);
 }
 
-it('CA-022-7: a draft call without a form is refused with the form key and stays in draft', function (): void {
+it('CA-025-7: a draft call without a form is refused with the form key and stays in draft', function (): void {
     [$organization, $event, , $admin] = formScenario();
     app(PublishPrivacyNotice::class)->handle($admin, app(CreatePrivacyNoticeDraft::class)->handle($admin, $event, ['es' => '<p>Aviso</p>']));
     $call = draftCallOf($organization, $event);
@@ -61,14 +61,14 @@ it('CA-022-7: a draft call without a form is refused with the form key and stays
         ->and(Activity::query()->where('event', 'call_published')->count())->toBe(0);
 });
 
-it('CA-022-7: the missing form is reported before the privacy notice', function (): void {
+it('CA-025-7: the missing form is reported before the privacy notice', function (): void {
     [$organization, $event, , $admin] = formScenario();
     $call = draftCallOf($organization, $event);
 
     expect(validationErrorKeys(fn () => app(PublishCall::class)->handle($admin, $call)))->toBe(['form']);
 });
 
-it('CA-022-7: with a form assigned the privacy notice is still required', function (): void {
+it('CA-025-7: with a form assigned the privacy notice is still required', function (): void {
     [$organization, $event, , $admin] = formScenario();
     $call = draftCallOf($organization, $event);
     assignPublishedForm($admin, $call);
@@ -76,7 +76,7 @@ it('CA-022-7: with a form assigned the privacy notice is still required', functi
     expect(fn () => app(PublishCall::class)->handle($admin, $call->fresh()))->toThrow(PrivacyNoticeMissing::class);
 });
 
-it('CA-022-7: a call with a form and a published notice is published', function (): void {
+it('CA-025-7: a call with a form and a published notice is published', function (): void {
     [$organization, $event, , $admin] = formScenario();
     app(PublishPrivacyNotice::class)->handle($admin, app(CreatePrivacyNoticeDraft::class)->handle($admin, $event, ['es' => '<p>Aviso</p>']));
     $call = draftCallOf($organization, $event);
@@ -85,7 +85,7 @@ it('CA-022-7: a call with a form and a published notice is published', function 
     expect(app(PublishCall::class)->handle($admin, $call->fresh())->status)->toBe(CallStatus::Published);
 });
 
-it('CA-022-8: who has calls.manage unassigns the form of a draft call and it is audited', function (OrganizationRole $role): void {
+it('CA-025-8: who has calls.manage unassigns the form of a draft call and it is audited', function (OrganizationRole $role): void {
     [$organization, $event, $actor, $admin] = formScenario($role);
     $call = draftCallOf($organization, $event);
     $form = assignPublishedForm($admin, $call);
@@ -103,7 +103,7 @@ it('CA-022-8: who has calls.manage unassigns the form of a draft call and it is 
     'organizer' => [OrganizationRole::Organizer],
 ]);
 
-it('CA-022-8: without calls.manage the form stays assigned and nothing is audited', function (): void {
+it('CA-025-8: without calls.manage the form stays assigned and nothing is audited', function (): void {
     [$organization, $event, $reviewer, $admin] = formScenario(OrganizationRole::Reviewer);
     $call = draftCallOf($organization, $event);
     $form = assignPublishedForm($admin, $call);
@@ -113,7 +113,7 @@ it('CA-022-8: without calls.manage the form stays assigned and nothing is audite
         ->and(Activity::query()->where('event', 'call_form_unassigned')->count())->toBe(0);
 });
 
-it('CA-022-8: unassigning a call that has no form changes nothing and audits nothing', function (): void {
+it('CA-025-8: unassigning a call that has no form changes nothing and audits nothing', function (): void {
     [$organization, $event, , $admin] = formScenario();
     $call = draftCallOf($organization, $event);
 
@@ -123,7 +123,7 @@ it('CA-022-8: unassigning a call that has no form changes nothing and audits not
         ->and(Activity::query()->where('event', 'call_form_unassigned')->count())->toBe(0);
 });
 
-it('CA-022-8: an admin of A cannot unassign the form of a call of B', function (): void {
+it('CA-025-8: an admin of A cannot unassign the form of a call of B', function (): void {
     [, , , $adminA] = formScenario();
     [$organizationB, $eventB, , $adminB] = formScenario();
     $callB = draftCallOf($organizationB, $eventB);
@@ -133,7 +133,7 @@ it('CA-022-8: an admin of A cannot unassign the form of a call of B', function (
         ->and(callFormId($organizationB, $callB))->toBe($formB->id);
 });
 
-it('CA-022-9: a published, paused or closed call refuses to unassign its form', function (CallStatus $status): void {
+it('CA-025-9: a published, paused or closed call refuses to unassign its form', function (CallStatus $status): void {
     [$organization, $event, , $admin] = formScenario();
     $call = draftCallOf($organization, $event);
     $form = assignPublishedForm($admin, $call);
@@ -148,7 +148,7 @@ it('CA-022-9: a published, paused or closed call refuses to unassign its form', 
     'closed' => [CallStatus::Closed],
 ]);
 
-it('CA-022-5: a form of another event of the same organization is refused when forced onto a call', function (): void {
+it('CA-025-5: a form of another event of the same organization is refused when forced onto a call', function (): void {
     [$organization, $event, , $admin] = formScenario();
     $otherEvent = CurrentOrganization::run($organization, fn (): Event => Event::factory()->create(['organization_id' => $organization->id]));
     $call = draftCallOf($organization, $otherEvent);
@@ -158,7 +158,7 @@ it('CA-022-5: a form of another event of the same organization is refused when f
         ->and(callFormId($organization, $call))->toBeNull();
 });
 
-it('CA-022-5: a form of another organization answers as missing (404)', function (): void {
+it('CA-025-5: a form of another organization answers as missing (404)', function (): void {
     [$organizationA, $eventA, , $adminA] = formScenario();
     [, $eventB, , $adminB] = formScenario();
     $callA = draftCallOf($organizationA, $eventA);
@@ -169,7 +169,7 @@ it('CA-022-5: a form of another organization answers as missing (404)', function
         ->and(FormDefinition::query()->withoutGlobalScopes()->findOrFail($formB->id)->status->value)->toBe('draft');
 });
 
-it('CA-022-6: without forms.manage the Action denies assigning a form', function (): void {
+it('CA-025-6: without forms.manage the Action denies assigning a form', function (): void {
     [$organization, $event, $reviewer, $admin] = formScenario(OrganizationRole::Reviewer);
     $call = draftCallOf($organization, $event);
     $form = createForm($admin, $event, [formField('short_text')]);

@@ -12,6 +12,7 @@ use App\Models\SubmissionType;
 use App\Models\Track;
 use App\Support\Tenancy\CurrentOrganization;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Inertia\Testing\AssertableInertia as Assert;
 
 uses(RefreshDatabase::class);
@@ -89,6 +90,15 @@ it('CA-004-19: shows the call in the requested language with dates in UTC and th
             ->where('event.name', 'Parks Congress')
             ->where('locale', 'en'));
 });
+
+it('CA-023-12: the public call carries the time format of its event', function (string $format): void {
+    $call = publicCall();
+    DB::table('events')->where('id', $call->event_id)->update(['time_format' => $format]);
+
+    $this->get(callUrl($call))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page->where('call.timeFormat', $format));
+})->with(['12h', '24h']);
 
 it('CA-004-19: falls back to the base language when the language is not one of the call', function (): void {
     $call = publicCall();

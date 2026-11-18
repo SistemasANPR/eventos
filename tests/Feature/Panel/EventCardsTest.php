@@ -12,6 +12,7 @@ use App\Models\Event;
 use App\Models\Organization;
 use App\Models\User;
 use App\Support\Tenancy\CurrentOrganization;
+use Carbon\CarbonImmutable;
 use Filament\Actions\Testing\TestAction;
 use Filament\Facades\Filament;
 use Filament\Tables\Table;
@@ -91,17 +92,63 @@ it('CA-015-4: lists the events as a grid of cards that grows with the screen', f
         ->and($grid['xl'])->toBe(3);
 });
 
-it('CA-015-4: each card shows name, status, type and the dates in the event time zone', function (): void {
+it('CA-015-4: each card shows name, short dates in the event time zone, city and status', function (): void {
+    $organization = Memberships::organization();
+    $admin = Memberships::attach(User::factory()->create(), $organization, OrganizationRole::OrgAdmin);
+    $event = cardsEvent($organization, $admin, ['city' => 'Ciudad de México']);
+    cardsActAs($admin, $organization);
+
+    Livewire::test(ListEvents::class)
+        ->assertCanSeeTableRecords([$event])
+        ->assertSee('Congreso Parques 2027')
+        ->assertSee('10–12 mar. 2027')
+        ->assertSee('Ciudad de México')
+        ->assertSee(EventStatus::Draft->getLabel());
+});
+
+it('CA-015-4: the short date range follows the event time zone and the length of the event', function (string $start, string $end, string $expected): void {
+    $organization = Memberships::organization();
+    $admin = Memberships::attach(User::factory()->create(), $organization, OrganizationRole::OrgAdmin);
+    $event = cardsEvent($organization, $admin, ['starts_at' => $start, 'ends_at' => $end]);
+
+    expect(EventsTable::displayDateRange($event))->toBe($expected);
+})->with([
+    'one day' => ['2027-03-10 09:00', '2027-03-10 17:00', '10 mar. 2027'],
+    'same month' => ['2027-03-10 09:00', '2027-03-12 17:00', '10–12 mar. 2027'],
+    'different months' => ['2027-02-28 09:00', '2027-03-02 17:00', '28 feb. – 2 mar. 2027'],
+    'different years' => ['2026-12-30 09:00', '2027-01-02 17:00', '30 dic. 2026 – 2 ene. 2027'],
+]);
+
+it('CA-015-4: the card says how far away the event is, and an archived event says nothing', function (): void {
+    $organization = Memberships::organization();
+    $admin = Memberships::attach(User::factory()->create(), $organization, OrganizationRole::OrgAdmin);
+    $event = cardsEvent($organization, $admin);
+
+    $this->travelTo(CarbonImmutable::parse('2027-02-17 12:00', 'America/Mexico_City'));
+    expect(EventsTable::displayProximity($event))->toBe('En 21 días');
+
+    $this->travelTo(CarbonImmutable::parse('2027-03-09 22:00', 'America/Mexico_City'));
+    expect(EventsTable::displayProximity($event))->toBe('Mañana');
+
+    $this->travelTo(CarbonImmutable::parse('2027-03-11 08:00', 'America/Mexico_City'));
+    expect(EventsTable::displayProximity($event))->toBe('En curso');
+
+    $this->travelTo(CarbonImmutable::parse('2027-03-13 08:00', 'America/Mexico_City'));
+    expect(EventsTable::displayProximity($event))->toBe('Finalizó');
+
+    $event->forceFill(['status' => EventStatus::Archived]);
+    expect(EventsTable::displayProximity($event))->toBeNull();
+});
+
+it('CA-015-4: the menu of the card has no duplicate «view» action, because the card opens the event', function (): void {
     $organization = Memberships::organization();
     $admin = Memberships::attach(User::factory()->create(), $organization, OrganizationRole::OrgAdmin);
     $event = cardsEvent($organization, $admin);
     cardsActAs($admin, $organization);
 
     Livewire::test(ListEvents::class)
-        ->assertCanSeeTableRecords([$event])
-        ->assertSee('Congreso Parques 2027')
-        ->assertSee(EventStatus::Draft->getLabel())
-        ->assertSee(EventsTable::displayDates($event));
+        ->assertActionVisible(TestAction::make('edit')->table($event))
+        ->assertActionDoesNotExist(TestAction::make('view')->table($event));
 });
 
 it('CA-015-4: a click on the card opens the event', function (): void {
@@ -113,17 +160,6 @@ it('CA-015-4: a click on the card opens the event', function (): void {
     $table = cardsTable(Livewire::test(ListEvents::class));
 
     expect($table->getRecordUrl($event))->toBe(EventResource::getUrl('view', ['record' => $event]));
-});
-
-it('CA-015-4: each card carries the class of its status for the top edge', function (): void {
-    $organization = Memberships::organization();
-    $admin = Memberships::attach(User::factory()->create(), $organization, OrganizationRole::OrgAdmin);
-    $event = cardsEvent($organization, $admin);
-    cardsActAs($admin, $organization);
-
-    $table = cardsTable(Livewire::test(ListEvents::class));
-
-    expect($table->getRecordClasses($event))->toContain('eventos-card-draft');
 });
 
 it('CA-015-5: the cards of an organization never include the events of another', function (): void {

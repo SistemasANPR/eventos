@@ -15,7 +15,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
 /**
- * Quita el formulario de una convocatoria en borrador (plan 022, CA-022-8 y -9). Con la convocatoria
+ * Quita el formulario de una convocatoria en borrador (plan 025, CA-025-8 y -9). Con la convocatoria
  * abierta, pausada o cerrada ya hay (o puede haber) propuestas que lo usan: ahí solo se cambia, no se quita.
  * El formulario en sí no se toca. Si la convocatoria ya no tiene formulario es idempotente y no audita.
  *

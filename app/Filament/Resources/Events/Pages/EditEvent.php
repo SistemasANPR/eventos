@@ -19,6 +19,17 @@ class EditEvent extends EditRecord
 {
     protected static string $resource = EventResource::class;
 
+    /**
+     * La edición muestra solo el formulario del evento: las tablas (convocatorias, categorías, temas y
+     * avisos de privacidad) viven en la vista del evento, no aquí.
+     *
+     * @return array<int, never>
+     */
+    protected function getAllRelationManagers(): array
+    {
+        return [];
+    }
+
     /** @return array<int, mixed> */
     protected function getHeaderActions(): array
     {

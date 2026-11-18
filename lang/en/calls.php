@@ -90,6 +90,7 @@ return [
         'unassigned' => 'Form removed',
         'assign_failed_on_create' => 'The call was created, but the form could not be assigned',
     ],
+    'date_format' => 'Y-m-d',
     'state' => [
         'scheduled' => 'Scheduled',
         'open' => 'Open',
@@ -121,7 +122,7 @@ return [
     'actions' => [
         'edit' => 'Edit',
         'more' => 'More actions',
-        'view_public' => 'View public page',
+        'view_public' => 'View',
         'copy_link' => 'Copy link',
         'link_copied' => 'Link copied',
         'publish' => 'Publish',

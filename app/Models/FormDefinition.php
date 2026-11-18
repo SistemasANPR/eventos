@@ -58,7 +58,7 @@ class FormDefinition extends Model
         return $this->belongsTo(Event::class);
     }
 
-    /** @return HasMany<CallForSubmissions, $this> convocatorias que usan este formulario (plan 022) */
+    /** @return HasMany<CallForSubmissions, $this> convocatorias que usan este formulario (plan 025) */
     public function calls(): HasMany
     {
         return $this->hasMany(CallForSubmissions::class, 'form_definition_id');

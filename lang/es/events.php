@@ -38,6 +38,8 @@ return [
         'ends_at' => 'Fin',
         'dates_help' => 'Hora local de la zona horaria del evento.',
         'timezone' => 'Zona horaria',
+        'time_format' => 'Formato de hora',
+        'time_format_help' => 'Cómo se muestran las horas de este evento en el panel y en el sitio público.',
         'venue_name' => 'Nombre de la sede',
         'venue_address' => 'Dirección',
         'city' => 'Ciudad',
@@ -54,8 +56,23 @@ return [
         'empty_description' => 'Crea tu primer evento para configurar su convocatoria. Aquí elegirás con qué evento trabajar.',
         'name' => 'Evento',
         'starts_at' => 'Fechas',
+        'actions' => 'Opciones del evento',
     ],
 
+    // Cuánto falta para el evento, en su zona horaria (tarjeta de la lista).
+    'card' => [
+        'in_days' => 'En :count día|En :count días',
+        'tomorrow' => 'Mañana',
+        'in_progress' => 'En curso',
+        'ended' => 'Finalizó',
+    ],
+
+    // Formato de la fecha en los selectores del formulario; la hora la decide el formato del evento (plan 023).
+    'date_format' => 'd/m/Y',
+    'time_format' => [
+        'options' => ['12h' => '12 horas (2:30 p. m.)', '24h' => '24 horas (14:30 h)'],
+        'suffix_24h' => ' h',
+    ],
     'status' => [
         'draft' => 'Borrador',
         'published' => 'Publicado',

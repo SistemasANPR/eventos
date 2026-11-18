@@ -23,6 +23,21 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Cuotas de subida de archivos antes del envío (plan 006, DA-9; plan 007, DA-7)
+    |--------------------------------------------------------------------------
+    |
+    | Intentos por token de carga y por IP dentro de la ventana. Superarlas responde 429 y no
+    | guarda el archivo. Se ajustan con el ensayo de carga del plan 010.
+    |
+    */
+
+    'upload_quota' => [
+        'per_token' => ['attempts' => 10, 'decay_seconds' => 3600],
+        'per_ip' => ['attempts' => 30, 'decay_seconds' => 3600],
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Acceso del autor sin cuenta (plan 006, DA-3)
     |--------------------------------------------------------------------------
     |

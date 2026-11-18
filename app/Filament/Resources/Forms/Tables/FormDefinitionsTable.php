@@ -47,7 +47,7 @@ final class FormDefinitionsTable
                     ->state(fn (FormDefinition $record): string => self::usedIn($record))
                     ->wrap(),
             ])
-            // Sin N+1: las convocatorias y el evento de toda la página se cargan de una vez (CA-022-13).
+            // Sin N+1: las convocatorias y el evento de toda la página se cargan de una vez (CA-025-13).
             ->modifyQueryUsing(fn (Builder $query): Builder => $query->with('calls', 'event'))
             ->defaultSort('created_at', 'desc')
             ->recordActions([

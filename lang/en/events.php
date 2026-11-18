@@ -38,6 +38,8 @@ return [
         'ends_at' => 'End',
         'dates_help' => 'Local time of the event time zone.',
         'timezone' => 'Time zone',
+        'time_format' => 'Time format',
+        'time_format_help' => 'How the times of this event are shown in the panel and on the public site.',
         'venue_name' => 'Venue name',
         'venue_address' => 'Address',
         'city' => 'City',
@@ -54,8 +56,22 @@ return [
         'empty_description' => 'Create your first event to set up its call. This is where you will choose which event to work on.',
         'name' => 'Event',
         'starts_at' => 'Dates',
+        'actions' => 'Event options',
     ],
 
+    // How far away the event is, in its own time zone (card of the list).
+    'card' => [
+        'in_days' => 'In :count day|In :count days',
+        'tomorrow' => 'Tomorrow',
+        'in_progress' => 'In progress',
+        'ended' => 'Ended',
+    ],
+
+    'date_format' => 'Y-m-d',
+    'time_format' => [
+        'options' => ['12h' => '12-hour (2:30 pm)', '24h' => '24-hour (14:30)'],
+        'suffix_24h' => '',
+    ],
     'status' => [
         'draft' => 'Draft',
         'published' => 'Published',
