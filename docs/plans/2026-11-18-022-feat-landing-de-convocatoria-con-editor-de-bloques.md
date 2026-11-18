@@ -76,11 +76,15 @@ Se pidió un editor «tipo Elementor». Opciones: (a) **editor visual de dos zon
 
 Se recomienda (a): da lo esencial de la experiencia de Elementor (ver la página, elegir un bloque con un clic, ajustarlo y ver el cambio al instante) sin una librería de arrastre, que hoy no está en la lista de dependencias autorizadas y tiene un riesgo alto de accesibilidad con teclado. Mover con botones («subir» y «bajar») y teclado cumple AA. Se apoya en el patrón ya aceptado del ADR-0010 (React montado dentro de una página del panel, con el mismo componente del sitio público para que no diverjan); aquí se amplía de «vista previa de solo lectura» a «lienzo que selecciona bloques». El estado del editor se guarda con acciones de Livewire llamadas desde la página (`$wire`), así que **no se crea ninguna ruta JSON nueva**.
 
+**Cerrada el 2026-11-18:** (a), sin arrastre con ratón en la primera versión (Gabriel).
+
 Alternativas descartadas: (b) exige añadir la librería de arrastre (requiere permiso, acción 4 de `AGENTS.md`), mucho más esfuerzo y edición de texto en línea con alto riesgo de XSS y accesibilidad; puede ser el plan siguiente sobre el mismo esquema de datos y el mismo lienzo. (c) es la opción barata, pero no se siente como un editor visual y duplica la vista previa.
 
 ### DA-3 · Catálogo de bloques — se recomienda **9 bloques de lista blanca**
 
 `hero` (título, subtítulo, imagen de fondo y botón), `rich_text` (texto con formato), `key_dates` (fechas de apertura, cierre y resultados, tomadas de la convocatoria: no se escriben a mano), `tracks` (ejes activos, tomados de la convocatoria), `call_to_action` (botón «Enviar propuesta», que solo aparece con la convocatoria abierta, o un enlace `https`), `faq` (preguntas y respuestas), `image_gallery` (hasta 12 imágenes con texto alternativo obligatorio), `spacer` (separación y divisor) y `columns` (dos columnas de texto o imagen). Los bloques con datos del sistema (`key_dates`, `tracks`) nunca guardan una copia: se leen al mostrar, para no mostrar fechas vencidas. Fuera de R1: ponentes destacados (depende de los campos públicos del plan 021), patrocinadores, mapa, video y HTML libre. Cada bloque tiene un identificador generado por el servidor, un tipo de la lista blanca y un contenido validado por su propia clase.
+
+**Cerrada el 2026-11-18:** el catálogo de 9 bloques tal como está (Gabriel delegó el criterio en la recomendación).
 
 ### DA-4 · Almacenamiento — se recomienda **`jsonb` validado, con borrador y versión publicada**
 
@@ -94,7 +98,7 @@ Cada texto de un bloque es un objeto `{es, en, pt}` con los idiomas de `call.loc
 
 Regla: **publicar la convocatoria publica su landing.** `PublishCall` crea la landing con una plantilla predeterminada (`hero`, `key_dates`, `tracks`, `call_to_action`) si todavía no existe, y publica su borrador actual. Así la landing aparece sola desde el primer día, tal como se pidió. El organizador puede abrir el editor **antes** de publicar la convocatoria (la landing se crea entonces, en borrador, al abrirlo) y preparar lo que quiera; al publicar la convocatoria se publica ese borrador. Después de eso, cada cambio exige «Publicar landing» (DA-12). Las convocatorias ya publicadas antes de este plan no se tocan: su landing se crea, en borrador, la primera vez que se abre el editor, y hasta que la publiquen sigue la página actual. Mientras no haya versión publicada, la ruta pública entrega la página actual sin cambios (compatibilidad hacia atrás, CA-004-17 a 21 intactos). Publicar la landing no cambia el estado de la convocatoria: la visibilidad (404 en borrador) la sigue decidiendo `status`.
 
-Pregunta abierta para el negocio: si el organizador pausa o cierra la convocatoria, la landing sigue publicada (muestra el estado y oculta el botón de envío, CA-022-25). Se recomienda no despublicarla.
+**Cerrada el 2026-11-18:** si la convocatoria se pausa o se cierra, la landing **sigue publicada y el enlace se mantiene**, pero el botón de envío queda **visible y bloqueado**, con el estado de la convocatoria, y no se puede registrar ninguna propuesta más (CA-022-25). El servidor lo hace cumplir aparte: un envío con la convocatoria cerrada se rechaza con `CALL_NOT_OPEN` (plan 006).
 
 ### DA-7 · Imágenes — se recomienda **disco `media`, servidas solo si están en la versión publicada**
 
@@ -135,6 +139,8 @@ El organizador elige entre variantes (fondo claro o acento, alineación, ancho) 
 ### DA-16 · Momento — se recomienda **después de R0**
 
 El plan maestro deja la landing en el sitio actual para R0. Aprobar el plan no obliga a implementarlo antes del lanzamiento: se programa para la fase posterior, cuando el CI esté en verde y las verificaciones de los planes 005, 006 y 009 estén cerradas.
+
+**Cerrada el 2026-11-18:** después de R0 (Gabriel). La aprobación de DA-1, DA-4, DA-5 y DA-7 a DA-15 queda como recomendación hasta que Gabriel o Antonio las cierren; el plan sigue en Borrador.
 
 ## 4. Contrato
 
@@ -235,7 +241,7 @@ Cada uno tiene al menos una prueba cuyo nombre lo cita (`CA-022-n: ...`) o decla
 - **CA-022-22:** *Dado* una convocatoria sin landing publicada, *cuando* un visitante pide su URL, *entonces* ve la página actual idéntica a la de hoy (CA-004-17 a 21 siguen pasando).
 - **CA-022-23:** *Dado* una convocatoria en borrador, de otra organización, eliminada o con evento sin publicar, *cuando* se pide su URL, *entonces* responde 404 igual que hoy, tenga o no landing publicada.
 - **CA-022-24:** *Dado* el bloque `key_dates` o `tracks`, *cuando* cambian las fechas o los ejes de la convocatoria, *entonces* la página refleja el cambio sin republicar la landing (no guarda copia).
-- **CA-022-25:** *Dado* el bloque `call_to_action` de envío, *cuando* la convocatoria no está abierta (programada, pausada o cerrada), *entonces* no muestra el botón y muestra el estado; con la convocatoria abierta enlaza al formulario.
+- **CA-022-25:** *Dado* el bloque `call_to_action` de envío, *cuando* la convocatoria no está abierta (programada, pausada o cerrada), *entonces* el botón se muestra **bloqueado** (deshabilitado, sin enlace, con el estado visible y accesible para lector de pantalla) y el enlace directo al formulario no permite enviar (`CALL_NOT_OPEN`); con la convocatoria abierta el botón enlaza al formulario. La URL de la landing se mantiene en todos los casos.
 - **CA-022-26:** *Dado* las props de la página, *cuando* se renderiza, *entonces* no incluyen el borrador, identificadores internos de organización ni datos del equipo (extiende CA-004-21).
 - **CA-022-27:** *Dado* la landing publicada, *cuando* se renderiza, *entonces* el `<title>`, la descripción y `og:image` salen del bloque `hero` y de la convocatoria.
 

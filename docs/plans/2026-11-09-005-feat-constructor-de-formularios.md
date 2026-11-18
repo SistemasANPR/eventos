@@ -3,7 +3,7 @@
 > Plan de la épica E-05 (R0). Es la especificación de SDD (ADR-0001). Se presenta y se espera aprobación antes de escribir código. Fuente: `docs/plan-de-desarrollo.md` §10.1. Es el diferenciador del producto: cada organizador define los campos que su evento necesita, sin programar.
 
 - **Fecha:** 2026-11-09
-- **Estado:** Aprobado
+- **Estado:** Terminado (2026-11-18: revision manual en navegador confirmada por Gabriel)
 - **Esfuerzo:** L
 - **Deuda relacionada:** ninguna
 
@@ -198,3 +198,4 @@ Cada uno tiene al menos una prueba cuyo nombre lo cita (`CA-005-n: ...`) o decla
 | F4 (H-005-3) | 64a5197 | 2026-11-12 | 90 pruebas de Forms y guardianas Arch/Tenancy en verde; Larastan sin errores; Pint OK. Migracion `form_definition_id` aplicada en la base local. CA-005-24: carrera real pendiente del plan 006 (linea Manual). Sin prueba automatica: el boton de retirar campo del editor (la Action esta probada); revisar en navegador. |
 | F3 (H-005-2) | 1df518a | 2026-11-12 | 14 pruebas del panel/vista previa, Arch/Tenancy (152), Vitest 126, typecheck, lint y build en verde; Larastan sin errores en los archivos del plan (queda un aviso en SendTransactionalMail del plan 008). Desviaciones: `forms.view` solo en la Policy (ningun rol de la matriz lo trae); sin Form Request de orden (el orden viaja en UpdateFormDefinition). Pendiente: CA-005-15 Manual (Tab a 375 y 1280 px con los nueve tipos y consola) y revision visual de estilos de la vista previa dentro de Filament. |
 | F5 (H-005-5) | 9c6bb0b | 2026-11-13 | Forms + Arch + Tenancy: 275 pruebas en verde; Larastan sin errores; check:criteria 0 errores (plan 005 sin avisos). Plantillas en codigo en vez de tabla `form_templates` (decision en §4). CA-005-37 (editar plantilla): no existe operacion de edicion por diseno; se prueba que sin `forms.manage` no se crea ni duplica. Pendiente de la persona: revision manual en navegador (CA-005-15, boton Retirar campo, estilos de la vista previa, acciones Plantilla y Duplicar).
+| Cierre | — | 2026-11-18 | Gabriel confirma la revision manual en navegador (CA-005-15 y el resto del plan) y el plan pasa a Terminado. Pendiente que sigue siendo del plan 006: CA-005-24, la carrera real entre una edicion y un envio en dos transacciones paralelas, que ahora ya es comprobable con el envio de propuestas. |
