@@ -6,6 +6,7 @@ import { activeFields } from '@/lib/form-text';
 import type { Translate } from '@/lib/translate';
 import { cn } from '@/lib/utils';
 import type { FormField } from '@/types/form';
+import type { AnswerValue } from '@/types/submission';
 
 interface FormRendererProps {
     fields: readonly FormField[];
@@ -30,6 +31,8 @@ interface FormRendererProps {
     submitLabel?: string;
     /** Solo `public`: desactiva el envío (p. ej. la convocatoria ya cerró). */
     isSubmitDisabled?: boolean;
+    /** Valores con que arrancan los controles por clave de campo (edición de una propuesta). */
+    initialValues?: Record<string, AnswerValue>;
 }
 
 /**
@@ -53,6 +56,7 @@ export function FormRenderer({
     isSubmitting = false,
     submitLabel,
     isSubmitDisabled = false,
+    initialValues = {},
 }: FormRendererProps) {
     const visibleFields = activeFields(fields);
     const isPreview = mode === 'preview';
@@ -86,6 +90,7 @@ export function FormRenderer({
                     idPrefix={idPrefix}
                     t={t}
                     error={errors[field.key]}
+                    initialValue={initialValues[field.key]}
                 />
             ))}
             {trailing}

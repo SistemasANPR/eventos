@@ -47,6 +47,8 @@ const translations = {
             primary: 'Principal',
             session_notice: 'Tu acceso dura :minutes minutos.',
             back_to_event: 'Volver al evento',
+            edit_action: 'Editar mi propuesta',
+            updated_notice: 'Guardamos los cambios.',
             withdraw: {
                 action: 'Retirar mi propuesta',
                 confirm_title: '¿Retirar tu propuesta?',
@@ -198,7 +200,7 @@ describe('Author/AccessInvalid page', () => {
 
 describe('Author/Show page', () => {
     const withdrawUrl = '/parques/events/congreso/my-submission/withdraw';
-    const props = { event: { name: 'Congreso Parques' }, organization: requestProps.organization, submission, sessionMinutes: 60, eventUrl: '/parques/events/congreso?lang=es', withdrawUrl };
+    const props = { event: { name: 'Congreso Parques' }, organization: requestProps.organization, submission, sessionMinutes: 60, eventUrl: '/parques/events/congreso?lang=es', withdrawUrl, editUrl: '/parques/events/congreso/my-submission/edit', wasUpdated: false };
 
     beforeEach(() => {
         routerPost.mockClear();
@@ -227,6 +229,22 @@ describe('Author/Show page', () => {
 
         expect(container.querySelector('main script')).toBeNull();
         expect(container.querySelector('main b')).toBeNull();
+    });
+
+    it('links to the edit page only when the server says the proposal can be edited', () => {
+        const { rerender } = render(<Show {...props} />);
+        expect(screen.getByRole('link', { name: 'Editar mi propuesta' })).toHaveAttribute('href', '/parques/events/congreso/my-submission/edit');
+
+        rerender(<Show {...props} editUrl={null} />);
+        expect(screen.queryByRole('link', { name: 'Editar mi propuesta' })).toBeNull();
+    });
+
+    it('confirms a saved edit and shows an edit error from the server', () => {
+        pageErrors = { edit: 'La propuesta ya no se puede editar.' };
+        render(<Show {...props} wasUpdated />);
+
+        expect(screen.getByText('Guardamos los cambios.')).toBeInTheDocument();
+        expect(screen.getByText('La propuesta ya no se puede editar.')).toBeInTheDocument();
     });
 
     it('announces a withdrawn proposal', () => {

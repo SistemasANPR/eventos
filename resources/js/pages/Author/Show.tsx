@@ -19,6 +19,10 @@ interface ShowProps {
     eventUrl: string;
     /** Destino del POST que retira la propuesta, o `null` si ya no se puede retirar (la decide el servidor). */
     withdrawUrl: string | null;
+    /** Pantalla de edición, o `null` si la propuesta ya no se puede editar (la decide el servidor). */
+    editUrl: string | null;
+    /** Se acaba de guardar una edición. */
+    wasUpdated: boolean;
 }
 
 /** Marca y colores de cada estado (par texto/fondo de los semánticos): el estado no depende solo del color. */
@@ -37,8 +41,10 @@ const STATUS_STYLE: Record<SubmissionStatus, { classes: string; mark: string }> 
  * el autor envió —título, eje, estado, respuestas y participantes—; nada de lo que es del equipo organizador.
  * Los textos de las respuestas se muestran escapados (React), nunca como HTML.
  */
-export default function Show({ event, organization, submission, sessionMinutes, eventUrl, withdrawUrl }: ShowProps) {
+export default function Show({ event, organization, submission, sessionMinutes, eventUrl, withdrawUrl, editUrl, wasUpdated }: ShowProps) {
     const { t, locale } = useTranslation();
+    const { props } = usePage<{ errors?: Record<string, string> }>();
+    const editError = props.errors?.edit;
     const style = STATUS_STYLE[submission.status];
     const title = t('author.show.title');
 
@@ -70,6 +76,22 @@ export default function Show({ event, organization, submission, sessionMinutes, 
                         </p>
                     )}
                 </header>
+
+                {wasUpdated && (
+                    <p role="status" className="max-w-prose rounded-lg border border-border bg-success-bg p-4 text-base text-success">
+                        {t('author.show.updated_notice')}
+                    </p>
+                )}
+                {editError !== undefined && (
+                    <p role="alert" className="max-w-prose text-base text-error">
+                        {editError}
+                    </p>
+                )}
+                {editUrl !== null && (
+                    <TextLink href={editUrl} className={`${BUTTON_SECONDARY} self-start no-underline`}>
+                        {t('author.show.edit_action')}
+                    </TextLink>
+                )}
 
                 <dl className={FACTS_PANEL}>
                     <EventFact label={t('author.show.track')}>{submission.track}</EventFact>
