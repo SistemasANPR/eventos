@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\Calls;
 
-use App\Http\Requests\Events\StoreEventRequest;
 use App\Models\Event;
 use App\Models\Track;
+use App\Support\Events\OfferedLocaleTexts;
 use Closure;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Gate;
@@ -37,7 +37,7 @@ class StoreTrackRequest extends FormRequest
     /** @return array<string, mixed> */
     public static function rulesFor(Event $event): array
     {
-        $locales = 'array:'.implode(',', StoreEventRequest::LOCALES);
+        $locales = OfferedLocaleTexts::arrayRule($event);
 
         return [
             'name' => ['required', $locales, self::defaultLocaleText($event)],

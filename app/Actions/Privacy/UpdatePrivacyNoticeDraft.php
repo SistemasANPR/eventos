@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Actions\Privacy;
 
+use App\Models\Event;
 use App\Models\Organization;
 use App\Models\PrivacyNotice;
 use App\Models\User;
@@ -41,7 +42,7 @@ final class UpdatePrivacyNoticeDraft
                 throw ValidationException::withMessages(['body' => __('privacy.published_is_immutable')]);
             }
 
-            $clean = $this->texts->prepare($body);
+            $clean = $this->texts->prepare($body, Event::query()->findOrFail($notice->event_id), $notice->getTranslations('body'));
 
             return DB::transaction(function () use ($actor, $notice, $clean): PrivacyNotice {
                 $notice->setTranslations('body', $clean)->save();

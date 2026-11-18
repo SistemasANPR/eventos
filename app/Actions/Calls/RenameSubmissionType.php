@@ -11,6 +11,7 @@ use App\Models\SubmissionType;
 use App\Models\User;
 use App\Support\Auth\AuthorizesInOrganization;
 use App\Support\Calls\CallAttributes;
+use App\Support\Events\OfferedLocaleTexts;
 use App\Support\Tenancy\CurrentOrganization;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\DB;
@@ -38,11 +39,12 @@ final class RenameSubmissionType
             $this->authorizeActor($actor, 'update', $type);
 
             $event = Event::query()->findOrFail($type->event_id);
-            $validated = Validator::make($data, StoreSubmissionTypeRequest::rulesFor($event))->validate();
+            $validated = Validator::make(OfferedLocaleTexts::discardIn($data, ['name'], $event), StoreSubmissionTypeRequest::rulesFor($event))->validate();
 
-            return DB::transaction(function () use ($actor, $type, $validated): SubmissionType {
+            return DB::transaction(function () use ($actor, $type, $validated, $event): SubmissionType {
                 $previous = $type->getTranslations('name');
-                $type->forceFill(['name' => CallAttributes::texts($validated['name'])])->save();
+                // Los textos de idiomas que el evento dejó de ofrecer se conservan (plan 024, DA-1).
+                $type->forceFill(['name' => OfferedLocaleTexts::withUnoffered(CallAttributes::texts($validated['name']), $previous, $event)])->save();
 
                 activity()
                     ->causedBy($actor)

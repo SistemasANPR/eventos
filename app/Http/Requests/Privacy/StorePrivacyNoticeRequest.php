@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\Privacy;
 
-use App\Http\Requests\Events\StoreEventRequest;
 use App\Models\Event;
 use App\Models\PrivacyNotice;
+use App\Support\Events\OfferedLocaleTexts;
 use Closure;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Gate;
@@ -31,14 +31,16 @@ class StorePrivacyNoticeRequest extends FormRequest
     /** @return array<string, mixed> */
     public function rules(): array
     {
-        return self::rulesFor();
+        $event = $this->route('event');
+
+        return $event instanceof Event ? self::rulesFor($event) : [];
     }
 
     /** @return array<string, mixed> */
-    public static function rulesFor(): array
+    public static function rulesFor(Event $event): array
     {
         return [
-            'body' => ['required', 'array:'.implode(',', StoreEventRequest::LOCALES), self::atLeastOneText()],
+            'body' => ['required', OfferedLocaleTexts::arrayRule($event), self::atLeastOneText()],
             'body.*' => ['nullable', 'string', 'max:'.self::MAX_LENGTH],
         ];
     }

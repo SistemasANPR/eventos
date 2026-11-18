@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace App\Http\Requests\Reviews;
 
 use App\Enums\CriterionKind;
-use App\Http\Requests\Events\StoreEventRequest;
 use App\Models\Event;
 use App\Models\Rubric;
+use App\Support\Events\OfferedLocaleTexts;
 use Closure;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Gate;
@@ -55,7 +55,7 @@ class StoreRubricRequest extends FormRequest
             'min_reviewers' => ['required', 'integer', 'min:1', 'max:50'],
             'discrepancy_threshold' => ['required', 'integer', 'gt:0', self::withinShortestScale($criteria)],
             'criteria' => ['required', 'array', 'min:1', 'max:50'],
-            'criteria.*.label' => ['required', 'array:'.implode(',', StoreEventRequest::LOCALES), self::defaultLocaleText($event)],
+            'criteria.*.label' => ['required', OfferedLocaleTexts::arrayRule($event), self::defaultLocaleText($event)],
             'criteria.*.label.*' => ['nullable', 'string', 'max:200'],
             'criteria.*.kind' => ['required', Rule::enum(CriterionKind::class)],
             'criteria.*.scale_min' => ['required_if:criteria.*.kind,scale', 'nullable', 'integer', 'between:-100,100'],

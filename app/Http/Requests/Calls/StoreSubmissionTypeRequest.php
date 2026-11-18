@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\Calls;
 
-use App\Http\Requests\Events\StoreEventRequest;
 use App\Models\Event;
 use App\Models\SubmissionType;
+use App\Support\Events\OfferedLocaleTexts;
 use Closure;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Gate;
@@ -37,7 +37,7 @@ class StoreSubmissionTypeRequest extends FormRequest
     public static function rulesFor(Event $event): array
     {
         return [
-            'name' => ['required', 'array:'.implode(',', StoreEventRequest::LOCALES), self::defaultLocaleText($event)],
+            'name' => ['required', OfferedLocaleTexts::arrayRule($event), self::defaultLocaleText($event)],
             'name.*' => ['nullable', 'string', 'max:100'],
         ];
     }

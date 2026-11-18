@@ -11,6 +11,7 @@ use App\Models\SubmissionType;
 use App\Models\User;
 use App\Support\Auth\AuthorizesInOrganization;
 use App\Support\Calls\CallAttributes;
+use App\Support\Events\OfferedLocaleTexts;
 use App\Support\Tenancy\CurrentOrganization;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\DB;
@@ -37,7 +38,7 @@ final class CreateSubmissionType
         return CurrentOrganization::run($organization, function () use ($actor, $event, $data): SubmissionType {
             $this->authorizeActor($actor, 'create', SubmissionType::class, $event);
 
-            $validated = Validator::make($data, StoreSubmissionTypeRequest::rulesFor($event))->validate();
+            $validated = Validator::make(OfferedLocaleTexts::discardIn($data, ['name'], $event), StoreSubmissionTypeRequest::rulesFor($event))->validate();
 
             return DB::transaction(function () use ($actor, $event, $validated): SubmissionType {
                 // Se bloquea el evento para que dos altas simultáneas no tomen la misma posición.

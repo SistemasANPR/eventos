@@ -14,6 +14,7 @@ use App\Models\RubricCriterion;
 use App\Models\User;
 use App\Support\Auth\AuthorizesInOrganization;
 use App\Support\Calls\CallAttributes;
+use App\Support\Events\OfferedLocaleTexts;
 use App\Support\Reviews\RubricUsageChecker;
 use App\Support\Tenancy\CurrentOrganization;
 use Illuminate\Auth\Access\AuthorizationException;
@@ -59,6 +60,10 @@ final class SaveRubric
             } else {
                 $this->authorizeActor($actor, 'update', $current);
                 $data['submission_type_id'] = $current->submission_type_id;
+            }
+
+            if (is_array($data['criteria'] ?? null)) {
+                $data['criteria'] = OfferedLocaleTexts::discardInEach($data['criteria'], 'label', $event);
             }
 
             $criteria = is_array($data['criteria'] ?? null) ? $data['criteria'] : [];

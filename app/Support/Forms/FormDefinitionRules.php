@@ -6,8 +6,8 @@ namespace App\Support\Forms;
 
 use App\Actions\Forms\SanitizeFormText;
 use App\Enums\FieldType;
-use App\Http\Requests\Events\StoreEventRequest;
 use App\Models\Event;
+use App\Support\Events\OfferedLocaleTexts;
 use Closure;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
@@ -39,16 +39,56 @@ final class FormDefinitionRules
      */
     public static function validate(array $data, Event $event): array
     {
-        $validator = Validator::make($data, self::rules());
+        $validator = Validator::make(self::withoutUnofferedTexts($data, $event), self::rules($event));
         self::addCrossChecks($validator, $event);
 
         return $validator->validate();
     }
 
-    /** @return array<string, mixed> */
-    public static function rules(): array
+    /**
+     * Los textos de idiomas que el evento no ofrece se descartan sin error (plan 024, DA-5, CA-024-3): así
+     * un formulario viejo abierto en el panel no falla, ni tampoco el que ya guardaba esos idiomas.
+     *
+     * @param  array<string, mixed>  $data
+     * @return array<string, mixed>
+     */
+    private static function withoutUnofferedTexts(array $data, Event $event): array
     {
-        $locales = 'array:'.implode(',', StoreEventRequest::LOCALES);
+        if (! is_array($data['fields'] ?? null)) {
+            return $data;
+        }
+
+        foreach ($data['fields'] as $index => $field) {
+            if (! is_array($field)) {
+                continue;
+            }
+
+            $field['label'] = self::texts($field['label'] ?? null, $event);
+            $field['help'] = self::texts($field['help'] ?? null, $event);
+
+            if (is_array($field['config'] ?? null) && is_array($field['config']['options'] ?? null)) {
+                foreach ($field['config']['options'] as $position => $option) {
+                    if (is_array($option) && is_array($option['label'] ?? null)) {
+                        $field['config']['options'][$position]['label'] = OfferedLocaleTexts::discardUnoffered($option['label'], $event);
+                    }
+                }
+            }
+
+            $data['fields'][$index] = $field;
+        }
+
+        return $data;
+    }
+
+    private static function texts(mixed $value, Event $event): mixed
+    {
+        return is_array($value) ? OfferedLocaleTexts::discardUnoffered($value, $event) : $value;
+    }
+
+    /** @return array<string, mixed> */
+    public static function rules(Event $event): array
+    {
+        $locales = OfferedLocaleTexts::arrayRule($event);
 
         return [
             'name' => ['required', 'string', 'max:150'],
