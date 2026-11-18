@@ -310,7 +310,7 @@ class CallsRelationManager extends RelationManager
     }
 
     /** Instante UTC → hora local de la zona del evento. */
-    /** Cómo MUESTRAN la fecha y la hora los selectores: con el formato de hora del evento (plan 022, DA-3). */
+    /** Cómo MUESTRAN la fecha y la hora los selectores: con el formato de hora del evento (plan 023, DA-3). */
     private function pickerFormat(): string
     {
         return $this->owner()->time_format->displayDateTime(__('calls.date_format'));

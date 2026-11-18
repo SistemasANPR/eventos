@@ -54,7 +54,7 @@ function timeFormatUser(Organization $organization, OrganizationRole $role): Use
     return Memberships::attach(User::factory()->create(), $organization, $role);
 }
 
-it('CA-022-1: an event created without choosing a format shows 12 hours', function (): void {
+it('CA-023-1: an event created without choosing a format shows 12 hours', function (): void {
     $organization = Memberships::organization();
     $admin = timeFormatUser($organization, OrganizationRole::OrgAdmin);
 
@@ -65,7 +65,7 @@ it('CA-022-1: an event created without choosing a format shows 12 hours', functi
         ->and(EventTime::for($event)->format)->toBe(TimeFormat::TwelveHour);
 });
 
-it('CA-022-1: a row inserted without the column takes 12 hours from the database', function (): void {
+it('CA-023-1: a row inserted without the column takes 12 hours from the database', function (): void {
     $organization = Organization::factory()->create();
 
     DB::table('events')->insert([
@@ -84,7 +84,7 @@ it('CA-022-1: a row inserted without the column takes 12 hours from the database
     expect(DB::table('events')->where('slug', 'congreso-sin-formato')->value('time_format'))->toBe('12h');
 });
 
-it('CA-022-2: an admin sets 24 hours and the value persists', function (): void {
+it('CA-023-2: an admin sets 24 hours and the value persists', function (): void {
     $organization = Memberships::organization();
     $admin = timeFormatUser($organization, OrganizationRole::OrgAdmin);
     $event = app(CreateEvent::class)->handle($admin, $organization, timeFormatEventData());
@@ -94,7 +94,7 @@ it('CA-022-2: an admin sets 24 hours and the value persists', function (): void 
     expect($event->fresh()->time_format)->toBe(TimeFormat::TwentyFourHour);
 });
 
-it('CA-022-2: editing without sending the format keeps the current one', function (): void {
+it('CA-023-2: editing without sending the format keeps the current one', function (): void {
     $organization = Memberships::organization();
     $admin = timeFormatUser($organization, OrganizationRole::OrgAdmin);
     $event = app(CreateEvent::class)->handle($admin, $organization, timeFormatEventData(['time_format' => '24h']));
@@ -105,7 +105,7 @@ it('CA-022-2: editing without sending the format keeps the current one', functio
         ->and($event->fresh()->city)->toBe('Puebla');
 });
 
-it('CA-022-2: the edit form offers the format, shows the saved one and saves a change', function (): void {
+it('CA-023-2: the edit form offers the format, shows the saved one and saves a change', function (): void {
     $organization = Memberships::organization();
     $admin = timeFormatUser($organization, OrganizationRole::OrgAdmin);
     $event = app(CreateEvent::class)->handle($admin, $organization, timeFormatEventData());
@@ -123,7 +123,7 @@ it('CA-022-2: the edit form offers the format, shows the saved one and saves a c
     expect($event->fresh()->time_format)->toBe(TimeFormat::TwentyFourHour);
 });
 
-it('CA-022-3: the validation refuses a value other than 12h or 24h', function (string $value): void {
+it('CA-023-3: the validation refuses a value other than 12h or 24h', function (string $value): void {
     $organization = Memberships::organization();
     $admin = timeFormatUser($organization, OrganizationRole::OrgAdmin);
 
@@ -131,7 +131,7 @@ it('CA-022-3: the validation refuses a value other than 12h or 24h', function (s
         ->toThrow(ValidationException::class);
 })->with(['13h', '12', 'AM', '24H']);
 
-it('CA-022-3: the database refuses a value other than 12h or 24h', function (): void {
+it('CA-023-3: the database refuses a value other than 12h or 24h', function (): void {
     $organization = Organization::factory()->create();
     $event = Event::factory()->create(['organization_id' => $organization->id]);
 
@@ -139,7 +139,7 @@ it('CA-022-3: the database refuses a value other than 12h or 24h', function (): 
         ->toThrow(QueryException::class);
 });
 
-it('CA-022-9: a reviewer cannot change the format and nothing changes', function (): void {
+it('CA-023-9: a reviewer cannot change the format and nothing changes', function (): void {
     $organization = Memberships::organization();
     $admin = timeFormatUser($organization, OrganizationRole::OrgAdmin);
     $reviewer = timeFormatUser($organization, OrganizationRole::Reviewer);
@@ -151,7 +151,7 @@ it('CA-022-9: a reviewer cannot change the format and nothing changes', function
     expect($event->fresh()->time_format)->toBe(TimeFormat::TwelveHour);
 });
 
-it('CA-022-10: an admin of another organization cannot change the format of this event', function (): void {
+it('CA-023-10: an admin of another organization cannot change the format of this event', function (): void {
     $organizationA = Memberships::organization();
     $organizationB = Memberships::organization();
     $adminA = timeFormatUser($organizationA, OrganizationRole::OrgAdmin);

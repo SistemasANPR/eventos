@@ -1,6 +1,6 @@
 # feat: formato de hora del evento (12 h o 24 h)
 
-> Plan 022. Es la especificación SDD (ADR-0001). Se presenta y se espera aprobación antes de escribir código. `NNN` = 022: todos sus criterios son `CA-022-n`.
+> Plan 023. Es la especificación SDD (ADR-0001). Se presenta y se espera aprobación antes de escribir código. `NNN` = 023: todos sus criterios son `CA-023-n`.
 > `composer check:criteria` lee el **Estado** y los criterios de este archivo: no cambiar el formato de esas líneas.
 
 - **Fecha:** 2026-11-18
@@ -98,19 +98,19 @@ Cada fase deja el repo en verde y termina en su propio commit.
 
 ## 7. Criterios de aceptación
 
-- **CA-022-1:** *Dado* un evento nuevo sin elegir formato, *cuando* se crea, *entonces* su formato de hora es 12 h.
-- **CA-022-2:** *Dado* el formulario del evento, *cuando* se elige 24 h y se guarda, *entonces* el valor persiste y el formulario lo muestra al volver a abrirlo.
-- **CA-022-3:** *Dado* un valor distinto de `12h` o `24h`, *cuando* se envía el formulario o se inserta directamente en la base, *entonces* se rechaza (validación y `CHECK`).
-- **CA-022-4:** *Dado* un evento en 12 h en español, *cuando* se formatea el instante 14:30 de su zona, *entonces* el texto es `2:30 p. m.`; *dado* uno en 24 h, *entonces* es `14:30 h`.
-- **CA-022-5:** *Dados* los instantes 00:00 y 12:00, *cuando* se formatean en 12 h, *entonces* son `12:00 a. m.` y `12:00 p. m.`, sin ambigüedad.
-- **CA-022-6:** *Dado* un rango que cruza el mediodía, *cuando* se formatea en 12 h, *entonces* cada extremo lleva su `a. m.` o `p. m.`, y en 24 h ambos llevan solo la hora.
-- **CA-022-7:** *Dado* un evento con una zona horaria distinta de UTC, *cuando* se formatea un instante guardado en UTC, *entonces* se muestra en la zona del evento, y cambiar el formato no cambia el instante guardado.
-- **CA-022-8:** *Dado* un evento en 12 h, *cuando* se abren las tarjetas de eventos, el periodo de convocatorias, las actividades del programa y las propuestas, *entonces* todas muestran 12 h; con 24 h, todas muestran 24 h.
-- **CA-022-9:** *Dado* un usuario sin permiso de edición del evento, *cuando* intenta cambiar el formato, *entonces* se deniega en el servidor.
-- **CA-022-10:** *Dado* un evento de otra organización, *cuando* se consulta o se cambia su formato, *entonces* responde como si no existiera.
-- **CA-022-11:** *Dado* el código de `app/Filament/`, *cuando* corre la guardiana, *entonces* falla si una pantalla formatea una hora de cara al usuario sin pasar por `EventTime`.
-- **CA-022-12:** *Dada* la página pública de un evento, *cuando* se muestra con `timeFormat` en 12 h o en 24 h, *entonces* las horas siguen esa opción en los idiomas de la interfaz (es y en).
-- **CA-022-13:** *Dado* el selector de hora de un evento en 12 h, *cuando* se usa, *entonces* se presenta en 12 h y el valor guardado sigue siendo `H:i`.
+- **CA-023-1:** *Dado* un evento nuevo sin elegir formato, *cuando* se crea, *entonces* su formato de hora es 12 h.
+- **CA-023-2:** *Dado* el formulario del evento, *cuando* se elige 24 h y se guarda, *entonces* el valor persiste y el formulario lo muestra al volver a abrirlo.
+- **CA-023-3:** *Dado* un valor distinto de `12h` o `24h`, *cuando* se envía el formulario o se inserta directamente en la base, *entonces* se rechaza (validación y `CHECK`).
+- **CA-023-4:** *Dado* un evento en 12 h en español, *cuando* se formatea el instante 14:30 de su zona, *entonces* el texto es `2:30 p. m.`; *dado* uno en 24 h, *entonces* es `14:30 h`.
+- **CA-023-5:** *Dados* los instantes 00:00 y 12:00, *cuando* se formatean en 12 h, *entonces* son `12:00 a. m.` y `12:00 p. m.`, sin ambigüedad.
+- **CA-023-6:** *Dado* un rango que cruza el mediodía, *cuando* se formatea en 12 h, *entonces* cada extremo lleva su `a. m.` o `p. m.`, y en 24 h ambos llevan solo la hora.
+- **CA-023-7:** *Dado* un evento con una zona horaria distinta de UTC, *cuando* se formatea un instante guardado en UTC, *entonces* se muestra en la zona del evento, y cambiar el formato no cambia el instante guardado.
+- **CA-023-8:** *Dado* un evento en 12 h, *cuando* se abren las tarjetas de eventos, el periodo de convocatorias, las actividades del programa y las propuestas, *entonces* todas muestran 12 h; con 24 h, todas muestran 24 h.
+- **CA-023-9:** *Dado* un usuario sin permiso de edición del evento, *cuando* intenta cambiar el formato, *entonces* se deniega en el servidor.
+- **CA-023-10:** *Dado* un evento de otra organización, *cuando* se consulta o se cambia su formato, *entonces* responde como si no existiera.
+- **CA-023-11:** *Dado* el código de `app/Filament/`, *cuando* corre la guardiana, *entonces* falla si una pantalla formatea una hora de cara al usuario sin pasar por `EventTime`.
+- **CA-023-12:** *Dada* la página pública de un evento, *cuando* se muestra con `timeFormat` en 12 h o en 24 h, *entonces* las horas siguen esa opción en los idiomas de la interfaz (es y en).
+- **CA-023-13:** *Dado* el selector de hora de un evento en 12 h, *cuando* se usa, *entonces* se presenta en 12 h y el valor guardado sigue siendo `H:i`.
   Manual: abrir un evento en 12 h, crear una actividad y editar la apertura de una convocatoria; comprobar los selectores a ~375 px y ~1280 px con la consola abierta (DA-3, F4).
 
 ## 8. Riesgos
@@ -118,8 +118,8 @@ Cada fase deja el repo en verde y termina en su propio commit.
 | Riesgo | Mitigación |
 |---|---|
 | Los eventos existentes cambian a 12 h al desplegar | DA-4 lo declara; el organizador puede volver a 24 h; se anota en la migración y en el resumen de la fase |
-| `Intl` y Carbon dan variantes distintas de «a. m.» (`a. m.`, `a.m.`, `AM`) según versión de ICU | CA-022-4 y CA-022-12 fijan el resultado esperado; si difiere, se normaliza en el helper y no en cada pantalla |
-| Una pantalla futura vuelve a formatear a mano | La guardiana de CA-022-11 |
+| `Intl` y Carbon dan variantes distintas de «a. m.» (`a. m.`, `a.m.`, `AM`) según versión de ICU | CA-023-4 y CA-023-12 fijan el resultado esperado; si difiere, se normaliza en el helper y no en cada pantalla |
+| Una pantalla futura vuelve a formatear a mano | La guardiana de CA-023-11 |
 | Los selectores en 12 h confunden al capturar | F4 separada, con comprobación manual y posibilidad de aplazarla |
 | Choque con el plan 019 (duplicar evento) | El campo se añade a la lista de atributos copiados cuando el plan 019 exista |
 
@@ -129,8 +129,8 @@ Cada fase deja el repo en verde y termina en su propio commit.
 
 | Fase | Commit | Fecha | Notas (salida real de las validaciones) |
 |---|---|---|---|
-| F0 | 1edc99d | 2026-11-18 | Enum `TimeFormat`, helper `EventTime` y 8 pruebas en verde (CA-022-4 a 7); Carbon da `2:30 p. m.` y `12:00 a. m.` como pide el plan. Desviación: las pruebas van en `Feature/Events` y no en `Unit`, porque el helper usa `app()` y `__()`. |
-| F1 | a1e5920 | 2026-11-18 | Migración con `CHECK` y valor por defecto `12h`; 12 pruebas en verde (CA-022-1 a 3, 9 y 10); suite completa 1901 en verde. Hallazgo: la edición del evento audita `event_updated` pero no el valor de cada campo, así que el cambio de formato queda registrado como edición, sin el valor anterior. Migración aplicada solo en la base de desarrollo local. |
-| F2 | 5470bf0 | 2026-11-18 | Pantallas migradas a `EventTime`; guardiana Arch CA-022-11 (detecta `H:i`, `g:i`, `LT` y `LLL`) y pruebas CA-022-8 (tarjetas, convocatorias, actividades). Desviaciones: el aviso de privacidad sigue en UTC por diseño; se añadieron la lista y el detalle de propuestas, que la guardiana encontró; el `assert()` de `ViewSubmission` se sustituyó por una excepción, lo que cerró la falla de la guardiana de seguridad. CA-022-8 de propuestas lo cubre la guardiana, sin prueba de pantalla propia. |
+| F0 | 1edc99d | 2026-11-18 | Enum `TimeFormat`, helper `EventTime` y 8 pruebas en verde (CA-023-4 a 7); Carbon da `2:30 p. m.` y `12:00 a. m.` como pide el plan. Desviación: las pruebas van en `Feature/Events` y no en `Unit`, porque el helper usa `app()` y `__()`. |
+| F1 | a1e5920 | 2026-11-18 | Migración con `CHECK` y valor por defecto `12h`; 12 pruebas en verde (CA-023-1 a 3, 9 y 10); suite completa 1901 en verde. Hallazgo: la edición del evento audita `event_updated` pero no el valor de cada campo, así que el cambio de formato queda registrado como edición, sin el valor anterior. Migración aplicada solo en la base de desarrollo local. |
+| F2 | 5470bf0 | 2026-11-18 | Pantallas migradas a `EventTime`; guardiana Arch CA-023-11 (detecta `H:i`, `g:i`, `LT` y `LLL`) y pruebas CA-023-8 (tarjetas, convocatorias, actividades). Desviaciones: el aviso de privacidad sigue en UTC por diseño; se añadieron la lista y el detalle de propuestas, que la guardiana encontró; el `assert()` de `ViewSubmission` se sustituyó por una excepción, lo que cerró la falla de la guardiana de seguridad. CA-023-8 de propuestas lo cubre la guardiana, sin prueba de pantalla propia. |
 | F3 | a07b7f5 | 2026-11-18 | `timeFormat` en `PublicEventData` y `PublicCallData`; `date-format.ts` con `hour12` o `hourCycle: 'h23'`; typecheck y lint sin errores, 175 pruebas de Vitest en verde, build OK. Desviación: en español `Intl` escribe la hora de 24 h sin cero inicial (`9:00`), a diferencia del panel (`09:00 h`). No existe `lang/pt`, así que el criterio queda en es y en. |
-| F4 | ad72ba3 | 2026-11-18 | Selectores del evento, de la convocatoria y de las actividades con `displayFormat` según el evento; 1920 pruebas en verde y 13 fallos previos de exportación (falta `maatwebsite/excel` en el contenedor). **CA-022-13 sigue sin comprobar a mano**: la extensión de Chrome no estaba conectada. Límite conocido: solo cambia el texto mostrado; el selector interno de horas de Filament sigue de 0 a 23. |
+| F4 | ad72ba3 | 2026-11-18 | Selectores del evento, de la convocatoria y de las actividades con `displayFormat` según el evento; 1920 pruebas en verde y 13 fallos previos de exportación (falta `maatwebsite/excel` en el contenedor). **CA-023-13 sigue sin comprobar a mano**: la extensión de Chrome no estaba conectada. Límite conocido: solo cambia el texto mostrado; el selector interno de horas de Filament sigue de 0 a 23. |

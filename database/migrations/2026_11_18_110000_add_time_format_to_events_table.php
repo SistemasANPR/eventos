@@ -8,8 +8,8 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 /**
- * Formato de hora del evento (plan 022, F1): '12h' o '24h'. Solo cambia cómo se muestran las horas,
- * no lo guardado. Los eventos que ya existen toman el valor por defecto '12h' (plan 022, DA-4):
+ * Formato de hora del evento (plan 023, F1): '12h' o '24h'. Solo cambia cómo se muestran las horas,
+ * no lo guardado. Los eventos que ya existen toman el valor por defecto '12h' (plan 023, DA-4):
  * sus pantallas pasan a 12 h al desplegar, y cada organizador puede volver a 24 h en el evento.
  */
 return new class extends Migration

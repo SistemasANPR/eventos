@@ -58,7 +58,7 @@ it('CA-002-13: a visitor without session sees the published event', function ():
             ->where('event.locale', 'es'));
 });
 
-it('CA-022-12: the public page tells the client how to show the hours of the event', function (string $format, array $attributes): void {
+it('CA-023-12: the public page tells the client how to show the hours of the event', function (string $format, array $attributes): void {
     $event = publishedEvent(null, $attributes);
 
     $this->get("/{$event->organization->slug}/events/{$event->slug}")

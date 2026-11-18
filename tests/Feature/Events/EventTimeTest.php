@@ -21,21 +21,21 @@ function utcOf(string $local, string $timezone = 'America/Mexico_City'): CarbonI
     return CarbonImmutable::createFromFormat('Y-m-d H:i', $local, $timezone)->utc();
 }
 
-it('CA-022-4: formats 14:30 as 12 hours or 24 hours in Spanish', function (): void {
+it('CA-023-4: formats 14:30 as 12 hours or 24 hours in Spanish', function (): void {
     app()->setLocale('es');
 
     expect(eventTime(TimeFormat::TwelveHour)->time(utcOf('2027-03-10 14:30')))->toBe('2:30 p. m.')
         ->and(eventTime(TimeFormat::TwentyFourHour)->time(utcOf('2027-03-10 14:30')))->toBe('14:30 h');
 });
 
-it('CA-022-4: formats 14:30 in English without the Spanish suffix', function (): void {
+it('CA-023-4: formats 14:30 in English without the Spanish suffix', function (): void {
     app()->setLocale('en');
 
     expect(eventTime(TimeFormat::TwelveHour)->time(utcOf('2027-03-10 14:30')))->toBe('2:30 pm')
         ->and(eventTime(TimeFormat::TwentyFourHour)->time(utcOf('2027-03-10 14:30')))->toBe('14:30');
 });
 
-it('CA-022-5: midnight and noon are unambiguous in 12 hours', function (): void {
+it('CA-023-5: midnight and noon are unambiguous in 12 hours', function (): void {
     app()->setLocale('es');
     $twelve = eventTime(TimeFormat::TwelveHour);
 
@@ -44,7 +44,7 @@ it('CA-022-5: midnight and noon are unambiguous in 12 hours', function (): void 
         ->and($twelve->time(utcOf('2027-03-10 09:05')))->toBe('9:05 a. m.');
 });
 
-it('CA-022-6: every end of a range carries its own marker', function (): void {
+it('CA-023-6: every end of a range carries its own marker', function (): void {
     app()->setLocale('es');
     $from = utcOf('2027-03-10 09:00');
     $to = utcOf('2027-03-10 14:30');
@@ -53,7 +53,7 @@ it('CA-022-6: every end of a range carries its own marker', function (): void {
         ->and(eventTime(TimeFormat::TwentyFourHour)->range($from, $to))->toBe('09:00 h – 14:30 h');
 });
 
-it('CA-022-7: shows the event time zone and never changes the stored instant', function (): void {
+it('CA-023-7: shows the event time zone and never changes the stored instant', function (): void {
     app()->setLocale('es');
     $instant = CarbonImmutable::parse('2027-03-10 20:30:00', 'UTC');
     $before = $instant->toIso8601String();

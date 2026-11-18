@@ -14,11 +14,11 @@ use App\Support\Tenancy\CurrentOrganization;
 use Illuminate\Support\Str;
 
 /**
- * Encola `submission.withdrawn` al autor y al equipo con `submissions.view` (plan 006, CA-006-46), siempre
+ * Encola el aviso de retiro al autor y al equipo con `submissions.view` (plan 006, CA-006-46), siempre
  * por `SendNotification` (ADR-0009). Idempotente por propuesta: retirar dos veces no repite el correo.
  *
- * La plantilla del catálogo habla del panel (`panel_url`). Al equipo se le da el enlace al panel; al autor,
- * que no tiene acceso al panel, la página «pedir mi enlace» del evento: nunca un enlace con acceso (DA-3).
+ * El autor recibe su propia plantilla (`submission.withdrawn_author`), con la página «pedir mi enlace» del
+ * evento: nunca un enlace con acceso (DA-3). El equipo recibe `submission.withdrawn` con el enlace al panel.
  * Requiere el contexto de organización.
  */
 final class NotifySubmissionWithdrawn
@@ -35,13 +35,13 @@ final class NotifySubmissionWithdrawn
             ->firstOrFail();
 
         $this->notify->handle(
-            key: 'submission.withdrawn',
+            key: 'submission.withdrawn_author',
             recipient: new MailRecipient($primary->email, $primary->full_name, $submission->locale),
             variables: [
                 'author_name' => $primary->full_name,
                 'submission_title' => $submission->title,
                 'event_name' => $event->getTranslation('name', $submission->locale),
-                'panel_url' => route('author.request-link.show', ['organization' => $organization->slug, 'event' => $event->slug]),
+                'request_link_url' => route('author.request-link.show', ['organization' => $organization->slug, 'event' => $event->slug]),
             ],
             factId: $submission->id,
             organization: $organization,

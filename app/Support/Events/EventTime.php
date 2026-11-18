@@ -10,7 +10,7 @@ use Carbon\CarbonImmutable;
 use DateTimeInterface;
 
 /**
- * Único punto donde se da formato de cara al usuario a las horas de un evento (plan 022, DA-5).
+ * Único punto donde se da formato de cara al usuario a las horas de un evento (plan 023, DA-5).
  * Respeta la opción de 12 h o 24 h del evento y su zona horaria; lo guardado no cambia.
  * Los textos salen en el idioma de la interfaz (`app()->getLocale()`).
  */

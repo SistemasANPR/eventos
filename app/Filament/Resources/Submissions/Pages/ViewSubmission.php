@@ -7,9 +7,9 @@ namespace App\Filament\Resources\Submissions\Pages;
 use App\Filament\Resources\Submissions\SubmissionResource;
 use App\Filament\Resources\Submissions\Support\SubmissionActivityLink;
 use App\Filament\Resources\Submissions\Support\SubmissionDetail;
+use App\Filament\Support\ActionErrors;
 use App\Models\Event;
 use App\Models\Submission;
-use App\Models\User;
 use App\Support\Events\EventTime;
 use App\Support\Tenancy\CurrentOrganization;
 use Filament\Resources\Pages\ViewRecord;
@@ -64,8 +64,7 @@ class ViewSubmission extends ViewRecord
     private function viewData(): array
     {
         $submission = $this->submission();
-        $user = auth()->user();
-        $user instanceof User || throw new LogicException('El detalle de la propuesta necesita una persona con sesión.');
+        $user = ActionErrors::actor();
         $event = $this->getParentRecord();
         $event instanceof Event || throw new LogicException('El detalle de la propuesta necesita un evento en la ruta.');
 

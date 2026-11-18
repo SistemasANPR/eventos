@@ -56,7 +56,7 @@ class Event extends Model
     /** @var list<string> */
     public array $translatable = ['name', 'description'];
 
-    /** Mismo valor por defecto que la columna: un evento recién creado ya sabe su formato de hora (plan 022). */
+    /** Mismo valor por defecto que la columna: un evento recién creado ya sabe su formato de hora (plan 023). */
     protected $attributes = ['time_format' => '12h'];
 
     /** @return array<string, string> */

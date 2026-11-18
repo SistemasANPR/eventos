@@ -6,7 +6,9 @@ use App\Http\Controllers\Author\ConsumeAccessLinkController;
 use App\Http\Controllers\Author\RequestAccessLinkController;
 use App\Http\Controllers\Author\ShowAccessConfirmationController;
 use App\Http\Controllers\Author\ShowAccessLinkRequestController;
+use App\Http\Controllers\Author\ShowAuthorEditController;
 use App\Http\Controllers\Author\ShowAuthorSubmissionController;
+use App\Http\Controllers\Author\UpdateAuthorSubmissionController;
 use App\Http\Controllers\Author\WithdrawAuthorSubmissionController;
 use App\Http\Middleware\AuthenticateAuthor;
 use App\Http\Middleware\HandleInertiaRequests;
@@ -33,6 +35,8 @@ Route::middleware([SetOrganizationFromRoute::class, HandleInertiaRequests::class
         // Con sesión de autor (guard `author`): la propuesta sale de la sesión, no de la URL.
         Route::middleware(AuthenticateAuthor::class)->group(function (): void {
             Route::get('/', ShowAuthorSubmissionController::class)->name('author.submission.show');
+            Route::get('edit', ShowAuthorEditController::class)->name('author.edit');
+            Route::patch('edit', UpdateAuthorSubmissionController::class)->name('author.update');
             // Cambio de estado: solo POST con CSRF (un GET responde 405).
             Route::post('withdraw', WithdrawAuthorSubmissionController::class)->name('author.withdraw');
         });

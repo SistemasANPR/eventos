@@ -91,7 +91,7 @@ it('CA-004-19: shows the call in the requested language with dates in UTC and th
             ->where('locale', 'en'));
 });
 
-it('CA-022-12: the public call carries the time format of its event', function (string $format): void {
+it('CA-023-12: the public call carries the time format of its event', function (string $format): void {
     $call = publicCall();
     DB::table('events')->where('id', $call->event_id)->update(['time_format' => $format]);
 

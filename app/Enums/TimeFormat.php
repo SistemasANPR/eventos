@@ -6,7 +6,7 @@ namespace App\Enums;
 
 use Filament\Support\Contracts\HasLabel;
 
-/** Cómo se muestran las horas de un evento (plan 022). Lo guardado sigue en UTC o en `H:i:s`. */
+/** Cómo se muestran las horas de un evento (plan 023). Lo guardado sigue en UTC o en `H:i:s`. */
 enum TimeFormat: string implements HasLabel
 {
     case TwelveHour = '12h';

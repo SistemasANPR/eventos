@@ -1,7 +1,7 @@
 import type { TimeFormat } from '@/types/event';
 
 /**
- * Opciones de la hora según el formato del evento (plan 022). Con 24 h se usa `hourCycle: 'h23'` y
+ * Opciones de la hora según el formato del evento (plan 023). Con 24 h se usa `hourCycle: 'h23'` y
  * no `hour12: false`, que en algunos idiomas escribe la medianoche como «24:00».
  */
 function hourOptions(timeFormat: TimeFormat): Intl.DateTimeFormatOptions {
