@@ -18,6 +18,7 @@ use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\Layout\Split;
 use Filament\Tables\Columns\Layout\Stack;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Enums\RecordActionsPosition;
 use Filament\Tables\Table;
 
 /**
@@ -62,10 +63,10 @@ final class EventsTable
                         ->sortable(),
                 ])->space(3),
             ])
-            // Filete superior de la tarjeta según el estado; el estado sigue yendo con icono y texto.
-            ->recordClasses(fn (Event $record): string => 'eventos-card-'.$record->status->value)
             // Tarjetas: una columna en móvil, dos en tablet y tres en escritorio (plan 015, DA-4).
             ->contentGrid(['default' => 1, 'md' => 2, 'xl' => 3])
+            // El menú de opciones va arriba a la izquierda de la tarjeta, no debajo del contenido.
+            ->recordActionsPosition(RecordActionsPosition::BeforeColumns)
             ->defaultSort('starts_at', 'desc')
             ->recordUrl(fn (Event $record): string => EventResource::getUrl('view', ['record' => $record]))
             ->recordActions([
