@@ -9,6 +9,7 @@ use App\Enums\OrganizationRole;
 use App\Filament\Resources\Events\Pages\CreateEvent;
 use App\Filament\Resources\Events\Pages\EditEvent;
 use App\Filament\Resources\Events\Pages\ListEvents;
+use App\Filament\Resources\Events\Pages\ViewEvent;
 use App\Models\Event;
 use App\Models\Organization;
 use App\Models\User;
@@ -173,6 +174,16 @@ it('CA-003-4: the edit form shows the instants in the time zone of the event', f
 
     Livewire::test(EditEvent::class, ['record' => $event->id])
         ->assertFormSet(['starts_at' => '2027-03-10 09:00', 'ends_at' => '2027-03-12 17:00', 'timezone' => 'America/Mexico_City']);
+});
+
+it('the edit page shows only the event form, while the view page keeps the relation tables', function (): void {
+    $organization = Memberships::organization();
+    $admin = Memberships::attach(User::factory()->create(), $organization, OrganizationRole::OrgAdmin);
+    $event = eventFor($organization, $admin);
+    actInPanel($admin, $organization);
+
+    expect(Livewire::test(EditEvent::class, ['record' => $event->id])->instance()->getCachedRelationManagers())->toBe([])
+        ->and(Livewire::test(ViewEvent::class, ['record' => $event->id])->instance()->getCachedRelationManagers())->not->toBeEmpty();
 });
 
 it('CA-003-4: saving the edit form keeps the same UTC instants when nothing changes', function (): void {
