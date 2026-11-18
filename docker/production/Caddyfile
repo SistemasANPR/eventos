@@ -1,0 +1,11 @@
+{
+	frankenphp
+	# HTTPS lo termina Railway (y Cloudflare delante): aquí solo HTTP en el puerto que Railway asigna.
+	auto_https off
+}
+
+:{$PORT:8080} {
+	root * /app/public
+	encode zstd gzip
+	php_server
+}
