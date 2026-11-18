@@ -78,7 +78,7 @@ La propuesta pide nombre, apellido, correo, país, organización, cargo y biogra
 ### DA-10 · Propuestas ya aprobadas — Cerrada: salen de la lista por defecto
 La vista Propuestas muestra por defecto las no aprobadas (sin `accepted`), y las aprobadas se ven con el filtro de estado. La actividad enlaza a su propuesta de origen para conservar la trazabilidad hacia la evaluación.
 
-### DA-11 · Imágenes e icono — Cerrada: disco propio preparado para GCP
+### DA-11 · Imágenes e icono — Cerrada: disco propio preparado para GCP (privado, servido por la aplicación; confirmado el 2026-11-18)
 Un disco `media` en `config/filesystems.php`, local hoy y cambiable a Google Cloud Storage con variables de entorno (`MEDIA_DISK`, sin tocar el código). Guarda la fotografía del ponente, la imagen de la actividad y el icono (se sube como archivo). Tipos: JPEG, PNG y WebP; fotografía e imagen hasta 5 MB, icono hasta 256 KB. **SVG queda fuera** hasta aprobar una dependencia de saneado (acción 4 de `AGENTS.md`). Nombres generados; la ruta se guarda, no la URL.
 **Pendiente de confirmar:** si el disco es público o privado. Recomendación: privado, servido por una ruta de la aplicación que comprueba `is_published`, con un `Cache-Control` público para registros publicados; así una imagen despublicada deja de ser accesible. Cambiarlo a público solo exige un ADR que exceptúe la regla de archivos privados.
 
