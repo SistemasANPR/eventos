@@ -182,8 +182,14 @@ it('the edit page shows only the event form, while the view page keeps the relat
     $event = eventFor($organization, $admin);
     actInPanel($admin, $organization);
 
-    expect(Livewire::test(EditEvent::class, ['record' => $event->id])->instance()->getCachedRelationManagers())->toBe([])
-        ->and(Livewire::test(ViewEvent::class, ['record' => $event->id])->instance()->getCachedRelationManagers())->not->toBeEmpty();
+    $edit = Livewire::test(EditEvent::class, ['record' => $event->id])->instance();
+    $view = Livewire::test(ViewEvent::class, ['record' => $event->id])->instance();
+    if (! $edit instanceof EditEvent || ! $view instanceof ViewEvent) {
+        throw new LogicException('Livewire devolvió una página distinta de la pedida.');
+    }
+
+    expect($edit->getCachedRelationManagers())->toBe([])
+        ->and($view->getCachedRelationManagers())->not->toBeEmpty();
 });
 
 it('CA-003-4: saving the edit form keeps the same UTC instants when nothing changes', function (): void {
