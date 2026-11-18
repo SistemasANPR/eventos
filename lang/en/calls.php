@@ -78,6 +78,7 @@ return [
         'option' => ':name · :status · v:version',
         'field' => 'Submission form',
         'field_help' => 'Optional. A draft form is published when it is assigned.',
+        'field_help_assign' => 'A draft form is published when it is assigned.',
         'draft_notice' => 'This form is a draft: it will be published when assigned.',
         'submissions_notice' => 'This call already has submitted proposals: they keep their copy of the previous form and do not change.',
         'create_new' => 'Create a new form',
@@ -119,6 +120,7 @@ return [
     ],
     'actions' => [
         'edit' => 'Edit',
+        'more' => 'More actions',
         'view_public' => 'View public page',
         'copy_link' => 'Copy link',
         'link_copied' => 'Link copied',

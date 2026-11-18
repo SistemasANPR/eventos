@@ -154,6 +154,38 @@ it('CA-022-3: the modal warns that a draft form will be published, and a form wi
         ->and(storedFormOf($organization, $empty)->status)->toBe(FormDefinitionStatus::Draft);
 });
 
+it('CA-022-2: changing the form preselects the current one of the call', function (): void {
+    [$organization, $event, $admin] = assignmentScenario();
+    $call = assignmentCall($organization, $event);
+    $current = assignPublishedForm($admin, $call);
+    $withoutForm = assignmentCall($organization, $event);
+    CurrentOrganization::set($organization);
+
+    assignmentManager($event)
+        ->mountAction(TestAction::make('assignForm')->table($call))
+        ->assertSchemaStateSet(['form_definition_id' => $current->id]);
+
+    assignmentManager($event)
+        ->mountAction(TestAction::make('assignForm')->table($withoutForm))
+        ->assertSchemaStateSet(['form_definition_id' => null]);
+});
+
+it('CA-022-3: the required field of the row action does not say it is optional, the one of the create form does', function (): void {
+    [$organization, $event] = assignmentScenario();
+    $call = assignmentCall($organization, $event);
+    CurrentOrganization::set($organization);
+
+    assignmentManager($event)
+        ->mountAction(TestAction::make('assignForm')->table($call))
+        ->assertSchemaComponentExists('form_definition_id', checkComponentUsing: fn ($field): bool => $field->isRequired()
+            && ! str_contains((string) $field->getChildSchema($field::BELOW_CONTENT_SCHEMA_KEY)?->toHtmlString(), 'Opcional'));
+
+    assignmentManager($event)
+        ->mountAction(TestAction::make('createCall')->table())
+        ->assertSchemaComponentExists('form_definition_id', checkComponentUsing: fn ($field): bool => ! $field->isRequired()
+            && str_contains((string) $field->getChildSchema($field::BELOW_CONTENT_SCHEMA_KEY)?->toHtmlString(), 'Opcional'));
+});
+
 it('CA-022-4: the selector only offers forms of the same event', function (): void {
     [$organization, $event, $admin] = assignmentScenario();
     $call = assignmentCall($organization, $event);

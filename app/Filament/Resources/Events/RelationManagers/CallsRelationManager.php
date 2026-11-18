@@ -26,6 +26,7 @@ use App\Support\Calls\ResolveCallState;
 use App\Support\Tenancy\CurrentOrganization;
 use Carbon\CarbonImmutable;
 use Filament\Actions\Action;
+use Filament\Actions\ActionGroup;
 use Filament\Forms\Components\CheckboxList;
 use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\Select;
@@ -98,15 +99,18 @@ class CallsRelationManager extends RelationManager
             ->headerActions([$this->createAction()])
             ->recordActions([
                 $this->editAction(),
-                $this->assignFormAction(),
-                $this->unassignFormAction(),
                 $this->publishAction(),
-                $this->statusAction('pauseCall', 'pause', 'paused', CallStatus::Paused, [CallStatus::Published], Heroicon::OutlinedPauseCircle, 'warning'),
-                $this->statusAction('resumeCall', 'resume', 'resumed', CallStatus::Published, [CallStatus::Paused], Heroicon::OutlinedPlayCircle, 'success', true),
-                $this->statusAction('closeCall', 'close', 'closed', CallStatus::Closed, [CallStatus::Published, CallStatus::Paused], Heroicon::OutlinedLockClosed, 'danger', false, true),
-                $this->statusAction('reopenCall', 'reopen', 'reopened', CallStatus::Published, [CallStatus::Closed], Heroicon::OutlinedArrowPath, 'success', true),
-                $this->viewPublicPageAction(),
-                $this->copyPublicLinkAction(),
+                $this->assignFormAction(),
+                // El resto va en un menú «⋮»: seis enlaces por fila desbordaban la tabla.
+                ActionGroup::make([
+                    $this->unassignFormAction(),
+                    $this->statusAction('pauseCall', 'pause', 'paused', CallStatus::Paused, [CallStatus::Published], Heroicon::OutlinedPauseCircle, 'warning'),
+                    $this->statusAction('resumeCall', 'resume', 'resumed', CallStatus::Published, [CallStatus::Paused], Heroicon::OutlinedPlayCircle, 'success', true),
+                    $this->statusAction('closeCall', 'close', 'closed', CallStatus::Closed, [CallStatus::Published, CallStatus::Paused], Heroicon::OutlinedLockClosed, 'danger', false, true),
+                    $this->statusAction('reopenCall', 'reopen', 'reopened', CallStatus::Published, [CallStatus::Closed], Heroicon::OutlinedArrowPath, 'success', true),
+                    $this->viewPublicPageAction(),
+                    $this->copyPublicLinkAction(),
+                ])->label(__('calls.actions.more'))->iconButton(),
             ])
             ->emptyStateHeading(__('calls.empty_heading'))
             ->emptyStateDescription(__('calls.empty_description'));
@@ -150,8 +154,9 @@ class CallsRelationManager extends RelationManager
             ->label($label)
             ->modalHeading($label)
             ->icon(Heroicon::OutlinedDocumentText)
+            ->fillForm(fn (CallForSubmissions $record): array => ['form_definition_id' => $record->form_definition_id])
             ->schema(fn (CallForSubmissions $record): array => [
-                $this->formSelect()->required()->live(),
+                $this->formSelect(optional: false)->required()->live(),
                 Text::make(__('calls.form.draft_notice'))
                     ->key('draft_notice')
                     ->color('warning')
@@ -193,12 +198,12 @@ class CallsRelationManager extends RelationManager
             ));
     }
 
-    /** Campo con los formularios del evento. */
-    private function formSelect(): Select
+    /** Campo con los formularios del evento; la ayuda dice «Opcional» solo cuando el campo lo es. */
+    private function formSelect(bool $optional = true): Select
     {
         return Select::make('form_definition_id')
             ->label(__('calls.form.field'))
-            ->helperText(__('calls.form.field_help'))
+            ->helperText(__($optional ? 'calls.form.field_help' : 'calls.form.field_help_assign'))
             ->options(fn (): array => $this->formOptions());
     }
 

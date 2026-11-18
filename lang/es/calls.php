@@ -78,6 +78,7 @@ return [
         'option' => ':name · :status · v:version',
         'field' => 'Formulario de propuestas',
         'field_help' => 'Opcional. Un formulario en borrador se publica al asignarlo.',
+        'field_help_assign' => 'Un formulario en borrador se publica al asignarlo.',
         'draft_notice' => 'Este formulario está en borrador: se publicará al asignarlo.',
         'submissions_notice' => 'Esta convocatoria ya tiene propuestas enviadas: conservan su copia del formulario anterior y no cambian.',
         'create_new' => 'Crear formulario nuevo',
@@ -119,6 +120,7 @@ return [
     ],
     'actions' => [
         'edit' => 'Editar',
+        'more' => 'Más acciones',
         'view_public' => 'Ver página pública',
         'copy_link' => 'Copiar enlace',
         'link_copied' => 'Enlace copiado',
