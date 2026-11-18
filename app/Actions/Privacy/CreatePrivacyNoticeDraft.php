@@ -56,7 +56,7 @@ final class CreatePrivacyNoticeDraft
                 $notice = new PrivacyNotice;
                 $notice->event_id = $event->id;
                 $notice->version = (int) PrivacyNotice::query()->where('event_id', $event->id)->max('version') + 1;
-                $notice->setTranslations('body', $this->texts->prepare($source));
+                $notice->setTranslations('body', $this->texts->prepare($source, $event, $body === null ? $source : []));
                 $notice->save();
 
                 activity()

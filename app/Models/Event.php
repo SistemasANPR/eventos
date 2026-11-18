@@ -153,6 +153,29 @@ class Event extends Model
         return $this->hasMany(Submission::class);
     }
 
+    /**
+     * Idiomas que el evento ofrece, con el idioma por defecto primero (plan 026, fuente única).
+     *
+     * @return list<string>
+     */
+    public function offeredLocales(): array
+    {
+        return array_values(array_unique([$this->default_locale, ...$this->locales]));
+    }
+
+    /**
+     * Idiomas con que se muestra una convocatoria (plan 026, DA-4): los suyos que siguen en el evento;
+     * si no queda ninguno, el idioma por defecto del evento.
+     *
+     * @return list<string>
+     */
+    public function effectiveLocalesForCall(CallForSubmissions $call): array
+    {
+        $effective = array_values(array_intersect($call->locales, $this->offeredLocales()));
+
+        return $effective === [] ? [$this->default_locale] : $effective;
+    }
+
     public function isPublished(): bool
     {
         return $this->status === EventStatus::Published;

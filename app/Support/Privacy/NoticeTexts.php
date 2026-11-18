@@ -5,13 +5,17 @@ declare(strict_types=1);
 namespace App\Support\Privacy;
 
 use App\Http\Requests\Privacy\StorePrivacyNoticeRequest;
+use App\Models\Event;
+use App\Support\Events\OfferedLocaleTexts;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 
 /**
  * Valida y sanitiza el texto de un aviso por idioma: se valida la forma y el
  * HTML se limpia ANTES de guardarlo (CA-003-15). Los idiomas que quedan vacíos
- * tras limpiar se descartan.
+ * tras limpiar se descartan. Solo se aceptan los idiomas que ofrece el evento: los
+ * demás se descartan sin error (plan 026, DA-5) y los textos ya guardados de un
+ * idioma que el evento dejó de ofrecer se conservan (DA-1).
  */
 final class NoticeTexts
 {
@@ -19,13 +23,14 @@ final class NoticeTexts
 
     /**
      * @param  array<string, mixed>  $body
+     * @param  array<array-key, mixed>  $stored  texto ya guardado del aviso, del que se conservan los idiomas no ofrecidos
      * @return array<string, string> texto limpio por idioma
      *
      * @throws ValidationException
      */
-    public function prepare(array $body): array
+    public function prepare(array $body, Event $event, array $stored = []): array
     {
-        $validated = Validator::make(['body' => $body], StorePrivacyNoticeRequest::rulesFor())->validate();
+        $validated = Validator::make(['body' => OfferedLocaleTexts::discardUnoffered($body, $event)], StorePrivacyNoticeRequest::rulesFor($event))->validate();
 
         $clean = [];
 
@@ -37,6 +42,6 @@ final class NoticeTexts
             }
         }
 
-        return $clean;
+        return OfferedLocaleTexts::withUnoffered($clean, $stored, $event);
     }
 }

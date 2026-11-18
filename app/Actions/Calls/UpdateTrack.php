@@ -11,6 +11,7 @@ use App\Models\Track;
 use App\Models\User;
 use App\Support\Auth\AuthorizesInOrganization;
 use App\Support\Calls\CallAttributes;
+use App\Support\Events\OfferedLocaleTexts;
 use App\Support\Tenancy\CurrentOrganization;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\DB;
@@ -38,14 +39,15 @@ final class UpdateTrack
             $this->authorizeActor($actor, 'update', $track);
 
             $event = Event::query()->findOrFail($track->event_id);
-            $validated = Validator::make($data, UpdateTrackRequest::rulesFor($event))->validate();
+            $validated = Validator::make(OfferedLocaleTexts::discardIn($data, ['name', 'description'], $event), UpdateTrackRequest::rulesFor($event))->validate();
 
-            return DB::transaction(function () use ($actor, $track, $validated): Track {
+            return DB::transaction(function () use ($actor, $track, $validated, $event): Track {
                 $previous = ['name' => $track->getTranslations('name'), 'description' => $track->getTranslations('description')];
 
+                // Los textos de idiomas que el evento dejó de ofrecer se conservan (plan 026, DA-1).
                 $track->forceFill([
-                    'name' => CallAttributes::texts($validated['name']),
-                    'description' => CallAttributes::texts($validated['description'] ?? []),
+                    'name' => OfferedLocaleTexts::withUnoffered(CallAttributes::texts($validated['name']), $previous['name'], $event),
+                    'description' => OfferedLocaleTexts::withUnoffered(CallAttributes::texts($validated['description'] ?? []), $previous['description'], $event),
                 ])->save();
 
                 activity()

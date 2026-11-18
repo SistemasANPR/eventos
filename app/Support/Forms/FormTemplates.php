@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Support\Forms;
 
+use App\Models\Event;
+use App\Support\Events\OfferedLocaleTexts;
 use InvalidArgumentException;
 
 /**
@@ -12,7 +14,8 @@ use InvalidArgumentException;
  * viajan versionadas con la aplicación y no necesitan una tabla global. Una plantilla
  * nunca se edita; `CreateFormFromTemplate` la copia a un formulario propio del evento.
  * Cada texto va en los tres idiomas de la plataforma: el evento puede tener cualquiera
- * como idioma base y el campo exige su etiqueta en ese idioma.
+ * como idioma base y el campo exige su etiqueta en ese idioma. `definitionFor` los reduce
+ * a los idiomas del evento.
  */
 final class FormTemplates
 {
@@ -26,6 +29,40 @@ final class FormTemplates
     public static function names(): array
     {
         return [self::SESSION, self::PANEL, self::POSTER];
+    }
+
+    /**
+     * La plantilla con sus textos solo en los idiomas que ofrece el evento (plan 026, DA-2, CA-026-5).
+     *
+     * @return array{name: array<string, string>, fields: list<array<string, mixed>>}
+     */
+    public static function definitionFor(string $template, Event $event): array
+    {
+        $definition = self::definition($template);
+
+        return [
+            'name' => OfferedLocaleTexts::for($definition['name'], $event),
+            'fields' => array_map(static fn (array $field): array => self::restrict($field, $event), $definition['fields']),
+        ];
+    }
+
+    /**
+     * @param  array<string, mixed>  $field
+     * @return array<string, mixed>
+     */
+    private static function restrict(array $field, Event $event): array
+    {
+        foreach (['label', 'help'] as $key) {
+            if (isset($field[$key])) {
+                $field[$key] = OfferedLocaleTexts::for($field[$key], $event);
+            }
+        }
+
+        foreach ($field['config']['options'] ?? [] as $index => $option) {
+            $field['config']['options'][$index]['label'] = OfferedLocaleTexts::for($option['label'], $event);
+        }
+
+        return $field;
     }
 
     /**

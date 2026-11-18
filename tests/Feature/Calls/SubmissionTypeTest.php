@@ -90,7 +90,7 @@ function typeNames(Event $event): array
         ->map(fn (SubmissionType $type): string => $type->getTranslation('name', 'es'))->all());
 }
 
-it('CA-004-29: a new event is born with Session, Panel, Poster and Workshop, active and in that order, in es, en and pt', function (): void {
+it('CA-004-29: a new event is born with Session, Panel, Poster and Workshop, active and in that order, in the languages of the event (plan 026)', function (): void {
     [$organization, $event] = typeScenario();
     CurrentOrganization::set($organization);
 
@@ -98,7 +98,7 @@ it('CA-004-29: a new event is born with Session, Panel, Poster and Workshop, act
 
     expect($types->map(fn (SubmissionType $type): string => $type->getTranslation('name', 'es'))->all())->toBe(['Sesión', 'Panel', 'Póster', 'Taller'])
         ->and($types->map(fn (SubmissionType $type): string => $type->getTranslation('name', 'en'))->all())->toBe(['Session', 'Panel', 'Poster', 'Workshop'])
-        ->and($types->map(fn (SubmissionType $type): string => $type->getTranslation('name', 'pt'))->all())->toBe(['Sessão', 'Painel', 'Pôster', 'Oficina'])
+        ->and($types->map(fn (SubmissionType $type): array => collect($type->getTranslations('name'))->keys()->sort()->values()->all())->unique()->all())->toBe([['en', 'es']])
         ->and($types->pluck('position')->all())->toBe([1, 2, 3, 4])
         ->and($types->every(fn (SubmissionType $type): bool => ! $type->isArchived()))->toBeTrue();
 });

@@ -46,6 +46,8 @@ return [
         'locales' => 'Idiomas del evento',
         'default_locale' => 'Idioma por defecto',
         'confirm_slug_change' => 'Confirmo cambiar el identificador',
+        'confirm_locale_removal' => 'Confirmo quitar el idioma',
+        'confirm_locale_removal_help' => 'Los textos de ese idioma se conservan, pero dejan de mostrarse; si lo vuelves a marcar reaparecen.',
         'confirm_slug_change_help' => 'El evento ya está publicado: cambiarlo rompe los enlaces que ya compartiste.',
         'public_url' => 'Enlace público',
         'status' => 'Estado',

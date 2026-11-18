@@ -154,6 +154,12 @@ describe('Calls/Show page', () => {
         expect(within(nav).getByRole('link', { name: 'Ver en English' })).toHaveAttribute('href', '?lang=en');
     });
 
+    it('CA-026-11: shows no language selector when the call has a single effective language', () => {
+        renderPage({ locales: ['es'] });
+
+        expect(screen.queryByRole('navigation', { name: 'Idioma' })).not.toBeInTheDocument();
+    });
+
     it('CA-006-55: offers the link to the submission form only when the server provides it', () => {
         const view = renderPage();
         expect(screen.queryByRole('link', { name: 'Enviar propuesta' })).not.toBeInTheDocument();

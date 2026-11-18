@@ -30,8 +30,8 @@ final class CreateFormFromTemplate
             throw ValidationException::withMessages(['template' => __('forms.template_unknown')]);
         }
 
-        $definition = FormTemplates::definition($template);
-        $name = $definition['name'][$event->default_locale] ?? $definition['name']['es'];
+        $definition = FormTemplates::definitionFor($template, $event);
+        $name = $definition['name'][$event->default_locale];
 
         return $this->createForm->handle($actor, $event, ['name' => $name, 'fields' => $definition['fields']]);
     }

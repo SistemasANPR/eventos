@@ -46,6 +46,8 @@ return [
         'locales' => 'Event languages',
         'default_locale' => 'Default language',
         'confirm_slug_change' => 'I confirm changing the identifier',
+        'confirm_locale_removal' => 'I confirm removing the language',
+        'confirm_locale_removal_help' => 'The texts in that language are kept but stop being shown; if you mark it again they come back.',
         'confirm_slug_change_help' => 'The event is already published: changing it breaks the links you already shared.',
         'public_url' => 'Public link',
         'status' => 'Status',

@@ -8,7 +8,8 @@ use App\Actions\Forms\RetireFormField;
 use App\Enums\FieldType;
 use App\Filament\Resources\Forms\Pages\EditFormDefinition;
 use App\Filament\Support\ActionErrors;
-use App\Http\Requests\Events\StoreEventRequest;
+use App\Filament\Support\LocalizedFields;
+use App\Models\Event;
 use App\Models\FormDefinition;
 use App\Support\Forms\FormDefinitionRules;
 use Filament\Actions\Action;
@@ -59,7 +60,7 @@ final class FormDefinitionForm
                         ->reorderableWithButtons()
                         ->itemLabel(fn (array $state): string => self::itemLabel($state))
                         ->extraItemActions([self::retireAction()])
-                        ->schema(self::fieldInputs()),
+                        ->schema(fn ($livewire): array => self::fieldInputs(LocalizedFields::eventOf($livewire))),
                 ]),
         ]);
     }
@@ -99,7 +100,7 @@ final class FormDefinitionForm
     }
 
     /** @return list<Hidden|Select|Toggle|TextInput|Textarea|Section|Repeater|CheckboxList> */
-    private static function fieldInputs(): array
+    private static function fieldInputs(Event $event): array
     {
         return [
             Hidden::make('key'),
@@ -116,31 +117,29 @@ final class FormDefinitionForm
                 ->visible(fn (Get $get): bool => self::canIdentifyAuthor($get('type'))),
             Section::make(__('forms.fields.texts'))
                 ->columns(1)
-                ->schema(self::localizedTexts()),
-            ...self::configInputs(),
+                ->schema(self::localizedTexts($event)),
+            ...self::configInputs($event),
         ];
     }
 
     /** @return list<TextInput|Textarea> */
-    private static function localizedTexts(): array
+    private static function localizedTexts(Event $event): array
     {
-        $inputs = [];
-
-        foreach (StoreEventRequest::LOCALES as $locale) {
-            $inputs[] = TextInput::make("label.{$locale}")
+        /** @var list<TextInput|Textarea> */
+        return LocalizedFields::for($event, static fn (string $locale, bool $isDefault): array => [
+            TextInput::make("label.{$locale}")
                 ->label(__("forms.fields.label_{$locale}"))
-                ->maxLength(200);
-            $inputs[] = Textarea::make("help.{$locale}")
+                ->required($isDefault)
+                ->maxLength(200),
+            Textarea::make("help.{$locale}")
                 ->label(__("forms.fields.help_{$locale}"))
                 ->maxLength(500)
-                ->rows(2);
-        }
-
-        return $inputs;
+                ->rows(2),
+        ]);
     }
 
     /** @return list<TextInput|Repeater|CheckboxList> */
-    private static function configInputs(): array
+    private static function configInputs(Event $event): array
     {
         return [
             TextInput::make('config.minLength')
@@ -165,7 +164,7 @@ final class FormDefinitionForm
                 ->maxItems(FormDefinitionRules::MAX_OPTIONS)
                 ->schema([
                     Hidden::make('value'),
-                    ...self::optionLabels(),
+                    ...self::optionLabels($event),
                 ])
                 ->visible(fn (Get $get): bool => self::hasOptions($get('type'))),
             TextInput::make('config.maxSelections')
@@ -184,14 +183,13 @@ final class FormDefinitionForm
     }
 
     /** @return list<TextInput> */
-    private static function optionLabels(): array
+    private static function optionLabels(Event $event): array
     {
-        return array_map(
-            static fn (string $locale): TextInput => TextInput::make("label.{$locale}")
-                ->label(__("forms.fields.option_label_{$locale}"))
-                ->maxLength(200),
-            StoreEventRequest::LOCALES,
-        );
+        /** @var list<TextInput> */
+        return LocalizedFields::for($event, static fn (string $locale, bool $isDefault): TextInput => TextInput::make("label.{$locale}")
+            ->label(__("forms.fields.option_label_{$locale}"))
+            ->required($isDefault)
+            ->maxLength(200));
     }
 
     /** @return array<string, string> */

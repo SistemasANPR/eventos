@@ -39,7 +39,7 @@ final class ShowPrivacyNoticeController
             'event' => [
                 'name' => $event->getTranslation('name', $locale),
                 'locale' => $locale,
-                'locales' => $event->locales,
+                'locales' => $event->offeredLocales(),
             ],
             'organization' => ['name' => $organization->name, 'slug' => $organization->slug],
             'notice' => [

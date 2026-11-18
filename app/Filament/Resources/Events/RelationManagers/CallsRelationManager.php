@@ -15,8 +15,8 @@ use App\Enums\CallStatus;
 use App\Enums\FormDefinitionStatus;
 use App\Filament\Resources\Events\EventResource;
 use App\Filament\Support\ActionErrors;
+use App\Filament\Support\LocalizedFields;
 use App\Filament\Support\SubmissionTypeFields;
-use App\Http\Requests\Events\StoreEventRequest;
 use App\Models\CallForSubmissions;
 use App\Models\Event;
 use App\Models\FormDefinition;
@@ -390,22 +390,19 @@ class CallsRelationManager extends RelationManager
                 ->required(),
         ];
 
-        foreach (StoreEventRequest::LOCALES as $locale) {
-            $isOffered = fn (): bool => in_array($locale, $this->owner()->locales, true);
-
-            $fields[] = TextInput::make("title.{$locale}")
+        $texts = LocalizedFields::for($this->owner(), static fn (string $locale): array => [
+            TextInput::make("title.{$locale}")
                 ->label(__("calls.fields.title_{$locale}"))
-                ->maxLength(255)
-                ->visible($isOffered);
-            $fields[] = Textarea::make("description.{$locale}")
+                ->maxLength(255),
+            Textarea::make("description.{$locale}")
                 ->label(__("calls.fields.description_{$locale}"))
                 ->maxLength(5000)
-                ->rows(3)
-                ->visible($isOffered);
-        }
+                ->rows(3),
+        ]);
 
         return [
             ...$fields,
+            ...$texts,
             DateTimePicker::make('opens_at')->label(__('calls.fields.opens_at'))->seconds(false)->format('Y-m-d H:i')->displayFormat($this->pickerFormat())->required(),
             DateTimePicker::make('closes_at')->label(__('calls.fields.closes_at'))->seconds(false)->format('Y-m-d H:i')->displayFormat($this->pickerFormat())->required(),
             DateTimePicker::make('results_at')->label(__('calls.fields.results_at'))->seconds(false)->format('Y-m-d H:i')->displayFormat($this->pickerFormat()),

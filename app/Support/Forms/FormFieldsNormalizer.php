@@ -6,6 +6,8 @@ namespace App\Support\Forms;
 
 use App\Actions\Forms\SanitizeFormText;
 use App\Enums\FieldType;
+use App\Models\Event;
+use App\Support\Events\OfferedLocaleTexts;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
@@ -25,11 +27,13 @@ final class FormFieldsNormalizer
     /**
      * @param  list<array<string, mixed>>  $fields  campos validados por `FormDefinitionRules`
      * @param  list<array<string, mixed>>  $current  campos ya guardados, para conservar claves y valores
+     * @param  Event|null  $event  si se indica, de los campos y opciones que ya existían se conservan los textos
+     *                             de los idiomas que el evento dejó de ofrecer (plan 026, DA-1)
      * @return list<array<string, mixed>>
      *
      * @throws ValidationException si la definición supera el tamaño máximo
      */
-    public function normalize(array $fields, array $current = []): array
+    public function normalize(array $fields, array $current = [], ?Event $event = null): array
     {
         $currentByKey = [];
         foreach ($current as $stored) {
@@ -56,9 +60,9 @@ final class FormFieldsNormalizer
                 'required' => ($field['required'] ?? false) === true || ($field['required'] ?? false) === 1,
                 'position' => $index + 1,
                 'identifiesAuthor' => ($field['identifiesAuthor'] ?? false) === true,
-                'label' => $this->texts($field['label']),
-                'help' => $this->texts($field['help'] ?? []),
-                'config' => $this->config($type, $field['config'] ?? [], $existing['config']['options'] ?? []),
+                'label' => $this->kept($this->texts($field['label']), $existing['label'] ?? [], $event),
+                'help' => $this->kept($this->texts($field['help'] ?? []), $existing['help'] ?? [], $event),
+                'config' => $this->config($type, $field['config'] ?? [], $existing['config']['options'] ?? [], $event),
                 'retiredAt' => $existing['retiredAt'] ?? null,
             ];
         }
@@ -75,7 +79,7 @@ final class FormFieldsNormalizer
      * @param  list<array<string, mixed>>  $storedOptions
      * @return array<string, mixed>
      */
-    private function config(FieldType $type, array $config, array $storedOptions): array
+    private function config(FieldType $type, array $config, array $storedOptions, ?Event $event): array
     {
         $accept = array_values(array_unique($config['accept'] ?? []));
 
@@ -88,9 +92,9 @@ final class FormFieldsNormalizer
                 'min' => $this->number($config['min'] ?? null),
                 'max' => $this->number($config['max'] ?? null),
             ]),
-            FieldType::SingleChoice => ['options' => $this->options($config['options'] ?? [], $storedOptions)],
+            FieldType::SingleChoice => ['options' => $this->options($config['options'] ?? [], $storedOptions, $event)],
             FieldType::MultipleChoice => $this->present([
-                'options' => $this->options($config['options'] ?? [], $storedOptions),
+                'options' => $this->options($config['options'] ?? [], $storedOptions, $event),
                 'maxSelections' => $this->number($config['maxSelections'] ?? null),
             ]),
             FieldType::File => $this->present([
@@ -112,7 +116,7 @@ final class FormFieldsNormalizer
      * @param  list<array<string, mixed>>  $storedOptions
      * @return list<array{value: string, label: array<string, string>}>
      */
-    private function options(array $options, array $storedOptions): array
+    private function options(array $options, array $storedOptions, ?Event $event): array
     {
         $takenValues = array_fill_keys(array_map('strval', array_column($storedOptions, 'value')), true);
         $normalized = [];
@@ -120,14 +124,25 @@ final class FormFieldsNormalizer
         foreach (array_values($options) as $option) {
             $clientValue = $option['value'] ?? null;
             $isKnown = is_string($clientValue) && in_array($clientValue, array_column($storedOptions, 'value'), true);
+            $stored = $isKnown ? ($storedOptions[array_search($clientValue, array_column($storedOptions, 'value'), true)]['label'] ?? []) : [];
 
             $normalized[] = [
                 'value' => $isKnown ? $clientValue : $this->generate('o_', $takenValues),
-                'label' => $this->texts($option['label']),
+                'label' => $this->kept($this->texts($option['label']), $stored, $event),
             ];
         }
 
         return $normalized;
+    }
+
+    /**
+     * @param  array<string, string>  $incoming
+     * @param  array<array-key, mixed>  $stored
+     * @return array<string, string>
+     */
+    private function kept(array $incoming, array $stored, ?Event $event): array
+    {
+        return $event === null ? $incoming : OfferedLocaleTexts::withUnoffered($incoming, $stored, $event);
     }
 
     /**

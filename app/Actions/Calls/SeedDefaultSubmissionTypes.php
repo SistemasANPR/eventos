@@ -22,7 +22,7 @@ final class SeedDefaultSubmissionTypes
             return;
         }
 
-        foreach (DefaultSubmissionTypes::NAMES as $index => $name) {
+        foreach (DefaultSubmissionTypes::namesFor($event) as $index => $name) {
             $type = new SubmissionType;
             $type->event_id = $event->id;
             $type->forceFill(['name' => $name, 'position' => $index + 1])->save();

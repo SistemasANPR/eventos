@@ -29,7 +29,7 @@ final class PublicEventData
             'city' => $event->city,
             'timeFormat' => $event->time_format->value,
             'locale' => $locale,
-            'locales' => $event->locales,
+            'locales' => $event->offeredLocales(),
         ];
     }
 
@@ -42,10 +42,12 @@ final class PublicEventData
     {
         $requested = $request->query('lang');
 
-        if (is_string($requested) && in_array($requested, $event->locales, true)) {
+        $offered = $event->offeredLocales();
+
+        if (is_string($requested) && in_array($requested, $offered, true)) {
             return $requested;
         }
 
-        return $request->getPreferredLanguage($event->locales) ?? $event->default_locale;
+        return $request->getPreferredLanguage($offered) ?? $event->default_locale;
     }
 }

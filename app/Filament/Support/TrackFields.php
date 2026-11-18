@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Filament\Support;
 
-use App\Http\Requests\Events\StoreEventRequest;
 use App\Models\Event;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
@@ -18,23 +17,16 @@ final class TrackFields
     /** @return list<TextInput|Textarea> */
     public static function inputs(Event $event): array
     {
-        $fields = [];
-
-        foreach (StoreEventRequest::LOCALES as $locale) {
-            $visible = in_array($locale, $event->locales, true);
-
-            $fields[] = TextInput::make("name.{$locale}")
+        /** @var list<TextInput|Textarea> */
+        return LocalizedFields::for($event, static fn (string $locale, bool $isDefault): array => [
+            TextInput::make("name.{$locale}")
                 ->label(__("calls.fields.track_name_{$locale}"))
                 ->maxLength(100)
-                ->required($locale === $event->default_locale)
-                ->visible($visible);
-            $fields[] = Textarea::make("description.{$locale}")
+                ->required($isDefault),
+            Textarea::make("description.{$locale}")
                 ->label(__("calls.fields.track_description_{$locale}"))
                 ->maxLength(1000)
-                ->rows(3)
-                ->visible($visible);
-        }
-
-        return $fields;
+                ->rows(3),
+        ]);
     }
 }

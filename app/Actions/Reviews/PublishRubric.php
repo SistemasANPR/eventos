@@ -12,6 +12,7 @@ use App\Models\Rubric;
 use App\Models\RubricCriterion;
 use App\Models\User;
 use App\Support\Auth\AuthorizesInOrganization;
+use App\Support\Events\OfferedLocaleTexts;
 use App\Support\Tenancy\CurrentOrganization;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\DB;
@@ -47,6 +48,8 @@ final class PublishRubric
 
                 $event = Event::query()->findOrFail($current->event_id);
                 $content = $this->content($current);
+                // Un idioma que el evento dejó de ofrecer no se valida: su texto queda guardado pero oculto (plan 026).
+                $content['criteria'] = array_values(OfferedLocaleTexts::discardInEach($content['criteria'], 'label', $event));
                 Validator::make($content, PublishRubricRequest::rulesFor($event, $content['criteria']))->validate();
 
                 $current->forceFill(['status' => RubricStatus::Published])->save();

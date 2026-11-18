@@ -34,7 +34,7 @@ final class PublicCallData
             'timezone' => $event->timezone,
             'timeFormat' => $event->time_format->value,
             'locale' => $locale,
-            'locales' => $call->locales,
+            'locales' => $event->effectiveLocalesForCall($call),
             'tracks' => self::tracks($event, $locale),
         ];
 
@@ -46,20 +46,21 @@ final class PublicCallData
     }
 
     /**
-     * Idioma de la página: `?lang=` si la CONVOCATORIA lo ofrece; si no, el mejor
-     * según `Accept-Language` entre sus idiomas; si no, el idioma base del evento
-     * (si la convocatoria lo tiene) o el primero de la convocatoria.
+     * Idioma de la página: `?lang=` si la convocatoria lo ofrece de forma efectiva (plan 026, DA-4: los
+     * suyos que siguen en el evento, o el idioma por defecto del evento); si no, el mejor según
+     * `Accept-Language` entre ellos; si no, el idioma base del evento si está entre ellos o el primero.
      */
     public static function resolveLocale(Request $request, CallForSubmissions $call, Event $event): string
     {
+        $locales = $event->effectiveLocalesForCall($call);
         $requested = $request->query('lang');
 
-        if (is_string($requested) && in_array($requested, $call->locales, true)) {
+        if (is_string($requested) && in_array($requested, $locales, true)) {
             return $requested;
         }
 
-        return $request->getPreferredLanguage($call->locales)
-            ?? (in_array($event->default_locale, $call->locales, true) ? $event->default_locale : $call->locales[0]);
+        return $request->getPreferredLanguage($locales)
+            ?? (in_array($event->default_locale, $locales, true) ? $event->default_locale : $locales[0]);
     }
 
     /** @return list<array{name: string, description: ?string}> */

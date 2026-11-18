@@ -11,6 +11,7 @@ use App\Models\Track;
 use App\Models\User;
 use App\Support\Auth\AuthorizesInOrganization;
 use App\Support\Calls\CallAttributes;
+use App\Support\Events\OfferedLocaleTexts;
 use App\Support\Tenancy\CurrentOrganization;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\DB;
@@ -37,7 +38,7 @@ final class CreateTrack
         return CurrentOrganization::run($organization, function () use ($actor, $event, $data): Track {
             $this->authorizeActor($actor, 'create', Track::class, $event);
 
-            $validated = Validator::make($data, StoreTrackRequest::rulesFor($event))->validate();
+            $validated = Validator::make(OfferedLocaleTexts::discardIn($data, ['name', 'description'], $event), StoreTrackRequest::rulesFor($event))->validate();
 
             return DB::transaction(function () use ($actor, $event, $validated): Track {
                 // Se bloquea el evento para que dos altas simultáneas no tomen la misma posición.

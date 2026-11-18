@@ -64,7 +64,7 @@ final class UpdateFormDefinition
                 throw ValidationException::withMessages(['name' => __('forms.name_required')]);
             }
 
-            return DB::transaction(function () use ($actor, $form, $data, $validated, $name): FormDefinition {
+            return DB::transaction(function () use ($actor, $form, $data, $validated, $name, $event): FormDefinition {
                 $current = $this->locked->handle($form->id);
 
                 if (isset($data['version']) && (int) $data['version'] !== $current->version) {
@@ -74,7 +74,7 @@ final class UpdateFormDefinition
                 $this->changeRules->assertAllowed($current, $validated['fields']);
 
                 $previous = ['name' => $current->name, 'fields' => $current->fields];
-                $fields = $this->normalizer->normalize($validated['fields'], $current->fields);
+                $fields = $this->normalizer->normalize($validated['fields'], $current->fields, $event);
 
                 if ($name === $current->name && self::canonical($fields) === self::canonical($current->fields)) {
                     return $current;
