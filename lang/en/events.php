@@ -56,6 +56,15 @@ return [
         'empty_description' => 'Create your first event to set up its call. This is where you will choose which event to work on.',
         'name' => 'Event',
         'starts_at' => 'Dates',
+        'actions' => 'Event options',
+    ],
+
+    // How far away the event is, in its own time zone (card of the list).
+    'card' => [
+        'in_days' => 'In :count day|In :count days',
+        'tomorrow' => 'Tomorrow',
+        'in_progress' => 'In progress',
+        'ended' => 'Ended',
     ],
 
     'date_format' => 'Y-m-d',

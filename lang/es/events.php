@@ -56,6 +56,15 @@ return [
         'empty_description' => 'Crea tu primer evento para configurar su convocatoria. Aquí elegirás con qué evento trabajar.',
         'name' => 'Evento',
         'starts_at' => 'Fechas',
+        'actions' => 'Opciones del evento',
+    ],
+
+    // Cuánto falta para el evento, en su zona horaria (tarjeta de la lista).
+    'card' => [
+        'in_days' => 'En :count día|En :count días',
+        'tomorrow' => 'Mañana',
+        'in_progress' => 'En curso',
+        'ended' => 'Finalizó',
     ],
 
     // Formato de la fecha en los selectores del formulario; la hora la decide el formato del evento (plan 022).

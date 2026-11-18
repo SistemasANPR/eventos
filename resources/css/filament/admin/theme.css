@@ -286,6 +286,29 @@ h3,
         box-shadow 180ms ease-out;
 }
 
+/* El menú de opciones va arriba a la derecha de la tarjeta; el título deja sitio para no quedar debajo. */
+.fi-ta-content-grid .fi-ta-record {
+    position: relative;
+}
+
+.fi-ta-content-grid .fi-ta-record .fi-ta-actions {
+    position: absolute;
+    inset-block-start: 0.5rem;
+    inset-inline-end: 0.5rem;
+    padding: 0;
+    z-index: 1;
+}
+
+/* Objetivo táctil de 44 px (WCAG 2.5.5). */
+.fi-ta-content-grid .fi-ta-record .fi-ta-actions .fi-icon-btn {
+    min-width: 2.75rem;
+    min-height: 2.75rem;
+}
+
+.fi-ta-content-grid .eventos-card-title {
+    padding-inline-end: 2.75rem;
+}
+
 .fi-ta-content-grid .fi-ta-record:hover,
 .fi-ta-content-grid .fi-ta-record:focus-within {
     transform: translateY(-2px);
