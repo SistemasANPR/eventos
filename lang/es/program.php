@@ -5,6 +5,13 @@ declare(strict_types=1);
 return [
     'category_name_taken' => 'Ya existe una categoría con ese nombre en este evento.',
 
+    // Aviso al revertir o retirar una propuesta aceptada (plan 021, DA-3); lo muestra el plan 012.
+    'reversal' => [
+        'notice' => 'Se ocultó la actividad «:activity» y :speakers ponente(s).',
+        'notice_without_activity' => 'Se ocultaron :speakers ponente(s).',
+        'kept' => ':kept ponente(s) siguen visibles por estar en otra actividad publicada.',
+    ],
+
     'categories' => [
         'columns' => [
             'name' => 'Nombre',

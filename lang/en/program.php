@@ -5,6 +5,13 @@ declare(strict_types=1);
 return [
     'category_name_taken' => 'A category with that name already exists in this event.',
 
+    // Notice when an accepted submission is reverted or withdrawn (plan 021, DA-3); shown by plan 012.
+    'reversal' => [
+        'notice' => 'The activity ":activity" and :speakers speaker(s) were hidden.',
+        'notice_without_activity' => ':speakers speaker(s) were hidden.',
+        'kept' => ':kept speaker(s) remain visible because they are in another published activity.',
+    ],
+
     'categories' => [
         'columns' => [
             'name' => 'Name',
