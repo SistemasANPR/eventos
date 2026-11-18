@@ -4,7 +4,7 @@
 > `composer check:criteria` lee el **Estado** y los criterios de este archivo: no cambiar el formato de esas líneas.
 
 - **Fecha:** 2026-11-18
-- **Estado:** Borrador (DA-1 cerrada por el usuario el 2026-11-18: el valor por defecto es 12 h; el resto de las decisiones espera aprobación)
+- **Estado:** Aprobado (el usuario, 2026-11-18: especificación y propuesta de datos de §4; DA-1 a DA-5 como se recomiendan; alcance F0 a F4; el valor por defecto es 12 h)
 - **Esfuerzo:** M
 - **Deuda relacionada:** ninguna
 
