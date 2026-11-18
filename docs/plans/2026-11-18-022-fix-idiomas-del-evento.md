@@ -3,7 +3,7 @@
 > `composer check:criteria` lee el **Estado** y los criterios de este archivo: no cambiar el formato de esas líneas.
 
 - **Fecha:** 2026-11-18
-- **Estado:** Borrador
+- **Estado:** Aprobado (2026-11-18: especificación, DA-1 a DA-3 del usuario; DA-4 y DA-5 con la recomendación)
 - **Esfuerzo:** M
 - **Deuda relacionada:** ninguna
 
@@ -42,8 +42,8 @@ Medido el 2026-11-18 sobre `staging` (`c176bca`):
 - **DA-1 · Quitar un idioma en uso: permitir con advertencia (decisión del usuario).** Cerrada el 2026-11-18. Al guardar, si el idioma que se quita lo usa una convocatoria o un aviso de privacidad, se muestra qué se afecta y se pide confirmación (mismo patrón que `confirmSlugChange`); sin confirmar no se guarda. Los textos guardados en ese idioma se conservan, ocultos y sin mostrarse, para poder recuperarlos si el idioma se vuelve a marcar. El idioma por defecto no se puede quitar (ya lo exige la validación).
 - **DA-2 · Plantillas en un evento de un solo idioma: solo ese idioma (decisión del usuario).** Cerrada el 2026-11-18. `FormTemplates` y `DefaultSubmissionTypes` se crean únicamente con los idiomas del evento; si falta la traducción de un idioma ofrecido, se usa el del idioma por defecto del evento o es.
 - **DA-3 · Correos y programa fuera de alcance (recomendación aceptada).** Cerrada el 2026-11-18.
-- **DA-4 · Qué ve el público cuando se quita un idioma.** Se recomienda **idiomas efectivos de una convocatoria = los de la convocatoria que siguen en el evento; si queda ninguno, el idioma por defecto del evento**. Un aviso de privacidad se exige solo en los idiomas efectivos. Una propuesta ya enviada en un idioma retirado se sigue viendo, con el texto de su idioma si existe o con el idioma por defecto. Abierta, se aprueba con el plan.
-- **DA-5 · Descarte de claves de más al guardar.** Se recomienda que las Actions descarten (no rechacen) las claves de idiomas no ofrecidos de lo que llega del cliente, para que un formulario viejo abierto no falle; la validación sí rechaza claves desconocidas fuera de los tres idiomas del sistema. Abierta, se aprueba con el plan.
+- **DA-4 · Qué ve el público cuando se quita un idioma.** Se recomienda **idiomas efectivos de una convocatoria = los de la convocatoria que siguen en el evento; si queda ninguno, el idioma por defecto del evento**. Un aviso de privacidad se exige solo en los idiomas efectivos. Una propuesta ya enviada en un idioma retirado se sigue viendo, con el texto de su idioma si existe o con el idioma por defecto. Cerrada el 2026-11-18 con la recomendación.
+- **DA-5 · Descarte de claves de más al guardar.** Se recomienda que las Actions descarten (no rechacen) las claves de idiomas no ofrecidos de lo que llega del cliente, para que un formulario viejo abierto no falle; la validación sí rechaza claves desconocidas fuera de los tres idiomas del sistema. Cerrada el 2026-11-18 con la recomendación.
 
 ## 4. Contrato
 
