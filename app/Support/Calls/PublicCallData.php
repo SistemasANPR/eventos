@@ -20,7 +20,7 @@ use Illuminate\Support\Carbon;
 final class PublicCallData
 {
     /**
-     * @return array{title: string, description: ?string, submissionType: string, state: string, opensAt: string, closesAt: string, resultsAt?: string, timezone: string, locale: string, locales: list<string>, tracks: list<array{name: string, description: ?string}>}
+     * @return array{title: string, description: ?string, submissionType: string, state: string, opensAt: string, closesAt: string, resultsAt?: string, timezone: string, timeFormat: string, locale: string, locales: list<string>, tracks: list<array{name: string, description: ?string}>}
      */
     public static function from(CallForSubmissions $call, Event $event, CallState $state, string $locale): array
     {
@@ -32,6 +32,7 @@ final class PublicCallData
             'opensAt' => self::utc($call->opens_at),
             'closesAt' => self::utc($call->closes_at),
             'timezone' => $event->timezone,
+            'timeFormat' => $event->time_format->value,
             'locale' => $locale,
             'locales' => $event->effectiveLocalesForCall($call),
             'tracks' => self::tracks($event, $locale),

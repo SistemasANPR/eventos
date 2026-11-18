@@ -6,6 +6,7 @@ namespace App\Models;
 
 use App\Enums\EventStatus;
 use App\Enums\EventType;
+use App\Enums\TimeFormat;
 use App\Models\Concerns\BelongsToOrganization;
 use Database\Factories\EventFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -39,10 +40,11 @@ use Spatie\Translatable\HasTranslations;
  * @property list<string> $locales
  * @property string $default_locale
  * @property string $currency
+ * @property TimeFormat $time_format
  */
 #[Fillable([
     'name', 'description', 'slug', 'type', 'starts_at', 'ends_at', 'timezone',
-    'venue_name', 'venue_address', 'city', 'locales', 'default_locale', 'currency', 'status',
+    'venue_name', 'venue_address', 'city', 'locales', 'default_locale', 'currency', 'time_format', 'status',
 ])]
 class Event extends Model
 {
@@ -54,12 +56,16 @@ class Event extends Model
     /** @var list<string> */
     public array $translatable = ['name', 'description'];
 
+    /** Mismo valor por defecto que la columna: un evento recién creado ya sabe su formato de hora (plan 022). */
+    protected $attributes = ['time_format' => '12h'];
+
     /** @return array<string, string> */
     protected function casts(): array
     {
         return [
             'type' => EventType::class,
             'status' => EventStatus::class,
+            'time_format' => TimeFormat::class,
             'starts_at' => 'datetime',
             'ends_at' => 'datetime',
             'locales' => 'array',

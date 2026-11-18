@@ -8,11 +8,15 @@ return [
     'plural' => 'propuestas',
     'empty' => 'Todavía no hay propuestas en este evento',
 
+    // Fecha de la hora de envío; la hora la decide el formato del evento (plan 022).
+    'date_format' => 'd/m/Y',
+    'long_date_format' => 'j \d\e F \d\e Y',
+
     'columns' => [
         'title' => 'Título',
         'call' => 'Convocatoria',
-        'type' => 'Tipo',
-        'track' => 'Eje',
+        'type' => 'Categoría',
+        'track' => 'Tema',
         'status' => 'Estado',
         'submitted_at' => 'Enviada',
         'activity' => 'Actividad',
@@ -42,10 +46,10 @@ return [
     'summary' => [
         'action' => 'Resumen',
         'total' => 'Total de propuestas de la convocatoria: :count',
-        'by_track' => 'Por eje',
-        'by_type' => 'Por tipo',
+        'by_track' => 'Por tema',
+        'by_type' => 'Por categoría',
         'by_day' => 'Por día de envío',
-        'empty' => 'Todavía no hay propuestas de la convocatoria en este evento, así que no hay nada que resumir. Cuando lleguen, aquí verás cuántas hay por eje, por tipo y por día.',
+        'empty' => 'Todavía no hay propuestas de la convocatoria en este evento, así que no hay nada que resumir. Cuando lleguen, aquí verás cuántas hay por tema, por categoría y por día.',
     ],
 
     'export' => [
@@ -55,7 +59,7 @@ return [
         'description' => 'Se exportan las propuestas con los filtros que tienes aplicados. El archivo se prepara en segundo plano y queda disponible 24 horas en «Exportaciones recientes».',
         'queued_title' => 'Exportación en curso',
         'queued_body' => 'Cuando el archivo esté listo aparecerá en «Exportaciones recientes».',
-        'too_large' => 'La exportación tiene :rows propuestas y el máximo es :max. Afina los filtros (convocatoria, eje, tipo, estado o fechas) e inténtalo de nuevo.',
+        'too_large' => 'La exportación tiene :rows propuestas y el máximo es :max. Afina los filtros (convocatoria, tema, categoría, estado o fechas) e inténtalo de nuevo.',
         'unavailable' => 'El archivo de la exportación ya no está disponible. Pide una nueva exportación.',
         'recent' => 'Exportaciones recientes',
         'recent_empty' => 'No hay exportaciones de las últimas 24 horas.',

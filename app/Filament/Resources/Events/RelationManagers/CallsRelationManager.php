@@ -17,6 +17,7 @@ use App\Models\CallForSubmissions;
 use App\Models\Event;
 use App\Models\SubmissionType;
 use App\Support\Calls\ResolveCallState;
+use App\Support\Events\EventTime;
 use App\Support\Tenancy\CurrentOrganization;
 use Carbon\CarbonImmutable;
 use Filament\Actions\Action;
@@ -75,7 +76,7 @@ class CallsRelationManager extends RelationManager
                     ->state(fn (CallForSubmissions $record): string => $this->publicStateLabel($record)),
                 TextColumn::make('opens_at')
                     ->label(__('calls.columns.period'))
-                    ->state(fn (CallForSubmissions $record): string => $this->localTime($record->opens_at).' – '.$this->localTime($record->closes_at)),
+                    ->state(fn (CallForSubmissions $record): string => EventTime::for($this->owner())->range($record->opens_at, $record->closes_at, __('calls.date_format'), ' ')),
             ])
             ->defaultSort('opens_at', 'desc')
             ->headerActions([$this->createAction()])
@@ -219,7 +220,8 @@ class CallsRelationManager extends RelationManager
                     ->label(__('calls.actions.new_close'))
                     ->helperText(__('calls.actions.new_close_help'))
                     ->seconds(false)
-                    ->format('Y-m-d H:i'),
+                    ->format('Y-m-d H:i')
+                    ->displayFormat($this->pickerFormat()),
             ]);
         }
 
@@ -267,9 +269,9 @@ class CallsRelationManager extends RelationManager
         return [
             ...$fields,
             ...$texts,
-            DateTimePicker::make('opens_at')->label(__('calls.fields.opens_at'))->seconds(false)->format('Y-m-d H:i')->required(),
-            DateTimePicker::make('closes_at')->label(__('calls.fields.closes_at'))->seconds(false)->format('Y-m-d H:i')->required(),
-            DateTimePicker::make('results_at')->label(__('calls.fields.results_at'))->seconds(false)->format('Y-m-d H:i'),
+            DateTimePicker::make('opens_at')->label(__('calls.fields.opens_at'))->seconds(false)->format('Y-m-d H:i')->displayFormat($this->pickerFormat())->required(),
+            DateTimePicker::make('closes_at')->label(__('calls.fields.closes_at'))->seconds(false)->format('Y-m-d H:i')->displayFormat($this->pickerFormat())->required(),
+            DateTimePicker::make('results_at')->label(__('calls.fields.results_at'))->seconds(false)->format('Y-m-d H:i')->displayFormat($this->pickerFormat()),
         ];
     }
 
@@ -308,6 +310,12 @@ class CallsRelationManager extends RelationManager
     }
 
     /** Instante UTC → hora local de la zona del evento. */
+    /** Cómo MUESTRAN la fecha y la hora los selectores: con el formato de hora del evento (plan 022, DA-3). */
+    private function pickerFormat(): string
+    {
+        return $this->owner()->time_format->displayDateTime(__('calls.date_format'));
+    }
+
     private function localTime(\DateTimeInterface $instant, string $format = 'Y-m-d H:i'): string
     {
         return CarbonImmutable::instance($instant)->setTimezone($this->owner()->timezone)->format($format);

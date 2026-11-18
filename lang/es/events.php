@@ -38,6 +38,8 @@ return [
         'ends_at' => 'Fin',
         'dates_help' => 'Hora local de la zona horaria del evento.',
         'timezone' => 'Zona horaria',
+        'time_format' => 'Formato de hora',
+        'time_format_help' => 'Cómo se muestran las horas de este evento en el panel y en el sitio público.',
         'venue_name' => 'Nombre de la sede',
         'venue_address' => 'Dirección',
         'city' => 'Ciudad',
@@ -58,6 +60,12 @@ return [
         'starts_at' => 'Fechas',
     ],
 
+    // Formato de la fecha en los selectores del formulario; la hora la decide el formato del evento (plan 022).
+    'date_format' => 'd/m/Y',
+    'time_format' => [
+        'options' => ['12h' => '12 horas (2:30 p. m.)', '24h' => '24 horas (14:30 h)'],
+        'suffix_24h' => ' h',
+    ],
     'status' => [
         'draft' => 'Borrador',
         'published' => 'Publicado',

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Filament\Resources\Events\Schemas;
 
 use App\Enums\EventType;
+use App\Enums\TimeFormat;
 use App\Http\Requests\Events\StoreEventRequest;
 use App\Models\Event;
 use DateTimeZone;
@@ -54,11 +55,13 @@ final class EventForm
                         ->label(__('events.fields.starts_at'))
                         ->seconds(false)
                         ->format('Y-m-d H:i')
+                        ->displayFormat(fn (Get $get): string => self::pickerFormat($get('time_format')))
                         ->required(),
                     DateTimePicker::make('ends_at')
                         ->label(__('events.fields.ends_at'))
                         ->seconds(false)
                         ->format('Y-m-d H:i')
+                        ->displayFormat(fn (Get $get): string => self::pickerFormat($get('time_format')))
                         ->required(),
                     Select::make('timezone')
                         ->label(__('events.fields.timezone'))
@@ -67,6 +70,13 @@ final class EventForm
                         // Filament muestra solo 50 opciones por defecto: sin esto la lista termina en África.
                         ->optionsLimit(count(self::timezones()))
                         ->default('America/Mexico_City')
+                        ->required(),
+                    Select::make('time_format')
+                        ->label(__('events.fields.time_format'))
+                        ->helperText(__('events.fields.time_format_help'))
+                        ->options(TimeFormat::class)
+                        ->default(TimeFormat::TwelveHour)
+                        ->live()
                         ->required(),
                 ]),
             Section::make(__('events.sections.venue'))
@@ -130,6 +140,14 @@ final class EventForm
         }
 
         return $fields;
+    }
+
+    /** Cómo muestran las fechas los selectores, según el formato de hora elegido en el mismo formulario (plan 022, DA-3). */
+    private static function pickerFormat(mixed $timeFormat): string
+    {
+        $format = $timeFormat instanceof TimeFormat ? $timeFormat : (TimeFormat::tryFrom((string) $timeFormat) ?? TimeFormat::TwelveHour);
+
+        return $format->displayDateTime(__('events.date_format'));
     }
 
     /** @return array<string, string> */

@@ -70,6 +70,7 @@ return [
         'public_state' => 'Public state',
         'period' => 'Period (event time)',
     ],
+    'date_format' => 'Y-m-d',
     'state' => [
         'scheduled' => 'Scheduled',
         'open' => 'Open',
@@ -100,7 +101,7 @@ return [
     ],
     'actions' => [
         'edit' => 'Edit',
-        'view_public' => 'View public page',
+        'view_public' => 'View',
         'copy_link' => 'Copy link',
         'link_copied' => 'Link copied',
         'publish' => 'Publish',

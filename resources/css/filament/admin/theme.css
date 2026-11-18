@@ -277,7 +277,6 @@ h3,
 /* Tarjetas de evento (EventsTable): elevación al pasar el cursor, sin mover el diseño. */
 .fi-ta-content-grid .fi-ta-record {
     border: 1px solid var(--eventos-border);
-    border-top-width: 3px;
     border-radius: var(--eventos-radius-card);
     background-color: #ffffff;
     box-shadow: var(--eventos-shadow-rest);
@@ -291,19 +290,6 @@ h3,
 .fi-ta-content-grid .fi-ta-record:focus-within {
     transform: translateY(-2px);
     box-shadow: var(--eventos-shadow-raised);
-}
-
-/* El estado también va con icono y texto en la insignia: el filete solo lo refuerza. */
-.fi-ta-content-grid .eventos-card-draft {
-    border-top-color: var(--eventos-status-draft);
-}
-
-.fi-ta-content-grid .eventos-card-published {
-    border-top-color: var(--eventos-status-published);
-}
-
-.fi-ta-content-grid .eventos-card-archived {
-    border-top-color: var(--eventos-status-archived);
 }
 
 /* Formularios: etiqueta de 14 px y borde de campo con 3:1 (WCAG 1.4.11). */

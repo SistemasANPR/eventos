@@ -8,6 +8,7 @@ use App\Enums\EventStatus;
 use App\Filament\Resources\Events\Actions\LifecycleActions;
 use App\Filament\Resources\Events\EventResource;
 use App\Models\Event;
+use App\Support\Events\EventTime;
 use Filament\Actions\ActionGroup;
 use Filament\Actions\CreateAction;
 use Filament\Actions\EditAction;
@@ -18,6 +19,7 @@ use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\Layout\Split;
 use Filament\Tables\Columns\Layout\Stack;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Enums\RecordActionsPosition;
 use Filament\Tables\Table;
 
 /**
@@ -62,10 +64,10 @@ final class EventsTable
                         ->sortable(),
                 ])->space(3),
             ])
-            // Filete superior de la tarjeta según el estado; el estado sigue yendo con icono y texto.
-            ->recordClasses(fn (Event $record): string => 'eventos-card-'.$record->status->value)
             // Tarjetas: una columna en móvil, dos en tablet y tres en escritorio (plan 015, DA-4).
             ->contentGrid(['default' => 1, 'md' => 2, 'xl' => 3])
+            // El menú de opciones va arriba a la izquierda de la tarjeta, no debajo del contenido.
+            ->recordActionsPosition(RecordActionsPosition::BeforeColumns)
             ->defaultSort('starts_at', 'desc')
             ->recordUrl(fn (Event $record): string => EventResource::getUrl('view', ['record' => $record]))
             ->recordActions([
@@ -87,13 +89,9 @@ final class EventsTable
         return (string) $event->getTranslation('name', $event->default_locale, true);
     }
 
-    /** Fechas en la zona horaria DEL EVENTO (se guardan en UTC), p. ej. «10 mar 2027, 9:00 – 12 mar 2027, 17:00». */
+    /** Fechas en la zona horaria DEL EVENTO (se guardan en UTC) y con su formato de hora, p. ej. «10 mar 2027, 9:00 a. m. – 12 mar 2027, 5:00 p. m.». */
     public static function displayDates(Event $event): string
     {
-        $format = 'j M Y, H:i';
-
-        return $event->starts_at->copy()->setTimezone($event->timezone)->locale(app()->getLocale())->translatedFormat($format)
-            .' – '
-            .$event->ends_at->copy()->setTimezone($event->timezone)->locale(app()->getLocale())->translatedFormat($format);
+        return EventTime::for($event)->range($event->starts_at, $event->ends_at, 'j M Y');
     }
 }

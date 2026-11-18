@@ -12,6 +12,7 @@ use App\Models\Event;
 use App\Models\Submission;
 use App\Models\SubmissionType;
 use App\Models\Track;
+use App\Support\Events\EventTime;
 use Carbon\CarbonImmutable;
 use Carbon\Exceptions\InvalidFormatException;
 use Filament\Forms\Components\DatePicker;
@@ -64,9 +65,8 @@ final class SubmissionsTable
                     ->toggleable(),
                 TextColumn::make('submitted_at')
                     ->label(__('submission_panel.columns.submitted_at'))
-                    ->state(fn (Submission $record): string => $record->submitted_at
-                        ->setTimezone($record->event->timezone)
-                        ->isoFormat('L LT'))
+                    ->state(fn (Submission $record): string => EventTime::for($record->event)
+                        ->dateTime($record->submitted_at, __('submission_panel.date_format'), ' '))
                     ->sortable(),
             ])
             ->recordUrl(fn (Submission $record): string => SubmissionResource::getUrl('view', ['event' => $record->event, 'record' => $record]))
