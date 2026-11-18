@@ -2,7 +2,7 @@
 
 > Plan 024. Es la especificación SDD (ADR-0001). Se presenta y se espera aprobación antes de escribir código. `NNN` = 024: todos sus criterios son `CA-024-n`.
 > `composer check:criteria` lee el **Estado** y los criterios de este archivo: no cambiar el formato de esas líneas.
-> El número 023 queda reservado para el plan de formato de hora del evento, hoy numerado 022 por error (choca con el plan de la landing de la convocatoria).
+> El plan 023 es el de formato de hora del evento (antes numerado 022, que choca con el plan de la landing de la convocatoria).
 
 - **Fecha:** 2026-11-18
 - **Estado:** Borrador

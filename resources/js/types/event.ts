@@ -1,4 +1,4 @@
-/** Formato de hora del evento (plan 022): solo cambia cómo se muestran las horas. */
+/** Formato de hora del evento (plan 023): solo cambia cómo se muestran las horas. */
 export type TimeFormat = '12h' | '24h';
 
 /** Evento público: coincide con `App\Support\Events\PublicEventData` (sin identificadores internos). */

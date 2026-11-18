@@ -67,7 +67,7 @@ class StoreEventRequest extends FormRequest
             'locales.*' => ['string', 'distinct', Rule::in(self::LOCALES)],
             'default_locale' => ['required', 'string', Rule::in($locales)],
             'currency' => ['required', 'string', Rule::in(self::CURRENCIES)],
-            // Opcional: si falta, la creación usa el valor por defecto (12 h) y la edición conserva el actual (plan 022).
+            // Opcional: si falta, la creación usa el valor por defecto (12 h) y la edición conserva el actual (plan 023).
             'time_format' => ['nullable', Rule::enum(TimeFormat::class)],
         ];
     }

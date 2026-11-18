@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 /**
- * Guardiana del plan 022: las horas que ve una persona en el panel se formatean con `EventTime`,
+ * Guardiana del plan 023: las horas que ve una persona en el panel se formatean con `EventTime`,
  * que respeta el formato de hora del evento. Cualquier otro formato con hora en `app/Filament/` falla.
  *
  * Se permiten `Y-m-d H:i` y `Y-m-d H:i:s`: son el formato de almacenamiento de los campos y de la
@@ -32,17 +32,17 @@ function handFormattedTimes(string $directory): array
     return $offenders;
 }
 
-it('CA-022-11: no panel screen formats a time by hand instead of using EventTime', function (): void {
+it('CA-023-11: no panel screen formats a time by hand instead of using EventTime', function (): void {
     expect(handFormattedTimes(FILAMENT_DIRECTORY))->toBe([]);
 });
 
-it('CA-022-11: the guard sees the panel files, so it cannot pass by looking at nothing', function (): void {
+it('CA-023-11: the guard sees the panel files, so it cannot pass by looking at nothing', function (): void {
     $count = iterator_count(new RecursiveIteratorIterator(new RecursiveDirectoryIterator(FILAMENT_DIRECTORY, FilesystemIterator::SKIP_DOTS)));
 
     expect($count)->toBeGreaterThan(20);
 });
 
-it('CA-022-11: the guard flags a hand-made time format and lets storage formats through', function (string $code, bool $flagged): void {
+it('CA-023-11: the guard flags a hand-made time format and lets storage formats through', function (string $code, bool $flagged): void {
     expect(preg_match(EVENT_TIME_FORBIDDEN, $code) === 1)->toBe($flagged);
 })->with([
     '24-hour display' => ["\$date->format('d/m/Y H:i')", true],

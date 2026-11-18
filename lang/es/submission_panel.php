@@ -8,7 +8,7 @@ return [
     'plural' => 'propuestas',
     'empty' => 'Todavía no hay propuestas en este evento',
 
-    // Fecha de la hora de envío; la hora la decide el formato del evento (plan 022).
+    // Fecha de la hora de envío; la hora la decide el formato del evento (plan 023).
     'date_format' => 'd/m/Y',
     'long_date_format' => 'j \d\e F \d\e Y',
 

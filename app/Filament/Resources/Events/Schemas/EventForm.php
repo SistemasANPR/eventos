@@ -136,7 +136,7 @@ final class EventForm
         return $fields;
     }
 
-    /** Cómo muestran las fechas los selectores, según el formato de hora elegido en el mismo formulario (plan 022, DA-3). */
+    /** Cómo muestran las fechas los selectores, según el formato de hora elegido en el mismo formulario (plan 023, DA-3). */
     private static function pickerFormat(mixed $timeFormat): string
     {
         $format = $timeFormat instanceof TimeFormat ? $timeFormat : (TimeFormat::tryFrom((string) $timeFormat) ?? TimeFormat::TwelveHour);

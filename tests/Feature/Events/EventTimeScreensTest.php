@@ -54,7 +54,7 @@ function screensEvent(TimeFormat $format): array
     return [$event, $admin];
 }
 
-it('CA-022-8: the event cards show the dates with the format of the event', function (TimeFormat $format, array $contains, string $absent): void {
+it('CA-023-8: the event cards show the dates with the format of the event', function (TimeFormat $format, array $contains, string $absent): void {
     [$event] = screensEvent($format);
 
     $text = EventsTable::displayDates($event);
@@ -66,7 +66,7 @@ it('CA-022-8: the event cards show the dates with the format of the event', func
     '24 hours' => [TimeFormat::TwentyFourHour, ['09:00 h', '17:00 h'], 'a. m.'],
 ]);
 
-it('CA-022-8: the period of the calls follows the format of the event', function (TimeFormat $format, string $expected): void {
+it('CA-023-8: the period of the calls follows the format of the event', function (TimeFormat $format, string $expected): void {
     [$event, $admin] = screensEvent($format);
     app(CreateCallForSubmissions::class)->handle($admin, $event, [
         'submission_type_id' => SubmissionTypes::for($event)->id,
@@ -84,7 +84,7 @@ it('CA-022-8: the period of the calls follows the format of the event', function
     '24 hours' => [TimeFormat::TwentyFourHour, '15/01/2027 09:00 h – 20/02/2027 23:00 h'],
 ]);
 
-it('CA-022-8: the hours of the activities follow the format of the event', function (TimeFormat $format, string $expected): void {
+it('CA-023-8: the hours of the activities follow the format of the event', function (TimeFormat $format, string $expected): void {
     [$event] = screensEvent($format);
     CurrentOrganization::run($event->organization, fn () => EventActivity::factory()->scheduled()->create([
         'event_id' => $event->id,

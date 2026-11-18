@@ -70,7 +70,7 @@ return [
         'public_state' => 'Estado público',
         'period' => 'Periodo (hora del evento)',
     ],
-    // Día/mes/año, el formato habitual en México; la hora la decide el formato del evento (plan 022).
+    // Día/mes/año, el formato habitual en México; la hora la decide el formato del evento (plan 023).
     'date_format' => 'd/m/Y',
     'state' => [
         'scheduled' => 'Programada',
