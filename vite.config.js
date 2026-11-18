@@ -23,6 +23,11 @@ export default defineConfig({
     server: {
         host: '0.0.0.0',
         origin: 'http://localhost:5173',
+        // El plugin de Laravel solo permite `server.origin` en CORS; la página del panel vive en otro
+        // puerto (8080) y sin esto el navegador bloquea los módulos de React (vista previa vacía).
+        cors: {
+            origin: [/^https?:\/\/(localhost|127\.0\.0\.1|\[::1\])(:\d+)?$/],
+        },
         watch: {
             ignored: ['**/storage/framework/views/**'],
         },
