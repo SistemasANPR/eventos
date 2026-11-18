@@ -79,7 +79,7 @@ describe('EventHero', () => {
         expect(within(nav).getByRole('link', { name: 'Ver en English' })).toHaveAttribute('href', '?lang=en');
     });
 
-    it('hides the language switcher when the event has a single language', () => {
+    it('CA-024-11: hides the language switcher when the event has a single language', () => {
         render(<EventHero event={{ ...event, locales: ['es'] }} privacyUrl={null} />);
 
         expect(screen.queryByRole('navigation', { name: 'Idioma' })).not.toBeInTheDocument();

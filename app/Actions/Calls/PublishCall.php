@@ -69,7 +69,7 @@ final class PublishCall
     }
 
     /**
-     * Idiomas de la convocatoria en los que el aviso VIGENTE (la última versión publicada) no tiene texto.
+     * Idiomas efectivos de la convocatoria (plan 024, DA-4) en los que el aviso VIGENTE (la última versión publicada) no tiene texto.
      *
      * @return list<string>
      */
@@ -77,12 +77,14 @@ final class PublishCall
     {
         $notice = PrivacyNotice::currentPublished($event);
 
+        $locales = $event->effectiveLocalesForCall($call);
+
         if ($notice === null) {
-            return $call->locales;
+            return $locales;
         }
 
         return array_values(array_filter(
-            $call->locales,
+            $locales,
             static fn (string $locale): bool => trim((string) $notice->getTranslation('body', $locale, false)) === '',
         ));
     }

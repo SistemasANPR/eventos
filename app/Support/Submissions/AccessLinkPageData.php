@@ -21,7 +21,7 @@ final class AccessLinkPageData
     public static function from(Organization $organization, Event $event, string $locale, bool $linkRequested = false, bool $tooManyRequests = false): array
     {
         return [
-            'event' => ['name' => $event->getTranslation('name', $locale), 'locale' => $locale, 'locales' => $event->locales],
+            'event' => ['name' => $event->getTranslation('name', $locale), 'locale' => $locale, 'locales' => $event->offeredLocales()],
             'organization' => ['name' => $organization->name, 'slug' => $organization->slug],
             'turnstileSiteKey' => VerifyTurnstile::siteKey(),
             'linkRequested' => $linkRequested,
