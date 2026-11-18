@@ -27,7 +27,7 @@ use Illuminate\Validation\ValidationException;
  * exige confirmación explícita y queda auditado.
  *
  * Quitar un idioma que usa una convocatoria o el aviso de privacidad publicado también exige
- * confirmación (plan 025, DA-1); nada se borra y la auditoría registra los idiomas quitados y agregados.
+ * confirmación (plan 026, DA-1); nada se borra y la auditoría registra los idiomas quitados y agregados.
  *
  * @throws AuthorizationException si quien edita no tiene `events.manage` en la organización del evento
  * @throws ValidationException si los datos no son válidos o falta confirmar el cambio de `slug`

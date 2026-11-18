@@ -619,7 +619,7 @@ it('CA-021-13: leaves earlier participants with only full_name and rejects incon
         ->and($rejects(['first_name' => 'Ana', 'last_name' => 'Pérez', 'full_name' => 'Ana Pérez']))->toBeFalse();
 });
 
-it('CA-025-10: rejects a submission language that is no longer one of the effective languages of the call', function (): void {
+it('CA-026-10: rejects a submission language that is no longer one of the effective languages of the call', function (): void {
     $ctx = subScenario();
     // La convocatoria sigue con es y en, pero el evento ya solo ofrece es.
     $ctx['event']->forceFill(['locales' => ['es'], 'default_locale' => 'es'])->save();

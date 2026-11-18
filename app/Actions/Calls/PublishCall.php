@@ -69,7 +69,7 @@ final class PublishCall
     }
 
     /**
-     * Idiomas efectivos de la convocatoria (plan 025, DA-4) en los que el aviso VIGENTE (la última versión publicada) no tiene texto.
+     * Idiomas efectivos de la convocatoria (plan 026, DA-4) en los que el aviso VIGENTE (la última versión publicada) no tiene texto.
      *
      * @return list<string>
      */

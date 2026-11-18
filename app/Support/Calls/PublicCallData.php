@@ -46,7 +46,7 @@ final class PublicCallData
     }
 
     /**
-     * Idioma de la página: `?lang=` si la convocatoria lo ofrece de forma efectiva (plan 025, DA-4: los
+     * Idioma de la página: `?lang=` si la convocatoria lo ofrece de forma efectiva (plan 026, DA-4: los
      * suyos que siguen en el evento, o el idioma por defecto del evento); si no, el mejor según
      * `Accept-Language` entre ellos; si no, el idioma base del evento si está entre ellos o el primero.
      */

@@ -154,7 +154,7 @@ describe('Calls/Show page', () => {
         expect(within(nav).getByRole('link', { name: 'Ver en English' })).toHaveAttribute('href', '?lang=en');
     });
 
-    it('CA-025-11: shows no language selector when the call has a single effective language', () => {
+    it('CA-026-11: shows no language selector when the call has a single effective language', () => {
         renderPage({ locales: ['es'] });
 
         expect(screen.queryByRole('navigation', { name: 'Idioma' })).not.toBeInTheDocument();

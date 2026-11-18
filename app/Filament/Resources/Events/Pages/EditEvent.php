@@ -75,7 +75,7 @@ class EditEvent extends EditRecord
         } catch (ValidationException $exception) {
             throw ActionErrors::forForm($exception);
         } catch (EventLocaleInUse $exception) {
-            // Se advierte qué se afecta y se pide la confirmación del interruptor (plan 025, DA-1).
+            // Se advierte qué se afecta y se pide la confirmación del interruptor (plan 026, DA-1).
             throw ValidationException::withMessages(['data.locales' => $exception->getMessage()]);
         }
     }

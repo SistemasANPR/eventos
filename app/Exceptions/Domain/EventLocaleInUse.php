@@ -8,7 +8,7 @@ use DomainException;
 
 /**
  * Se quitó de un evento un idioma que aún usan una convocatoria o el aviso de privacidad publicado y falta
- * la confirmación (plan 025, CA-025-6, DA-1). Nada se borra: los textos de ese idioma quedan guardados.
+ * la confirmación (plan 026, CA-026-6, DA-1). Nada se borra: los textos de ese idioma quedan guardados.
  */
 final class EventLocaleInUse extends DomainException
 {

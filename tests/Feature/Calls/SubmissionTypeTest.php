@@ -90,7 +90,7 @@ function typeNames(Event $event): array
         ->map(fn (SubmissionType $type): string => $type->getTranslation('name', 'es'))->all());
 }
 
-it('CA-004-29: a new event is born with Session, Panel, Poster and Workshop, active and in that order, in the languages of the event (plan 025)', function (): void {
+it('CA-004-29: a new event is born with Session, Panel, Poster and Workshop, active and in that order, in the languages of the event (plan 026)', function (): void {
     [$organization, $event] = typeScenario();
     CurrentOrganization::set($organization);
 

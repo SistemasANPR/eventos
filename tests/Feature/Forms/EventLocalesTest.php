@@ -22,7 +22,7 @@ use Livewire\Livewire;
 use Tests\Support\Memberships;
 
 /*
- * plan 025 F1: los idiomas del evento guían el constructor de formularios, las plantillas y
+ * plan 026 F1: los idiomas del evento guían el constructor de formularios, las plantillas y
  * los tipos de propuesta predeterminados. Su fuente única es `Event::offeredLocales()`.
  */
 uses(RefreshDatabase::class);
@@ -70,7 +70,7 @@ it('offers the languages of the event with the default first', function (): void
     expect($event->offeredLocales())->toBe(['pt', 'es', 'en']);
 });
 
-it('CA-025-10: the effective languages of a call are those that remain in the event, or the default one', function (): void {
+it('CA-026-10: the effective languages of a call are those that remain in the event, or the default one', function (): void {
     [$organization, $event] = formScenario();
     $event = setEventLocales($event, ['es', 'en']);
     $call = (new CallForSubmissions)->forceFill(['locales' => ['en', 'pt']]);
@@ -80,7 +80,7 @@ it('CA-025-10: the effective languages of a call are those that remain in the ev
         ->and($event->effectiveLocalesForCall($none))->toBe(['es']);
 });
 
-it('CA-025-1: in an event only in Spanish the form builder asks only for Spanish texts', function (): void {
+it('CA-026-1: in an event only in Spanish the form builder asks only for Spanish texts', function (): void {
     [, $event] = formScenario();
     $event = setEventLocales($event, ['es']);
 
@@ -93,7 +93,7 @@ it('CA-025-1: in an event only in Spanish the form builder asks only for Spanish
         ->assertDontSeeHtml('.help.pt"');
 });
 
-it('CA-025-2: in an event in Spanish and English the form builder shows both and only the default is required', function (): void {
+it('CA-026-2: in an event in Spanish and English the form builder shows both and only the default is required', function (): void {
     [, $event] = formScenario();
 
     $builder = openFormBuilder($event);
@@ -110,7 +110,7 @@ it('CA-025-2: in an event in Spanish and English the form builder shows both and
         ->and($isRequired('en'))->toBeFalse();
 });
 
-it('CA-025-5: a form created from a template in an event only in Spanish carries only Spanish texts', function (string $template): void {
+it('CA-026-5: a form created from a template in an event only in Spanish carries only Spanish texts', function (string $template): void {
     [, $event, $admin] = formScenario();
     $event = setEventLocales($event, ['es']);
 
@@ -129,7 +129,7 @@ it('CA-025-5: a form created from a template in an event only in Spanish carries
     expect(collect($texts)->flatMap(fn (array $text): array => array_keys($text))->unique()->values()->all())->toBe(['es']);
 })->with(FormTemplates::names());
 
-it('CA-025-5: a template keeps the offered languages and uses the default one when a translation is missing', function (): void {
+it('CA-026-5: a template keeps the offered languages and uses the default one when a translation is missing', function (): void {
     [, $event] = formScenario();
     $event = setEventLocales($event, ['en', 'pt'], 'en');
 
@@ -139,14 +139,14 @@ it('CA-025-5: a template keeps the offered languages and uses the default one wh
         ->and(array_keys($definition['fields'][0]['label']))->toBe(['en', 'pt']);
 });
 
-it('CA-025-5: a text missing in an offered language falls back to the default language of the event', function (): void {
+it('CA-026-5: a text missing in an offered language falls back to the default language of the event', function (): void {
     [, $event] = formScenario();
     $event = setEventLocales($event, ['es', 'en', 'pt'], 'en');
 
     expect(OfferedLocaleTexts::for(['en' => 'Title', 'es' => 'Título'], $event))->toBe(['en' => 'Title', 'es' => 'Título', 'pt' => 'Title']);
 });
 
-it('CA-025-5: the default submission types of an event only in Spanish are only in Spanish', function (): void {
+it('CA-026-5: the default submission types of an event only in Spanish are only in Spanish', function (): void {
     [$organization, $event] = formScenario();
     CurrentOrganization::set($organization);
     $event = setEventLocales($event, ['es']);

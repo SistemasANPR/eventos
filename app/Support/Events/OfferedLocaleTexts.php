@@ -8,7 +8,7 @@ use App\Http\Requests\Events\StoreEventRequest;
 use App\Models\Event;
 
 /**
- * Reduce un texto traducido a los idiomas que ofrece un evento (plan 025, DA-2). Si falta la
+ * Reduce un texto traducido a los idiomas que ofrece un evento (plan 026, DA-2). Si falta la
  * traducción de un idioma ofrecido usa la del idioma por defecto del evento, luego la española
  * y, al final, la primera que exista.
  */
@@ -30,16 +30,16 @@ final class OfferedLocaleTexts
         return $result;
     }
 
-    /** Regla `array:` que solo admite las claves de los idiomas que ofrece el evento (plan 025, CA-025-4). */
+    /** Regla `array:` que solo admite las claves de los idiomas que ofrece el evento (plan 026, CA-026-4). */
     public static function arrayRule(Event $event): string
     {
         return 'array:'.implode(',', $event->offeredLocales());
     }
 
     /**
-     * Quita de lo que llega del cliente los textos de idiomas del sistema que el evento no ofrece (plan 025,
-     * DA-5, CA-025-3): un formulario viejo, abierto antes de quitar un idioma, no falla. Una clave que no es de
-     * ningún idioma del sistema se deja para que la validación la rechace (CA-025-4).
+     * Quita de lo que llega del cliente los textos de idiomas del sistema que el evento no ofrece (plan 026,
+     * DA-5, CA-026-3): un formulario viejo, abierto antes de quitar un idioma, no falla. Una clave que no es de
+     * ningún idioma del sistema se deja para que la validación la rechace (CA-026-4).
      *
      * @param  array<array-key, mixed>  $texts
      * @return array<array-key, mixed>
@@ -91,8 +91,8 @@ final class OfferedLocaleTexts
     }
 
     /**
-     * Los textos guardados de idiomas que el evento ya no ofrece (plan 025, DA-1): el formulario del panel
-     * no los trae, y al guardar se funden de vuelta para no perderlos (CA-025-7 y CA-025-8).
+     * Los textos guardados de idiomas que el evento ya no ofrece (plan 026, DA-1): el formulario del panel
+     * no los trae, y al guardar se funden de vuelta para no perderlos (CA-026-7 y CA-026-8).
      *
      * @param  array<array-key, mixed>  $stored
      * @return array<string, string>

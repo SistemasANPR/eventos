@@ -34,7 +34,7 @@ use Spatie\Activitylog\Models\Activity;
 use Tests\Support\SubmissionTypes;
 
 /*
- * plan 025 F2: validación en el servidor con los idiomas del evento, descarte de claves de idiomas
+ * plan 026 F2: validación en el servidor con los idiomas del evento, descarte de claves de idiomas
  * no ofrecidos, conservación de los textos de un idioma quitado y confirmación al quitar un idioma en uso.
  */
 uses(RefreshDatabase::class);
@@ -134,7 +134,7 @@ function localesStored(mixed $saved): array
     return collect($texts)->flatMap(fn (array $text): array => array_keys($text))->unique()->values()->all();
 }
 
-it('CA-025-3: a text in a language the event does not offer is discarded and only Spanish is kept', function (string $entry): void {
+it('CA-026-3: a text in a language the event does not offer is discarded and only Spanish is kept', function (string $entry): void {
     [$event, $admin] = localeScenario(['es']);
 
     $saved = localeEntryPoints()[$entry]($event, $admin, 'en');
@@ -142,7 +142,7 @@ it('CA-025-3: a text in a language the event does not offer is discarded and onl
     expect(localesStored($saved))->toBe(['es']);
 })->with(['track', 'submission type', 'rubric', 'privacy notice', 'form field']);
 
-it('CA-025-3: the offered languages are kept and the others are discarded', function (): void {
+it('CA-026-3: the offered languages are kept and the others are discarded', function (): void {
     [$event, $admin] = localeScenario(['es', 'en']);
 
     $track = app(CreateTrack::class)->handle($admin, $event, ['name' => ['es' => 'Eje', 'en' => 'Track', 'pt' => 'Eixo']]);
@@ -150,19 +150,19 @@ it('CA-025-3: the offered languages are kept and the others are discarded', func
     expect($track->getTranslations('name'))->toBe(['es' => 'Eje', 'en' => 'Track']);
 });
 
-it('CA-025-4: a language key that is not es, en or pt is rejected', function (string $entry): void {
+it('CA-026-4: a language key that is not es, en or pt is rejected', function (string $entry): void {
     [$event, $admin] = localeScenario(['es', 'en']);
 
     expect(fn () => localeEntryPoints()[$entry]($event, $admin, 'fr'))->toThrow(ValidationException::class);
 })->with(['track', 'submission type', 'rubric', 'privacy notice', 'form field']);
 
-it('CA-025-4: the form of an event only in Spanish asks for the Spanish text only', function (): void {
+it('CA-026-4: the form of an event only in Spanish asks for the Spanish text only', function (): void {
     [$event, $admin] = localeScenario(['es']);
 
     expect(fn () => app(CreateTrack::class)->handle($admin, $event, ['name' => ['en' => 'Track']]))->toThrow(ValidationException::class);
 });
 
-it('CA-025-7 and CA-025-8: the texts of a language the event stopped offering are kept and come back when it is offered again', function (): void {
+it('CA-026-7 and CA-026-8: the texts of a language the event stopped offering are kept and come back when it is offered again', function (): void {
     [$event, $admin] = localeScenario(['es', 'en']);
     $track = app(CreateTrack::class)->handle($admin, $event, ['name' => ['es' => 'Eje', 'en' => 'Track'], 'description' => ['es' => 'Desc', 'en' => 'Description']]);
     $type = app(CreateSubmissionType::class)->handle($admin, $event, ['name' => ['es' => 'Taller', 'en' => 'Workshop']]);
@@ -188,7 +188,7 @@ it('CA-025-7 and CA-025-8: the texts of a language the event stopped offering ar
     expect($track->fresh()->getTranslation('name', 'en'))->toBe('Track again');
 });
 
-it('CA-025-7 and CA-025-8: the texts of a form field and its options in a removed language survive a save from the panel', function (): void {
+it('CA-026-7 and CA-026-8: the texts of a form field and its options in a removed language survive a save from the panel', function (): void {
     [$event, $admin] = localeScenario(['es', 'en']);
     $form = app(CreateFormDefinition::class)->handle($admin, $event, ['name' => 'Formulario', 'fields' => [formField('single_choice')]]);
     $event->forceFill(['locales' => ['es']])->save();
@@ -208,7 +208,7 @@ it('CA-025-7 and CA-025-8: the texts of a form field and its options in a remove
         ->and($saved->fields[0]['config']['options'][0]['label'])->toEqual(['es' => 'Sí', 'en' => 'Sí (en)']);
 });
 
-it('CA-025-6: removing a language used by a call without confirming saves nothing and lists what is affected', function (): void {
+it('CA-026-6: removing a language used by a call without confirming saves nothing and lists what is affected', function (): void {
     [$event, $admin] = localeScenario(['es', 'en']);
     app(CreateCallForSubmissions::class)->handle($admin, $event, [
         'submission_type_id' => SubmissionTypes::for($event)->id,
@@ -229,7 +229,7 @@ it('CA-025-6: removing a language used by a call without confirming saves nothin
     expect($event->fresh()->locales)->toBe(['es', 'en']);
 });
 
-it('CA-025-6: removing a language that the published privacy notice uses needs confirmation too', function (): void {
+it('CA-026-6: removing a language that the published privacy notice uses needs confirmation too', function (): void {
     [$event, $admin] = localeScenario(['es', 'en']);
     app(PublishPrivacyNotice::class)->handle($admin, app(CreatePrivacyNoticeDraft::class)->handle($admin, $event, ['es' => '<p>Aviso</p>', 'en' => '<p>Notice</p>']));
 
@@ -237,7 +237,7 @@ it('CA-025-6: removing a language that the published privacy notice uses needs c
         ->toThrow(EventLocaleInUse::class, 'aviso de privacidad v1');
 });
 
-it('CA-025-6: removing a language nothing uses needs no confirmation', function (): void {
+it('CA-026-6: removing a language nothing uses needs no confirmation', function (): void {
     [$event, $admin] = localeScenario(['es', 'en']);
 
     $updated = app(UpdateEvent::class)->handle($admin, $event, localeEventData($event, ['es']));
@@ -245,7 +245,7 @@ it('CA-025-6: removing a language nothing uses needs no confirmation', function 
     expect($updated->locales)->toBe(['es']);
 });
 
-it('CA-025-7: confirming saves the event, keeps the texts and audits the removed and added languages', function (): void {
+it('CA-026-7: confirming saves the event, keeps the texts and audits the removed and added languages', function (): void {
     [$event, $admin] = localeScenario(['es', 'en']);
     $track = app(CreateTrack::class)->handle($admin, $event, ['name' => ['es' => 'Eje', 'en' => 'Track']]);
     app(CreateCallForSubmissions::class)->handle($admin, $event, [
@@ -265,7 +265,7 @@ it('CA-025-7: confirming saves the event, keeps the texts and audits the removed
         ->and($entry->properties->all())->toMatchArray(['removed_locales' => ['en'], 'added_locales' => ['pt']]);
 });
 
-it('CA-025-9: the default language cannot be removed, even with confirmation', function (): void {
+it('CA-026-9: the default language cannot be removed, even with confirmation', function (): void {
     [$event, $admin] = localeScenario(['es', 'en']);
 
     expect(fn () => app(UpdateEvent::class)->handle($admin, $event, [...localeEventData($event, ['en']), 'default_locale' => 'es'], confirmLocaleRemoval: true))
@@ -274,7 +274,7 @@ it('CA-025-9: the default language cannot be removed, even with confirmation', f
     expect($event->fresh()->locales)->toBe(['es', 'en']);
 });
 
-it('CA-025-6: the edit screen warns what is affected and asks for the confirmation before removing a language in use', function (): void {
+it('CA-026-6: the edit screen warns what is affected and asks for the confirmation before removing a language in use', function (): void {
     [$event, $admin] = localeScenario(['es', 'en']);
     app(CreateCallForSubmissions::class)->handle($admin, $event, [
         'submission_type_id' => SubmissionTypes::for($event)->id,
