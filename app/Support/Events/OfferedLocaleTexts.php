@@ -7,7 +7,7 @@ namespace App\Support\Events;
 use App\Models\Event;
 
 /**
- * Reduce un texto traducido a los idiomas que ofrece un evento (plan 022, DA-2). Si falta la
+ * Reduce un texto traducido a los idiomas que ofrece un evento (plan 024, DA-2). Si falta la
  * traducción de un idioma ofrecido usa la del idioma por defecto del evento, luego la española
  * y, al final, la primera que exista.
  */

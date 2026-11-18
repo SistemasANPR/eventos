@@ -10,7 +10,7 @@ use Filament\Schemas\Components\Component;
 use LogicException;
 
 /**
- * Un campo por cada idioma que ofrece el evento (plan 022): los demás idiomas no se crean, y el
+ * Un campo por cada idioma que ofrece el evento (plan 024): los demás idiomas no se crean, y el
  * idioma por defecto va primero. Sustituye a los recorridos de la lista completa de idiomas
  * de la plataforma en las pantallas. Quien arma el campo decide si es obligatorio con `$isDefault`.
  */

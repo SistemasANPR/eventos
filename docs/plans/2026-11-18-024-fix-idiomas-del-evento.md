@@ -80,26 +80,26 @@ Cada fase deja el repo en verde y termina en su propio commit.
 
 ## 7. Criterios de aceptación
 
-- **CA-022-1:** *Dado* un evento solo en español, *cuando* se abre el constructor de formularios para crear o editar un campo, *entonces* solo aparecen los campos de etiqueta, ayuda y opciones en español.
-- **CA-022-2:** *Dado* un evento en español e inglés, *cuando* se abre ese mismo constructor, *entonces* aparecen los dos idiomas y solo el idioma por defecto es obligatorio.
-- **CA-022-3:** *Dado* un evento solo en español, *cuando* se envía por cualquier vía un eje, tipo, rúbrica, aviso o campo de formulario con texto en inglés, *entonces* el texto en inglés se descarta y el guardado conserva solo el español (DA-5).
-- **CA-022-4:** *Dado* cualquiera de esas entradas con una clave de idioma que no es es, en ni pt, *cuando* se envía, *entonces* se rechaza con error de validación.
-- **CA-022-5:** *Dado* un evento solo en español, *cuando* se crea un formulario desde una plantilla o se siembran los tipos de propuesta predeterminados, *entonces* solo llevan texto en español (DA-2).
-- **CA-022-6:** *Dado* un evento con una convocatoria o un aviso de privacidad que usan un idioma, *cuando* se edita el evento y se quita ese idioma sin confirmar, *entonces* no se guarda y el error lista lo que se afecta.
-- **CA-022-7:** *Dado* el mismo caso, *cuando* se confirma, *entonces* se guarda, el idioma desaparece de los formularios, los textos de ese idioma se conservan y la auditoría registra los idiomas quitados.
-- **CA-022-8:** *Dado* un idioma quitado y vuelto a marcar, *cuando* se abre un formulario con textos de ese idioma, *entonces* los textos conservados reaparecen.
-- **CA-022-9:** *Dado* un evento cuyo idioma por defecto se intenta quitar, *cuando* se guarda, *entonces* se rechaza (ya existe; se mantiene la prueba).
-- **CA-022-10:** *Dado* una convocatoria cuyos idiomas quedan todos fuera del evento, *cuando* se muestra o se publica, *entonces* sus idiomas efectivos son el idioma por defecto del evento y el aviso de privacidad se exige solo en ellos (DA-4).
-- **CA-022-11:** *Dado* un evento con un solo idioma, *cuando* se abren la página del evento y la de la convocatoria, *entonces* no se muestra el selector de idioma.
-- **CA-022-12:** *Dado* el código de `app/Filament` y `app/Http/Requests`, *cuando* corre la prueba de Arch, *entonces* falla si una pantalla o Request recorre la lista completa de idiomas del sistema sin estar en la lista blanca.
-- **CA-022-13:** *Dado* un evento con uno, dos o tres idiomas, *cuando* se recorren las pantallas del panel que piden texto traducible a ~375 y ~1280 px con la consola abierta, *entonces* solo aparecen campos de los idiomas del evento y no hay errores.
+- **CA-024-1:** *Dado* un evento solo en español, *cuando* se abre el constructor de formularios para crear o editar un campo, *entonces* solo aparecen los campos de etiqueta, ayuda y opciones en español.
+- **CA-024-2:** *Dado* un evento en español e inglés, *cuando* se abre ese mismo constructor, *entonces* aparecen los dos idiomas y solo el idioma por defecto es obligatorio.
+- **CA-024-3:** *Dado* un evento solo en español, *cuando* se envía por cualquier vía un eje, tipo, rúbrica, aviso o campo de formulario con texto en inglés, *entonces* el texto en inglés se descarta y el guardado conserva solo el español (DA-5).
+- **CA-024-4:** *Dado* cualquiera de esas entradas con una clave de idioma que no es es, en ni pt, *cuando* se envía, *entonces* se rechaza con error de validación.
+- **CA-024-5:** *Dado* un evento solo en español, *cuando* se crea un formulario desde una plantilla o se siembran los tipos de propuesta predeterminados, *entonces* solo llevan texto en español (DA-2).
+- **CA-024-6:** *Dado* un evento con una convocatoria o un aviso de privacidad que usan un idioma, *cuando* se edita el evento y se quita ese idioma sin confirmar, *entonces* no se guarda y el error lista lo que se afecta.
+- **CA-024-7:** *Dado* el mismo caso, *cuando* se confirma, *entonces* se guarda, el idioma desaparece de los formularios, los textos de ese idioma se conservan y la auditoría registra los idiomas quitados.
+- **CA-024-8:** *Dado* un idioma quitado y vuelto a marcar, *cuando* se abre un formulario con textos de ese idioma, *entonces* los textos conservados reaparecen.
+- **CA-024-9:** *Dado* un evento cuyo idioma por defecto se intenta quitar, *cuando* se guarda, *entonces* se rechaza (ya existe; se mantiene la prueba).
+- **CA-024-10:** *Dado* una convocatoria cuyos idiomas quedan todos fuera del evento, *cuando* se muestra o se publica, *entonces* sus idiomas efectivos son el idioma por defecto del evento y el aviso de privacidad se exige solo en ellos (DA-4).
+- **CA-024-11:** *Dado* un evento con un solo idioma, *cuando* se abren la página del evento y la de la convocatoria, *entonces* no se muestra el selector de idioma.
+- **CA-024-12:** *Dado* el código de `app/Filament` y `app/Http/Requests`, *cuando* corre la prueba de Arch, *entonces* falla si una pantalla o Request recorre la lista completa de idiomas del sistema sin estar en la lista blanca.
+- **CA-024-13:** *Dado* un evento con uno, dos o tres idiomas, *cuando* se recorren las pantallas del panel que piden texto traducible a ~375 y ~1280 px con la consola abierta, *entonces* solo aparecen campos de los idiomas del evento y no hay errores.
   Manual: crear un evento solo en español, abrir Formularios (campo nuevo), Ejes, Tipos de propuesta, Aviso de privacidad y Convocatoria a ~375 y ~1280 px; repetir con español e inglés; quitar el inglés con una convocatoria que lo usa y comprobar la advertencia.
 
 ## 8. Riesgos
 
 | Riesgo | Mitigación |
 |---|---|
-| Pérdida de textos al quitar un idioma | No se borra nada: solo se ocultan (DA-1, CA-022-7 y 8) |
+| Pérdida de textos al quitar un idioma | No se borra nada: solo se ocultan (DA-1, CA-024-7 y 8) |
 | Formularios del navegador abiertos con claves de un idioma ya quitado | Las Actions descartan las claves de más (DA-5) |
 | Una convocatoria publicada queda sin aviso de privacidad en un idioma | Los idiomas efectivos solo exigen aviso en los idiomas que siguen en el evento (DA-4) |
 | Datos antiguos con idiomas de más en formularios ya guardados | Se conservan en base y se ocultan; no hay migración |
@@ -110,4 +110,4 @@ Cada fase deja el repo en verde y termina en su propio commit.
 
 | Fase | Commit | Fecha | Notas (salida real de las validaciones) |
 |---|---|---|---|
-| F1 | `978fde6` | 2026-11-18 | Suite completa: 1879 pasan, 26 fallan, todas ajenas (exportación CA-009-11..19 y SubmissionListTest CA-009-19 por falta del paquete Excel; CA-003-11/14 de PrivacyNoticePanelTest; Arch `preset → security` por `assert()` en ViewSubmission). PHPStan: solo errores de Maatwebsite/PhpSpreadsheet ajenos. Pint y `check:criteria` en verde (0 errores). Pendiente de F2: al guardar un formulario desde el panel, los textos de un idioma quitado salen del estado del formulario (campos no creados) y se perderían: conservarlos en `UpdateFormDefinition` (DA-1, CA-022-7). `EventForm` no cambia: sus idiomas salen del estado en vivo del propio formulario del evento. |
+| F1 | `978fde6` | 2026-11-18 | Suite completa: 1879 pasan, 26 fallan, todas ajenas (exportación CA-009-11..19 y SubmissionListTest CA-009-19 por falta del paquete Excel; CA-003-11/14 de PrivacyNoticePanelTest; Arch `preset → security` por `assert()` en ViewSubmission). PHPStan: solo errores de Maatwebsite/PhpSpreadsheet ajenos. Pint y `check:criteria` en verde (0 errores). Pendiente de F2: al guardar un formulario desde el panel, los textos de un idioma quitado salen del estado del formulario (campos no creados) y se perderían: conservarlos en `UpdateFormDefinition` (DA-1, CA-024-7). `EventForm` no cambia: sus idiomas salen del estado en vivo del propio formulario del evento. |

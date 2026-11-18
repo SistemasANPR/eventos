@@ -19,7 +19,7 @@ final class DefaultSubmissionTypes
     ];
 
     /**
-     * Los nombres solo en los idiomas que ofrece el evento (plan 022, DA-2, CA-022-5).
+     * Los nombres solo en los idiomas que ofrece el evento (plan 024, DA-2, CA-024-5).
      *
      * @return list<array<string, string>>
      */

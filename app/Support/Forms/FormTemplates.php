@@ -32,7 +32,7 @@ final class FormTemplates
     }
 
     /**
-     * La plantilla con sus textos solo en los idiomas que ofrece el evento (plan 022, DA-2, CA-022-5).
+     * La plantilla con sus textos solo en los idiomas que ofrece el evento (plan 024, DA-2, CA-024-5).
      *
      * @return array{name: array<string, string>, fields: list<array<string, mixed>>}
      */
