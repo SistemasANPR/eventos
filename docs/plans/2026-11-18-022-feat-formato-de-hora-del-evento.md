@@ -4,7 +4,7 @@
 > `composer check:criteria` lee el **Estado** y los criterios de este archivo: no cambiar el formato de esas líneas.
 
 - **Fecha:** 2026-11-18
-- **Estado:** Aprobado (el usuario, 2026-11-18: especificación y propuesta de datos de §4; DA-1 a DA-5 como se recomiendan; alcance F0 a F4; el valor por defecto es 12 h)
+- **Estado:** En curso (aprobado: el usuario, 2026-11-18: especificación y propuesta de datos de §4; DA-1 a DA-5 como se recomiendan; alcance F0 a F4; el valor por defecto es 12 h)
 - **Esfuerzo:** M
 - **Deuda relacionada:** ninguna
 
@@ -12,7 +12,7 @@
 
 La aplicación muestra las horas con formatos distintos según la pantalla (24 h en casi todas, 12 h en alguna). El organizador necesita que todo un evento use el mismo formato. Se añade al evento la opción **formato de hora** (12 h o 24 h) y un único punto de formateo que todas las pantallas usan.
 
-**Dentro:** campo `time_format` en el evento y su formulario; un helper único que da formato a horas y rangos según el evento; migrar a ese helper las pantallas del panel que hoy muestran horas; el sitio público con la misma opción; la prueba guardiana que impide volver a formatos sueltos.
+**Dentro:** campo `time_format` en el evento y su formulario; un helper único que da formato a horas y rangos según el evento; migrar a ese helper las pantallas del panel que hoy muestran horas (tarjetas y ficha del evento, periodo de convocatorias, horas de las actividades, lista y detalle de propuestas); el sitio público con la misma opción; la prueba guardiana que impide volver a formatos sueltos.
 
 **Fuera:** el formato de **fecha** (sigue `d/m/Y` en español de México y lo que ya haya en inglés); la zona horaria (ya existe en el evento); los valores guardados (siguen en UTC y en `H:i:s`; solo cambia cómo se muestran); marcas de tiempo de auditoría y de seguridad, que siguen en UTC con `Y-m-d H:i`; los correos, hasta que el catálogo tenga plantillas con horas.
 
@@ -25,7 +25,7 @@ Medido el 2026-11-18 sobre `staging` (`c176bca` más los cambios locales de esta
   - `EventsTable::displayDates()`: `j M Y, H:i` (24 h).
   - `CallsRelationManager`: columna de periodo, ahora `d/m/Y H:i \h` desde `lang/{es,en}/calls.php` (`calls.datetime_format`).
   - `ManageEventActivities` (línea 417): hora de las actividades, con `Carbon::createFromFormat('H:i:s', …)` localizado.
-  - `PrivacyNoticesRelationManager` (línea 63): fecha de publicación del aviso.
+  - `PrivacyNoticesRelationManager` (línea 63): fecha de publicación del aviso, etiquetada «Publicado (UTC)» a propósito (trazabilidad), por lo que **no** pasa al formato del evento.
 - Lugares que **capturan** horas (entradas): `DateTimePicker` en `EventForm` y en `CallsRelationManager`, y `TimePicker` en `ManageEventActivities`. Su valor guardado es `Y-m-d H:i` o `H:i`, y no cambia.
 - Sitio público: `resources/js/lib/date-format.ts` usa `Intl.DateTimeFormat` con el idioma de la página, sin forzar `hour12`. `PublicEventData` y `PublicCallData` envían instantes ISO en UTC.
 - El resto de usos de `format('...H:i...')` en `app/` son formatos de almacenamiento o de validación (`date_format:Y-m-d H:i`, ISO en UTC) o de auditoría, y no son mostrados al usuario.
@@ -92,7 +92,7 @@ Cada fase deja el repo en verde y termina en su propio commit.
 |---|---|---|
 | F0 | Enum `TimeFormat`, helper `EventTime` con sus pruebas (12 h y 24 h, es/en/pt, medianoche y mediodía, rangos, hora `H:i:s`) y guardiana Arch. Sin tocar pantallas ni datos | S |
 | F1 | Migración y propuesta de datos; campo en el modelo, el Form Request y el formulario del evento; copia al duplicar evento (plan 019, si ya existe); pruebas de validación, permisos y valor por defecto | M |
-| F2 | Migrar las pantallas del panel al helper: tarjetas de eventos, periodo de convocatorias, horas de las actividades y fecha del aviso. Retirar `calls.datetime_format` | M |
+| F2 | Migrar las pantallas del panel al helper: tarjetas de eventos, periodo de convocatorias, horas de las actividades, lista y detalle de propuestas. El aviso de privacidad se queda en UTC | M |
 | F3 | Sitio público: `timeFormat` en `PublicEventData`, `date-format.ts` con `hour12`, tipos y pruebas de Vitest | S |
 | F4 | Selectores de hora con el formato de presentación del evento (DA-3). Verificación en navegador a ~375 px y ~1280 px | M |
 
@@ -105,11 +105,11 @@ Cada fase deja el repo en verde y termina en su propio commit.
 - **CA-022-5:** *Dados* los instantes 00:00 y 12:00, *cuando* se formatean en 12 h, *entonces* son `12:00 a. m.` y `12:00 p. m.`, sin ambigüedad.
 - **CA-022-6:** *Dado* un rango que cruza el mediodía, *cuando* se formatea en 12 h, *entonces* cada extremo lleva su `a. m.` o `p. m.`, y en 24 h ambos llevan solo la hora.
 - **CA-022-7:** *Dado* un evento con una zona horaria distinta de UTC, *cuando* se formatea un instante guardado en UTC, *entonces* se muestra en la zona del evento, y cambiar el formato no cambia el instante guardado.
-- **CA-022-8:** *Dado* un evento en 12 h, *cuando* se abren las tarjetas de eventos, el periodo de convocatorias, las actividades del programa y el aviso de privacidad, *entonces* todas muestran 12 h; con 24 h, todas muestran 24 h.
+- **CA-022-8:** *Dado* un evento en 12 h, *cuando* se abren las tarjetas de eventos, el periodo de convocatorias, las actividades del programa y las propuestas, *entonces* todas muestran 12 h; con 24 h, todas muestran 24 h.
 - **CA-022-9:** *Dado* un usuario sin permiso de edición del evento, *cuando* intenta cambiar el formato, *entonces* se deniega en el servidor.
 - **CA-022-10:** *Dado* un evento de otra organización, *cuando* se consulta o se cambia su formato, *entonces* responde como si no existiera.
 - **CA-022-11:** *Dado* el código de `app/Filament/`, *cuando* corre la guardiana, *entonces* falla si una pantalla formatea una hora de cara al usuario sin pasar por `EventTime`.
-- **CA-022-12:** *Dada* la página pública de un evento, *cuando* se muestra con `timeFormat` en 12 h o en 24 h, *entonces* las horas siguen esa opción en los tres idiomas.
+- **CA-022-12:** *Dada* la página pública de un evento, *cuando* se muestra con `timeFormat` en 12 h o en 24 h, *entonces* las horas siguen esa opción en los idiomas de la interfaz (es y en).
 - **CA-022-13:** *Dado* el selector de hora de un evento en 12 h, *cuando* se usa, *entonces* se presenta en 12 h y el valor guardado sigue siendo `H:i`.
   Manual: abrir un evento en 12 h, crear una actividad y editar la apertura de una convocatoria; comprobar los selectores a ~375 px y ~1280 px con la consola abierta (DA-3, F4).
 
@@ -129,3 +129,8 @@ Cada fase deja el repo en verde y termina en su propio commit.
 
 | Fase | Commit | Fecha | Notas (salida real de las validaciones) |
 |---|---|---|---|
+| F0 | 1edc99d | 2026-11-18 | Enum `TimeFormat`, helper `EventTime` y 8 pruebas en verde (CA-022-4 a 7); Carbon da `2:30 p. m.` y `12:00 a. m.` como pide el plan. Desviación: las pruebas van en `Feature/Events` y no en `Unit`, porque el helper usa `app()` y `__()`. |
+| F1 | a1e5920 | 2026-11-18 | Migración con `CHECK` y valor por defecto `12h`; 12 pruebas en verde (CA-022-1 a 3, 9 y 10); suite completa 1901 en verde. Hallazgo: la edición del evento audita `event_updated` pero no el valor de cada campo, así que el cambio de formato queda registrado como edición, sin el valor anterior. Migración aplicada solo en la base de desarrollo local. |
+| F2 | 5470bf0 | 2026-11-18 | Pantallas migradas a `EventTime`; guardiana Arch CA-022-11 (detecta `H:i`, `g:i`, `LT` y `LLL`) y pruebas CA-022-8 (tarjetas, convocatorias, actividades). Desviaciones: el aviso de privacidad sigue en UTC por diseño; se añadieron la lista y el detalle de propuestas, que la guardiana encontró; el `assert()` de `ViewSubmission` se sustituyó por una excepción, lo que cerró la falla de la guardiana de seguridad. CA-022-8 de propuestas lo cubre la guardiana, sin prueba de pantalla propia. |
+| F3 | a07b7f5 | 2026-11-18 | `timeFormat` en `PublicEventData` y `PublicCallData`; `date-format.ts` con `hour12` o `hourCycle: 'h23'`; typecheck y lint sin errores, 175 pruebas de Vitest en verde, build OK. Desviación: en español `Intl` escribe la hora de 24 h sin cero inicial (`9:00`), a diferencia del panel (`09:00 h`). No existe `lang/pt`, así que el criterio queda en es y en. |
+| F4 | ad72ba3 | 2026-11-18 | Selectores del evento, de la convocatoria y de las actividades con `displayFormat` según el evento; 1920 pruebas en verde y 13 fallos previos de exportación (falta `maatwebsite/excel` en el contenedor). **CA-022-13 sigue sin comprobar a mano**: la extensión de Chrome no estaba conectada. Límite conocido: solo cambia el texto mostrado; el selector interno de horas de Filament sigue de 0 a 23. |
