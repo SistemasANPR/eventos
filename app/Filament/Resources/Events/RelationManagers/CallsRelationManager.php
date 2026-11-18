@@ -17,6 +17,7 @@ use App\Models\CallForSubmissions;
 use App\Models\Event;
 use App\Models\SubmissionType;
 use App\Support\Calls\ResolveCallState;
+use App\Support\Events\EventTime;
 use App\Support\Tenancy\CurrentOrganization;
 use Carbon\CarbonImmutable;
 use Filament\Actions\Action;
@@ -75,7 +76,7 @@ class CallsRelationManager extends RelationManager
                     ->state(fn (CallForSubmissions $record): string => $this->publicStateLabel($record)),
                 TextColumn::make('opens_at')
                     ->label(__('calls.columns.period'))
-                    ->state(fn (CallForSubmissions $record): string => $this->localTime($record->opens_at, __('calls.datetime_format')).' – '.$this->localTime($record->closes_at, __('calls.datetime_format'))),
+                    ->state(fn (CallForSubmissions $record): string => EventTime::for($this->owner())->range($record->opens_at, $record->closes_at, __('calls.date_format'), ' ')),
             ])
             ->defaultSort('opens_at', 'desc')
             ->headerActions([$this->createAction()])

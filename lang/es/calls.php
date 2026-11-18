@@ -70,8 +70,8 @@ return [
         'public_state' => 'Estado público',
         'period' => 'Periodo (hora del evento)',
     ],
-    // Día/mes/año y hora de 24 h con «h», el formato habitual en México (ej. 15/01/2027 09:00 h).
-    'datetime_format' => 'd/m/Y H:i \h',
+    // Día/mes/año, el formato habitual en México; la hora la decide el formato del evento (plan 022).
+    'date_format' => 'd/m/Y',
     'state' => [
         'scheduled' => 'Programada',
         'open' => 'Abierta',

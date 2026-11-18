@@ -8,6 +8,7 @@ use App\Enums\EventStatus;
 use App\Filament\Resources\Events\Actions\LifecycleActions;
 use App\Filament\Resources\Events\EventResource;
 use App\Models\Event;
+use App\Support\Events\EventTime;
 use Filament\Actions\ActionGroup;
 use Filament\Actions\CreateAction;
 use Filament\Actions\EditAction;
@@ -88,13 +89,9 @@ final class EventsTable
         return (string) $event->getTranslation('name', $event->default_locale, true);
     }
 
-    /** Fechas en la zona horaria DEL EVENTO (se guardan en UTC), p. ej. «10 mar 2027, 9:00 – 12 mar 2027, 17:00». */
+    /** Fechas en la zona horaria DEL EVENTO (se guardan en UTC) y con su formato de hora, p. ej. «10 mar 2027, 9:00 a. m. – 12 mar 2027, 5:00 p. m.». */
     public static function displayDates(Event $event): string
     {
-        $format = 'j M Y, H:i';
-
-        return $event->starts_at->copy()->setTimezone($event->timezone)->locale(app()->getLocale())->translatedFormat($format)
-            .' – '
-            .$event->ends_at->copy()->setTimezone($event->timezone)->locale(app()->getLocale())->translatedFormat($format);
+        return EventTime::for($event)->range($event->starts_at, $event->ends_at, 'j M Y');
     }
 }

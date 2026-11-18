@@ -14,10 +14,10 @@ use App\Filament\Support\ActionErrors;
 use App\Models\Event;
 use App\Models\EventActivity;
 use App\Models\Speaker;
+use App\Support\Events\EventTime;
 use App\Support\Files\MediaDisk;
 use App\Support\Files\MediaThumbnail;
 use BackedEnum;
-use Carbon\Carbon;
 use Filament\Actions\Action;
 use Filament\Forms\Components\Checkbox;
 use Filament\Forms\Components\DatePicker;
@@ -102,7 +102,7 @@ class ManageEventActivities extends ManageRelatedRecords
                     ->sortable(),
                 TextColumn::make('starts_at')
                     ->label(__('program.activities.columns.time').' ('.$event->timezone.')')
-                    ->state(fn (EventActivity $record): string => self::timeLabel($record))
+                    ->state(fn (EventActivity $record): string => self::timeLabel($record, $event))
                     ->sortable(),
                 TextColumn::make('categories.name')
                     ->label(__('program.activities.columns.categories'))
@@ -408,15 +408,15 @@ class ManageEventActivities extends ManageRelatedRecords
             : $start.' – '.$activity->ends_on->locale(app()->getLocale())->isoFormat('ll');
     }
 
-    private static function timeLabel(EventActivity $activity): string
+    private static function timeLabel(EventActivity $activity, Event $event): string
     {
         if ($activity->starts_at === null || $activity->ends_at === null) {
             return '—';
         }
 
-        $format = fn (string $time): string => Carbon::createFromFormat('H:i:s', $time)?->locale(app()->getLocale())->isoFormat('LT') ?? $time;
+        $time = EventTime::for($event);
 
-        return $format($activity->starts_at).' – '.$format($activity->ends_at);
+        return $time->localTime($activity->starts_at).' – '.$time->localTime($activity->ends_at);
     }
 
     /** Título de la propuesta de origen, solo si quien mira puede verla (`SubmissionPolicy`). */

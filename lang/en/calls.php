@@ -70,7 +70,7 @@ return [
         'public_state' => 'Public state',
         'period' => 'Period (event time)',
     ],
-    'datetime_format' => 'Y-m-d H:i',
+    'date_format' => 'Y-m-d',
     'state' => [
         'scheduled' => 'Scheduled',
         'open' => 'Open',

@@ -8,6 +8,9 @@ return [
     'plural' => 'submissions',
     'empty' => 'There are no submissions for this event yet',
 
+    'date_format' => 'm/d/Y',
+    'long_date_format' => 'F j, Y',
+
     'columns' => [
         'title' => 'Title',
         'call' => 'Call',
