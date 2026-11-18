@@ -42,7 +42,11 @@ function setEventLocales(Event $event, array $locales, string $default = 'es'): 
     return $event->refresh();
 }
 
-/** Abre el alta de un formulario con un campo de opciones, para que se pinten todos los textos traducibles. */
+/**
+ * Abre el alta de un formulario con un campo de opciones, para que se pinten todos los textos traducibles.
+ *
+ * @return Testable<CreateFormDefinition>
+ */
 function openFormBuilder(Event $event): Testable
 {
     $organization = Organization::query()->findOrFail($event->organization_id);
