@@ -5,6 +5,8 @@ declare(strict_types=1);
 return [
     'title_required' => 'The call needs a title in at least one language.',
     'only_draft_can_be_published' => 'Only a draft call can be published.',
+    'form_required_to_publish' => 'Assign a submission form to the call before publishing it.',
+    'form_only_unassigned_in_draft' => 'The form can only be removed from a draft call.',
     'status_transition_invalid' => 'The call cannot go from ":from" to ":to".',
     'reopen_needs_new_close' => 'The close of the call has already passed: enter a new closing date to reopen it.',
     'reopen_close_in_the_past' => 'The new closing date must be later than the current moment.',

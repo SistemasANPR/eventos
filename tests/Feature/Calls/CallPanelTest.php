@@ -25,6 +25,8 @@ use Livewire\Livewire;
 use Tests\Support\Memberships;
 use Tests\Support\SubmissionTypes;
 
+require_once __DIR__.'/../../Support/form-helpers.php';
+
 uses(RefreshDatabase::class);
 
 afterEach(function (): void {
@@ -124,6 +126,7 @@ it('CA-004-9: an admin publishes a call from the panel when the notice is publis
     [$organization, $event, $admin] = callPanelScenario();
     publishNoticeInBothLanguages($event, $admin);
     $call = app(CreateCallForSubmissions::class)->handle($admin, $event, panelCallData($event));
+    assignPublishedForm($admin, $call);
     CurrentOrganization::set($organization);
 
     callManager($event)->callAction(TestAction::make('publish')->table($call));
@@ -134,6 +137,7 @@ it('CA-004-9: an admin publishes a call from the panel when the notice is publis
 it('CA-004-10: publishing without the privacy notice leaves the call in draft', function (): void {
     [$organization, $event, $admin] = callPanelScenario();
     $call = app(CreateCallForSubmissions::class)->handle($admin, $event, panelCallData($event));
+    assignPublishedForm($admin, $call);
     CurrentOrganization::set($organization);
 
     callManager($event)->callAction(TestAction::make('publish')->table($call));
@@ -145,6 +149,7 @@ it('CA-004-9: a published call offers no publish action again', function (): voi
     [$organization, $event, $admin] = callPanelScenario();
     publishNoticeInBothLanguages($event, $admin);
     $call = app(CreateCallForSubmissions::class)->handle($admin, $event, panelCallData($event));
+    assignPublishedForm($admin, $call);
     $published = app(PublishCall::class)->handle($admin, $call);
     CurrentOrganization::set($organization);
 
@@ -191,6 +196,7 @@ function callInStatus(Event $event, User $admin, CallStatus $status): CallForSub
     }
 
     publishNoticeInBothLanguages($event, $admin);
+    assignPublishedForm($admin, $call);
     $call = app(PublishCall::class)->handle($admin, $call);
 
     return $status === CallStatus::Published ? $call : app(ChangeCallStatus::class)->handle($admin, $call, $status);

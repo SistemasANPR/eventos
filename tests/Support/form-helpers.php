@@ -10,13 +10,16 @@ declare(strict_types=1);
 
 use App\Actions\Events\CreateEvent;
 use App\Actions\Forms\CreateFormDefinition;
+use App\Actions\Forms\PublishFormDefinition;
 use App\Enums\OrganizationRole;
 use App\Filament\Resources\Events\EventResource;
 use App\Filament\Resources\Forms\FormDefinitionResource;
+use App\Models\CallForSubmissions;
 use App\Models\Event;
 use App\Models\FormDefinition;
 use App\Models\Organization;
 use App\Models\User;
+use App\Support\Tenancy\CurrentOrganization;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Route;
 use Illuminate\Support\Str;
@@ -140,4 +143,20 @@ function validationErrorKeys(Closure $action): array
 function createForm(User $actor, Event $event, array $fields, string $name = 'Formulario de sesiones'): FormDefinition
 {
     return app(CreateFormDefinition::class)->handle($actor, $event, ['name' => $name, 'fields' => $fields]);
+}
+
+/** Asigna a la convocatoria un formulario publicado y válido de su evento (plan 022: sin formulario no se publica). */
+function assignPublishedForm(User $actor, CallForSubmissions $call): FormDefinition
+{
+    $event = CurrentOrganization::run(
+        Organization::query()->findOrFail($call->organization_id),
+        fn (): Event => Event::query()->findOrFail($call->event_id),
+    );
+    $form = createForm($actor, $event, [formField('short_text')]);
+
+    $published = app(PublishFormDefinition::class)->handle($actor, $form, $call);
+    // La Action relee la convocatoria: se actualiza la instancia del llamador para que vea el formulario.
+    $call->refresh();
+
+    return $published;
 }

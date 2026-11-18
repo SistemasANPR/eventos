@@ -5,6 +5,8 @@ declare(strict_types=1);
 return [
     'title_required' => 'La convocatoria necesita un título en al menos un idioma.',
     'only_draft_can_be_published' => 'Solo se puede publicar una convocatoria en borrador.',
+    'form_required_to_publish' => 'Asigna un formulario de propuestas a la convocatoria antes de publicarla.',
+    'form_only_unassigned_in_draft' => 'Solo se puede quitar el formulario de una convocatoria en borrador.',
     'status_transition_invalid' => 'No se puede pasar la convocatoria de «:from» a «:to».',
     'reopen_needs_new_close' => 'El cierre de la convocatoria ya pasó: indica una nueva fecha de cierre para reabrirla.',
     'reopen_close_in_the_past' => 'La nueva fecha de cierre debe ser posterior al momento actual.',

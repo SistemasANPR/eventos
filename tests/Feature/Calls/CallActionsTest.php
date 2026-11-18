@@ -26,6 +26,8 @@ use Spatie\Activitylog\Models\Activity;
 use Tests\Support\Memberships;
 use Tests\Support\SubmissionTypes;
 
+require_once __DIR__.'/../../Support/form-helpers.php';
+
 uses(RefreshDatabase::class);
 
 afterEach(function (): void {
@@ -273,6 +275,7 @@ it('CA-004-7: audits who created, edited and published with the previous and new
     [$organization, $event, $admin] = callScenario();
     publishNoticeFor($event, $admin, ['es' => '<p>Aviso</p>', 'en' => '<p>Notice</p>']);
     $call = app(CreateCallForSubmissions::class)->handle($admin, $event, callData($event));
+    assignPublishedForm($admin, $call);
 
     app(UpdateCallForSubmissions::class)->handle($admin, $call, callData($event, ['closes_at' => '2027-02-20 23:00']));
     app(PublishCall::class)->handle($admin, $call->fresh());
@@ -294,6 +297,7 @@ it('CA-004-9: publishes a draft when the event has its privacy notice published 
     [, $event, $admin] = callScenario();
     publishNoticeFor($event, $admin, ['es' => '<p>Aviso</p>', 'en' => '<p>Notice</p>']);
     $call = app(CreateCallForSubmissions::class)->handle($admin, $event, callData($event));
+    assignPublishedForm($admin, $call);
 
     $published = app(PublishCall::class)->handle($admin, $call);
 
@@ -304,6 +308,7 @@ it('CA-004-10: refuses to publish without the privacy notice in some language of
     [, $event, $admin] = callScenario();
     publishNoticeFor($event, $admin, ['es' => '<p>Solo español</p>']);
     $call = app(CreateCallForSubmissions::class)->handle($admin, $event, callData($event));
+    assignPublishedForm($admin, $call);
 
     try {
         app(PublishCall::class)->handle($admin, $call);
@@ -320,6 +325,7 @@ it('CA-004-10: refuses to publish when the event has no published privacy notice
     [, $event, $admin] = callScenario();
     app(CreatePrivacyNoticeDraft::class)->handle($admin, $event, ['es' => '<p>Solo borrador</p>', 'en' => '<p>Draft</p>']);
     $call = app(CreateCallForSubmissions::class)->handle($admin, $event, callData($event));
+    assignPublishedForm($admin, $call);
 
     expect(fn () => app(PublishCall::class)->handle($admin, $call))->toThrow(PrivacyNoticeMissing::class);
 });
@@ -328,6 +334,7 @@ it('CA-004-10: a call in one language only needs the notice in that language', f
     [, $event, $admin] = callScenario();
     publishNoticeFor($event, $admin, ['es' => '<p>Solo español</p>']);
     $call = app(CreateCallForSubmissions::class)->handle($admin, $event, callData($event, ['locales' => ['es']]));
+    assignPublishedForm($admin, $call);
 
     expect(app(PublishCall::class)->handle($admin, $call)->status)->toBe(CallStatus::Published);
 });
@@ -335,7 +342,9 @@ it('CA-004-10: a call in one language only needs the notice in that language', f
 it('CA-004-9: only a draft can be published', function (): void {
     [, $event, $admin] = callScenario();
     publishNoticeFor($event, $admin, ['es' => '<p>Aviso</p>', 'en' => '<p>Notice</p>']);
-    $call = app(PublishCall::class)->handle($admin, app(CreateCallForSubmissions::class)->handle($admin, $event, callData($event)));
+    $call = app(CreateCallForSubmissions::class)->handle($admin, $event, callData($event));
+    assignPublishedForm($admin, $call);
+    $call = app(PublishCall::class)->handle($admin, $call);
 
     expect(fn () => app(PublishCall::class)->handle($admin, $call))->toThrow(ValidationException::class);
 });
@@ -343,7 +352,9 @@ it('CA-004-9: only a draft can be published', function (): void {
 it('CA-004-11: moving the close to now closes the call for the public on the next request', function (): void {
     [$organization, $event, $admin] = callScenario();
     publishNoticeFor($event, $admin, ['es' => '<p>Aviso</p>', 'en' => '<p>Notice</p>']);
-    $call = app(PublishCall::class)->handle($admin, app(CreateCallForSubmissions::class)->handle($admin, $event, callData($event)));
+    $call = app(CreateCallForSubmissions::class)->handle($admin, $event, callData($event));
+    assignPublishedForm($admin, $call);
+    $call = app(PublishCall::class)->handle($admin, $call);
 
     $this->travelTo(CarbonImmutable::parse('2027-02-01 12:00:00', 'UTC'));
     expect(ResolveCallState::for($call->fresh()))->toBe(CallState::Open);
