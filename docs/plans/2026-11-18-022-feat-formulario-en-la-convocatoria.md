@@ -91,3 +91,4 @@ Sin rutas JSON ni datos nuevos.
 
 | Fase | Commit | Fecha | Notas (salida real de las validaciones) |
 |---|---|---|---|
+| F1 | 0900b0b | 2026-11-18 | Pint OK en lo tocado; 59 pruebas de calls (CallFormAssignmentTest, CallActionsTest, CallPanelTest) en verde; suite completa en contenedor sin .env: 41 fallos que coinciden con la linea base de staging sin .env (25 en SubmitSubmission/PublicSubmissionForm/Track/SubmissionType por SMTP y locale, CA-003-11/14, 13 exportaciones sin maatwebsite, Arch security por assert); F1 no anade fallos. TDD parcial: las pruebas fallaron por el helper antes que por la regla. |
