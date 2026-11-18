@@ -75,7 +75,7 @@ class CallsRelationManager extends RelationManager
                     ->state(fn (CallForSubmissions $record): string => $this->publicStateLabel($record)),
                 TextColumn::make('opens_at')
                     ->label(__('calls.columns.period'))
-                    ->state(fn (CallForSubmissions $record): string => $this->localTime($record->opens_at).' – '.$this->localTime($record->closes_at)),
+                    ->state(fn (CallForSubmissions $record): string => $this->localTime($record->opens_at, __('calls.datetime_format')).' – '.$this->localTime($record->closes_at, __('calls.datetime_format'))),
             ])
             ->defaultSort('opens_at', 'desc')
             ->headerActions([$this->createAction()])

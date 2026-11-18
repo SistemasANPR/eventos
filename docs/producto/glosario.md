@@ -16,8 +16,8 @@
 | Convocatoria | `CallForSubmissions` | Periodo en que un evento recibe propuestas de un tipo, con fechas de apertura, cierre y resultados | Evento |
 | Propuesta | `Submission` | Envío de un autor a una convocatoria | Evento |
 | Ponente invitado | `Speaker` sin propuesta | Persona que el organizador da de alta directamente en Ponentes, sin convocatoria y sin propuesta; la actividad es opcional y se enlaza después (plan 021, DA-8). **Sustituye** al «conferencista invitado» del plan 018 (`Submission` con `origin = invited`): ese plan quedó reemplazado y el valor `invited` de `SubmissionOrigin` queda inactivo (deuda técnica DT-17) | Evento |
-| Tipo de propuesta | `SubmissionType` | Sesión individual, panel, póster o taller | — (enum) |
-| Eje temático | `Track` | Tema que organiza propuestas y programa | Evento |
+| Categoría de propuesta (antes «Tipo de propuesta»; en pantalla, «Categoría») | `SubmissionType` | Sesión individual, panel, póster o taller | — (enum) |
+| Tema (antes «Eje temático») | `Track` | Tema que organiza propuestas y programa | Evento |
 | Ponente | `Speaker` | Persona que presenta en un evento: su ficha (nombre, apellido, correo, país, organización, cargo, biografía, fotografía, redes). Nace al aceptar una propuesta (uno por participante) o se da de alta a mano. Editar la ficha de un evento no cambia la de otro. Vínculo **opcional** a un `Contact` para sugerir y copiar datos de eventos anteriores (plan 021, DA-1) | Evento (`Contact` opcional) |
 | Categoría de ponente | `SpeakerCategory` | Etiqueta propia de cada evento para clasificar ponentes (magistral, invitado, panelista); catálogo independiente del de actividades y de los ejes; un ponente admite varias (plan 021, DA-7) | Evento |
 | Categoría de actividad | `ActivityCategory` | Etiqueta propia de cada evento para clasificar actividades; catálogo independiente del de ponentes y de los ejes; una actividad admite varias (plan 021, DA-7) | Evento |
