@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Filament\Resources\Submissions\Tables;
 
 use App\Enums\SubmissionStatus;
+use App\Filament\Resources\Submissions\SubmissionResource;
 use App\Models\CallForSubmissions;
 use App\Models\Event;
 use App\Models\Submission;
@@ -61,6 +62,7 @@ final class SubmissionsTable
                         ->isoFormat('L LT'))
                     ->sortable(),
             ])
+            ->recordUrl(fn (Submission $record): string => SubmissionResource::getUrl('view', ['event' => $record->event, 'record' => $record]))
             ->defaultSort('submitted_at', 'desc')
             ->filters([
                 self::selectFilter('call_for_submissions_id', 'call', self::callOptions(...)),

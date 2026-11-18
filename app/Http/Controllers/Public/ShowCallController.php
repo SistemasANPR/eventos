@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Public;
 
+use App\Enums\CallState;
 use App\Models\CallForSubmissions;
 use App\Models\Event;
 use App\Models\Organization;
@@ -40,6 +41,10 @@ final class ShowCallController
             'event' => ['name' => $event->getTranslation('name', $locale)],
             'organization' => ['name' => $organization->name, 'slug' => $organization->slug],
             'eventUrl' => route('events.show', $eventRoute, false)."?lang={$locale}",
+            // Solo con la convocatoria abierta se ofrece el botón de envío (plan 006, H-006-7).
+            'submitUrl' => $state === CallState::Open
+                ? route('calls.submit.show', $eventRoute + ['call' => $call->slug], false)."?lang={$locale}"
+                : null,
             // Solo se enlaza si hay una versión PUBLICADA (CA-003-19).
             'privacyUrl' => PrivacyNotice::currentPublished($event) === null
                 ? null

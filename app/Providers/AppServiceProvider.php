@@ -7,6 +7,8 @@ namespace App\Providers;
 use App\Http\Responses\Auth\LoginResponse;
 use App\Models\User;
 use App\Policies\MembershipPolicy;
+use App\Support\Auth\AuthorGuard;
+use App\Support\Auth\AuthorSession;
 use App\Support\Calls\SubmissionTrackUsage;
 use App\Support\Calls\TrackUsageChecker;
 use App\Support\Files\FileFieldRegistry;
@@ -23,11 +25,13 @@ use App\Support\Reviews\NoRecordedReviews;
 use App\Support\Reviews\RubricUsageChecker;
 use App\Support\Tenancy\CurrentOrganization;
 use Filament\Auth\Http\Responses\Contracts\LoginResponse as LoginResponseContract;
+use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Queue\Events\JobExceptionOccurred;
 use Illuminate\Queue\Events\JobFailed;
 use Illuminate\Queue\Events\JobProcessed;
 use Illuminate\Queue\Events\JobProcessing;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\ServiceProvider;
@@ -62,6 +66,9 @@ class AppServiceProvider extends ServiceProvider
         Model::shouldBeStrict(! $this->app->isProduction());
 
         $this->isolateQueuedJobsContext();
+
+        // Guard del autor de una propuesta, sin cuenta y separado del panel (plan 006, DA-3).
+        Auth::extend('author', static fn (Application $app): AuthorGuard => new AuthorGuard($app->make(AuthorSession::class)));
 
         // La gestión del equipo se autoriza sobre el usuario (el integrante) con una Policy propia.
         Gate::policy(User::class, MembershipPolicy::class);

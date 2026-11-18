@@ -6,6 +6,7 @@ namespace App\Filament\Resources\Submissions;
 
 use App\Enums\SubmissionOrigin;
 use App\Filament\Resources\Events\EventResource;
+use App\Filament\Resources\Submissions\Pages\ViewSubmission;
 use App\Filament\Resources\Submissions\Tables\SubmissionsTable;
 use App\Models\Submission;
 use BackedEnum;
@@ -80,9 +81,27 @@ class SubmissionResource extends Resource
             ->with(['event', 'call', 'submissionType', 'track']);
     }
 
-    /** @return array<string, mixed> sin páginas propias todavía: el detalle llega con H-009-2 */
+    /**
+     * El detalle abre también a un invitado (marca «Invitado», plan 018): la ruta de una propuesta
+     * no se restringe por origen, solo por organización y evento de la ruta.
+     *
+     * @return Builder<Model>
+     */
+    public static function getRecordRouteBindingEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()->with(['event', 'call', 'submissionType', 'track', 'participants']);
+    }
+
+    /**
+     * Solo el detalle (H-009-2). La lista es la sección `submissions` del evento (`ManageEventSubmissions`,
+     * plan 020): Filament la usa como índice de este recurso anidado.
+     *
+     * @return array<string, mixed>
+     */
     public static function getPages(): array
     {
-        return [];
+        return [
+            'view' => ViewSubmission::route('/{record}'),
+        ];
     }
 }

@@ -17,3 +17,15 @@ export const FOCUS_RING = 'focus-visible:outline-2 focus-visible:outline-offset-
 export const FORM_CONTROL =
     'block min-h-11 w-full rounded-md border border-border-input bg-surface px-3 py-2 text-base text-text focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:opacity-60';
 
+
+/** Botón de acción principal: relleno `primary`, objetivo táctil de 44 px (design.md §3.1). */
+export const BUTTON_PRIMARY =
+    'inline-flex min-h-11 items-center justify-center rounded-md bg-primary px-6 text-base font-semibold text-primary-contrast hover:bg-primary-hover disabled:opacity-60';
+
+/** Botón secundario: contorno `primary` sobre `surface`, mismo tamaño táctil. */
+export const BUTTON_SECONDARY =
+    'inline-flex min-h-11 items-center justify-center rounded-md border border-primary bg-surface px-4 text-base font-semibold text-primary hover:bg-bg disabled:opacity-60';
+
+/** Pie de una página pública: enlace de regreso a la izquierda y selector de idioma a la derecha desde `sm`. */
+export const PAGE_FOOTER =
+    'flex flex-col gap-2 border-t border-border pt-4 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between';

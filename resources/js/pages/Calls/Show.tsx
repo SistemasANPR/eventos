@@ -5,8 +5,9 @@ import { EventFact } from '@/components/molecules/EventFact';
 import { LocaleSwitcher } from '@/components/molecules/LocaleSwitcher';
 import { useTranslation } from '@/hooks/useTranslation';
 import { PublicLayout } from '@/layouts/PublicLayout';
-import { FACTS_PANEL, PAGE_TITLE } from '@/lib/classes';
+import { BUTTON_PRIMARY, FACTS_PANEL, FOCUS_RING, PAGE_TITLE } from '@/lib/classes';
 import { formatEventInstant } from '@/lib/date-format';
+import { cn } from '@/lib/utils';
 import type { CallState, PublicCall } from '@/types/call';
 import type { PublicOrganization } from '@/types/event';
 
@@ -18,6 +19,8 @@ interface ShowProps {
     eventUrl: string;
     /** URL del aviso de privacidad publicado, o `null` si no hay. */
     privacyUrl: string | null;
+    /** URL del formulario de envío; solo existe con la convocatoria abierta. */
+    submitUrl?: string | null;
 }
 
 /** Colores (par texto/fondo de los semánticos) y marca de cada estado: el estado no depende solo del color. */
@@ -30,10 +33,10 @@ const STATE_STYLE: Record<CallState, { classes: string; mark: string }> = {
 
 /**
  * Página pública de una convocatoria: `/{organización}/events/{evento}/call/{convocatoria}`.
- * Sin botón de envío: el formulario llega con los planes 005 y 006; hasta entonces
- * la página solo informa el estado, las fechas y los ejes.
+ * Informa el estado, las fechas y los ejes; con la convocatoria abierta ofrece el botón que lleva
+ * al formulario de envío (`submitUrl`, plan 006).
  */
-export default function Show({ call, event, organization, eventUrl, privacyUrl }: ShowProps) {
+export default function Show({ call, event, organization, eventUrl, privacyUrl, submitUrl = null }: ShowProps) {
     const { t } = useTranslation();
 
     const style = STATE_STYLE[call.state];
@@ -61,6 +64,11 @@ export default function Show({ call, event, organization, eventUrl, privacyUrl }
                         <p className="text-base text-text-muted">{t(`call.state_hint.${call.state}`)}</p>
                     </div>
                     {call.description !== null && <p className="max-w-prose text-lg text-text">{call.description}</p>}
+                    {submitUrl !== null && (
+                        <a href={submitUrl} className={cn(BUTTON_PRIMARY, FOCUS_RING)}>
+                            {t('submit.send_action')}
+                        </a>
+                    )}
                 </header>
 
                 <dl className={FACTS_PANEL}>
