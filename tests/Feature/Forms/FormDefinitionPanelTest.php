@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Actions\Forms\PublishFormDefinition;
 use App\Enums\FormDefinitionStatus;
 use App\Enums\OrganizationRole;
 use App\Filament\Resources\Events\Pages\ManageEventFormDefinitions;
@@ -163,4 +164,32 @@ it('CA-005-22 and CA-020-14: in the panel saving with an outdated version keeps 
         ->call('save');
 
     expect(storedForm($organization, $form->id)->name)->toBe('Formulario de sesiones');
+});
+
+it('CA-025-13: the forms list shows which calls use each form, or a dash', function (): void {
+    [$organization, $event, $admin] = formScenario();
+    $used = createForm($admin, $event, [formField('short_text')], 'Usado');
+    $unused = createForm($admin, $event, [formField('short_text')], 'Libre');
+    $call = CurrentOrganization::run($organization, fn () => CallForSubmissions::factory()->create([
+        'organization_id' => $organization->id,
+        'event_id' => $event->id,
+        'title' => ['es' => 'Convocatoria 2027'],
+        'locales' => ['es'],
+    ]));
+    app(PublishFormDefinition::class)->handle($admin, $used, $call);
+    formPanelSession($organization, $admin, $event);
+
+    Livewire::test(ManageEventFormDefinitions::class, ['record' => $event->id])
+        ->assertTableColumnStateSet('used_in', 'Convocatoria 2027', $used)
+        ->assertTableColumnStateSet('used_in', '—', $unused);
+});
+
+it('CA-025-14: the publish modal is titled publish and assign to a call', function (): void {
+    [$organization, $event, $admin] = formScenario();
+    $form = createForm($admin, $event, [formField('short_text')]);
+    formPanelSession($organization, $admin, $event);
+
+    Livewire::test(EditFormDefinition::class, ['record' => $form->id])
+        ->mountAction('publish')
+        ->assertSee('Publicar y asignar a convocatoria');
 });

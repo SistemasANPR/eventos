@@ -20,12 +20,12 @@ use Illuminate\Validation\ValidationException;
 /**
  * Publica una convocatoria en borrador (plan 004, CA-004-9 y -10, DA-6): exige
  * que el evento tenga su aviso de privacidad PUBLICADO en cada idioma de la
- * convocatoria; sin un texto que consentir no se abre. Un borrador de aviso no
+ * convocatoria; sin un texto que consentir no se abre. Exige además un formulario asignado (plan 025, CA-025-7). Un borrador de aviso no
  * cuenta. Queda auditado con el estado anterior y el nuevo.
  *
  * @throws AuthorizationException si quien publica no tiene `calls.manage` en la organización de la convocatoria
  * @throws PrivacyNoticeMissing si falta el aviso publicado en algún idioma (código `PRIVACY_NOTICE_MISSING`)
- * @throws ValidationException si no es un borrador
+ * @throws ValidationException si no es un borrador (clave `status`) o no tiene formulario (clave `form`)
  */
 final class PublishCall
 {
@@ -40,6 +40,10 @@ final class PublishCall
 
             if ($call->status !== CallStatus::Draft) {
                 throw ValidationException::withMessages(['status' => __('calls.only_draft_can_be_published')]);
+            }
+
+            if ($call->form_definition_id === null) {
+                throw ValidationException::withMessages(['form' => __('calls.form_required_to_publish')]);
             }
 
             $event = Event::query()->findOrFail($call->event_id);

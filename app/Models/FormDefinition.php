@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Carbon;
 
@@ -55,6 +56,12 @@ class FormDefinition extends Model
     public function event(): BelongsTo
     {
         return $this->belongsTo(Event::class);
+    }
+
+    /** @return HasMany<CallForSubmissions, $this> convocatorias que usan este formulario (plan 025) */
+    public function calls(): HasMany
+    {
+        return $this->hasMany(CallForSubmissions::class, 'form_definition_id');
     }
 
     /**
