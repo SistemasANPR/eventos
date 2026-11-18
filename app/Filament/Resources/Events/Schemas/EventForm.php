@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Filament\Resources\Events\Schemas;
 
 use App\Enums\EventType;
+use App\Enums\TimeFormat;
 use App\Http\Requests\Events\StoreEventRequest;
 use App\Models\Event;
 use DateTimeZone;
@@ -67,6 +68,12 @@ final class EventForm
                         // Filament muestra solo 50 opciones por defecto: sin esto la lista termina en África.
                         ->optionsLimit(count(self::timezones()))
                         ->default('America/Mexico_City')
+                        ->required(),
+                    Select::make('time_format')
+                        ->label(__('events.fields.time_format'))
+                        ->helperText(__('events.fields.time_format_help'))
+                        ->options(TimeFormat::class)
+                        ->default(TimeFormat::TwelveHour)
                         ->required(),
                 ]),
             Section::make(__('events.sections.venue'))

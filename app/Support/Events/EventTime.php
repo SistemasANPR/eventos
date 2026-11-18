@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Support\Events;
 
 use App\Enums\TimeFormat;
+use App\Models\Event;
 use Carbon\CarbonImmutable;
 use DateTimeInterface;
 
@@ -16,6 +17,11 @@ use DateTimeInterface;
 final readonly class EventTime
 {
     public function __construct(public TimeFormat $format, public string $timezone) {}
+
+    public static function for(Event $event): self
+    {
+        return new self($event->time_format, $event->timezone);
+    }
 
     /** Hora de un instante guardado en UTC, en la zona del evento: «2:30 p. m.» o «14:30 h». */
     public function time(DateTimeInterface $instant): string

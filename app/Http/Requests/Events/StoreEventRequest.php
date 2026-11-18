@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Requests\Events;
 
 use App\Enums\EventType;
+use App\Enums\TimeFormat;
 use App\Models\Event;
 use App\Support\Tenancy\CurrentOrganization;
 use Closure;
@@ -66,6 +67,8 @@ class StoreEventRequest extends FormRequest
             'locales.*' => ['string', 'distinct', Rule::in(self::LOCALES)],
             'default_locale' => ['required', 'string', Rule::in($locales)],
             'currency' => ['required', 'string', Rule::in(self::CURRENCIES)],
+            // Opcional: si falta, la creación usa el valor por defecto (12 h) y la edición conserva el actual (plan 022).
+            'time_format' => ['nullable', Rule::enum(TimeFormat::class)],
         ];
     }
 
