@@ -10,6 +10,7 @@ use App\Enums\OrganizationRole;
 use App\Exceptions\Domain\PrivacyNoticeMissing;
 use App\Models\CallForSubmissions;
 use App\Models\Event;
+use App\Models\FormDefinition;
 use App\Models\Organization;
 use App\Models\PrivacyNotice;
 use App\Models\SubmissionType;
@@ -86,8 +87,20 @@ it('CA-026-10: a call whose languages all left the event falls back to the defau
             ->where('call.title', 'Convocatoria'));
 });
 
+/**
+ * Publicar exige un formulario asignado (plan 025): se asigna uno por la factoría para probar solo los idiomas.
+ *
+ * @param  array{org: Organization, event: Event, call: CallForSubmissions}  $ctx
+ */
+function assignFormTo(array $ctx): void
+{
+    $form = FormDefinition::factory()->create(['organization_id' => $ctx['org']->id, 'event_id' => $ctx['event']->id]);
+    $ctx['call']->forceFill(['form_definition_id' => $form->id])->save();
+}
+
 it('CA-026-10: publishing requires the privacy notice only in the effective languages', function (): void {
     $ctx = effectiveScenario(['es'], ['es', 'en'], 'draft');
+    assignFormTo($ctx);
     $admin = Memberships::attach(User::factory()->create(), $ctx['org'], OrganizationRole::OrgAdmin);
     app(PublishPrivacyNotice::class)->handle($admin, app(CreatePrivacyNoticeDraft::class)->handle($admin, $ctx['event'], ['es' => '<p>Aviso</p>']));
 
@@ -98,6 +111,7 @@ it('CA-026-10: publishing requires the privacy notice only in the effective lang
 
 it('CA-026-10: publishing still refuses when the notice lacks an effective language', function (): void {
     $ctx = effectiveScenario(['es', 'en'], ['es', 'en', 'pt'], 'draft');
+    assignFormTo($ctx);
     $admin = Memberships::attach(User::factory()->create(), $ctx['org'], OrganizationRole::OrgAdmin);
     app(PublishPrivacyNotice::class)->handle($admin, app(CreatePrivacyNoticeDraft::class)->handle($admin, $ctx['event'], ['es' => '<p>Aviso</p>']));
 
