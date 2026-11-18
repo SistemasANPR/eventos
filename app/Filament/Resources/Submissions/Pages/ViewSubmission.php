@@ -7,9 +7,9 @@ namespace App\Filament\Resources\Submissions\Pages;
 use App\Filament\Resources\Submissions\SubmissionResource;
 use App\Filament\Resources\Submissions\Support\SubmissionActivityLink;
 use App\Filament\Resources\Submissions\Support\SubmissionDetail;
+use App\Filament\Support\ActionErrors;
 use App\Models\Event;
 use App\Models\Submission;
-use App\Models\User;
 use App\Support\Tenancy\CurrentOrganization;
 use Filament\Resources\Pages\ViewRecord;
 use Filament\Schemas\Components\View;
@@ -63,8 +63,7 @@ class ViewSubmission extends ViewRecord
     private function viewData(): array
     {
         $submission = $this->submission();
-        $user = auth()->user();
-        assert($user instanceof User);
+        $user = ActionErrors::actor();
         $event = $this->getParentRecord();
         $timezone = $event instanceof Event ? $event->timezone : (string) config('app.timezone');
 
