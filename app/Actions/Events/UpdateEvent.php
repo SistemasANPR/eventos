@@ -4,9 +4,12 @@ declare(strict_types=1);
 
 namespace App\Actions\Events;
 
+use App\Exceptions\Domain\EventLocaleInUse;
 use App\Http\Requests\Events\StoreEventRequest;
+use App\Models\CallForSubmissions;
 use App\Models\Event;
 use App\Models\Organization;
+use App\Models\PrivacyNotice;
 use App\Models\User;
 use App\Support\Auth\AuthorizesInOrganization;
 use App\Support\Events\EventAttributes;
@@ -23,19 +26,23 @@ use Illuminate\Validation\ValidationException;
  * Cambiar el `slug` de un evento publicado rompe los enlaces ya difundidos:
  * exige confirmación explícita y queda auditado.
  *
+ * Quitar un idioma que usa una convocatoria o el aviso de privacidad publicado también exige
+ * confirmación (plan 024, DA-1); nada se borra y la auditoría registra los idiomas quitados y agregados.
+ *
  * @throws AuthorizationException si quien edita no tiene `events.manage` en la organización del evento
  * @throws ValidationException si los datos no son válidos o falta confirmar el cambio de `slug`
+ * @throws EventLocaleInUse si se quita un idioma en uso y falta `confirmLocaleRemoval`
  */
 final class UpdateEvent
 {
     use AuthorizesInOrganization;
 
     /** @param  array<string, mixed>  $data */
-    public function handle(User $actor, Event $event, array $data, bool $confirmSlugChange = false): Event
+    public function handle(User $actor, Event $event, array $data, bool $confirmSlugChange = false, bool $confirmLocaleRemoval = false): Event
     {
         $organization = Organization::query()->findOrFail($event->organization_id);
 
-        return CurrentOrganization::run($organization, function () use ($actor, $event, $data, $confirmSlugChange, $organization): Event {
+        return CurrentOrganization::run($organization, function () use ($actor, $event, $data, $confirmSlugChange, $confirmLocaleRemoval, $organization): Event {
             $this->authorizeActor($actor, 'update', $event);
 
             /** @var list<string> $locales */
@@ -49,14 +56,25 @@ final class UpdateEvent
                 throw ValidationException::withMessages(['slug' => __('events.slug_change_needs_confirmation')]);
             }
 
-            return DB::transaction(function () use ($actor, $event, $validated, $slugChanges, $previousSlug): Event {
+            $removed = array_values(array_diff($event->offeredLocales(), $validated['locales']));
+            $added = array_values(array_diff($validated['locales'], $event->offeredLocales()));
+
+            if ($removed !== [] && ! $confirmLocaleRemoval) {
+                $affected = $this->affectedBy($event, $removed);
+
+                if ($affected !== []) {
+                    throw new EventLocaleInUse($removed, $affected);
+                }
+            }
+
+            return DB::transaction(function () use ($actor, $event, $validated, $slugChanges, $previousSlug, $removed, $added): Event {
                 $event->fill(EventAttributes::fromValidated($validated))->save();
 
                 activity()
                     ->causedBy($actor)
                     ->performedOn($event)
                     ->event('event_updated')
-                    ->withProperties(['organization_id' => $event->organization_id])
+                    ->withProperties(['organization_id' => $event->organization_id, 'removed_locales' => $removed, 'added_locales' => $added])
                     ->log('event_updated');
 
                 if ($slugChanges && $event->isPublished()) {
@@ -71,5 +89,32 @@ final class UpdateEvent
                 return $event;
             });
         });
+    }
+
+    /**
+     * Lo que usa alguno de los idiomas que se quitan: convocatorias y el aviso de privacidad publicado vigente.
+     *
+     * @param  list<string>  $removed
+     * @return list<string>
+     */
+    private function affectedBy(Event $event, array $removed): array
+    {
+        $affected = [];
+
+        $calls = CallForSubmissions::query()->where('event_id', $event->id)->orderBy('created_at')->get();
+
+        foreach ($calls as $call) {
+            if (array_intersect($call->locales, $removed) !== []) {
+                $affected[] = 'convocatoria «'.$call->getTranslation('title', $event->default_locale, true).'»';
+            }
+        }
+
+        $notice = PrivacyNotice::currentPublished($event);
+
+        if ($notice !== null && array_intersect(array_keys($notice->getTranslations('body')), $removed) !== []) {
+            $affected[] = 'aviso de privacidad v'.$notice->version;
+        }
+
+        return $affected;
     }
 }

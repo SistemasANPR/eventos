@@ -85,6 +85,12 @@ final class EventForm
                         ->default(['es'])
                         ->live()
                         ->required(),
+                    Toggle::make('confirm_locale_removal')
+                        ->label(__('events.fields.confirm_locale_removal'))
+                        ->helperText(__('events.fields.confirm_locale_removal_help'))
+                        ->visible(fn (Get $get, ?Event $record): bool => $record !== null && array_diff($record->offeredLocales(), (array) $get('locales')) !== [])
+                        ->dehydrated()
+                        ->columnSpanFull(),
                     Select::make('default_locale')
                         ->label(__('events.fields.default_locale'))
                         ->options(fn (Get $get): array => array_intersect_key(self::localeOptions(), array_flip((array) $get('locales'))))

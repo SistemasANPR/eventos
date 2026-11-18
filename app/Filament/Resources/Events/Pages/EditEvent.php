@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Filament\Resources\Events\Pages;
 
 use App\Actions\Events\UpdateEvent;
+use App\Exceptions\Domain\EventLocaleInUse;
 use App\Filament\Resources\Events\Actions\LifecycleActions;
 use App\Filament\Resources\Events\EventResource;
 use App\Filament\Support\ActionErrors;
@@ -58,9 +59,13 @@ class EditEvent extends EditRecord
                 $this->event(),
                 $data,
                 confirmSlugChange: (bool) ($data['confirm_slug_change'] ?? false),
+                confirmLocaleRemoval: (bool) ($data['confirm_locale_removal'] ?? false),
             );
         } catch (ValidationException $exception) {
             throw ActionErrors::forForm($exception);
+        } catch (EventLocaleInUse $exception) {
+            // Se advierte qué se afecta y se pide la confirmación del interruptor (plan 024, DA-1).
+            throw ValidationException::withMessages(['data.locales' => $exception->getMessage()]);
         }
     }
 
