@@ -30,7 +30,8 @@ export interface PublicSubmissionForm {
 export type AnswerValue = string | boolean | string[];
 
 export type ParticipantPayload = {
-    full_name: string;
+    first_name: string;
+    last_name: string;
     email: string;
     country: string;
     job_title?: string;

@@ -21,7 +21,8 @@ const t = createTranslate({
         sending: 'Enviando…',
         field_title: 'Título de la propuesta',
         field_track: 'Eje temático',
-        participant_full_name: 'Nombre completo',
+        participant_first_name: 'Nombre',
+        participant_last_name: 'Apellido',
         participant_email: 'Correo electrónico',
         participant_country: 'País',
         participant_job_title: 'Cargo',
@@ -105,7 +106,8 @@ function fill(label: RegExp | string, value: string) {
 function fillAll() {
     fill(/Título de la propuesta/, 'Parques vivos');
     fireEvent.click(screen.getByLabelText('Arte'));
-    fill(/Nombre completo/, 'Ana Pérez');
+    fill(/^Nombre/, 'Ana');
+    fill(/Apellido/, 'Pérez');
     fill(/Correo electrónico/, 'ANA@example.test');
     fill(/^País/, 'MX');
     fill(/Resumen/, 'Un resumen');
@@ -159,7 +161,7 @@ describe('SubmissionForm', () => {
             title: 'Parques vivos',
             track_id: 'track-2',
             answers: { summary: 'Un resumen' },
-            participants: [{ full_name: 'Ana Pérez', email: 'ANA@example.test', country: 'MX', is_primary: true }],
+            participants: [{ first_name: 'Ana', last_name: 'Pérez', email: 'ANA@example.test', country: 'MX', is_primary: true }],
             consent: true,
             privacy_notice_version_id: 'notice-1',
             third_parties_authorized: false,

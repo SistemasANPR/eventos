@@ -107,6 +107,8 @@ it('CA-006-40: the author sees answers, participants and status, and nothing exc
     SubmissionParticipant::factory()->secondary()->create([
         'organization_id' => $submission->organization_id,
         'submission_id' => $submission->id,
+        'first_name' => 'Luis',
+        'last_name' => 'Gómez',
         'full_name' => 'Luis Gómez',
         'email' => 'luis@example.test',
     ]);

@@ -43,7 +43,8 @@ export function readSubmission(data: FormData, fields: readonly FormField[], par
     const participants: ParticipantPayload[] = Array.from({ length: participantCount }, (_, index) => {
         const read = (name: string): string => text(data, `${FIXED_PREFIX}participants.${index}.${name}`);
         const participant: ParticipantPayload = {
-            full_name: read('full_name'),
+            first_name: read('first_name'),
+            last_name: read('last_name'),
             email: read('email'),
             country: read('country'),
             is_primary: index === 0,

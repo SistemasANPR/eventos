@@ -77,7 +77,7 @@ function notifyInput(array $ctx): array
         'title' => 'Parques vivos',
         'track_id' => $ctx['track']->id,
         'answers' => [],
-        'participants' => [['full_name' => 'Ana Pérez', 'email' => 'ana@example.test', 'country' => 'MX', 'is_primary' => true]],
+        'participants' => [['first_name' => 'Ana', 'last_name' => 'Pérez', 'email' => 'ana@example.test', 'country' => 'MX', 'is_primary' => true]],
         'consent' => true,
     ];
 }

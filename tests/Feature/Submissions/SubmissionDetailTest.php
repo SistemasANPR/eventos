@@ -147,7 +147,7 @@ it('CA-009-8: HTML and script in answers, title and participants are escaped', f
     ]);
     CurrentOrganization::run($organization, fn () => SubmissionParticipant::query()
         ->where('submission_id', $submission->id)->where('position', 2)
-        ->update(['full_name' => '<script>alert("nombre")</script>']));
+        ->update(['first_name' => null, 'last_name' => null, 'full_name' => '<script>alert("nombre")</script>']));
 
     $this->actingAs($user)->get(detailUrl($organization, $event, $submission))
         ->assertOk()

@@ -10,11 +10,13 @@ describe('readSubmission', () => {
         const data = new FormData();
         data.append('s.title', '  Mi propuesta  ');
         data.append('s.track_id', 'track-1');
-        data.append('s.participants.0.full_name', 'Ana');
+        data.append('s.participants.0.first_name', 'Ana');
+        data.append('s.participants.0.last_name', 'Pérez');
         data.append('s.participants.0.email', 'ana@example.test');
         data.append('s.participants.0.country', 'MX');
         data.append('s.participants.0.bio', '');
-        data.append('s.participants.1.full_name', 'Luis');
+        data.append('s.participants.1.first_name', 'Luis');
+        data.append('s.participants.1.last_name', 'Gómez');
         data.append('s.participants.1.email', 'luis@example.test');
         data.append('s.participants.1.country', 'CO');
         data.append('s.participants.1.company', 'ACME');
@@ -26,8 +28,8 @@ describe('readSubmission', () => {
         expect(values.title).toBe('Mi propuesta');
         expect(values.answers).toEqual({ title: 'respuesta' });
         expect(values.participants).toEqual([
-            { full_name: 'Ana', email: 'ana@example.test', country: 'MX', is_primary: true },
-            { full_name: 'Luis', email: 'luis@example.test', country: 'CO', company: 'ACME', is_primary: false },
+            { first_name: 'Ana', last_name: 'Pérez', email: 'ana@example.test', country: 'MX', is_primary: true },
+            { first_name: 'Luis', last_name: 'Gómez', email: 'luis@example.test', country: 'CO', company: 'ACME', is_primary: false },
         ]);
     });
 

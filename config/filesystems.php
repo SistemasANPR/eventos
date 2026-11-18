@@ -32,6 +32,20 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Media Disk
+    |--------------------------------------------------------------------------
+    |
+    | Disco de las imágenes del programa: fotografía del ponente, imagen e icono
+    | de la actividad (plan 021, DA-11). Es el NOMBRE de uno de los discos de
+    | abajo: hoy `media` (local y privado); para pasar a Google Cloud Storage se
+    | define allí un disco `gcs` y se cambia `MEDIA_DISK=gcs`, sin tocar código.
+    |
+    */
+
+    'media_disk' => env('MEDIA_DISK', 'media'),
+
+    /*
+    |--------------------------------------------------------------------------
     | Filesystem Disks
     |--------------------------------------------------------------------------
     |
@@ -49,6 +63,15 @@ return [
             'driver' => 'local',
             'root' => storage_path('app/private'),
             'serve' => true,
+            'throw' => false,
+            'report' => false,
+        ],
+
+        // Imágenes del programa (plan 021): privado; la aplicación las sirve comprobando `is_published`.
+        'media' => [
+            'driver' => 'local',
+            'root' => storage_path('app/private/media'),
+            'visibility' => 'private',
             'throw' => false,
             'report' => false,
         ],

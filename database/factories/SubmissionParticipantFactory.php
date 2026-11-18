@@ -7,6 +7,7 @@ namespace Database\Factories;
 use App\Models\Contact;
 use App\Models\Submission;
 use App\Models\SubmissionParticipant;
+use App\Support\Program\PersonName;
 use App\Support\Tenancy\CurrentOrganization;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -43,13 +44,28 @@ class SubmissionParticipantFactory extends Factory
                 ->id,
             'position' => 1,
             'is_primary' => true,
-            'full_name' => fake()->name(),
+            // Si una prueba fija solo `full_name`, las partes salen de él (un nombre de una palabra queda
+            // como dato antiguo, sin partes); si no, `full_name` se calcula de las partes.
+            'first_name' => fn (array $attributes): ?string => is_string($attributes['full_name'] ?? null)
+                ? self::partOf($attributes['full_name'], 'first')
+                : fake()->firstName(),
+            'last_name' => fn (array $attributes): ?string => is_string($attributes['full_name'] ?? null)
+                ? self::partOf($attributes['full_name'], 'last')
+                : fake()->lastName(),
+            'full_name' => fn (array $attributes): string => $attributes['first_name'].' '.$attributes['last_name'],
             'email' => fake()->unique()->safeEmail(),
             'country' => 'MX',
             'job_title' => null,
             'company' => null,
             'bio' => null,
         ];
+    }
+
+    private static function partOf(string $fullName, string $part): ?string
+    {
+        $parts = PersonName::split($fullName);
+
+        return $parts['last'] === '' ? null : $parts[$part];
     }
 
     public function secondary(int $position = 2): static

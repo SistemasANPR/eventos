@@ -63,7 +63,7 @@ export function SubmissionBlock({
             if (index === REMOVED) {
                 addButton.current?.focus();
             } else {
-                document.getElementById(`${idPrefix}-s.participants.${index}.full_name`)?.focus();
+                document.getElementById(`${idPrefix}-s.participants.${index}.first_name`)?.focus();
             }
         }
     }, [count, idPrefix]);
@@ -146,7 +146,8 @@ export function SubmissionBlock({
 
 /** Sugerencias del navegador solo para quien envía (el participante principal). */
 function autoCompleteFor(key: string): string | undefined {
-    if (key.endsWith('.full_name')) return 'name';
+    if (key.endsWith('.first_name')) return 'given-name';
+    if (key.endsWith('.last_name')) return 'family-name';
     if (key.endsWith('.email')) return 'email';
     if (key.endsWith('.country')) return 'country';
     if (key.endsWith('.job_title')) return 'organization-title';

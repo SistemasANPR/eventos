@@ -144,18 +144,34 @@ function eventSections(User $user, Organization $organization, ?Event $event): a
     return $labels;
 }
 
-it('CA-020-17: inside an event the sidebar nests Summary, Forms and Submissions under Events for an admin', function (): void {
+/**
+ * Secciones del evento: las del plan 020 y, desde el plan 021 (F1), las categorías del programa.
+ *
+ * @return list<string>
+ */
+function eventSectionLabels(): array
+{
+    return [
+        __('events.sub_navigation.summary'),
+        __('forms.navigation'),
+        __('submission_panel.navigation'),
+        __('program.speakers.navigation'),
+        __('program.activities.navigation'),
+        __('program.categories.speakers.navigation'),
+        __('program.categories.activities.navigation'),
+    ];
+}
+
+it('CA-020-17: inside an event the sidebar nests its sections under Events for an admin', function (): void {
     [$organization, $event, $admin] = formScenario(OrganizationRole::OrgAdmin);
 
-    expect(eventSections($admin, $organization, $event))
-        ->toBe([__('events.sub_navigation.summary'), __('forms.navigation'), __('submission_panel.navigation')]);
+    expect(eventSections($admin, $organization, $event))->toBe(eventSectionLabels());
 });
 
 it('CA-020-17: the organizer sees the same event sections in the sidebar', function (): void {
     [$organization, $event, $organizer] = formScenario(OrganizationRole::Organizer);
 
-    expect(eventSections($organizer, $organization, $event))
-        ->toBe([__('events.sub_navigation.summary'), __('forms.navigation'), __('submission_panel.navigation')]);
+    expect(eventSections($organizer, $organization, $event))->toBe(eventSectionLabels());
 });
 
 it('CA-020-17: outside an event the sidebar has no nested event sections', function (): void {

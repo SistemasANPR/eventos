@@ -29,14 +29,15 @@ function expectedMatrix(): array
 {
     $organizer = [
         'events.manage', 'calls.manage', 'calls.view', 'tracks.manage', 'rubrics.manage', 'forms.manage',
-        'submissions.view', 'submissions.export', 'submissions.invite', 'files.download', 'mail-templates.view',
+        'submissions.view', 'submissions.export', 'files.download', 'mail-templates.view',
+        'speakers.manage', 'activities.manage',
     ];
 
     return [
         'org_admin' => [
             ...$organizer,
             'events.publish', 'event_assignments.manage', 'privacy_notices.manage', 'team.manage',
-            'mail-templates.manage', 'personal_data.manage',
+            'mail-templates.manage', 'personal_data.manage', 'speakers.delete', 'activities.delete',
         ],
         'organizer' => $organizer,
         'reviewer' => [],

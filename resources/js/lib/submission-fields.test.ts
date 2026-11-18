@@ -1,7 +1,7 @@
 import { participantFields, titleField, trackField } from '@/lib/submission-fields';
 import { createTranslate } from '@/lib/translate';
 
-const t = createTranslate({ submit: { field_title: 'Título', field_track: 'Eje', participant_full_name: 'Nombre' } });
+const t = createTranslate({ submit: { field_title: 'Título', field_track: 'Eje', participant_first_name: 'Nombre', participant_last_name: 'Apellido' } });
 
 describe('fixed block fields', () => {
     it('prefixes every key so it never collides with a form field key', () => {
@@ -23,7 +23,8 @@ describe('fixed block fields', () => {
         const fields = participantFields(2, 'es', t);
 
         expect(fields.map((field) => field.key)).toEqual([
-            's.participants.2.full_name',
+            's.participants.2.first_name',
+            's.participants.2.last_name',
             's.participants.2.email',
             's.participants.2.country',
             's.participants.2.job_title',
@@ -31,7 +32,8 @@ describe('fixed block fields', () => {
             's.participants.2.bio',
         ]);
         expect(fields.filter((field) => field.required).map((field) => field.key)).toEqual([
-            's.participants.2.full_name',
+            's.participants.2.first_name',
+            's.participants.2.last_name',
             's.participants.2.email',
             's.participants.2.country',
         ]);

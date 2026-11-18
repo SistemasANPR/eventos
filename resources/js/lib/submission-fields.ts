@@ -36,7 +36,8 @@ export function participantFields(index: number, locale: string, t: Translate): 
     const prefix = `participants.${index}.`;
 
     return [
-        fixedField(`${prefix}full_name`, 'short_text', t('submit.participant_full_name'), locale, true, { maxLength: 120 }),
+        fixedField(`${prefix}first_name`, 'short_text', t('submit.participant_first_name'), locale, true, { maxLength: 100 }),
+        fixedField(`${prefix}last_name`, 'short_text', t('submit.participant_last_name'), locale, true, { maxLength: 100 }),
         fixedField(`${prefix}email`, 'short_text', t('submit.participant_email'), locale, true, { maxLength: 254 }),
         fixedField(`${prefix}country`, 'country', t('submit.participant_country'), locale, true),
         fixedField(`${prefix}job_title`, 'short_text', t('submit.participant_job_title'), locale, false, { maxLength: 120 }),

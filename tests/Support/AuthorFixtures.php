@@ -47,6 +47,8 @@ final class AuthorFixtures
         SubmissionParticipant::factory()->create([
             'organization_id' => $organization->id,
             'submission_id' => $created->id,
+            'first_name' => 'Ana',
+            'last_name' => 'Pérez',
             'full_name' => 'Ana Pérez',
             'email' => 'ana@example.test',
             ...$participant,
