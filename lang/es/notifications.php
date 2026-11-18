@@ -65,7 +65,13 @@ return [
             'name' => 'Propuesta retirada',
             'description' => 'Avisa de que el autor retiró su propuesta.',
             'trigger' => 'El autor retira su propuesta.',
-            'recipient' => 'El autor y el equipo con permiso para ver propuestas.',
+            'recipient' => 'Integrantes del equipo con permiso para ver propuestas.',
+        ],
+        'withdrawn_author' => [
+            'name' => 'Retiro de la propuesta confirmado al autor',
+            'description' => 'Confirma al autor que su propuesta quedó retirada.',
+            'trigger' => 'El autor retira su propuesta.',
+            'recipient' => 'La persona que envió la propuesta.',
         ],
     ],
 ];

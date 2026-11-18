@@ -7,7 +7,6 @@ namespace App\Actions\Submissions;
 use App\Actions\Forms\BuildSubmissionRules;
 use App\Enums\CallState;
 use App\Enums\FieldType;
-use App\Enums\FormDefinitionStatus;
 use App\Enums\SubmissionOrigin;
 use App\Enums\SubmissionStatus;
 use App\Exceptions\Domain\CallNotOpen;
@@ -25,7 +24,7 @@ use App\Models\SubmissionParticipant;
 use App\Models\Track;
 use App\Support\Calls\ResolveCallState;
 use App\Support\Forms\IdempotencyKeys;
-use App\Support\Forms\LockedFormDefinition;
+use App\Support\Submissions\FormSnapshot;
 use App\Support\Submissions\SubmitOutcome;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Database\UniqueConstraintViolationException;
@@ -70,10 +69,8 @@ final class SubmitSubmission
     /** `full_name` no es del contrato: lo calcula el servidor a partir de nombre y apellido. */
     private const PARTICIPANT_KEYS = ['first_name', 'last_name', 'email', 'country', 'job_title', 'company', 'bio', 'is_primary'];
 
-    private const MAX_SNAPSHOT_BYTES = 65536;
-
     public function __construct(
-        private readonly LockedFormDefinition $lockedForm,
+        private readonly LoadPublishedForm $publishedForm,
         private readonly BuildSubmissionRules $answerRules,
         private readonly AttachSubmissionFile $attachFiles,
         private readonly IdempotencyKeys $idempotencyKeys,
@@ -171,7 +168,7 @@ final class SubmitSubmission
             throw new CallNotOpen;
         }
 
-        $form = $this->loadPublishedForm($current);
+        $form = $this->publishedForm->handle($current);
 
         if (! is_numeric($data['form_version'] ?? null)) {
             throw ValidationException::withMessages(['form_version' => __('validation.required', ['attribute' => 'form_version'])]);
@@ -196,7 +193,7 @@ final class SubmitSubmission
             'submission_type_id' => $current->submission_type_id,
             'form_definition_id' => $form->id,
             'form_version' => $form->version,
-            'form_snapshot' => $this->snapshot($form),
+            'form_snapshot' => FormSnapshot::of($form),
             'track_id' => $track->id,
             'title' => $data['title'],
             'answers' => $answers,
@@ -232,21 +229,6 @@ final class SubmitSubmission
             ->log('submission_submitted');
 
         return new SubmitOutcome($submission, true);
-    }
-
-    private function loadPublishedForm(CallForSubmissions $call): FormDefinition
-    {
-        if ($call->form_definition_id === null) {
-            throw new CallNotReady;
-        }
-
-        $form = $this->lockedForm->handle($call->form_definition_id);
-
-        if ($form->status !== FormDefinitionStatus::Published || $form->event_id !== $call->event_id) {
-            throw new CallNotReady;
-        }
-
-        return $form;
     }
 
     /**
@@ -305,23 +287,6 @@ final class SubmitSubmission
         }
 
         return $notice;
-    }
-
-    /**
-     * Copia de la definición con que se envió (CA-006-13): las ediciones posteriores de las
-     * etiquetas no cambian el significado de lo ya enviado.
-     *
-     * @return array<string, mixed>
-     */
-    private function snapshot(FormDefinition $form): array
-    {
-        $snapshot = ['id' => $form->id, 'name' => $form->name, 'version' => $form->version, 'fields' => $form->fields];
-
-        if (strlen((string) json_encode($snapshot)) > self::MAX_SNAPSHOT_BYTES) {
-            throw new CallNotReady;
-        }
-
-        return $snapshot;
     }
 
     /** @param  array<string, mixed>  $participant */

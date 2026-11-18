@@ -20,6 +20,7 @@ const R0_NOTIFICATION_KEYS = [
     'submission.new_for_organizers',
     'submission.updated',
     'submission.withdrawn',
+    'submission.withdrawn_author',
 ];
 
 const CRITICAL_NOTIFICATION_KEYS = [

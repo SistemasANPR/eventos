@@ -29,3 +29,6 @@ export const BUTTON_SECONDARY =
 /** Pie de una página pública: enlace de regreso a la izquierda y selector de idioma a la derecha desde `sm`. */
 export const PAGE_FOOTER =
     'flex flex-col gap-2 border-t border-border pt-4 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between';
+
+/** Tarjeta de un participante en un formulario de propuesta (envío y edición). */
+export const PARTICIPANT_CARD = 'space-y-4 rounded-lg border border-border bg-surface p-4';

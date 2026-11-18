@@ -4,12 +4,14 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Author;
 
+use App\Actions\Submissions\PrepareAuthorEdit;
 use App\Actions\Submissions\ResolveAuthorSubmission;
 use App\Enums\SubmissionStatus;
 use App\Models\Event;
 use App\Models\Organization;
 use App\Support\Auth\AuthorSession;
 use App\Support\Submissions\AuthorSubmissionData;
+use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -20,7 +22,7 @@ use Inertia\Response;
  */
 final class ShowAuthorSubmissionController
 {
-    public function __invoke(Organization $organization, Event $event, AuthorSession $session, ResolveAuthorSubmission $resolve): Response
+    public function __invoke(Organization $organization, Event $event, AuthorSession $session, ResolveAuthorSubmission $resolve, PrepareAuthorEdit $edit, Request $request): Response
     {
         $author = $session->current() ?? abort(404);
 
@@ -36,6 +38,11 @@ final class ShowAuthorSubmissionController
             'withdrawUrl' => $submission->status === SubmissionStatus::Submitted
                 ? route('author.withdraw', ['organization' => $organization->slug, 'event' => $event->slug], false)
                 : null,
+            // Solo se ofrece editar con la convocatoria abierta; el servidor lo vuelve a comprobar al guardar.
+            'editUrl' => $edit->isEditable($submission)
+                ? route('author.edit', ['organization' => $organization->slug, 'event' => $event->slug], false)
+                : null,
+            'wasUpdated' => (bool) $request->session()->pull('author.updated', false),
             'sessionMinutes' => (int) config('submissions.author.session_minutes'),
             'eventUrl' => route('events.show', ['organization' => $organization->slug, 'event' => $event->slug], false)."?lang={$locale}",
         ]);

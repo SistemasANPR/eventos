@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 
 import { FormFieldInput } from '@/components/molecules/FormFieldInput';
-import { BUTTON_SECONDARY, FOCUS_RING } from '@/lib/classes';
+import { BUTTON_SECONDARY, FOCUS_RING, PARTICIPANT_CARD } from '@/lib/classes';
 import { participantFields, titleField, trackField } from '@/lib/submission-fields';
 import type { Translate } from '@/lib/translate';
 import { cn } from '@/lib/utils';
@@ -105,7 +105,7 @@ export function SubmissionBlock({
                     </p>
                 ) : null}
                 {participantIds.map((id, index) => (
-                    <fieldset key={id} className="space-y-4 rounded-lg border border-border bg-surface p-4">
+                    <fieldset key={id} className={PARTICIPANT_CARD}>
                         <legend className="px-1 text-base font-semibold text-text">
                             {t('submit.participant_heading', { number: String(index + 1) })}
                             {index === 0 ? ` ${t('submit.participant_primary')}` : ''}
