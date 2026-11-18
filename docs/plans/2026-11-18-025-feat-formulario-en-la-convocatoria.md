@@ -1,7 +1,7 @@
 # feat: asignar el formulario desde la convocatoria
 
 - **Fecha:** 2026-11-18
-- **Estado:** Aprobado (DA-1 a DA-4 cerradas por Antonio el 2026-11-18, con las recomendaciones)
+- **Estado:** Terminado (2026-11-18: F1 a F3 y ajuste de UX fusionados en staging; cierre pedido por Antonio. No se corrio `composer check` completo ni la suite completa en CI; CA-025-16 verificado en navegador con una app desechable antes del ajuste de UX, sin repetir tras el menu de acciones)
 - **Esfuerzo:** M
 - **Deuda relacionada:** ninguna
 
@@ -96,3 +96,4 @@ Sin rutas JSON ni datos nuevos.
 | F3 | 6731d64 | 2026-11-18 | Pint OK; Larastan sin errores en lo tocado; CA-025-13 y CA-025-14 en `FormDefinitionPanelTest`; `tests/Feature/Calls`, `Forms`, `Events` y `LangParityTest` (CA-025-15): solo fallan SubmissionTypeTest CA-004-30 y TrackTest CA-004-13, preexistentes sin .env. |
 
 | Ajuste UX | (este commit) | 2026-11-18 | Tras la verificacion en navegador: la ayuda del modal de la accion de fila ya no dice «Opcional» (clave `field_help_assign`; el alta conserva `field_help`), «Cambiar formulario» preselecciona el actual (`fillForm`) y las acciones secundarias de la fila (quitar formulario, pausar, reanudar, cerrar, reabrir, ver pagina publica, copiar enlace) van en un `ActionGroup` «⋮» con etiqueta `calls.actions.more`; visibilidades y autorizacion sin cambios. Pint OK; Larastan sin errores en lo tocado; `tests/Feature/Calls`, `Forms` y `LangParityTest`: solo fallan SubmissionTypeTest CA-004-30 y TrackTest CA-004-13, preexistentes sin .env. Nuevas pruebas CA-025-2 y CA-025-3 (TDD: la de preseleccion fallo antes de implementar). Ancho de la tabla a 375 y 1280 px sin verificar tras el cambio. || Renumeracion | (merge con staging) | 2026-11-18 | El numero 022 lo tomo antes el plan de landing de convocatoria; este plan pasa a 025 (archivo y criterios CA-025-n). |
+| Cierre | (este commit) | 2026-11-18 | Marcado Terminado por peticion de Antonio. Validaciones no ejecutadas: `composer check` completo, suite completa en CI y la comprobacion visual del menu de acciones y de los avisos emergentes con el codigo final. Fallos conocidos del entorno sin .env: SubmissionTypeTest CA-004-30 y TrackTest CA-004-13. |
