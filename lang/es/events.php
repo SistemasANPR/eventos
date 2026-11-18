@@ -100,6 +100,6 @@ return [
     ],
 
     'sub_navigation' => [
-        'summary' => 'Resumen',
+        'summary' => 'Convocatorias',
     ],
 ];

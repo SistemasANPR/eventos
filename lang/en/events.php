@@ -99,6 +99,6 @@ return [
     ],
 
     'sub_navigation' => [
-        'summary' => 'Summary',
+        'summary' => 'Calls',
     ],
 ];
