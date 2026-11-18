@@ -8,13 +8,19 @@ use App\Actions\Calls\ChangeCallStatus;
 use App\Actions\Calls\CreateCallForSubmissions;
 use App\Actions\Calls\CreateSubmissionType;
 use App\Actions\Calls\PublishCall;
+use App\Actions\Calls\UnassignFormFromCall;
 use App\Actions\Calls\UpdateCallForSubmissions;
+use App\Actions\Forms\PublishFormDefinition;
 use App\Enums\CallStatus;
+use App\Enums\FormDefinitionStatus;
+use App\Filament\Resources\Events\EventResource;
 use App\Filament\Support\ActionErrors;
 use App\Filament\Support\SubmissionTypeFields;
 use App\Http\Requests\Events\StoreEventRequest;
 use App\Models\CallForSubmissions;
 use App\Models\Event;
+use App\Models\FormDefinition;
+use App\Models\Submission;
 use App\Models\SubmissionType;
 use App\Support\Calls\ResolveCallState;
 use App\Support\Tenancy\CurrentOrganization;
@@ -27,9 +33,13 @@ use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
 use Filament\Resources\RelationManagers\RelationManager;
+use Filament\Schemas\Components\Actions;
+use Filament\Schemas\Components\Text;
+use Filament\Schemas\Components\Utilities\Get;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Js;
@@ -69,6 +79,11 @@ class CallsRelationManager extends RelationManager
                     ->state(fn (CallForSubmissions $record): string => (string) $record->submissionType?->label($this->owner()->default_locale))
                     ->badge()
                     ->color('gray'),
+                TextColumn::make('form_definition_id')
+                    ->label(__('calls.columns.form'))
+                    ->state(fn (CallForSubmissions $record): string => data_get($record, 'formDefinition.name') ?? __('calls.form.none'))
+                    ->badge(fn (CallForSubmissions $record): bool => $record->form_definition_id === null)
+                    ->color(fn (CallForSubmissions $record): string => $record->form_definition_id === null ? 'danger' : 'gray'),
                 TextColumn::make('status')->label(__('calls.columns.status'))->badge(),
                 TextColumn::make('public_state')
                     ->label(__('calls.columns.public_state'))
@@ -77,10 +92,14 @@ class CallsRelationManager extends RelationManager
                     ->label(__('calls.columns.period'))
                     ->state(fn (CallForSubmissions $record): string => $this->localTime($record->opens_at).' – '.$this->localTime($record->closes_at)),
             ])
+            // Sin N+1: el tipo y el formulario de toda la página se cargan de una vez (el modelo es estricto).
+            ->modifyQueryUsing(fn (Builder $query): Builder => $query->with(['submissionType', 'formDefinition']))
             ->defaultSort('opens_at', 'desc')
             ->headerActions([$this->createAction()])
             ->recordActions([
                 $this->editAction(),
+                $this->assignFormAction(),
+                $this->unassignFormAction(),
                 $this->publishAction(),
                 $this->statusAction('pauseCall', 'pause', 'paused', CallStatus::Paused, [CallStatus::Published], Heroicon::OutlinedPauseCircle, 'warning'),
                 $this->statusAction('resumeCall', 'resume', 'resumed', CallStatus::Published, [CallStatus::Paused], Heroicon::OutlinedPlayCircle, 'success', true),
@@ -98,14 +117,124 @@ class CallsRelationManager extends RelationManager
         return Action::make('createCall')
             ->label(__('calls.new_call'))
             ->icon(Heroicon::OutlinedPlus)
-            ->schema(fn (): array => $this->formFields())
+            ->schema(fn (): array => [...$this->formFields(), ...($this->canManageForms() ? [$this->formSelect()] : [])])
             // Más de cuatro campos (tipo, idiomas, textos y fechas): panel lateral (plan 015, DA-5).
             ->slideOver()
             ->visible(fn (): bool => Gate::allows('create', [CallForSubmissions::class, $this->owner()]))
-            ->action(fn (array $data) => $this->run(
-                fn () => app(CreateCallForSubmissions::class)->handle(ActionErrors::actor(), $this->owner(), $data),
-                __('calls.actions.saved'),
+            ->action(function (array $data): void {
+                $formId = $data['form_definition_id'] ?? null;
+                unset($data['form_definition_id']);
+
+                $call = null;
+                $created = $this->run(function () use (&$call, $data): void {
+                    $call = app(CreateCallForSubmissions::class)->handle(ActionErrors::actor(), $this->owner(), $data);
+                }, __('calls.actions.saved'));
+
+                // El alta ya está hecha: si la asignación falla, se avisa y la convocatoria queda sin formulario.
+                if ($created && $call instanceof CallForSubmissions && is_string($formId)) {
+                    $this->run(
+                        fn () => $this->assignForm($formId, $call),
+                        __('calls.form.assigned'),
+                        __('calls.form.assign_failed_on_create'),
+                    );
+                }
+            });
+    }
+
+    /** Asignar o cambiar el formulario (plan 022): la Action publica el borrador y valida el evento. */
+    private function assignFormAction(): Action
+    {
+        $label = fn (CallForSubmissions $record): string => __($record->form_definition_id === null ? 'calls.form.assign' : 'calls.form.change');
+
+        return Action::make('assignForm')
+            ->label($label)
+            ->modalHeading($label)
+            ->icon(Heroicon::OutlinedDocumentText)
+            ->schema(fn (CallForSubmissions $record): array => [
+                $this->formSelect()->required()->live(),
+                Text::make(__('calls.form.draft_notice'))
+                    ->key('draft_notice')
+                    ->color('warning')
+                    ->visible(fn (Get $get): bool => $this->isDraftForm($get('form_definition_id'))),
+                Text::make(__('calls.form.submissions_notice'))
+                    ->key('submissions_notice')
+                    ->color('warning')
+                    ->visible(fn (): bool => Submission::query()->where('call_for_submissions_id', $record->id)->exists()),
+                Actions::make([
+                    Action::make('createForm')
+                        ->label(__('calls.form.create_new'))
+                        ->icon(Heroicon::OutlinedPlus)
+                        ->link()
+                        ->url(fn (): string => EventResource::getUrl('form-definitions', ['record' => $this->owner()])),
+                ]),
+            ])
+            ->visible(fn (): bool => $this->canManageForms())
+            ->action(fn (CallForSubmissions $record, array $data) => $this->run(
+                fn () => $this->assignForm((string) $data['form_definition_id'], $record),
+                __('calls.form.assigned'),
             ));
+    }
+
+    /** Quitar el formulario: solo en borrador (la Action lo exige de nuevo). */
+    private function unassignFormAction(): Action
+    {
+        return Action::make('unassignForm')
+            ->label(__('calls.form.unassign'))
+            ->icon(Heroicon::OutlinedXMark)
+            ->color('gray')
+            ->requiresConfirmation()
+            ->modalDescription(__('calls.form.unassign_confirm'))
+            ->visible(fn (CallForSubmissions $record): bool => $record->status === CallStatus::Draft
+                && $record->form_definition_id !== null
+                && Gate::allows('update', $record))
+            ->action(fn (CallForSubmissions $record) => $this->run(
+                fn () => app(UnassignFormFromCall::class)->handle(ActionErrors::actor(), $record),
+                __('calls.form.unassigned'),
+            ));
+    }
+
+    /** Campo con los formularios del evento. */
+    private function formSelect(): Select
+    {
+        return Select::make('form_definition_id')
+            ->label(__('calls.form.field'))
+            ->helperText(__('calls.form.field_help'))
+            ->options(fn (): array => $this->formOptions());
+    }
+
+    /**
+     * Asignar formularios exige `forms.manage`. El campo del alta se incluye o no al armar el esquema,
+     * y no con `visible()`: una visibilidad con closure en el modal impide que las pruebas de Filament envíen el alta.
+     */
+    private function canManageForms(): bool
+    {
+        return Gate::allows('create', [FormDefinition::class, $this->owner()]);
+    }
+
+    /** @return array<string, string> formularios del evento con su estado y versión */
+    private function formOptions(): array
+    {
+        return FormDefinition::query()
+            ->where('event_id', $this->owner()->id)
+            ->orderBy('name')
+            ->get()
+            ->mapWithKeys(fn (FormDefinition $form): array => [$form->id => __('calls.form.option', [
+                'name' => $form->name,
+                'status' => __("forms.status.{$form->status->value}"),
+                'version' => $form->version,
+            ])])
+            ->all();
+    }
+
+    private function isDraftForm(mixed $formId): bool
+    {
+        return is_string($formId)
+            && FormDefinition::query()->whereKey($formId)->where('status', FormDefinitionStatus::Draft)->exists();
+    }
+
+    private function assignForm(string $formId, CallForSubmissions $call): void
+    {
+        app(PublishFormDefinition::class)->handle(ActionErrors::actor(), FormDefinition::query()->findOrFail($formId), $call);
     }
 
     private function editAction(): Action
@@ -323,21 +452,26 @@ class CallsRelationManager extends RelationManager
         return $owner instanceof Event ? $owner : throw new \LogicException('El gestor de convocatorias necesita un evento.');
     }
 
-    /** @param  callable(): mixed  $operation */
-    private function run(callable $operation, string $successTitle): void
+    /**
+     * @param  callable(): mixed  $operation
+     * @return bool si la operación terminó sin error de validación
+     */
+    private function run(callable $operation, string $successTitle, ?string $failureTitle = null): bool
     {
         try {
             $operation();
         } catch (ValidationException $exception) {
             Notification::make()
-                ->title(__('calls.actions.failed'))
+                ->title($failureTitle ?? __('calls.actions.failed'))
                 ->body(ActionErrors::summary($exception))
                 ->danger()
                 ->send();
 
-            return;
+            return false;
         }
 
         Notification::make()->title($successTitle)->success()->send();
+
+        return true;
     }
 }
