@@ -6,6 +6,7 @@ namespace App\Filament\Resources\Events\Schemas;
 
 use App\Enums\ProgramSocialNetwork;
 use App\Models\Event;
+use App\Models\EventActivity;
 use App\Models\Speaker;
 use App\Models\SpeakerCategory;
 use App\Support\Files\MediaThumbnail;
@@ -97,6 +98,14 @@ final class SpeakerForm
                 ->options(fn (): array => self::categoryOptions($event))
                 ->multiple()
                 ->preload(),
+            // Asignar cambia las actividades: `SyncSpeakerActivities` exige también `activities.manage` (hoy lo tienen
+            // los mismos roles que `speakers.manage`) y un permiso ausente se propaga como 403, no se oculta.
+            Select::make('activity_ids')
+                ->label(__('program.speakers.fields.activities'))
+                ->options(fn (): array => self::activityOptions($event))
+                ->multiple()
+                ->preload()
+                ->searchable(),
             Toggle::make('is_published')
                 ->label(__('program.speakers.fields.is_published'))
                 ->default(true),
@@ -110,6 +119,16 @@ final class SpeakerForm
             ->where('event_id', $event->id)
             ->orderBy('position')
             ->pluck('name', 'id')
+            ->all();
+    }
+
+    /** @return array<string, string> actividades DEL EVENTO (id => título) */
+    public static function activityOptions(Event $event): array
+    {
+        return EventActivity::query()
+            ->where('event_id', $event->id)
+            ->orderBy('title')
+            ->pluck('title', 'id')
             ->all();
     }
 

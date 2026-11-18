@@ -9,6 +9,7 @@ use App\Models\ActivityCategory;
 use App\Models\Event;
 use App\Models\EventActivity;
 use App\Models\Organization;
+use App\Models\Speaker;
 use App\Models\Submission;
 use App\Models\User;
 use App\Support\Files\MediaDisk;
@@ -322,38 +323,90 @@ it('CA-021-17: the list never shows the activities of another organization', fun
         ->assertCanNotSeeTableRecords([EventActivity::query()->withoutGlobalScopes()->findOrFail($foreign->id)]);
 });
 
-it('CA-021-18: the preview route serves the image to the organizer, never to others, and the disk has no public URL', function (): void {
+it('CA-021-18: the list previews the image of an activity with an embedded thumbnail, without publishing the file', function (): void {
     [$organization, $event, $admin] = formScenario();
     $activity = panelActivity($event);
     $path = "organizations/{$organization->id}/events/{$event->id}/media/image/prueba.png";
-    MediaDisk::get()->put($path, UploadedFile::fake()->image('prueba.png', 10, 10)->getContent());
+    MediaDisk::get()->put($path, UploadedFile::fake()->image('prueba.png', 40, 40)->getContent(), 'private');
     CurrentOrganization::run($organization, fn () => $activity->forceFill(['image_path' => $path])->save());
 
-    $url = route('activities.media', ['organization' => $organization->slug, 'activity' => $activity->id, 'type' => 'image']);
+    activitiesPage($organization, $admin, $event)
+        ->assertCanSeeTableRecords([$activity])
+        ->assertSeeHtml('data:image/jpeg;base64,');
 
-    $response = $this->actingAs($admin)->get($url);
-    $response->assertOk();
-    expect($response->headers->get('X-Content-Type-Options'))->toBe('nosniff')
-        ->and($response->headers->get('Cache-Control'))->toContain('private');
-
-    // Sin icono guardado, 404; sin sesión, a iniciar sesión.
-    $this->actingAs($admin)->get(route('activities.media', ['organization' => $organization->slug, 'activity' => $activity->id, 'type' => 'icon']))->assertNotFound();
-    auth()->logout();
-    $this->get($url)->assertRedirect();
+    expect(MediaDisk::get()->getVisibility($path))->toBe('private');
 });
 
-it('CA-021-15: the preview route denies the reviewer and CA-021-17 hides it from another organization', function (): void {
-    [$organization, $event, $reviewer, $admin] = formScenario(OrganizationRole::Reviewer);
-    $activity = panelActivity($event);
-    $path = "organizations/{$organization->id}/events/{$event->id}/media/image/prueba.png";
-    MediaDisk::get()->put($path, UploadedFile::fake()->image('prueba.png', 10, 10)->getContent());
-    CurrentOrganization::run($organization, fn () => $activity->forceFill(['image_path' => $path])->save());
+/** @return list<Speaker> ponentes nuevos del evento */
+function panelSpeakers(Event $event, int $count = 2): array
+{
+    return CurrentOrganization::run($event->organization, fn (): array => Speaker::factory()->count($count)->create(['event_id' => $event->id])->all());
+}
 
-    $url = route('activities.media', ['organization' => $organization->slug, 'activity' => $activity->id, 'type' => 'image']);
-    $this->actingAs($reviewer)->get($url)->assertForbidden();
+it('CA-021-5: the form assigns speakers of the event when creating and replaces them when editing, and the list shows them', function (): void {
+    [$organization, $event, $admin] = formScenario();
+    [$ada, $grace] = panelSpeakers($event);
+    $data = ['title' => 'Mesa', 'starts_on' => '2027-03-10', 'ends_on' => '2027-03-10', 'starts_at' => '09:00', 'ends_at' => '10:00'];
 
-    [$otherOrganization, , $outsider] = formScenario();
-    $foreignUrl = route('activities.media', ['organization' => $otherOrganization->slug, 'activity' => $activity->id, 'type' => 'image']);
-    $this->actingAs($outsider)->get($foreignUrl)->assertNotFound();
-    expect($admin)->not->toBeNull();
+    activitiesPage($organization, $admin, $event)
+        ->callAction('createActivity', [...$data, 'speaker_ids' => [$ada->id, $grace->id]])
+        ->assertHasNoActionErrors();
+
+    $activity = CurrentOrganization::run($organization, fn () => EventActivity::query()->firstOrFail());
+    $names = fn (): array => CurrentOrganization::run($organization, fn () => $activity->speakers()->get()->pluck('id')->all());
+
+    expect($names())->toBe([$ada->id, $grace->id]);
+
+    activitiesPage($organization, $admin, $event)
+        ->callAction(TestAction::make('editActivity')->table($activity), [...$data, 'speaker_ids' => [$grace->id]])
+        ->assertHasNoActionErrors();
+
+    expect($names())->toBe([$grace->id]);
+
+    activitiesPage($organization, $admin, $event)->assertSee($grace->full_name);
+});
+
+it('CA-021-5: an activity can be saved with no speakers', function (): void {
+    [$organization, $event, $admin] = formScenario();
+    [$ada] = panelSpeakers($event, 1);
+    $data = ['title' => 'Mesa', 'starts_on' => '2027-03-10', 'ends_on' => '2027-03-10', 'starts_at' => '09:00', 'ends_at' => '10:00'];
+
+    activitiesPage($organization, $admin, $event)->callAction('createActivity', [...$data, 'speaker_ids' => [$ada->id]])->assertHasNoActionErrors();
+    $activity = CurrentOrganization::run($organization, fn () => EventActivity::query()->firstOrFail());
+
+    activitiesPage($organization, $admin, $event)
+        ->callAction(TestAction::make('editActivity')->table($activity), [...$data, 'speaker_ids' => []])
+        ->assertHasNoActionErrors();
+
+    expect(CurrentOrganization::run($organization, fn () => $activity->speakers()->count()))->toBe(0);
+});
+
+it('CA-021-5 CA-021-17: a speaker of another event or organization is refused by the form and assigns nothing', function (): void {
+    [$organization, $event, $admin] = formScenario();
+    [, $otherEvent] = formScenario();
+    [$foreign] = panelSpeakers($otherEvent, 1);
+
+    activitiesPage($organization, $admin, $event)
+        ->callAction('createActivity', [
+            'title' => 'Mesa', 'starts_on' => '2027-03-10', 'ends_on' => '2027-03-10', 'starts_at' => '09:00', 'ends_at' => '10:00',
+            'speaker_ids' => [$foreign->id],
+        ])
+        ->assertHasActionErrors();
+
+    expect(CurrentOrganization::run($organization, fn () => EventActivity::query()->count()))->toBe(0);
+});
+
+it('CA-021-2: the description typed in the form is saved sanitized', function (): void {
+    [$organization, $event, $admin] = formScenario();
+
+    activitiesPage($organization, $admin, $event)
+        ->callAction('createActivity', [
+            'title' => 'Mesa', 'starts_on' => '2027-03-10', 'ends_on' => '2027-03-10', 'starts_at' => '09:00', 'ends_at' => '10:00',
+            'description' => '<p>Hola</p><script>alert(1)</script>',
+        ])
+        ->assertHasNoActionErrors();
+
+    $activity = CurrentOrganization::run($organization, fn () => EventActivity::query()->firstOrFail());
+
+    expect($activity->description)->toBe('<p>Hola</p>');
 });

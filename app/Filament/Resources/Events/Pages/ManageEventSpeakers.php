@@ -218,6 +218,7 @@ class ManageEventSpeakers extends ManageRelatedRecords
             'bio' => $speaker->bio,
             'social_links' => $speaker->social_links,
             'category_ids' => $speaker->categories()->pluck('speaker_categories.id')->all(),
+            'activity_ids' => $speaker->activities()->pluck('event_activities.id')->all(),
             'is_published' => $speaker->is_published,
         ];
     }
@@ -264,7 +265,12 @@ class ManageEventSpeakers extends ManageRelatedRecords
             $errors = [];
 
             foreach ($exception->errors() as $field => $messages) {
-                $key = str_starts_with($field, 'social_links.') ? 'social_links' : (str_starts_with($field, 'category_ids.') ? 'category_ids' : $field);
+                $key = match (true) {
+                    str_starts_with($field, 'social_links.') => 'social_links',
+                    str_starts_with($field, 'category_ids.') => 'category_ids',
+                    str_starts_with($field, 'activity_ids.') => 'activity_ids',
+                    default => $field,
+                };
                 $errors[$key] = [...($errors[$key] ?? []), ...$messages];
             }
 

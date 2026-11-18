@@ -7,6 +7,7 @@ use App\Enums\OrganizationRole;
 use App\Filament\Resources\Events\EventResource;
 use App\Filament\Resources\Events\Pages\ManageEventSpeakers;
 use App\Models\Event;
+use App\Models\EventActivity;
 use App\Models\Organization;
 use App\Models\Speaker;
 use App\Models\SpeakerCategory;
@@ -300,4 +301,42 @@ it('CA-021-17: the list never shows the speakers of another event or of another 
         ->assertCanNotSeeTableRecords([$ofOtherEvent])
         ->assertCanNotSeeTableRecords([Speaker::query()->withoutGlobalScopes()->findOrFail($foreign->id)])
         ->assertDontSee('Ajeno');
+});
+
+/** @return list<EventActivity> actividades nuevas del evento */
+function panelSpeakerActivities(Event $event, int $count = 2): array
+{
+    return CurrentOrganization::run($event->organization, fn (): array => EventActivity::factory()->count($count)->create(['event_id' => $event->id])->all());
+}
+
+it('CA-021-5: the speaker form assigns activities of the event when creating and replaces them when editing', function (): void {
+    [$organization, $event, $admin] = formScenario();
+    [$first, $second] = panelSpeakerActivities($event);
+
+    speakersPage($organization, $admin, $event)
+        ->callAction('createSpeaker', ['first_name' => 'Ada', 'last_name' => 'Lovelace', 'activity_ids' => [$first->id, $second->id]])
+        ->assertHasNoActionErrors();
+
+    $speaker = Speaker::query()->where('event_id', $event->id)->firstOrFail();
+    $ids = fn (): array => DB::table('activity_speaker')->where('speaker_id', $speaker->id)->orderBy('activity_id')->pluck('activity_id')->all();
+
+    expect($ids())->toEqualCanonicalizing([$first->id, $second->id]);
+
+    speakersPage($organization, $admin, $event)
+        ->callAction(TestAction::make('editSpeaker')->table($speaker), ['first_name' => 'Ada', 'last_name' => 'Lovelace', 'activity_ids' => [$second->id]])
+        ->assertHasNoActionErrors();
+
+    expect($ids())->toBe([$second->id]);
+});
+
+it('CA-021-5 CA-021-17: the speaker form refuses an activity of another event or organization', function (): void {
+    [$organization, $event, $admin] = formScenario();
+    [, $otherEvent] = formScenario();
+    [$foreign] = panelSpeakerActivities($otherEvent, 1);
+
+    speakersPage($organization, $admin, $event)
+        ->callAction('createSpeaker', ['first_name' => 'Ada', 'last_name' => 'Lovelace', 'activity_ids' => [$foreign->id]])
+        ->assertHasActionErrors();
+
+    expect(Speaker::query()->count())->toBe(0)->and(DB::table('activity_speaker')->count())->toBe(0);
 });

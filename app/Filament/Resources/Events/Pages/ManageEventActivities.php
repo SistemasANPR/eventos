@@ -12,8 +12,9 @@ use App\Filament\Resources\Events\EventResource;
 use App\Filament\Support\ActionErrors;
 use App\Models\Event;
 use App\Models\EventActivity;
+use App\Models\Speaker;
 use App\Support\Files\MediaDisk;
-use App\Support\Tenancy\CurrentOrganization;
+use App\Support\Files\MediaThumbnail;
 use BackedEnum;
 use Carbon\Carbon;
 use Filament\Actions\Action;
@@ -53,7 +54,8 @@ use LogicException;
  * entra y quién cambia lo deciden `EventActivityPolicy` (`activities.manage`; eliminar,
  * `activities.delete`). Delgado: las reglas viven en las Actions. Fecha y hora son las LOCALES del
  * evento (DA-12); una actividad sin ellas muestra «Sin programar». Las imágenes se previsualizan con
- * la ruta autenticada `activities.media`, nunca con una URL pública del disco.
+ * una miniatura incrustada hecha en el servidor (`MediaThumbnail`, igual que la foto del ponente): el
+ * disco es privado y la ruta pública solo sirve lo publicado, así que el panel no depende de ella.
  */
 class ManageEventActivities extends ManageRelatedRecords
 {
@@ -79,7 +81,7 @@ class ManageEventActivities extends ManageRelatedRecords
         $event = $this->event();
 
         return $table
-            ->modifyQueryUsing(fn (Builder $query): Builder => $query->with(['submission', 'categories']))
+            ->modifyQueryUsing(fn (Builder $query): Builder => $query->with(['submission', 'categories', 'speakers']))
             ->columns([
                 ImageColumn::make('thumbnail')
                     ->label(__('program.activities.columns.image'))
@@ -105,6 +107,12 @@ class ManageEventActivities extends ManageRelatedRecords
                     ->label(__('program.activities.columns.categories'))
                     ->badge()
                     ->color('gray'),
+                TextColumn::make('speakers')
+                    ->label(__('program.activities.columns.speakers'))
+                    ->state(fn (EventActivity $record): array => $record->speakers->map(fn (Speaker $speaker): string => $speaker->full_name)->all())
+                    ->listWithLineBreaks()
+                    ->limitList(3)
+                    ->toggleable(),
                 IconColumn::make('is_published')
                     ->label(__('program.activities.columns.published'))
                     ->boolean(),
@@ -250,6 +258,12 @@ class ManageEventActivities extends ManageRelatedRecords
             RichEditor::make('description')
                 ->label(__('program.activities.form.description'))
                 ->toolbarButtons([['bold', 'italic', 'link'], ['bulletList', 'orderedList'], ['undo', 'redo']]),
+            Select::make('speaker_ids')
+                ->label(__('program.activities.form.speakers'))
+                ->multiple()
+                ->preload()
+                ->searchable()
+                ->options(fn (): array => $this->speakerOptions()),
             Select::make('category_ids')
                 ->label(__('program.activities.form.categories'))
                 ->multiple()
@@ -303,6 +317,7 @@ class ManageEventActivities extends ManageRelatedRecords
             'summary' => $activity->summary,
             'description' => $activity->description,
             'category_ids' => $activity->categories->pluck('id')->all(),
+            'speaker_ids' => $activity->speakers->pluck('id')->all(),
             'is_published' => $activity->is_published,
         ];
     }
@@ -337,7 +352,15 @@ class ManageEventActivities extends ManageRelatedRecords
         try {
             $operation();
         } catch (ValidationException $exception) {
-            throw ActionErrors::forForm($exception, $schema->getStatePath());
+            // Un error por ponente elegido se muestra junto al selector, que es un solo campo.
+            $errors = [];
+
+            foreach ($exception->errors() as $field => $messages) {
+                $key = str_starts_with($field, 'speaker_ids.') ? 'speaker_ids' : $field;
+                $errors[$key] = [...($errors[$key] ?? []), ...$messages];
+            }
+
+            throw ActionErrors::forForm(ValidationException::withMessages($errors), $schema->getStatePath());
         } finally {
             foreach (['icon', 'image'] as $field) {
                 if (($data[$field] ?? null) instanceof TemporaryUploadedFile) {
@@ -401,21 +424,20 @@ class ManageEventActivities extends ManageRelatedRecords
         return $submission !== null && Gate::allows('view', $submission) ? $submission->title : null;
     }
 
-    /** URL autenticada del archivo de la actividad (`activities.media`); nula si no tiene ese archivo. */
+    /** Miniatura incrustada del archivo de la actividad (como la del ponente); nula si no tiene ese archivo. */
     private static function mediaUrl(EventActivity $activity, string $type): ?string
     {
-        $path = $type === 'icon' ? $activity->icon_path : $activity->image_path;
+        return MediaThumbnail::dataUri($type === 'icon' ? $activity->icon_path : $activity->image_path, $type === 'icon' ? 96 : 160);
+    }
 
-        if ($path === null) {
-            return null;
-        }
-
-        return route('activities.media', [
-            'organization' => CurrentOrganization::get()->slug,
-            'activity' => $activity->id,
-            'type' => $type,
-            'v' => substr(hash('sha256', $path), 0, 8),
-        ]);
+    /** @return array<string, string> ponentes DEL EVENTO (id => nombre), por apellido */
+    private function speakerOptions(): array
+    {
+        return $this->event()->speakers()
+            ->orderBy('last_name')->orderBy('first_name')
+            ->get()
+            ->mapWithKeys(fn (Speaker $speaker): array => [$speaker->id => $speaker->full_name])
+            ->all();
     }
 
     private function activity(Model $record): EventActivity
