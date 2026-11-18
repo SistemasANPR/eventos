@@ -40,7 +40,7 @@ export default function Show({ call, event, organization, eventUrl, privacyUrl, 
     const { t } = useTranslation();
 
     const style = STATE_STYLE[call.state];
-    const formatDate = (instant: string): string => formatEventInstant(instant, call.timezone, call.locale);
+    const formatDate = (instant: string): string => formatEventInstant(instant, call.timezone, call.locale, call.timeFormat);
 
     return (
         <PublicLayout organizationName={organization.name}>

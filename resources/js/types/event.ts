@@ -1,3 +1,6 @@
+/** Formato de hora del evento (plan 022): solo cambia cómo se muestran las horas. */
+export type TimeFormat = '12h' | '24h';
+
 /** Evento público: coincide con `App\Support\Events\PublicEventData` (sin identificadores internos). */
 export interface PublicEvent {
     name: string;
@@ -11,6 +14,8 @@ export interface PublicEvent {
     venueName: string | null;
     venueAddress: string | null;
     city: string | null;
+    /** Cómo se muestran las horas del evento. */
+    timeFormat: TimeFormat;
     /** Idioma de esta respuesta. */
     locale: string;
     /** Idiomas en que el evento está disponible. */

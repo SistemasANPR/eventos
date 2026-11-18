@@ -12,6 +12,7 @@ export function EventHeroDemo() {
         startsAt: '2027-03-10T15:00:00Z',
         endsAt: '2027-03-12T23:00:00Z',
         timezone: 'America/Mexico_City',
+        timeFormat: '12h',
         venueName: t('catalog.demo_data.event_venue'),
         venueAddress: null,
         city: t('catalog.demo_data.event_city'),

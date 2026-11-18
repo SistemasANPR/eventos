@@ -19,7 +19,7 @@ interface EventHeroProps {
 export function EventHero({ event, privacyUrl }: EventHeroProps) {
     const { t } = useTranslation();
 
-    const dates = formatEventDates(event.startsAt, event.endsAt, event.timezone, event.locale);
+    const dates = formatEventDates(event.startsAt, event.endsAt, event.timezone, event.locale, event.timeFormat);
     const venue = [event.venueName, event.city].filter(Boolean).join(', ');
 
     return (

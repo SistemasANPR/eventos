@@ -27,6 +27,7 @@ const event: PublicEvent = {
     startsAt: '2027-03-10T15:00:00Z',
     endsAt: '2027-03-12T23:00:00Z',
     timezone: 'America/Mexico_City',
+    timeFormat: '12h',
     venueName: 'Centro de Convenciones',
     venueAddress: null,
     city: 'Ciudad de México',

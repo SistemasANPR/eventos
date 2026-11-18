@@ -15,7 +15,7 @@ use Illuminate\Http\Request;
  */
 final class PublicEventData
 {
-    /** @return array{name: string, description: ?string, startsAt: string, endsAt: string, timezone: string, venueName: ?string, venueAddress: ?string, city: ?string, locale: string, locales: list<string>} */
+    /** @return array{name: string, description: ?string, startsAt: string, endsAt: string, timezone: string, venueName: ?string, venueAddress: ?string, city: ?string, timeFormat: string, locale: string, locales: list<string>} */
     public static function from(Event $event, string $locale): array
     {
         return [
@@ -27,6 +27,7 @@ final class PublicEventData
             'venueName' => $event->venue_name,
             'venueAddress' => $event->venue_address,
             'city' => $event->city,
+            'timeFormat' => $event->time_format->value,
             'locale' => $locale,
             'locales' => $event->locales,
         ];

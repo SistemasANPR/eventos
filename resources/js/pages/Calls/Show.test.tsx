@@ -47,6 +47,7 @@ const call: PublicCall = {
     closesAt: '2027-02-15T23:00:00Z',
     resultsAt: '2027-03-01T18:00:00Z',
     timezone: 'America/Mexico_City',
+    timeFormat: '12h',
     locale: 'es',
     locales: ['es', 'en'],
     tracks: [
