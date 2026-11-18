@@ -91,6 +91,7 @@ Cada propuesta sigue el formato de la sección 6 y viaja con su plan. Las anteri
 4. **Integridad:**
    - Único `(event_id, lower(email))` en `speakers` donde `email` no es nulo y `deleted_at` es nulo (DA-5). Los alias `+` no se normalizan.
    - Único `(event_id, lower(name))` en cada tabla de categorías. Único `submission_id` en `event_activities`.
+   - Propuesta y lo que nace de ella son del mismo evento (F5): `event_activities.submission_id` y `speakers.created_by_submission_id` van por clave foránea compuesta `(propuesta, evento, organización)` hacia `submissions`, que gana `unique(id, event_id, organization_id)`. Con la columna nula el vínculo es opcional.
    - `CHECK` en `event_activities`: `starts_on`, `ends_on`, `starts_at` y `ends_at` son todos nulos o todos no nulos, y el fin no es anterior al inicio (`ends_on >= starts_on`, y si es el mismo día `ends_at >= starts_at`). La obligatoriedad de las cuatro al dar de alta a mano la exige el Form Request (DA-4).
    - `CHECK` de `speakers.social_links`: es un arreglo JSON (`jsonb_typeof = 'array'`); red única y dominio por red los valida el Form Request (DA-17).
    - **Excepción a «fechas en UTC» (DA-12):** `starts_on`, `ends_on`, `starts_at` y `ends_at` son fecha y hora **locales del evento**, sin zona; se interpretan siempre con la zona horaria del evento (`events`). Un programa se lee en la hora del lugar y convertir a UTC obligaría a recalcular si el evento cambia de zona. Los demás instantes (`hidden_by_reversal_at`, `deleted_at`, `timestamps`) siguen en UTC.
