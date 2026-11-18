@@ -53,8 +53,9 @@ final class StoreSubmissionRequest extends FormRequest
     public function rules(): array
     {
         $call = $this->route('call');
-        $fixed = $call instanceof CallForSubmissions
-            ? self::fieldRules($call->min_participants, $call->max_participants, $call->locales)
+        $event = $this->route('event');
+        $fixed = $call instanceof CallForSubmissions && $event instanceof Event
+            ? self::fieldRules($call->min_participants, $call->max_participants, $event->effectiveLocalesForCall($call))
             : self::fieldRules();
 
         return $fixed + [

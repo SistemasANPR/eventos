@@ -41,7 +41,7 @@ final class ShowSubmissionConfirmationController
         app()->setLocale($locale);
 
         return Inertia::render('Calls/Submitted', [
-            'call' => ['title' => $call->getTranslation('title', $locale), 'locale' => $locale, 'locales' => $call->locales],
+            'call' => ['title' => $call->getTranslation('title', $locale), 'locale' => $locale, 'locales' => $event->effectiveLocalesForCall($call)],
             'event' => ['name' => $event->getTranslation('name', $locale)],
             'organization' => ['name' => $organization->name, 'slug' => $organization->slug],
             'callUrl' => route('calls.show', $callRoute, false)."?lang={$locale}",
