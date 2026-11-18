@@ -15,12 +15,14 @@ return [
         'track' => 'Track',
         'status' => 'Status',
         'submitted_at' => 'Submitted',
+        'activity' => 'Activity',
     ],
 
     'filters' => [
         'range' => 'Submission date',
         'from' => 'From',
         'until' => 'Until',
+        'show_accepted' => 'Also show accepted',
         'invalid' => 'The filter is not valid. Check the values and try again.',
     ],
 

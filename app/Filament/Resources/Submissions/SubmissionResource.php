@@ -78,7 +78,7 @@ class SubmissionResource extends Resource
     {
         return $query
             ->where('origin', SubmissionOrigin::Call)
-            ->with(['event', 'call', 'submissionType', 'track']);
+            ->with(['event', 'call', 'submissionType', 'track', 'activity']);
     }
 
     /**

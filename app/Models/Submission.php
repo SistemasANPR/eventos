@@ -13,6 +13,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Carbon;
 
@@ -48,6 +49,7 @@ use Illuminate\Support\Carbon;
  * @property Carbon $submitted_at
  * @property Carbon|null $withdrawn_at
  * @property int $version
+ * @property-read EventActivity|null $activity
  */
 class Submission extends Model
 {
@@ -126,6 +128,16 @@ class Submission extends Model
     public function participants(): HasMany
     {
         return $this->hasMany(SubmissionParticipant::class)->orderBy('position');
+    }
+
+    /**
+     * La actividad del programa que nació de esta propuesta al aceptarla (plan 021); a lo sumo una.
+     *
+     * @return HasOne<EventActivity, $this>
+     */
+    public function activity(): HasOne
+    {
+        return $this->hasOne(EventActivity::class);
     }
 
     /** @return HasMany<SubmissionAccessToken, $this> */

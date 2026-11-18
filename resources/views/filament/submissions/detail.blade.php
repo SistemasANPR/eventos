@@ -6,6 +6,7 @@
      * @var \App\Models\Submission $submission
      * @var array{answers: list<array<string, mixed>>, participants: list<array<string, mixed>>, canDownload: bool} $detail
      * @var string $submittedAt
+     * @var array{title: string, url: string}|null $activityLink
      */
 @endphp
 
@@ -37,6 +38,14 @@
                 <div>
                     <dt class="fi-fo-field-label-content">{{ __('submission_panel.columns.call') }}</dt>
                     <dd style="margin: 0;">{{ $submission->call->getTranslation('title', app()->getLocale(), true) }}</dd>
+                </div>
+            @endif
+            @if ($activityLink !== null)
+                <div>
+                    <dt class="fi-fo-field-label-content">{{ __('submission_panel.columns.activity') }}</dt>
+                    <dd style="margin: 0; overflow-wrap: anywhere;">
+                        <a href="{{ $activityLink['url'] }}" class="fi-link">{{ $activityLink['title'] }}</a>
+                    </dd>
                 </div>
             @endif
             <div>
