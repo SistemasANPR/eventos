@@ -38,6 +38,8 @@ return [
         'ends_at' => 'End',
         'dates_help' => 'Local time of the event time zone.',
         'timezone' => 'Time zone',
+        'time_format' => 'Time format',
+        'time_format_help' => 'How the times of this event are shown in the panel and on the public site.',
         'venue_name' => 'Venue name',
         'venue_address' => 'Address',
         'city' => 'City',
@@ -56,6 +58,10 @@ return [
         'starts_at' => 'Dates',
     ],
 
+    'time_format' => [
+        'options' => ['12h' => '12-hour (2:30 pm)', '24h' => '24-hour (14:30)'],
+        'suffix_24h' => '',
+    ],
     'status' => [
         'draft' => 'Draft',
         'published' => 'Published',
