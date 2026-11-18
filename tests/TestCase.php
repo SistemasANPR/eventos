@@ -18,5 +18,10 @@ abstract class TestCase extends BaseTestCase
         parent::setUp();
 
         $this->withoutVite();
+
+        // El mailer «smtp» entrega a Mailpit (MAIL_HOST). `MAIL_MAILER=array` de phpunit.xml solo cambia
+        // el mailer por defecto, y el adaptador SMTP usa este por su nombre: sin esto, las pruebas que
+        // envían correo dependen de que haya un servidor SMTP (en CI no lo hay).
+        config(['mail.mailers.smtp' => ['transport' => 'array']]);
     }
 }
