@@ -11,18 +11,19 @@
 
 Hoy la página pública de una convocatoria es una plantilla fija: título, descripción en texto plano, estado, fechas, ejes y el botón de envío. El organizador no puede cambiar su aspecto ni añadir contenido propio (imagen principal, texto con formato, preguntas frecuentes, galería). El plan maestro dejó la landing informativa fuera de R0, en el sitio actual (`docs/plan-de-desarrollo.md`, RC-5); este plan la trae a la plataforma.
 
-Al crear una convocatoria nace con ella una **landing** ya armada con una plantilla predeterminada. El organizador la edita en el panel con un **editor por bloques** inspirado en los constructores visuales (añadir, ordenar, duplicar y quitar bloques; ajustar cada uno; ver cómo queda en móvil y en escritorio antes de publicar) y la publica cuando quiere. El visitante ve la landing publicada en la URL de la convocatoria que ya existe.
+Cuando el organizador **publica una convocatoria** se crea su **landing** con una plantilla predeterminada y queda visible en la URL de la convocatoria que ya existe. Desde la fila de la convocatoria (junto a «Editar» y «Publicar») y desde su pantalla de edición se abre un **editor visual de la landing**, inspirado en Elementor: a un lado la página tal como la verá el visitante, y al otro un panel para elegir, ajustar, ordenar, duplicar y quitar bloques, con vistas de móvil, tablet y escritorio. Los cambios se guardan en un borrador y se publican cuando el organizador quiere.
 
 **Dentro:**
 - Una landing por convocatoria, con borrador y versión publicada.
 - Catálogo cerrado de bloques (lista blanca), con textos por idioma de la convocatoria.
-- Editor en el panel de organizadores con vista previa en vivo (el mismo renderizador React que usa el sitio público) y vistas de móvil, tablet y escritorio.
+- Editor visual de dos zonas (lienzo y panel de ajustes) en una pantalla propia del panel de organizadores, que muestra la página con el mismo renderizador React que usa el sitio público. Se elige un bloque haciendo clic en el lienzo.
+- Entradas al editor: acción «Diseñar landing» en la fila de la convocatoria y botón en su pantalla de edición.
 - Imágenes subidas por el organizador, en un disco privado y servidas por la aplicación.
-- Plantilla predeterminada al crear la convocatoria; la página actual sigue funcionando para convocatorias sin landing publicada.
-- Publicar, descartar el borrador y registro en la auditoría.
+- Al publicar la convocatoria se crea y se publica su landing con la plantilla; la página actual sigue funcionando para convocatorias sin landing publicada.
+- Publicar la landing, descartar el borrador y registro en la auditoría.
 
 **Fuera:**
-- Lienzo con arrastrar y soltar libre sobre la página (WYSIWYG tipo Elementor completo): se descarta para este plan (DA-2) y puede ser un plan posterior.
+- Arrastrar y soltar con el ratón y edición del texto directamente sobre la página: en este plan los bloques se mueven con botones y teclado (DA-2); el arrastre puede ser un plan posterior, con una librería que hoy no está autorizada.
 - HTML, CSS o JavaScript personalizados, `iframe` y videos incrustados.
 - Landing por evento (una página del evento con su propio editor) y sitio de varias páginas.
 - Marca blanca por organización y colores libres: el aspecto sale de los tokens de `design.md` (ADR-0004, DA-4).
@@ -40,6 +41,7 @@ Medido el 2026-11-18 sobre `staging`:
 - **Permisos:** `calls.manage` y `calls.view` ya existen en `RolePermissions`. No hay un permiso de landing.
 - **Patrones reutilizables:** definición en `jsonb` validada con una clase de esquema y con límites de tamaño (ADR-0010); vista previa dentro del panel que monta el mismo componente React del sitio público (ADR-0010, excepción acotada al ADR-0004, planes 005 y 021); `RichTextSanitizer` con lista blanca para texto enriquecido (plan 021, DA-16); disco `media`, `StoreProgramImage` y rutas públicas de imágenes que solo sirven lo publicado (plan 021, DA-11); catálogo de componentes (`design.md` §1.4) con `RichText`, `EventHero` y `TextLink`.
 - **Planes vecinos:** el 019 (duplicar evento, Borrador) copia las convocatorias; el 020 (panel con el evento como eje, Aprobado) fija dónde viven las pantallas del evento; el 021 (ponentes, Aprobado) deja el disco `media` y los ponentes publicados.
+- **Pantalla de convocatorias:** `CallsRelationManager`, dentro de la vista del evento, lista cada convocatoria con las acciones «Editar» y «Publicar» en su fila (comprobado en el panel el 2026-11-18). Ahí se añade «Diseñar landing».
 - **Nombres:** el glosario ya usa «Bloque» para `ScheduleBlock` (rango de horario del programa). El bloque de la landing debe nombrarse distinto (DA-13).
 - **Seguridad:** `docs/seguridad.md` pide sanear en el servidor el texto con formato y no servir `.svg` con scripts ni `.html`; la CSP se ajusta a los scripts reales del sitio público.
 
@@ -48,11 +50,11 @@ Medido el 2026-11-18 sobre `staging`:
 Todas abiertas, con su recomendación. Se cierran antes de implementar y se anota la fecha.
 
 - DA-1: la landing es **de la convocatoria** (una por convocatoria).
-- DA-2: **editor por bloques en el panel con vista previa en vivo** (no lienzo libre).
+- DA-2: **editor visual de dos zonas** (lienzo con la página real y panel de ajustes), sin arrastre con ratón.
 - DA-3: catálogo de **9 bloques** de lista blanca.
 - DA-4: datos en `jsonb` validado, con **borrador y versión publicada**.
 - DA-5: textos **por idioma de la convocatoria**.
-- DA-6: la landing **nace con plantilla**; sin landing publicada se ve la página actual.
+- DA-6: la landing **se crea y se publica con plantilla al publicar la convocatoria**; sin landing publicada se ve la página actual.
 - DA-7: imágenes en el disco `media`, servidas **solo si están en la versión publicada**.
 - DA-8: texto enriquecido con **`RichTextSanitizer`** y enlaces `https`.
 - DA-9: **sin SSR** (RC-5), con metadatos básicos.
@@ -68,9 +70,13 @@ Todas abiertas, con su recomendación. Se cierran antes de implementar y se anot
 
 Opciones: (a) por convocatoria; (b) por evento, con la convocatoria como un bloque; (c) ambas. El pedido es «al generar una convocatoria, aparece la landing», y la URL pública que ya existe es la de la convocatoria. Recomendación (a): no cambia rutas, las convocatorias de un mismo evento pueden tener mensajes distintos (por ejemplo, ponencias y pósteres) y cada una se publica por separado. La landing del evento queda como un plan futuro, que reutilizaría el mismo renderizador y el mismo esquema de bloques.
 
-### DA-2 · Tipo de editor — se recomienda **editor por bloques en el panel, con vista previa en vivo**
+### DA-2 · Tipo de editor — se recomienda **editor visual de dos zonas, sin arrastre con ratón**
 
-Opciones: (a) editor por bloques en Filament (lista ordenable de bloques, un formulario por bloque) más una vista previa en vivo en React; (b) lienzo WYSIWYG con arrastrar y soltar directamente sobre la página; (c) campos fijos sin bloques. Se recomienda (a) porque da el «sentirse como Elementor» que importa al organizador (añadir, reordenar, duplicar, ajustar y ver el resultado en móvil y escritorio) sin una dependencia nueva de arrastre ni un editor propio, y reutiliza el patrón ya aceptado del ADR-0010: la vista previa monta el mismo `LandingRenderer` que el sitio público para que no diverjan. Alternativa descartada, (b): exige una librería de arrastre fuera de la lista de dependencias autorizadas, mucho más esfuerzo y un riesgo mayor de accesibilidad con teclado; si el uso real lo pide, puede ser el plan siguiente sobre el mismo esquema de datos. (c) no cumple lo pedido.
+Se pidió un editor «tipo Elementor». Opciones: (a) **editor visual de dos zonas**: pantalla propia en el panel con el **lienzo** a un lado (la página real, montada con el mismo `LandingRenderer` que el sitio público) y un **panel de ajustes** al otro; se hace clic en un bloque del lienzo para seleccionarlo y su formulario aparece en el panel; una biblioteca de bloques para añadir; botones y teclado para mover, duplicar y quitar; interruptor de móvil, tablet y escritorio; (b) lienzo con arrastrar y soltar y edición directa del texto sobre la página; (c) formulario de bloques de Filament con una vista previa aparte.
+
+Se recomienda (a): da lo esencial de la experiencia de Elementor (ver la página, elegir un bloque con un clic, ajustarlo y ver el cambio al instante) sin una librería de arrastre, que hoy no está en la lista de dependencias autorizadas y tiene un riesgo alto de accesibilidad con teclado. Mover con botones («subir» y «bajar») y teclado cumple AA. Se apoya en el patrón ya aceptado del ADR-0010 (React montado dentro de una página del panel, con el mismo componente del sitio público para que no diverjan); aquí se amplía de «vista previa de solo lectura» a «lienzo que selecciona bloques». El estado del editor se guarda con acciones de Livewire llamadas desde la página (`$wire`), así que **no se crea ninguna ruta JSON nueva**.
+
+Alternativas descartadas: (b) exige añadir la librería de arrastre (requiere permiso, acción 4 de `AGENTS.md`), mucho más esfuerzo y edición de texto en línea con alto riesgo de XSS y accesibilidad; puede ser el plan siguiente sobre el mismo esquema de datos y el mismo lienzo. (c) es la opción barata, pero no se siente como un editor visual y duplica la vista previa.
 
 ### DA-3 · Catálogo de bloques — se recomienda **9 bloques de lista blanca**
 
@@ -84,9 +90,11 @@ Una tabla `call_landings` (una fila por convocatoria) con `draft_blocks` y `publ
 
 Cada texto de un bloque es un objeto `{es, en, pt}` con los idiomas de `call.locales`; el editor muestra una pestaña por idioma y marca los textos que faltan. Si falta un idioma, se muestra el idioma base del evento (igual que hoy, CA-004-19). Las imágenes tienen el texto alternativo por idioma. Los textos de la plataforma (etiquetas fijas como «Fechas clave») salen de `lang/`.
 
-### DA-6 · Nacimiento y compatibilidad — se recomienda **plantilla al crear; la página actual sigue como respaldo**
+### DA-6 · Nacimiento y compatibilidad — se recomienda **la landing se crea y se publica al publicar la convocatoria; la página actual sigue como respaldo**
 
-`CreateCallForSubmissions` crea también la landing con una plantilla predeterminada en borrador (`hero`, `key_dates`, `tracks`, `call_to_action`). Las convocatorias que ya existen no se tocan: su landing se crea la primera vez que el organizador la abre. Mientras la landing no tenga versión publicada, la ruta pública sigue entregando la página actual sin cambios (compatibilidad hacia atrás, CA-004-17 a 21 intactos). Publicar la landing no cambia el estado de la convocatoria: la visibilidad (404 en borrador) la sigue decidiendo `status`.
+Regla: **publicar la convocatoria publica su landing.** `PublishCall` crea la landing con una plantilla predeterminada (`hero`, `key_dates`, `tracks`, `call_to_action`) si todavía no existe, y publica su borrador actual. Así la landing aparece sola desde el primer día, tal como se pidió. El organizador puede abrir el editor **antes** de publicar la convocatoria (la landing se crea entonces, en borrador, al abrirlo) y preparar lo que quiera; al publicar la convocatoria se publica ese borrador. Después de eso, cada cambio exige «Publicar landing» (DA-12). Las convocatorias ya publicadas antes de este plan no se tocan: su landing se crea, en borrador, la primera vez que se abre el editor, y hasta que la publiquen sigue la página actual. Mientras no haya versión publicada, la ruta pública entrega la página actual sin cambios (compatibilidad hacia atrás, CA-004-17 a 21 intactos). Publicar la landing no cambia el estado de la convocatoria: la visibilidad (404 en borrador) la sigue decidiendo `status`.
+
+Pregunta abierta para el negocio: si el organizador pausa o cierra la convocatoria, la landing sigue publicada (muestra el estado y oculta el botón de envío, CA-022-25). Se recomienda no despublicarla.
 
 ### DA-7 · Imágenes — se recomienda **disco `media`, servidas solo si están en la versión publicada**
 
@@ -130,7 +138,7 @@ El plan maestro deja la landing en el sitio actual para R0. Aprobar el plan no o
 
 ## 4. Contrato
 
-**Rutas del panel** (Filament, bajo el evento; no son JSON): página «Landing» de cada convocatoria, con acciones guardar, publicar y descartar; vista previa autenticada; subida de imágenes del editor. Viajan por Livewire (POST con CSRF).
+**Rutas del panel** (Filament, bajo el evento; no son JSON): la pantalla del editor de la landing de cada convocatoria (lienzo y panel de ajustes, a pantalla completa dentro del panel), y su subida de imágenes. Se llega desde la acción de fila «Diseñar landing» de `CallsRelationManager` (junto a «Editar» y «Publicar») y desde un botón en la pantalla de edición de la convocatoria. Guardar, publicar, descartar y subir imágenes son acciones de Livewire llamadas desde el editor React con `$wire` (POST con CSRF); no hay rutas JSON nuevas.
 
 **Rutas públicas nuevas:**
 - `GET /{organization}/events/{event}/call/{call}/landing/images/{image}` (`public.landings.image`): sirve una imagen de la versión publicada; 404 si no hay landing publicada, si la imagen no está en `published_blocks`, si es de otra convocatoria u organización o si el evento no está publicado. Cabeceras `X-Content-Type-Options: nosniff` y caché pública corta. No es JSON; se documenta en `docs/api/endpoints.md` junto con las de imágenes del programa.
@@ -142,7 +150,7 @@ El plan maestro deja la landing en el sitio actual para R0. Aprobar el plan no o
 
 **Acciones nuevas** (`app/Actions/Calls/`): `SaveCallLanding`, `PublishCallLanding`, `DiscardCallLandingDraft`, `UploadLandingImage`, `DeleteLandingImage`, `ResolveLandingBlocks` (arma lo público desde `published_blocks`).
 
-**Componentes:** `LandingRenderer` (organismo) y un componente por tipo de bloque, todos registrados en `catalog/registry.ts` y con demo en `/components` (`design.md` §1.4). El editor monta `LandingRenderer` en la vista previa, con el mismo código del sitio público.
+**Componentes:** `LandingRenderer` (organismo) y un componente por tipo de bloque, todos registrados en `catalog/registry.ts` y con demo en `/components` (`design.md` §1.4). El editor (`LandingEditor`, con `EditorCanvas`, `BlockLibrary` y `BlockSettingsPanel`) monta `LandingRenderer` como lienzo, con el mismo código del sitio público, y envuelve cada bloque para poder seleccionarlo.
 
 ### 4.1 Propuesta de datos (`docs/database-design.md` §6)
 
@@ -178,10 +186,10 @@ Cada fase deja el repositorio en verde y termina en su propio commit. La fase F1
 |---|---|---|
 | F0 | Esquema de bloques: enum `LandingBlockType`, clases de reglas por tipo, tipos TypeScript, plantilla predeterminada, términos del glosario y entrada en `docs/api/endpoints.md`. Sin comportamiento visible | S |
 | F1 | Datos: migraciones, modelos, factories, Policy y pruebas de aislamiento | M |
-| F2 | Acciones: crear con plantilla al crear la convocatoria, guardar, publicar, descartar y subir imágenes, con auditoría | M |
+| F2 | Acciones: crear y publicar la landing con plantilla al publicar la convocatoria (`PublishCall`), crear al abrir el editor, guardar, publicar, descartar y subir imágenes, con auditoría | M |
 | F3 | Sitio público: `LandingRenderer` y los 9 bloques en el catálogo, `ShowCallController` con respaldo a la página actual y la ruta de imágenes | M |
-| F4 | Editor en el panel: lista de bloques, formulario por bloque, pestañas de idioma, guardar, publicar y descartar | L |
-| F5 | Vista previa en vivo con el mismo renderizador, interruptor móvil, tablet y escritorio, e idioma | M |
+| F4 | Editor visual, primera parte: pantalla del editor con lienzo y panel de ajustes, entradas desde la fila y desde la edición de la convocatoria, selección de bloque con clic, formulario por bloque y pestañas de idioma | L |
+| F5 | Editor visual, segunda parte: biblioteca para añadir bloques, mover, duplicar y quitar con botones y teclado, interruptor móvil, tablet y escritorio, guardar, publicar y descartar | L |
 | F6 | Accesibilidad AA y verificación en navegador a ~375 y ~1280 px; copia al duplicar el evento (cuando exista el plan 019) | S |
 
 ## 7. Criterios de aceptación
@@ -190,8 +198,9 @@ Cada uno tiene al menos una prueba cuyo nombre lo cita (`CA-022-n: ...`) o decla
 
 **Datos y aislamiento**
 
-- **CA-022-1:** *Dado* una convocatoria recién creada, *cuando* se consulta su landing, *entonces* existe en borrador con los bloques de la plantilla predeterminada, no tiene versión publicada y la convocatoria conserva su estado.
-- **CA-022-2:** *Dado* una convocatoria anterior a este plan, *cuando* el organizador abre el editor por primera vez, *entonces* se crea su landing con la plantilla y la página pública no cambia.
+- **CA-022-1:** *Dado* una convocatoria en borrador sin landing, *cuando* el organizador la publica, *entonces* se crea su landing con los bloques de la plantilla predeterminada, se publica en la misma operación y la página pública de la convocatoria la muestra; si falla la creación, la convocatoria no queda publicada a medias (transacción).
+- **CA-022-2:** *Dado* una convocatoria sin landing (en borrador, o publicada antes de este plan), *cuando* el organizador abre el editor por primera vez, *entonces* se crea su landing en borrador con la plantilla y la página pública no cambia hasta que la publique.
+- **CA-022-38:** *Dado* una convocatoria en borrador cuya landing el organizador ya editó, *cuando* publica la convocatoria, *entonces* se publica ese borrador editado y no se reemplaza por la plantilla.
 - **CA-022-3:** *Dado* la base de datos, *cuando* se inserta una landing o una imagen con el `organization_id` de A y la convocatoria o el evento de B, *entonces* la clave foránea compuesta lo rechaza (prueba de inserción cruzada).
 - **CA-022-4:** *Dado* un administrador de A, *cuando* abre, guarda, publica o pide la imagen de la landing de una convocatoria de B, *entonces* responde 404 y no cambia nada.
 - **CA-022-5:** *Dado* `CallLanding` y `LandingImage`, *cuando* se ejecutan las pruebas guardianas de tenancy, *entonces* ambos están declarados con `BelongsToOrganization` y sin contexto de organización la consulta lanza `MissingOrganizationContext`.
@@ -242,8 +251,12 @@ Cada uno tiene al menos una prueba cuyo nombre lo cita (`CA-022-n: ...`) o decla
 
 - **CA-022-33:** *Dado* el editor, *cuando* el organizador añade, ordena, duplica, quita y edita bloques y cambia de idioma, *entonces* el borrador refleja esos cambios al guardar y los textos faltantes de un idioma quedan marcados.
   Manual: crear una convocatoria, abrir su landing, añadir un bloque de cada tipo, reordenarlos, duplicar uno, quitar otro y guardar; recargar y comprobar que el borrador se conservó.
-- **CA-022-34:** *Dado* la vista previa, *cuando* se alterna entre móvil, tablet y escritorio y entre idiomas, *entonces* muestra el mismo renderizador del sitio público con los datos del borrador, y no es una ruta pública.
-  Manual: comparar la vista previa con la página publicada a ~375 px y ~1280 px y comprobar que son iguales.
+- **CA-022-34:** *Dado* el lienzo del editor, *cuando* se alterna entre móvil, tablet y escritorio y entre idiomas, *entonces* muestra el mismo renderizador del sitio público con los datos del borrador, y no es una ruta pública.
+  Manual: comparar el lienzo con la página publicada a ~375 px y ~1280 px y comprobar que son iguales.
+- **CA-022-39:** *Dado* la lista de convocatorias de un evento, *cuando* un usuario con `calls.manage` ve una convocatoria, *entonces* la fila ofrece «Diseñar landing» y la pantalla de edición ofrece abrir el editor; ambas llevan a la misma pantalla. Sin `calls.manage` no se ofrece ninguna y la ruta directa responde 403.
+- **CA-022-40:** *Dado* el lienzo, *cuando* el organizador hace clic (o activa con Enter) un bloque, *entonces* queda seleccionado, se marca con un contorno visible y su formulario aparece en el panel de ajustes; un cambio en el formulario se refleja en el lienzo sin guardar.
+  Manual: seleccionar cada tipo de bloque, cambiar un texto y comprobar que el lienzo cambia al instante, a ~375 px y ~1280 px.
+- **CA-022-41:** *Dado* un bloque seleccionado, *cuando* se usan los botones «subir», «bajar», «duplicar» y «quitar» o sus atajos de teclado, *entonces* el orden y la lista cambian, el foco se queda en el bloque movido y un lector de pantalla anuncia la nueva posición; quitar pide confirmación.
 - **CA-022-35:** *Dado* el editor y la vista previa, *cuando* se usan solo con teclado y un lector de pantalla, *entonces* los controles tienen nombre, el foco es visible y los errores se asocian a su campo.
   Manual: recorrer con Tab el editor y la landing publicada a ~375 px y ~1280 px y revisar la consola.
 
@@ -262,7 +275,9 @@ Cada uno tiene al menos una prueba cuyo nombre lo cita (`CA-022-n: ...`) o decla
 | La vista previa y el sitio público divergen | Un único `LandingRenderer` para ambos (ADR-0010, excepción acotada) |
 | Una landing mal diseñada rompe la accesibilidad | El organizador elige variantes sobre tokens, no CSS libre; alternativas obligatorias; pruebas y verificación manual (DA-15, CA-022-13, 36) |
 | Pisadas entre dos editores | Versión optimista y conflicto explícito (CA-022-15); sin edición simultánea en este plan |
-| Esfuerzo mayor al previsto (editor visual) | Se descarta el lienzo libre (DA-2); si F4 excede, se parte en dos fases sin cambiar los criterios |
+| Esfuerzo mayor al previsto (editor visual tipo Elementor) | El editor se parte desde ya en dos fases (F4 y F5); se descartan el arrastre con ratón y la edición de texto sobre la página (DA-2); si F5 excede, se corta lo que no sea mover, duplicar y quitar |
+| El editor React dentro de Filament y Livewire (estado, foco, doble origen de verdad) | Un solo dueño del estado (el editor React); Livewire solo guarda, publica y sube imágenes; spike en F4 antes de construir el resto |
+| Publicar la convocatoria publica la landing sin que el organizador la revise | La plantilla es neutra y solo usa datos de la convocatoria; la landing se puede editar o despublicar al instante; se muestra un aviso al publicar |
 | Rutas y datos de la landing chocan con el plan 020 (panel con el evento como eje) | La página «Landing» vive en la sub-navegación del evento y se acuerda con el 020 antes de F4 |
 | Choca con el plan 019 (duplicar evento) | La copia se añade al implementar el 019 (DA-11); este plan no lo bloquea |
 | Programarlo antes de R0 compite con cerrar los planes 005, 006 y 009 | DA-16: se programa después de R0 |
