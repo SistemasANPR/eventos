@@ -49,5 +49,13 @@ return [
             'subject' => 'Submission withdrawn in {{ event_name }}',
             'body' => "{{ author_name }} withdrew the submission \"{{ submission_title }}\".\n\nView it in the panel: [{{ panel_url }}]({{ panel_url }})",
         ],
+        'withdrawn_author' => [
+            'subject' => 'You withdrew your submission in {{ event_name }}',
+            'body' => 'Hi {{ author_name }},
+
+We confirm you withdrew your submission "{{ submission_title }}". It no longer takes part in the call.
+
+If you need to look at it again, request a new access link: [{{ request_link_url }}]({{ request_link_url }})',
+        ],
     ],
 ];

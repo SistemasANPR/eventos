@@ -49,5 +49,13 @@ return [
             'subject' => 'Propuesta retirada en {{ event_name }}',
             'body' => "{{ author_name }} retiró la propuesta «{{ submission_title }}».\n\nConsúltala en el panel: [{{ panel_url }}]({{ panel_url }})",
         ],
+        'withdrawn_author' => [
+            'subject' => 'Retiraste tu propuesta en {{ event_name }}',
+            'body' => 'Hola {{ author_name }},
+
+Confirmamos que retiraste tu propuesta «{{ submission_title }}». Ya no participa en la convocatoria.
+
+Si necesitas volver a consultarla, pide un nuevo enlace de acceso: [{{ request_link_url }}]({{ request_link_url }})',
+        ],
     ],
 ];
