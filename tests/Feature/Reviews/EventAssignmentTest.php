@@ -28,7 +28,7 @@ afterEach(function (): void {
 });
 
 /** @return array{0: Organization, 1: Event, 2: User, 3: User} organización con roles, evento, administrador y un integrante evaluador */
-function assignmentScenario(): array
+function eventAssignmentScenario(): array
 {
     $organization = Memberships::organization();
     $admin = Memberships::attach(User::factory()->create(), $organization, OrganizationRole::OrgAdmin);
@@ -39,7 +39,7 @@ function assignmentScenario(): array
 }
 
 it('CA-011-28: an assignee only reaches the events they are assigned to', function (): void {
-    [$organization, $eventX, , $reviewer] = assignmentScenario();
+    [$organization, $eventX, , $reviewer] = eventAssignmentScenario();
     $eventY = Event::factory()->create(['organization_id' => $organization->id]);
     $foreign = Event::factory()->create();
     EventAssignment::factory()->create([
@@ -54,7 +54,7 @@ it('CA-011-28: an assignee only reaches the events they are assigned to', functi
 });
 
 it('CA-011-29: an admin assigns an organization member to an event of that organization', function (): void {
-    [, $event, $admin, $reviewer] = assignmentScenario();
+    [, $event, $admin, $reviewer] = eventAssignmentScenario();
 
     $assignment = app(AssignUserToEvent::class)->handle($admin, $event, ['user_id' => $reviewer->id, 'role' => 'reviewer']);
 
@@ -65,7 +65,7 @@ it('CA-011-29: an admin assigns an organization member to an event of that organ
 });
 
 it('CA-011-29: rejects a user who is not an active member of the organization', function (string $status): void {
-    [$organization, $event, $admin] = assignmentScenario();
+    [$organization, $event, $admin] = eventAssignmentScenario();
     $outsider = User::factory()->create();
     if ($status === 'deactivated') {
         Memberships::attach($outsider, $organization, OrganizationRole::Reviewer, 'deactivated');
@@ -77,19 +77,19 @@ it('CA-011-29: rejects a user who is not an active member of the organization', 
 })->with(['not a member' => ['none'], 'deactivated member' => ['deactivated']]);
 
 it('CA-011-29: rejects an event of another organization and a user without the permission', function (): void {
-    [, , $admin, $reviewer] = assignmentScenario();
+    [, , $admin, $reviewer] = eventAssignmentScenario();
     $foreignEvent = Event::factory()->create();
 
     expect(fn () => app(AssignUserToEvent::class)->handle($admin, $foreignEvent, ['user_id' => $reviewer->id, 'role' => 'reviewer']))
         ->toThrow(AuthorizationException::class);
 
-    [, $event, , $other] = assignmentScenario();
+    [, $event, , $other] = eventAssignmentScenario();
     expect(fn () => app(AssignUserToEvent::class)->handle($other, $event, ['user_id' => $other->id, 'role' => 'reviewer']))
         ->toThrow(AuthorizationException::class);
 });
 
 it('CA-011-29: an organizer without event_assignments.manage cannot assign', function (): void {
-    [$organization, $event, , $reviewer] = assignmentScenario();
+    [$organization, $event, , $reviewer] = eventAssignmentScenario();
     $organizer = Memberships::attach(User::factory()->create(), $organization, OrganizationRole::Organizer);
 
     expect(fn () => app(AssignUserToEvent::class)->handle($organizer, $event, ['user_id' => $reviewer->id, 'role' => 'reviewer']))
@@ -97,7 +97,7 @@ it('CA-011-29: an organizer without event_assignments.manage cannot assign', fun
 });
 
 it('CA-011-29: the database refuses a user from another organization', function (): void {
-    [$organization, $event] = assignmentScenario();
+    [$organization, $event] = eventAssignmentScenario();
     $outsider = User::factory()->create();
 
     expect(fn () => EventAssignment::factory()->create([
@@ -106,7 +106,7 @@ it('CA-011-29: the database refuses a user from another organization', function 
 });
 
 it('CA-011-30: the database rejects a duplicate assignment', function (): void {
-    [$organization, $event, , $reviewer] = assignmentScenario();
+    [$organization, $event, , $reviewer] = eventAssignmentScenario();
     $attributes = ['organization_id' => $organization->id, 'event_id' => $event->id, 'user_id' => $reviewer->id, 'role' => 'reviewer'];
     EventAssignment::factory()->create($attributes);
 
@@ -114,7 +114,7 @@ it('CA-011-30: the database rejects a duplicate assignment', function (): void {
 });
 
 it('CA-011-30: the action rejects a duplicate and allows another role for the same user', function (): void {
-    [, $event, $admin, $reviewer] = assignmentScenario();
+    [, $event, $admin, $reviewer] = eventAssignmentScenario();
     app(AssignUserToEvent::class)->handle($admin, $event, ['user_id' => $reviewer->id, 'role' => 'reviewer']);
 
     expect(fn () => app(AssignUserToEvent::class)->handle($admin, $event, ['user_id' => $reviewer->id, 'role' => 'reviewer']))
@@ -125,7 +125,7 @@ it('CA-011-30: the action rejects a duplicate and allows another role for the sa
 });
 
 it('CA-011-31: a role change is audited with who, to whom, previous and new role', function (): void {
-    [$organization, $event, $admin, $reviewer] = assignmentScenario();
+    [$organization, $event, $admin, $reviewer] = eventAssignmentScenario();
     $assignment = app(AssignUserToEvent::class)->handle($admin, $event, ['user_id' => $reviewer->id, 'role' => 'reviewer']);
 
     $changed = app(ChangeEventAssignmentRole::class)->handle($admin, $assignment, ['role' => 'coordinator']);
@@ -140,7 +140,7 @@ it('CA-011-31: a role change is audited with who, to whom, previous and new role
 });
 
 it('CA-011-31: changing to a role the user already has in the event is rejected', function (): void {
-    [, $event, $admin, $reviewer] = assignmentScenario();
+    [, $event, $admin, $reviewer] = eventAssignmentScenario();
     $assignment = app(AssignUserToEvent::class)->handle($admin, $event, ['user_id' => $reviewer->id, 'role' => 'reviewer']);
     app(AssignUserToEvent::class)->handle($admin, $event, ['user_id' => $reviewer->id, 'role' => 'coordinator']);
 
@@ -149,14 +149,14 @@ it('CA-011-31: changing to a role the user already has in the event is rejected'
 });
 
 it('CA-011-32: the speaker role does not exist in R1', function (): void {
-    [$organization, $event, $admin, $reviewer] = assignmentScenario();
+    [$organization, $event, $admin, $reviewer] = eventAssignmentScenario();
 
     expect(fn () => app(AssignUserToEvent::class)->handle($admin, $event, ['user_id' => $reviewer->id, 'role' => 'speaker']))
         ->toThrow(ValidationException::class);
 });
 
 it('CA-011-32: the database check constraint also refuses the speaker role', function (): void {
-    [$organization, $event, , $reviewer] = assignmentScenario();
+    [$organization, $event, , $reviewer] = eventAssignmentScenario();
 
     expect(fn () => DB::table('event_assignments')->insert([
         'id' => (string) Str::uuid(), 'organization_id' => $organization->id, 'event_id' => $event->id,
@@ -165,7 +165,7 @@ it('CA-011-32: the database check constraint also refuses the speaker role', fun
 });
 
 it('CA-011-10: only an assignee with the reviewer role is a candidate for review assignments', function (): void {
-    [$organization, $event, , $reviewer] = assignmentScenario();
+    [$organization, $event, , $reviewer] = eventAssignmentScenario();
     $stranger = Memberships::attach(User::factory()->create(), $organization, OrganizationRole::Reviewer);
     $coordinator = Memberships::attach(User::factory()->create(), $organization, OrganizationRole::Reviewer);
     EventAssignment::factory()->create(['organization_id' => $organization->id, 'event_id' => $event->id, 'user_id' => $reviewer->id]);
