@@ -3,11 +3,13 @@
 declare(strict_types=1);
 
 use App\Http\Controllers\Internal\ShowComponentCatalogController;
+use App\Http\Controllers\Panel\ShowLandingEditorImageController;
 use App\Http\Controllers\Panel\SubmissionExportDownloadController;
 use App\Http\Controllers\Panel\SubmissionFileDownloadController;
 use App\Http\Controllers\Public\ShowActivityMediaController;
 use App\Http\Controllers\Public\ShowCallController;
 use App\Http\Controllers\Public\ShowEventController;
+use App\Http\Controllers\Public\ShowLandingImageController;
 use App\Http\Controllers\Public\ShowPrivacyNoticeController;
 use App\Http\Controllers\Public\ShowSpeakerPhotoController;
 use App\Http\Controllers\Public\ShowSubmissionConfirmationController;
@@ -50,6 +52,8 @@ Route::middleware([SetOrganizationFromRoute::class, HandleInertiaRequests::class
         Route::get('events/{event:slug}/activities/{activity}/{type}', ShowActivityMediaController::class)
             ->whereIn('type', ['icon', 'image'])
             ->name('public.activities.media');
+        // Imágenes de la landing (plan 022, CA-022-32): solo las de la versión publicada, de un evento publicado.
+        Route::get('events/{event:slug}/landing/images/{image}', ShowLandingImageController::class)->name('public.landings.image');
         // Subida pública de archivos de propuesta (plan 007): responde JSON y se acota con token y cuotas.
         Route::post('events/{event:slug}/call/{call}/files', SubmissionFileUploadController::class)
             ->middleware('throttle:60,1')
@@ -70,6 +74,12 @@ Route::middleware([SetOrganizationFromRoute::class, HandleInertiaRequests::class
 Route::middleware(['auth', SetOrganizationFromRoute::class])
     ->get('admin/{organization:slug}/submission-files/{file}', SubmissionFileDownloadController::class)
     ->name('submission-files.download');
+
+// Imágenes de la landing para el editor del panel (plan 022, DA-7): también las del borrador. Misma forma que
+// la descarga de archivos de propuesta; `events.manage` lo decide la Policy dentro del controlador.
+Route::middleware(['auth', SetOrganizationFromRoute::class])
+    ->get('admin/{organization:slug}/events/{event}/landing/images/{image}', ShowLandingEditorImageController::class)
+    ->name('landing-editor.images.show');
 
 // Descarga del archivo de una exportación de propuestas (plan 009, H-009-3, CA-009-19). Misma forma que
 // la descarga de archivos de propuesta: `auth`, organización fijada por la ruta y, además, URL firmada
