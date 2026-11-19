@@ -21,9 +21,8 @@ use App\Http\Middleware\PreventCaching;
 use App\Http\Middleware\SetOrganizationFromRoute;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', function () {
-    return view('welcome');
-});
+// La raíz no tiene página propia: lleva al inicio de sesión, que es la puerta de entrada de la plataforma.
+Route::redirect('/', '/admin/login');
 
 // El inicio de sesión de `/admin/login` es el único acceso, de organizadores y de plataforma (CA-001-34, plan 017).
 // La ruta con nombre `login` existe porque el framework redirige a ella a los invitados;
