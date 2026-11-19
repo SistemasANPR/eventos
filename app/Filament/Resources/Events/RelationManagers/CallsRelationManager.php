@@ -76,7 +76,10 @@ class CallsRelationManager extends RelationManager
                 TextColumn::make('title')
                     ->label(__('calls.columns.title'))
                     ->state(fn (CallForSubmissions $record): string => (string) $record->getTranslation('title', $this->owner()->default_locale, true))
-                    ->weight('medium'),
+                    ->weight('medium')
+                    // Enlace a la página pública; un borrador no la tiene (responde 404) y queda como texto.
+                    ->url(fn (CallForSubmissions $record): ?string => $this->hasPublicPage($record) ? $this->publicUrl($record) : null)
+                    ->openUrlInNewTab(),
                 TextColumn::make('submission_type_id')
                     ->label(__('calls.columns.type'))
                     ->state(fn (CallForSubmissions $record): string => (string) $record->submissionType?->label($this->owner()->default_locale))
