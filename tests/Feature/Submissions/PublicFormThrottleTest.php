@@ -70,3 +70,28 @@ it('CA-006-25: la clave del limite por correo no contiene el correo en claro', f
         ->and($key)->not->toContain('example.test')
         ->and(RateLimiter::attempts($key))->toBe(1);
 });
+
+it('SUBMISSIONS_LIMIT_MULTIPLIER escala los intentos de los limites y nunca baja de 1', function (): void {
+    $load = function (string $value): array {
+        putenv("SUBMISSIONS_LIMIT_MULTIPLIER={$value}");
+        $_ENV['SUBMISSIONS_LIMIT_MULTIPLIER'] = $value;
+
+        return require config_path('submissions.php');
+    };
+
+    try {
+        $default = $load('1');
+        $scaled = $load('100');
+        $invalid = $load('0');
+    } finally {
+        putenv('SUBMISSIONS_LIMIT_MULTIPLIER');
+        unset($_ENV['SUBMISSIONS_LIMIT_MULTIPLIER']);
+    }
+
+    expect($default['limits']['submission_per_ip']['attempts'])->toBe(5)
+        ->and($scaled['limits']['submission_per_ip']['attempts'])->toBe(500)
+        ->and($scaled['limits']['received_per_email']['attempts'])->toBe(300)
+        ->and($scaled['upload_quota']['per_ip']['attempts'])->toBe(3000)
+        ->and($scaled['limits']['submission_per_ip']['decay_seconds'])->toBe(600)
+        ->and($invalid['limits']['submission_per_ip']['attempts'])->toBe(5);
+});
