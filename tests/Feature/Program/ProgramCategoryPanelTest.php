@@ -162,8 +162,7 @@ it('the Categories button of Speakers and Activities links to its catalog and sh
 
     Livewire::test($list, ['record' => $event->id])
         ->assertActionVisible('categories')
-        ->assertActionHasUrl('categories', EventResource::getUrl($catalog, ['record' => $event]))
-        ;
+        ->assertActionHasUrl('categories', EventResource::getUrl($catalog, ['record' => $event]));
 
     expect(ProgramCategoryShortcuts::button($event, $kind)->getBadge())->toBe('2');
 })->with([
