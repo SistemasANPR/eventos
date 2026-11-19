@@ -23,6 +23,7 @@ use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Livewire\Features\SupportTesting\Testable;
 use Livewire\Livewire;
 use Tests\Support\Memberships;
 
@@ -146,7 +147,7 @@ it('CA-022-36: the editor receives the draft with every language, the version an
 it('CA-022-6: save draft, update and discard from the editor return a flat result and respect what each one does', function (): void {
     [$organization, $event, $admin] = formScenario();
     editorActAsAdmin($organization, $admin);
-    $page = Livewire::test(EditEventLanding::class, ['record' => $event->id])->instance();
+    $page = editorPage(Livewire::test(EditEventLanding::class, ['record' => $event->id]));
     $landing = fn (): EventLanding => EventLanding::query()->where('event_id', $event->id)->sole();
     $blocks = editorDraft($landing());
 
@@ -169,7 +170,7 @@ it('CA-022-6: save draft, update and discard from the editor return a flat resul
 it('CA-022-9: an invalid block comes back as field errors and saves nothing', function (): void {
     [$organization, $event, $admin] = formScenario();
     editorActAsAdmin($organization, $admin);
-    $page = Livewire::test(EditEventLanding::class, ['record' => $event->id])->instance();
+    $page = editorPage(Livewire::test(EditEventLanding::class, ['record' => $event->id]));
     $blocks = editorDraft(EventLanding::query()->where('event_id', $event->id)->sole());
     $blocks[] = ['id' => 'new-1', 'type' => 'hero', 'title' => ['es' => ''], 'buttonUrl' => 'javascript:alert(1)'];
 
@@ -184,7 +185,7 @@ it('CA-022-9: an invalid block comes back as field errors and saves nothing', fu
 it('CA-022-15: a stale version comes back as a conflict with the current draft', function (): void {
     [$organization, $event, $admin] = formScenario();
     editorActAsAdmin($organization, $admin);
-    $page = Livewire::test(EditEventLanding::class, ['record' => $event->id])->instance();
+    $page = editorPage(Livewire::test(EditEventLanding::class, ['record' => $event->id]));
     $blocks = editorDraft(EventLanding::query()->where('event_id', $event->id)->sole());
 
     $page->saveDraft([...$blocks, ['id' => 'new-1', 'type' => 'spacer']], 1);
@@ -203,7 +204,7 @@ it('CA-022-31: the editor uploads an image and gets its id and an editor url; a 
     $component = Livewire::test(EditEventLanding::class, ['record' => $event->id]);
 
     $component->set('imageUpload', UploadedFile::fake()->createWithContent('portada.png', editorPng()));
-    $ok = $component->instance()->uploadImage();
+    $ok = editorPage($component)->uploadImage();
 
     $image = LandingImage::query()->where('event_id', $event->id)->sole();
     expect($ok['ok'])->toBeTrue()
@@ -211,7 +212,7 @@ it('CA-022-31: the editor uploads an image and gets its id and an editor url; a 
         ->and($ok['image']['url'])->toBe("/admin/{$organization->slug}/events/{$event->id}/landing/images/{$image->id}");
 
     $component->set('imageUpload', UploadedFile::fake()->createWithContent('logo.png', '<svg xmlns="http://www.w3.org/2000/svg"></svg>'));
-    $bad = $component->instance()->uploadImage();
+    $bad = editorPage($component)->uploadImage();
 
     expect($bad['ok'])->toBeFalse()->and($bad['errors'])->not->toBe([])
         ->and(LandingImage::query()->where('event_id', $event->id)->count())->toBe(1);
@@ -221,7 +222,7 @@ it('CA-022-6: without events.manage the editor methods are refused and nothing i
     [$organization, $event, , $admin] = formScenario();
     $reviewer = Memberships::attach(User::factory()->create(), $organization, OrganizationRole::Reviewer);
     editorActAsAdmin($organization, $admin);
-    $page = Livewire::test(EditEventLanding::class, ['record' => $event->id])->instance();
+    $page = editorPage(Livewire::test(EditEventLanding::class, ['record' => $event->id]));
     $blocks = editorDraft(EventLanding::query()->where('event_id', $event->id)->sole());
 
     // El estado de la sesión pasa al revisor: el servidor decide con quien está autenticado.
@@ -269,4 +270,13 @@ function editorDraft(EventLanding $landing): array
         fn (array $block): array => ['id' => $block['id'], 'type' => $block['type']] + array_filter($block, fn (mixed $value): bool => $value !== null),
         $landing->draft_blocks,
     ));
+}
+
+/** @param  Testable<EditEventLanding>  $component */
+function editorPage(Testable $component): EditEventLanding
+{
+    $page = $component->instance();
+    assert($page instanceof EditEventLanding);
+
+    return $page;
 }

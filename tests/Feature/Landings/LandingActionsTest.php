@@ -104,9 +104,10 @@ it('CA-022-1: creating an event creates its landing with the template in draft a
 it('CA-022-1: if the landing fails the event is not left half created', function (): void {
     $organization = Memberships::organization();
     $organizer = Memberships::attach(User::factory()->create(), $organization, OrganizationRole::Organizer);
-    $armed = true;
-    EventLanding::creating(function () use (&$armed): void {
-        if (! $armed) {
+    $armed = new stdClass;
+    $armed->on = true;
+    EventLanding::creating(function () use ($armed): void {
+        if (! $armed->on) {
             return;
         }
 
@@ -125,7 +126,7 @@ it('CA-022-1: if the landing fails the event is not left half created', function
         'currency' => 'MXN',
     ]))->toThrow(RuntimeException::class);
 
-    $armed = false;
+    $armed->on = false;
     expect(Event::query()->withoutGlobalScopes()->where('slug', 'congreso-atomico')->exists())->toBeFalse()
         ->and(EventLanding::query()->withoutGlobalScopes()->count())->toBe(0);
 });
@@ -300,9 +301,10 @@ it('CA-022-20: a failure halfway through updating rolls back and keeps the previ
     $before = $landing->published_blocks;
 
     // La limpieza de imágenes sin uso ocurre tras copiar el borrador: si falla ahí, todo se deshace.
-    $armed = true;
-    LandingImage::deleting(function () use (&$armed): void {
-        if (! $armed) {
+    $armed = new stdClass;
+    $armed->on = true;
+    LandingImage::deleting(function () use ($armed): void {
+        if (! $armed->on) {
             return;
         }
 
@@ -312,7 +314,7 @@ it('CA-022-20: a failure halfway through updating rolls back and keeps the previ
     expect(fn () => app(PublishEventLanding::class)->handle($user, $landing, landingAddedText($landing, 'No debe quedar'), 1))
         ->toThrow(RuntimeException::class);
 
-    $armed = false;
+    $armed->on = false;
     $fresh = CurrentOrganization::run($organization, fn (): EventLanding => EventLanding::query()->findOrFail($landing->id));
 
     expect($fresh->published_blocks)->toEqual($before)
