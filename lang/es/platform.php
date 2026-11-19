@@ -69,9 +69,8 @@ return [
             'events' => 'Eventos',
         ],
         'fields' => [
-            'slug' => 'Identificador en la URL',
-            'slug_help' => 'Letras minúsculas, números y guiones. No se puede cambiar después.',
             'name' => 'Nombre de la organización',
+            'name_help' => 'El identificador de la URL se genera a partir del nombre y no se puede cambiar después.',
             'admin_name' => 'Nombre del primer administrador',
             'admin_email' => 'Correo del primer administrador',
             'admin_email_help' => 'Recibirá un correo para fijar su contraseña.',
