@@ -37,6 +37,7 @@ Todo el desarrollo ocurre en `staging`; `main` solo recibe lo ya probado (ADR-00
 3. Producción se despliega desde `main`, que solo recibe `staging` por pull request, con **aprobación manual**.
 4. **Migraciones:** el paso de despliegue las aplica solo tras la aprobación de una persona (regla 1 de `AGENTS.md`). Cambios incompatibles siguen «expandir y contraer» (`docs/database-design.md` §5).
 5. Después del despliegue: comprobar `/up`, reiniciar los workers y revisar errores durante 15 minutos.
+6. **Recursos de Filament en el build:** `railway.json` ejecuta `php artisan filament:assets` antes de `npm run build`. Los scripts y fuentes de Filament (`public/js/filament`, `public/fonts/filament`) no están en Git; sin ese paso responden 404 y en el acceso desaparecen el botón «Entrar» y el icono del ojo. Tras desplegar, comprobar que `/js/filament/filament/app.js` responde 200.
 
 **Reversa:** redesplegar la versión anterior. Si la migración es incompatible hacia atrás, el plan de reversa se describe en la propuesta de datos antes de aprobarla.
 

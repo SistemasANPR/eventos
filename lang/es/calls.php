@@ -69,8 +69,7 @@ return [
         'title' => 'Convocatoria',
         'type' => 'Categoría',
         'status' => 'Estado',
-        'public_state' => 'Estado público',
-        'period' => 'Periodo (hora del evento)',
+        'period' => 'Periodo',
         'form' => 'Formulario',
     ],
     'form' => [
@@ -92,6 +91,11 @@ return [
     ],
     // Día/mes/año, el formato habitual en México; la hora la decide el formato del evento (plan 023).
     'date_format' => 'd/m/Y',
+    // Fecha corta con el mes en letra para la lista: «12 nov 2026» no se confunde entre idiomas.
+    'list_date_format' => 'j M Y',
+    'period_opens' => 'Abre :date',
+    'period_closes' => 'Cierra :date',
+    'period_timezone' => 'Hora del evento (:timezone)',
     'state' => [
         'scheduled' => 'Programada',
         'open' => 'Abierta',

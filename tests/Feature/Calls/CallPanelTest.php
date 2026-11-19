@@ -230,6 +230,20 @@ it('CA-004-38: a draft call offers neither the public page nor the link, because
         ->assertActionHidden(TestAction::make('copyPublicLink')->table($call));
 });
 
+it('the title of a published call links to its public page in a new tab, and a draft title is plain text', function (): void {
+    [$organization, $event, $admin] = callPanelScenario();
+    $published = callInStatus($event, $admin, CallStatus::Published);
+    $draft = callInStatus($event, $admin, CallStatus::Draft);
+    CurrentOrganization::set($organization);
+
+    $component = callManager($event);
+    $column = $component->instance()->getTable()->getColumn('title');
+
+    expect($column->record($published)->getUrl())->toBe(route('calls.show', ['organization' => $organization->slug, 'event' => $event->slug, 'call' => $published->slug]))
+        ->and($column->shouldOpenUrlInNewTab())->toBeTrue()
+        ->and($column->record($draft)->getUrl())->toBeNull();
+});
+
 it('CA-004-39: a reviewer does not reach the calls manager, so the public page actions are not offered either', function (): void {
     [, $event] = callPanelScenario(OrganizationRole::Reviewer);
 
@@ -250,4 +264,15 @@ it('CA-004-40: the public URL never carries the slug of another organization', f
 
     expect($expected)->not->toContain($otherOrganization->slug)
         ->and($expected)->not->toContain($otherEvent->slug);
+});
+
+it('the calls list stacks the period in two short lines and shows a single status badge', function (): void {
+    [$organization, $event, $admin] = callPanelScenario();
+    $draft = app(CreateCallForSubmissions::class)->handle($admin, $event, panelCallData($event));
+    CurrentOrganization::set($organization);
+
+    callManager($event)
+        ->assertSeeTextInOrder(['Abre 10 ene. 2027 · 9:00 a. m.', 'Cierra 15 feb. 2027 · 11:00 p. m.'])
+        ->assertTableColumnStateSet('status', CallStatus::Draft->getLabel(), $draft)
+        ->assertTableColumnDoesNotExist('public_state');
 });

@@ -11,6 +11,7 @@ use App\Actions\Calls\PublishCall;
 use App\Actions\Calls\UnassignFormFromCall;
 use App\Actions\Calls\UpdateCallForSubmissions;
 use App\Actions\Forms\PublishFormDefinition;
+use App\Enums\CallState;
 use App\Enums\CallStatus;
 use App\Enums\FormDefinitionStatus;
 use App\Filament\Resources\Events\EventResource;
@@ -75,7 +76,10 @@ class CallsRelationManager extends RelationManager
                 TextColumn::make('title')
                     ->label(__('calls.columns.title'))
                     ->state(fn (CallForSubmissions $record): string => (string) $record->getTranslation('title', $this->owner()->default_locale, true))
-                    ->weight('medium'),
+                    ->weight('medium')
+                    // Enlace a la página pública; un borrador no la tiene (responde 404) y queda como texto.
+                    ->url(fn (CallForSubmissions $record): ?string => $this->hasPublicPage($record) ? $this->publicUrl($record) : null)
+                    ->openUrlInNewTab(),
                 TextColumn::make('submission_type_id')
                     ->label(__('calls.columns.type'))
                     ->state(fn (CallForSubmissions $record): string => (string) $record->submissionType?->label($this->owner()->default_locale))
@@ -86,13 +90,18 @@ class CallsRelationManager extends RelationManager
                     ->state(fn (CallForSubmissions $record): string => data_get($record, 'formDefinition.name') ?? __('calls.form.none'))
                     ->badge(fn (CallForSubmissions $record): bool => $record->form_definition_id === null)
                     ->color(fn (CallForSubmissions $record): string => $record->form_definition_id === null ? 'danger' : 'gray'),
-                TextColumn::make('status')->label(__('calls.columns.status'))->badge(),
-                TextColumn::make('public_state')
-                    ->label(__('calls.columns.public_state'))
-                    ->state(fn (CallForSubmissions $record): string => $this->publicStateLabel($record)),
+                // Un solo distintivo: el estado público (lo que ve quien envía); el fijado a mano va en el tooltip.
+                TextColumn::make('status')
+                    ->label(__('calls.columns.status'))
+                    ->state(fn (CallForSubmissions $record): string => $this->statusLabel($record))
+                    ->badge()
+                    ->color(fn (CallForSubmissions $record): string => $this->statusColor($record))
+                    ->tooltip(fn (CallForSubmissions $record): ?string => ResolveCallState::for($record) === null ? null : $record->status->getLabel()),
                 TextColumn::make('opens_at')
                     ->label(__('calls.columns.period'))
-                    ->state(fn (CallForSubmissions $record): string => EventTime::for($this->owner())->range($record->opens_at, $record->closes_at, __('calls.date_format'), ' ')),
+                    ->state(fn (CallForSubmissions $record): array => $this->periodLines($record))
+                    ->listWithLineBreaks()
+                    ->tooltip(__('calls.period_timezone', ['timezone' => $this->owner()->timezone])),
             ])
             // Sin N+1: el tipo y el formulario de toda la página se cargan de una vez (el modelo es estricto).
             ->modifyQueryUsing(fn (Builder $query): Builder => $query->with(['submissionType', 'formDefinition']))
@@ -435,12 +444,35 @@ class CallsRelationManager extends RelationManager
         return array_intersect_key($names, array_flip($this->owner()->locales));
     }
 
-    /** Estado público calculado con las fechas; un borrador no tiene (se muestra «—»). */
-    private function publicStateLabel(CallForSubmissions $call): string
+    /** Estado público calculado con las fechas; un borrador no tiene y muestra su propio estado. */
+    private function statusLabel(CallForSubmissions $call): string
     {
         $state = ResolveCallState::for($call);
 
-        return $state === null ? '—' : __('calls.state.'.$state->value);
+        return $state === null ? $call->status->getLabel() : __('calls.state.'.$state->value);
+    }
+
+    private function statusColor(CallForSubmissions $call): string
+    {
+        return match (ResolveCallState::for($call)) {
+            null => $call->status->getColor(),
+            CallState::Scheduled => 'info',
+            CallState::Open => 'success',
+            CallState::Paused => 'warning',
+            CallState::Closed => 'danger',
+        };
+    }
+
+    /** @return list<string> apertura y cierre, uno por línea, en la hora del evento */
+    private function periodLines(CallForSubmissions $call): array
+    {
+        $time = EventTime::for($this->owner());
+        $format = __('calls.list_date_format');
+
+        return [
+            __('calls.period_opens', ['date' => $time->dateTime($call->opens_at, $format, ' · ')]),
+            __('calls.period_closes', ['date' => $time->dateTime($call->closes_at, $format, ' · ')]),
+        ];
     }
 
     /** Instante UTC → hora local de la zona del evento. */
