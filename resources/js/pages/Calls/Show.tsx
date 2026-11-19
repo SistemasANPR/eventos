@@ -1,6 +1,7 @@
 import { Head } from '@inertiajs/react';
 
 import { TextLink } from '@/components/atoms/TextLink';
+import { CallStateBadge } from '@/components/molecules/CallStateBadge';
 import { EventFact } from '@/components/molecules/EventFact';
 import { LocaleSwitcher } from '@/components/molecules/LocaleSwitcher';
 import { useTranslation } from '@/hooks/useTranslation';
@@ -8,7 +9,7 @@ import { PublicLayout } from '@/layouts/PublicLayout';
 import { BUTTON_PRIMARY, FACTS_PANEL, FOCUS_RING, PAGE_TITLE } from '@/lib/classes';
 import { formatEventInstant } from '@/lib/date-format';
 import { cn } from '@/lib/utils';
-import type { CallState, PublicCall } from '@/types/call';
+import type { PublicCall } from '@/types/call';
 import type { PublicOrganization } from '@/types/event';
 
 interface ShowProps {
@@ -23,14 +24,6 @@ interface ShowProps {
     submitUrl?: string | null;
 }
 
-/** Colores (par texto/fondo de los semánticos) y marca de cada estado: el estado no depende solo del color. */
-const STATE_STYLE: Record<CallState, { classes: string; mark: string }> = {
-    scheduled: { classes: 'bg-info-bg text-info', mark: '◷' },
-    open: { classes: 'bg-success-bg text-success', mark: '●' },
-    paused: { classes: 'bg-warning-bg text-warning', mark: '❚❚' },
-    closed: { classes: 'bg-error-bg text-error', mark: '■' },
-};
-
 /**
  * Página pública de una convocatoria: `/{organización}/events/{evento}/call/{convocatoria}`.
  * Informa el estado, las fechas y los ejes; con la convocatoria abierta ofrece el botón que lleva
@@ -39,7 +32,6 @@ const STATE_STYLE: Record<CallState, { classes: string; mark: string }> = {
 export default function Show({ call, event, organization, eventUrl, privacyUrl, submitUrl = null }: ShowProps) {
     const { t } = useTranslation();
 
-    const style = STATE_STYLE[call.state];
     const formatDate = (instant: string): string => formatEventInstant(instant, call.timezone, call.locale, call.timeFormat);
 
     return (
@@ -54,13 +46,7 @@ export default function Show({ call, event, organization, eventUrl, privacyUrl, 
                         {call.title}
                     </h1>
                     <div className="flex flex-col items-start gap-2">
-                        <span
-                            data-testid="call-state"
-                            className={`inline-flex items-center gap-2 rounded-full px-3 py-1 text-sm font-semibold ${style.classes}`}
-                        >
-                            <span aria-hidden="true">{style.mark}</span>
-                            {t(`call.state.${call.state}`)}
-                        </span>
+                        <CallStateBadge state={call.state} t={t} />
                         <p className="text-base text-text-muted">{t(`call.state_hint.${call.state}`)}</p>
                     </div>
                     {call.description !== null && <p className="max-w-prose text-lg text-text">{call.description}</p>}
@@ -76,9 +62,7 @@ export default function Show({ call, event, organization, eventUrl, privacyUrl, 
                     <EventFact label={t('call.timezone')}>{call.timezone}</EventFact>
                     <EventFact label={t('call.opens_at')}>{formatDate(call.opensAt)}</EventFact>
                     <EventFact label={t('call.closes_at')}>{formatDate(call.closesAt)}</EventFact>
-                    {call.resultsAt !== undefined && (
-                        <EventFact label={t('call.results_at')}>{formatDate(call.resultsAt)}</EventFact>
-                    )}
+                    {call.resultsAt !== undefined && <EventFact label={t('call.results_at')}>{formatDate(call.resultsAt)}</EventFact>}
                 </dl>
 
                 <section aria-labelledby="call-tracks" className="flex flex-col gap-3">

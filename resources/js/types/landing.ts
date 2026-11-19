@@ -14,16 +14,7 @@ import type { Translations } from '@/types/inertia';
  */
 
 /** Tipos de bloque de la lista blanca (DA-3): coincide con `App\Enums\LandingBlockType`. */
-export type LandingBlockType =
-    | 'hero'
-    | 'rich_text'
-    | 'event_info'
-    | 'calls'
-    | 'tracks'
-    | 'faq'
-    | 'image_gallery'
-    | 'spacer'
-    | 'columns';
+export type LandingBlockType = 'hero' | 'rich_text' | 'event_info' | 'calls' | 'tracks' | 'faq' | 'image_gallery' | 'spacer' | 'columns';
 
 /** Variantes de aspecto (DA-15): sobre tokens, nunca colores libres. */
 export type LandingTone = 'light' | 'accent';
@@ -136,9 +127,7 @@ export interface PublicSpacerBlock extends PublicBlockBase {
     size: LandingSpacerSize;
 }
 
-export type PublicColumn =
-    | { kind: 'text'; html: string }
-    | { kind: 'image'; url: string; alt: string };
+export type PublicColumn = { kind: 'text'; html: string } | { kind: 'image'; url: string; alt: string };
 
 export interface PublicColumnsBlock extends PublicBlockBase {
     type: 'columns';
@@ -245,9 +234,7 @@ export interface DraftSpacerBlock extends DraftBlockBase {
     size: LandingSpacerSize;
 }
 
-export type DraftColumn =
-    | { kind: 'text'; html: LocalizedText }
-    | { kind: 'image'; image: DraftImageRef | null; alt: LocalizedText };
+export type DraftColumn = { kind: 'text'; html: LocalizedText } | { kind: 'image'; image: DraftImageRef | null; alt: LocalizedText };
 
 export interface DraftColumnsBlock extends DraftBlockBase {
     type: 'columns';
@@ -302,14 +289,21 @@ export type LandingFieldErrors = Record<string, string[]>;
 
 export type LandingSaveResult =
     | { ok: true; version: number; blocks: LandingBlockDraft[] }
-    | { ok: false; reason: 'conflict'; version: number; blocks: LandingBlockDraft[] }
+    | {
+          ok: false;
+          reason: 'conflict';
+          version: number;
+          blocks: LandingBlockDraft[];
+      }
     | { ok: false; reason: 'invalid'; errors: LandingFieldErrors };
 
-export type LandingDiscardResult = { ok: true; version: number; blocks: LandingBlockDraft[] };
+export type LandingDiscardResult = {
+    ok: true;
+    version: number;
+    blocks: LandingBlockDraft[];
+};
 
-export type LandingUploadResult =
-    | { ok: true; image: DraftImageRef }
-    | { ok: false; errors: string[] };
+export type LandingUploadResult = { ok: true; image: DraftImageRef } | { ok: false; errors: string[] };
 
 /**
  * Persistencia del editor. El backend la conecta con Livewire (`$wire`). Las promesas rechazadas
@@ -325,6 +319,3 @@ export interface LandingEditorApi {
     /** Sube una imagen (JPEG, PNG o WebP) y devuelve su identificador y la URL con que el editor la ve. */
     uploadImage: (file: File) => Promise<LandingUploadResult>;
 }
-
-/** Lo que lee `window.mountLandingEditor(el)` de `data-props` (JSON); el `api` lo inyecta quien monta. */
-export type LandingEditorMountProps = Omit<LandingEditorProps, never>;
