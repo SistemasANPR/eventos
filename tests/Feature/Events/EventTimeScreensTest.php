@@ -80,8 +80,8 @@ it('CA-023-8: the period of the calls follows the format of the event', function
     Livewire::test(CallsRelationManager::class, ['ownerRecord' => $event, 'pageClass' => ViewEvent::class])
         ->assertSeeText($expected);
 })->with([
-    '12 hours' => [TimeFormat::TwelveHour, '15/01/2027 9:00 a. m. – 20/02/2027 11:00 p. m.'],
-    '24 hours' => [TimeFormat::TwentyFourHour, '15/01/2027 09:00 h – 20/02/2027 23:00 h'],
+    '12 hours' => [TimeFormat::TwelveHour, 'Abre 15 ene. 2027 · 9:00 a. m.'],
+    '24 hours' => [TimeFormat::TwentyFourHour, 'Cierra 20 feb. 2027 · 23:00 h'],
 ]);
 
 it('CA-023-8: the hours of the activities follow the format of the event', function (TimeFormat $format, string $expected): void {

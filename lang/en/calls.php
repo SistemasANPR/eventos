@@ -69,8 +69,7 @@ return [
         'title' => 'Call',
         'type' => 'Type',
         'status' => 'Status',
-        'public_state' => 'Public state',
-        'period' => 'Period (event time)',
+        'period' => 'Period',
         'form' => 'Form',
     ],
     'form' => [
@@ -91,6 +90,10 @@ return [
         'assign_failed_on_create' => 'The call was created, but the form could not be assigned',
     ],
     'date_format' => 'Y-m-d',
+    'list_date_format' => 'M j, Y',
+    'period_opens' => 'Opens :date',
+    'period_closes' => 'Closes :date',
+    'period_timezone' => 'Event time (:timezone)',
     'state' => [
         'scheduled' => 'Scheduled',
         'open' => 'Open',

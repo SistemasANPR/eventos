@@ -251,3 +251,14 @@ it('CA-004-40: the public URL never carries the slug of another organization', f
     expect($expected)->not->toContain($otherOrganization->slug)
         ->and($expected)->not->toContain($otherEvent->slug);
 });
+
+it('the calls list stacks the period in two short lines and shows a single status badge', function (): void {
+    [$organization, $event, $admin] = callPanelScenario();
+    $draft = app(CreateCallForSubmissions::class)->handle($admin, $event, panelCallData($event));
+    CurrentOrganization::set($organization);
+
+    callManager($event)
+        ->assertSeeTextInOrder(['Abre 10 ene. 2027 · 9:00 a. m.', 'Cierra 15 feb. 2027 · 11:00 p. m.'])
+        ->assertTableColumnStateSet('status', CallStatus::Draft->getLabel(), $draft)
+        ->assertTableColumnDoesNotExist('public_state');
+});
