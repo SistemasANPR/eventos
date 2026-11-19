@@ -9,7 +9,7 @@ import { fileURLToPath } from 'node:url';
 export default defineConfig({
     plugins: [
         laravel({
-            input: ['resources/css/app.css', 'resources/css/filament/admin/theme.css', 'resources/js/app.tsx', 'resources/js/form-preview.tsx'],
+            input: ['resources/css/app.css', 'resources/css/filament/admin/theme.css', 'resources/js/app.tsx', 'resources/js/form-preview.tsx', 'resources/js/landing-editor.tsx'],
             refresh: true,
         }),
         react(),

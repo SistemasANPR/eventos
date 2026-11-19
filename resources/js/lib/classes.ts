@@ -39,5 +39,8 @@ export const SECTION_HEADING = 'font-display text-2xl font-semibold tracking-tig
 /** Tarjeta de un elemento de lista de la landing (convocatoria, eje, pregunta). */
 export const LIST_CARD = 'flex flex-col gap-3 rounded-lg border border-border bg-surface p-4 sm:p-6';
 
+/** Título de nivel intermedio de la landing y su editor (h2 de un panel, h3 de una tarjeta grande). */
+export const HEADING_LG = 'font-display text-xl font-semibold text-text';
+
 /** Título de una tarjeta de lista de la landing (h3). */
 export const HEADING_MD = 'font-display text-lg font-semibold text-text';

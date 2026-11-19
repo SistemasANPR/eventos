@@ -30,7 +30,10 @@ const componentFiles = listFiles(COMPONENTS_ROOT)
     .map((file) => toPosix(relative(COMPONENTS_ROOT, file)))
     .filter((file) => file.endsWith('.tsx') && !file.endsWith('.test.tsx') && !file.startsWith('ui/'));
 
-const sourceFiles = listFiles(JS_ROOT).filter((file) => /\.(ts|tsx)$/.test(file) && !/\.test\.tsx?$/.test(file));
+// Se leen una sola vez: con decenas de componentes, releer cada archivo por entrada tardaba más que el límite de la prueba.
+const sourceFiles = listFiles(JS_ROOT)
+    .filter((file) => /\.(ts|tsx)$/.test(file) && !/\.test\.tsx?$/.test(file))
+    .map((file) => ({ file, text: readFileSync(file, 'utf8') }));
 
 describe('component catalog', () => {
     it('has an entry for every component file', () => {
@@ -60,10 +63,7 @@ describe('component catalog', () => {
     it('has no orphan component: someone imports each one by its direct path', () => {
         const orphans = registry.filter((entry) => {
             const importPath = `@/components/${entry.path}`;
-            return !sourceFiles.some(
-                (file) =>
-                    !file.endsWith(`${entry.path}.tsx`) && readFileSync(file, 'utf8').includes(`'${importPath}'`),
-            );
+            return !sourceFiles.some(({ file, text }) => !file.endsWith(`${entry.path}.tsx`) && text.includes(`'${importPath}'`));
         });
 
         expect(orphans.map((entry) => entry.name)).toEqual([]);

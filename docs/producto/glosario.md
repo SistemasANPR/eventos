@@ -29,6 +29,9 @@
 | Actividad | `EventActivity` (tabla `event_activities`) | Cada charla, panel, taller o evento social del programa. Nace al aceptar una propuesta (una por propuesta, sin fecha ni hora: «sin programar») o se da de alta a mano; se enlaza con ponentes de forma opcional y muchos a muchos (plan 021, DA-8 y DA-14). **Sustituye** a `EventSession`. No confundir con `Activity` (`App\Models\Activity`), que es la bitácora de auditoría | Evento |
 | Programa | `Schedule` | Conjunto de actividades del evento, publicado por versiones | Evento |
 | Bloque | `ScheduleBlock` | Rango de horario con un tipo (conferencias, magistral, talleres) | Evento |
+| Landing del evento | `EventLanding` (tabla `event_landings`) | Página pública del evento (`/{organización}/events/{evento}`) armada con bloques: una por evento, con borrador y versión publicada. Nace con el evento a partir de una plantilla (portada, datos del evento, convocatorias y ejes) y se edita en un editor visual (plan 022, DA-1, DA-13). No confundir con la página de una convocatoria (`calls.show`) | Evento |
+| Bloque de la landing | `LandingBlock` (tipos en el enum `LandingBlockType`) | Pieza de la landing de una lista blanca de 9 tipos: `hero`, `rich_text`, `event_info`, `calls`, `tracks`, `faq`, `image_gallery`, `spacer` y `columns`. Se guarda como objeto `jsonb` con identificador, tipo y contenido validado por su tipo (`LandingBlockRules`); no es un modelo. No confundir con `ScheduleBlock` (bloque del horario) (plan 022, DA-3, DA-13) | Evento (dentro de `EventLanding`) |
+| Imagen de la landing | `LandingImage` (tabla `landing_images`) | Imagen subida por el organizador para una landing, en el disco privado `media`; los bloques guardan su identificador, nunca su ruta (plan 022, DA-7) | Evento |
 | Sede | `Venue` | Lugar del evento | Organización |
 | Sala | `Room` | Espacio dentro de una sede | Organización |
 | Taller | `Workshop` | Sesión con cupo e inscripción | Evento |
