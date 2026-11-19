@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Filament\Resources\Events\Pages;
 
+use App\Filament\Resources\Events\Actions\LandingActions;
 use App\Filament\Resources\Events\Actions\LifecycleActions;
 use App\Filament\Resources\Events\EventResource;
 use App\Filament\Resources\Events\Tables\EventsTable;
@@ -43,6 +44,7 @@ class ViewEvent extends ViewRecord
     {
         return [
             EditAction::make(),
+            LandingActions::design(),
             LifecycleActions::publish(),
             LifecycleActions::archive(),
         ];

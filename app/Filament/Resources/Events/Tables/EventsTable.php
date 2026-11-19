@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Filament\Resources\Events\Tables;
 
 use App\Enums\EventStatus;
+use App\Filament\Resources\Events\Actions\LandingActions;
 use App\Filament\Resources\Events\Actions\LifecycleActions;
 use App\Filament\Resources\Events\EventResource;
 use App\Models\Event;
@@ -75,6 +76,7 @@ final class EventsTable
             ->recordActions([
                 ActionGroup::make([
                     EditAction::make(),
+                    LandingActions::design(),
                     LifecycleActions::publish(),
                     LifecycleActions::archive(),
                 ])->label(__('events.table.actions')),
