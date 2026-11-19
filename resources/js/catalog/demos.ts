@@ -2,6 +2,20 @@ import type { ComponentType } from 'react';
 
 import { RichTextDemo, TextLinkDemo } from '@/catalog/demos-atoms';
 import { SkipToContentDemo } from '@/catalog/demos-infrastructure';
+import {
+    CallRegisterButtonDemo,
+    CallStateBadgeDemo,
+    LandingCallsBlockDemo,
+    LandingColumnsBlockDemo,
+    LandingEventInfoBlockDemo,
+    LandingFaqBlockDemo,
+    LandingGalleryBlockDemo,
+    LandingHeroBlockDemo,
+    LandingRendererDemo,
+    LandingRichTextBlockDemo,
+    LandingSpacerBlockDemo,
+    LandingTracksBlockDemo,
+} from '@/catalog/demos-landing';
 import { EventFactDemo, LocaleSwitcherDemo } from '@/catalog/demos-molecules';
 import { EventHeroDemo } from '@/catalog/demos-organisms';
 
@@ -13,4 +27,16 @@ export const demos: Record<string, ComponentType> = {
     LocaleSwitcher: LocaleSwitcherDemo,
     EventHero: EventHeroDemo,
     SkipToContent: SkipToContentDemo,
+    CallStateBadge: CallStateBadgeDemo,
+    CallRegisterButton: CallRegisterButtonDemo,
+    LandingRenderer: LandingRendererDemo,
+    LandingHeroBlock: LandingHeroBlockDemo,
+    LandingRichTextBlock: LandingRichTextBlockDemo,
+    LandingEventInfoBlock: LandingEventInfoBlockDemo,
+    LandingCallsBlock: LandingCallsBlockDemo,
+    LandingTracksBlock: LandingTracksBlockDemo,
+    LandingFaqBlock: LandingFaqBlockDemo,
+    LandingGalleryBlock: LandingGalleryBlockDemo,
+    LandingSpacerBlock: LandingSpacerBlockDemo,
+    LandingColumnsBlock: LandingColumnsBlockDemo,
 };

@@ -46,6 +46,26 @@ final class EventPolicy
         return $this->allows($user, 'events.publish', $event);
     }
 
+    /**
+     * Landing del evento (plan 022, DA-10): reutiliza `events.manage`, sin permiso nuevo. Ver el borrador
+     * y el editor, guardar y descartar los cambios, y actualizar (guardar y publicar) exigen lo mismo.
+     * La versión publicada la ve cualquiera en el sitio público y no pasa por la Policy.
+     */
+    public function viewLanding(User $user, Event $event): bool
+    {
+        return $this->allows($user, 'events.manage', $event);
+    }
+
+    public function updateLanding(User $user, Event $event): bool
+    {
+        return $this->allows($user, 'events.manage', $event);
+    }
+
+    public function publishLanding(User $user, Event $event): bool
+    {
+        return $this->allows($user, 'events.manage', $event);
+    }
+
     private function allows(User $user, string $permission, ?Event $event = null): bool
     {
         if (! CurrentOrganization::has()) {

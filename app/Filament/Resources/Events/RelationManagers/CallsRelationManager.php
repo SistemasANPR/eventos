@@ -14,6 +14,7 @@ use App\Actions\Forms\PublishFormDefinition;
 use App\Enums\CallState;
 use App\Enums\CallStatus;
 use App\Enums\FormDefinitionStatus;
+use App\Filament\Resources\Events\Actions\LandingActions;
 use App\Filament\Resources\Events\EventResource;
 use App\Filament\Support\ActionErrors;
 use App\Filament\Support\LocalizedFields;
@@ -119,6 +120,7 @@ class CallsRelationManager extends RelationManager
                     $this->statusAction('closeCall', 'close', 'closed', CallStatus::Closed, [CallStatus::Published, CallStatus::Paused], Heroicon::OutlinedLockClosed, 'danger', false, true),
                     $this->statusAction('reopenCall', 'reopen', 'reopened', CallStatus::Published, [CallStatus::Closed], Heroicon::OutlinedArrowPath, 'success', true),
                     $this->viewPublicPageAction(),
+                    LandingActions::designFor(fn (): Event => $this->owner()),
                     $this->copyPublicLinkAction(),
                 ])->label(__('calls.actions.more'))->iconButton(),
             ])

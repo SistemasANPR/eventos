@@ -1,0 +1,50 @@
+/*
+ * Estilos del editor de la landing dentro del panel (plan 022). Mismo patrón que `form-preview.css`:
+ * solo el tema y las utilidades de Tailwind, SIN la capa base (preflight) ni las reglas globales de
+ * `app.css`, para que el panel de Filament no cambie de aspecto. Los tokens son los de `app.css`
+ * que usan el lienzo (`LandingRenderer`) y el editor; el lienzo de móvil y tablet copia estas hojas
+ * a su marco.
+ */
+@import 'tailwindcss/theme.css' layer(theme);
+@import 'tailwindcss/utilities.css' layer(utilities);
+
+@source '../js/landing-editor.tsx';
+@source '../js/components/organisms/landing-editor';
+@source '../js/components/organisms/landing';
+@source '../js/components/organisms/LandingRenderer.tsx';
+@source '../js/components/atoms/RichText.tsx';
+@source '../js/components/molecules';
+@source '../js/lib/classes.ts';
+
+@theme {
+    --color-bg: #f8fafe;
+    --color-surface: #ffffff;
+    --color-border: #e2e6ef;
+    --color-border-input: #777a82;
+    --color-text: #243342;
+    --color-text-muted: #585b62;
+    --color-primary: #152b83;
+    --color-primary-hover: #0d1e70;
+    --color-primary-contrast: #ffffff;
+    --color-accent: #bfcc36;
+    --color-accent-contrast: #152b83;
+    --color-support: #156a62;
+    --color-success: #2e7d32;
+    --color-success-bg: #e8f5e9;
+    --color-warning: #92400e;
+    --color-warning-bg: #fef3c7;
+    --color-error: #b42318;
+    --color-error-bg: #fee4e2;
+    --color-info: #3a56a6;
+    --color-info-bg: #e5edff;
+
+    --font-sans: 'Roboto', system-ui, -apple-system, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+    --font-display: 'Montserrat', system-ui, -apple-system, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+}
+
+/* Los títulos del lienzo usan la fuente de display como en el sitio público (sin la capa base). */
+.landing-editor-root h1,
+.landing-editor-root h2,
+.landing-editor-root h3 {
+    font-family: var(--font-display);
+}

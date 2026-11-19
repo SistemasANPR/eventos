@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Actions\Events;
 
 use App\Actions\Calls\SeedDefaultSubmissionTypes;
+use App\Actions\Landings\CreateEventLanding;
 use App\Enums\EventStatus;
 use App\Http\Requests\Events\StoreEventRequest;
 use App\Models\Event;
@@ -21,7 +22,8 @@ use Illuminate\Validation\ValidationException;
 /**
  * Crea un evento en borrador dentro de una organización (plan 003, CA-003-1 a 4).
  * Las fechas llegan como hora local del evento y se guardan en UTC. Nace con
- * los tipos de propuesta por defecto (plan 004, DA-7). Deja auditoría de quién lo creó.
+ * los tipos de propuesta por defecto (plan 004, DA-7) y con su landing, ya publicada con la plantilla
+ * (plan 022, DA-6). Deja auditoría de quién lo creó.
  *
  * @throws AuthorizationException si quien crea no tiene `events.manage` en la organización
  * @throws ValidationException si los datos no son válidos (no se guarda nada)
@@ -30,7 +32,10 @@ final class CreateEvent
 {
     use AuthorizesInOrganization;
 
-    public function __construct(private readonly SeedDefaultSubmissionTypes $seedSubmissionTypes) {}
+    public function __construct(
+        private readonly SeedDefaultSubmissionTypes $seedSubmissionTypes,
+        private readonly CreateEventLanding $createLanding,
+    ) {}
 
     /** @param  array<string, mixed>  $data */
     public function handle(User $actor, Organization $organization, array $data): Event
@@ -49,6 +54,9 @@ final class CreateEvent
                 ]);
 
                 $this->seedSubmissionTypes->handle($event);
+
+                // La landing nace con el evento, con la plantilla ya publicada (plan 022, DA-6): si falla, no queda el evento a medias.
+                $this->createLanding->handle($actor, $event, publish: true);
 
                 activity()
                     ->causedBy($actor)

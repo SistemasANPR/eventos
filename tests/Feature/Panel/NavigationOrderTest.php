@@ -145,7 +145,7 @@ function eventSections(User $user, Organization $organization, ?Event $event): a
 }
 
 /**
- * Secciones del evento: las del plan 020 y, desde el plan 021 (F1), las categorías del programa.
+ * Secciones del evento: las del plan 020; las categorías del programa se abren desde el botón de Ponentes y Actividades.
  *
  * @return list<string>
  */
@@ -157,8 +157,6 @@ function eventSectionLabels(): array
         __('submission_panel.navigation'),
         __('program.speakers.navigation'),
         __('program.activities.navigation'),
-        __('program.categories.speakers.navigation'),
-        __('program.categories.activities.navigation'),
     ];
 }
 

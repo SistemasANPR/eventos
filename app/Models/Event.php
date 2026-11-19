@@ -15,6 +15,7 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Carbon;
 use Spatie\Translatable\HasTranslations;
@@ -133,6 +134,12 @@ class Event extends Model
     public function activities(): HasMany
     {
         return $this->hasMany(EventActivity::class);
+    }
+
+    /** @return HasOne<EventLanding, $this> */
+    public function landing(): HasOne
+    {
+        return $this->hasOne(EventLanding::class);
     }
 
     /** @return HasMany<PrivacyNotice, $this> */

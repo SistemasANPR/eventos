@@ -6,9 +6,12 @@ use App\Actions\Program\CreateProgramCategory;
 use App\Enums\OrganizationRole;
 use App\Enums\ProgramCategoryKind;
 use App\Filament\Resources\Events\EventResource;
+use App\Filament\Resources\Events\Pages\ManageEventActivities;
 use App\Filament\Resources\Events\Pages\ManageEventActivityCategories;
 use App\Filament\Resources\Events\Pages\ManageEventProgramCategories;
 use App\Filament\Resources\Events\Pages\ManageEventSpeakerCategories;
+use App\Filament\Resources\Events\Pages\ManageEventSpeakers;
+use App\Filament\Resources\Events\ProgramCategoryShortcuts;
 use App\Models\Event;
 use App\Models\Organization;
 use App\Models\SpeakerCategory;
@@ -18,6 +21,7 @@ use Filament\Actions\Testing\TestAction;
 use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Gate;
 use Livewire\Features\SupportTesting\Testable;
 use Livewire\Livewire;
 
@@ -131,19 +135,74 @@ it('CA-021-15: a reviewer cannot reach either catalog by URL', function (): void
     }
 });
 
-it('CA-021-15: the admin reaches both catalogs by URL and the event sub-navigation links to them', function (): void {
+it('CA-021-15: the admin reaches both catalogs by URL, and the sidebar no longer lists them as sections', function (): void {
     [$organization, $event, $admin] = formScenario();
 
     foreach (['speaker-categories', 'activity-categories'] as $page) {
         $url = EventResource::getUrl($page, ['record' => $event], panel: 'admin', tenant: $organization);
 
-        $this->actingAs($admin)->get($url)->assertOk()->assertSee($url, false);
+        $this->actingAs($admin)->get($url)->assertOk();
     }
 
     $this->actingAs($admin)->get(EventResource::getUrl('view', ['record' => $event], panel: 'admin', tenant: $organization))
         ->assertOk()
-        ->assertSee(__('program.categories.speakers.navigation'))
-        ->assertSee(__('program.categories.activities.navigation'));
+        ->assertDontSee(EventResource::getUrl('speaker-categories', ['record' => $event], panel: 'admin', tenant: $organization), false)
+        ->assertDontSee(EventResource::getUrl('activity-categories', ['record' => $event], panel: 'admin', tenant: $organization), false);
+});
+
+it('the Categories button of Speakers and Activities links to its catalog and shows how many categories it has', function (string $list, ProgramCategoryKind $kind, string $catalog): void {
+    [$organization, $event, $admin] = formScenario();
+    app(CreateProgramCategory::class)->handle($admin, $event, $kind, ['name' => 'Académico']);
+    app(CreateProgramCategory::class)->handle($admin, $event, $kind, ['name' => 'Industria']);
+
+    Auth::login($admin);
+    Filament::setCurrentPanel('admin');
+    Filament::setTenant($organization);
+    CurrentOrganization::set($organization);
+
+    Livewire::test($list, ['record' => $event->id])
+        ->assertActionVisible('categories')
+        ->assertActionHasUrl('categories', EventResource::getUrl($catalog, ['record' => $event]));
+
+    expect(ProgramCategoryShortcuts::button($event, $kind)->getBadge())->toBe('2');
+})->with([
+    'speakers' => [ManageEventSpeakers::class, ProgramCategoryKind::Speaker, 'speaker-categories'],
+    'activities' => [ManageEventActivities::class, ProgramCategoryKind::Activity, 'activity-categories'],
+]);
+
+it('each catalog offers a way back to the list it belongs to', function (string $page, string $list): void {
+    [$organization, $event, $admin] = formScenario();
+
+    categoryPage($page, $organization, $admin, $event)
+        ->assertActionVisible('back')
+        ->assertActionHasUrl('back', EventResource::getUrl($list, ['record' => $event]));
+})->with([
+    'speakers' => [ManageEventSpeakerCategories::class, 'speakers'],
+    'activities' => [ManageEventActivityCategories::class, 'activities'],
+]);
+
+it('a user without access to the catalog does not see the Categories button', function (): void {
+    [$organization, $event, $reviewer] = formScenario(OrganizationRole::Reviewer);
+    Auth::login($reviewer);
+    Filament::setCurrentPanel('admin');
+    Filament::setTenant($organization);
+    CurrentOrganization::set($organization);
+
+    expect(Gate::allows('viewAny', SpeakerCategory::class))->toBeFalse();
+});
+
+it('a category created from the speaker form is stored in the event and selected', function (): void {
+    [$organization, $event, $admin] = formScenario();
+    Auth::login($admin);
+    Filament::setCurrentPanel('admin');
+    Filament::setTenant($organization);
+    CurrentOrganization::set($organization);
+
+    Livewire::test(ManageEventSpeakers::class, ['record' => $event->id])
+        ->mountAction('createSpeaker')
+        ->callAction(TestAction::make('createOption')->schemaComponent('category_ids', schema: 'mountedActionSchema0'), ['name' => 'Industria']);
+
+    expect(SpeakerCategory::query()->where('event_id', $event->id)->pluck('name')->all())->toBe(['Industria']);
 });
 
 it('CA-021-17: the catalogs of an event of another organization answer 404', function (): void {

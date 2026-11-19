@@ -13,12 +13,14 @@ enum ProgramImageType: string
     case Photo = 'photo';
     case Image = 'image';
     case Icon = 'icon';
+    /** Imagen de la landing del evento (plan 022, DA-7): mismas reglas que la de una actividad. */
+    case Landing = 'landing';
 
-    /** Fotografía e imagen hasta 5 MB; icono hasta 256 KB. */
+    /** Fotografía, imagen y landing hasta 5 MB; icono hasta 256 KB. */
     public function maxBytes(): int
     {
         return match ($this) {
-            self::Photo, self::Image => 5 * 1024 * 1024,
+            self::Photo, self::Image, self::Landing => 5 * 1024 * 1024,
             self::Icon => 256 * 1024,
         };
     }
@@ -26,7 +28,7 @@ enum ProgramImageType: string
     public function maxSizeLabel(): string
     {
         return match ($this) {
-            self::Photo, self::Image => '5 MB',
+            self::Photo, self::Image, self::Landing => '5 MB',
             self::Icon => '256 KB',
         };
     }
