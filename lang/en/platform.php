@@ -69,9 +69,8 @@ return [
             'events' => 'Events',
         ],
         'fields' => [
-            'slug' => 'URL identifier',
-            'slug_help' => 'Lowercase letters, numbers and hyphens. It cannot be changed later.',
             'name' => 'Organization name',
+            'name_help' => 'The URL identifier is generated from the name and cannot be changed later.',
             'admin_name' => 'First administrator name',
             'admin_email' => 'First administrator email',
             'admin_email_help' => 'They will receive an email to set their password.',

@@ -13,6 +13,7 @@ use App\Models\Event;
 use App\Models\Organization;
 use App\Models\User;
 use App\Notifications\SetPasswordNotification;
+use App\Support\Organizations\OrganizationSlugGenerator;
 use App\Support\Tenancy\CurrentOrganization;
 use Filament\Actions\Testing\TestAction;
 use Filament\Facades\Filament;
@@ -50,7 +51,6 @@ function platformSession(): User
 function newOrganizationData(array $overrides = []): array
 {
     return array_merge([
-        'slug' => 'nueva-asociacion',
         'name' => 'Nueva Asociación',
         'admin_email' => 'directora@nueva.example',
         'admin_name' => 'Directora Nueva',
@@ -109,7 +109,7 @@ it('CA-016-11: a platform user creates an organization with its first administra
     expect(Activity::query()->where('event', 'organization_created')->count())->toBe(1);
 });
 
-it('CA-016-12: an invalid slug, a reserved one or a bad email are refused field by field and create nothing', function (array $overrides, string $field): void {
+it('CA-016-12: a bad email or a missing name is refused field by field and creates nothing', function (array $overrides, string $field): void {
     Notification::fake();
     platformSession();
 
@@ -117,26 +117,42 @@ it('CA-016-12: an invalid slug, a reserved one or a bad email are refused field 
         ->callAction(TestAction::make('createOrganization'), newOrganizationData($overrides))
         ->assertHasFormErrors([$field]);
 
-    expect(Organization::query()->where('slug', '!=', 'ignored')->count())->toBe(0);
+    expect(Organization::query()->count())->toBe(0);
 })->with([
-    'reserved slug platform' => [['slug' => 'platform'], 'slug'],
-    'reserved slug admin' => [['slug' => 'admin'], 'slug'],
-    'invalid slug' => [['slug' => 'Con Espacios'], 'slug'],
     'invalid email' => [['admin_email' => 'no-es-correo'], 'admin_email'],
     'missing name' => [['name' => ''], 'name'],
 ]);
 
-it('CA-016-12: a slug that already exists, even in a deleted organization, creates nothing', function (): void {
-    Notification::fake();
+it('the panel form has no slug field: the identifier is generated from the name', function (): void {
     platformSession();
-    Organization::factory()->create(['slug' => 'ya-existe'])->delete();
 
     Livewire::test(ListOrganizations::class)
-        ->callAction(TestAction::make('createOrganization'), newOrganizationData(['slug' => 'ya-existe']));
-
-    expect(Organization::withTrashed()->where('slug', 'ya-existe')->count())->toBe(1)
-        ->and(User::query()->where('email', 'directora@nueva.example')->exists())->toBeFalse();
+        ->mountAction(TestAction::make('createOrganization'))
+        ->assertSchemaComponentDoesNotExist('slug', 'mountedActionSchema0')
+        ->assertSchemaComponentExists('name', 'mountedActionSchema0');
 });
+
+it('the slug generated from a name that is already taken, even by a deleted organization, gets a numeric suffix', function (): void {
+    Notification::fake();
+    platformSession();
+    Organization::factory()->create(['slug' => 'nueva-asociacion'])->delete();
+
+    Livewire::test(ListOrganizations::class)
+        ->callAction(TestAction::make('createOrganization'), newOrganizationData())
+        ->assertHasNoFormErrors();
+
+    expect(Organization::withTrashed()->where('slug', 'nueva-asociacion')->count())->toBe(1)
+        ->and(Organization::query()->where('slug', 'nueva-asociacion-2')->exists())->toBeTrue();
+});
+
+it('the slug generator returns a valid, unreserved identifier for any name', function (string $name, string $expected): void {
+    expect(OrganizationSlugGenerator::for($name))->toBe($expected);
+})->with([
+    'accents and spaces' => ['Asociación Nacional de Parques', 'asociacion-nacional-de-parques'],
+    'reserved word' => ['Admin', 'admin-2'],
+    'too short' => ['AB', 'ab-organizacion'],
+    'no letters' => ['!!!', 'organizacion'],
+]);
 
 it('CA-016-13: suspending an organization with a reason changes its status and audits who, when, why and the states', function (): void {
     $platform = platformSession();

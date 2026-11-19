@@ -9,6 +9,7 @@ use App\Exceptions\Domain\OrganizationAlreadyExists;
 use App\Filament\Platform\Resources\Organizations\OrganizationResource;
 use App\Http\Requests\Platform\CreateOrganizationRequest;
 use App\Models\Organization;
+use App\Support\Organizations\OrganizationSlugGenerator;
 use Filament\Actions\Action;
 use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
@@ -37,13 +38,9 @@ class ListOrganizations extends ListRecords
             ->modalHeading(__('platform.organizations.create'))
             ->visible(fn (): bool => Gate::allows('create', Organization::class))
             ->schema([
-                TextInput::make('slug')
-                    ->label(__('platform.organizations.fields.slug'))
-                    ->helperText(__('platform.organizations.fields.slug_help'))
-                    ->rules($rules['slug'])
-                    ->required(),
                 TextInput::make('name')
                     ->label(__('platform.organizations.fields.name'))
+                    ->helperText(__('platform.organizations.fields.name_help'))
                     ->rules($rules['name'])
                     ->required(),
                 TextInput::make('admin_name')
@@ -61,7 +58,7 @@ class ListOrganizations extends ListRecords
 
                 try {
                     app(CreateOrganization::class)->handle(
-                        (string) $data['slug'],
+                        OrganizationSlugGenerator::for((string) $data['name']),
                         (string) $data['name'],
                         (string) $data['admin_email'],
                         (string) $data['admin_name'],
