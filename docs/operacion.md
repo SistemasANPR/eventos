@@ -36,6 +36,12 @@ Todo el desarrollo ocurre en `staging`; `main` solo recibe lo ya probado (ADR-00
 2. Integrar en `staging` despliega al entorno de pruebas (si existe, ADR-0008 DA-3).
 3. Producción se despliega desde `main`, que solo recibe `staging` por pull request, con **aprobación manual**.
 4. **Migraciones:** el paso de despliegue las aplica solo tras la aprobación de una persona (regla 1 de `AGENTS.md`). Cambios incompatibles siguen «expandir y contraer» (`docs/database-design.md` §5).
+   **En Railway el despliegue no ejecuta `migrate`:** tras desplegar una versión con migraciones nuevas quedan pendientes hasta que una persona las aplica. Pasos, en este orden:
+   1. Ver cuáles faltan: `railway ssh --service eventos -- php artisan migrate:status` (las filas `Pending`). Es solo lectura.
+   2. Revisar que sean aditivas (`create table`, columnas nuevas con valor por defecto); una destructiva sigue «expandir y contraer» y lleva su plan de reversa.
+   3. Aplicarlas: `railway ssh --service eventos -- php artisan migrate --force`. Es idempotente: reintentarla no repite las ya aplicadas.
+   4. Comprobar que `migrate:status` ya no muestra `Pending`.
+   Hacerlo en cuanto termine el despliegue: mientras tanto, las pantallas que usan las tablas nuevas fallan con «tabla inexistente».
 5. Después del despliegue: comprobar `/up`, reiniciar los workers y revisar errores durante 15 minutos.
 6. **Recursos de Filament en el build:** `railway.json` fija el constructor `DOCKERFILE`. Los scripts y fuentes de Filament (`public/js/filament`, `public/fonts/filament`) no están en Git: los publica `filament:upgrade` (script `post-autoload-dump`) cuando el `Dockerfile` ejecuta `composer dump-autoload` con scripts. Sin ese paso responden 404 y en el acceso desaparecen el botón «Entrar» y el icono del ojo (con Railpack ocurrió). Tras desplegar, comprobar que `/js/filament/filament/app.js` responde 200.
 
