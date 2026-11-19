@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace App\Filament\Resources\Events\Schemas;
 
+use App\Enums\ProgramCategoryKind;
 use App\Enums\ProgramSocialNetwork;
+use App\Filament\Resources\Events\ProgramCategoryShortcuts;
 use App\Models\Event;
 use App\Models\EventActivity;
 use App\Models\Speaker;
@@ -93,11 +95,15 @@ final class SpeakerForm
                 ->maxItems(count(ProgramSocialNetwork::cases()))
                 ->addActionLabel(__('program.speakers.fields.add_social_link'))
                 ->defaultItems(0),
-            Select::make('category_ids')
-                ->label(__('program.speakers.fields.categories'))
-                ->options(fn (): array => self::categoryOptions($event))
-                ->multiple()
-                ->preload(),
+            ProgramCategoryShortcuts::withInlineCreate(
+                Select::make('category_ids')
+                    ->label(__('program.speakers.fields.categories'))
+                    ->options(fn (): array => self::categoryOptions($event))
+                    ->multiple()
+                    ->preload(),
+                $event,
+                ProgramCategoryKind::Speaker,
+            ),
             // Asignar cambia las actividades: `SyncSpeakerActivities` exige también `activities.manage` (hoy lo tienen
             // los mismos roles que `speakers.manage`) y un permiso ausente se propaga como 403, no se oculta.
             Select::make('activity_ids')

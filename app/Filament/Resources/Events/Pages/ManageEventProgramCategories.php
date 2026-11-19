@@ -69,7 +69,19 @@ abstract class ManageEventProgramCategories extends ManageRelatedRecords
     /** @return array<int, Action> */
     protected function getHeaderActions(): array
     {
-        return [$this->createAction()];
+        return [$this->backAction(), $this->createAction()];
+    }
+
+    /** Vuelve a la lista de la que se viene: Ponentes o Actividades. */
+    private function backAction(): Action
+    {
+        $kind = static::kind();
+
+        return Action::make('back')
+            ->label(__("program.categories.back_to_{$kind->value}"))
+            ->icon(Heroicon::OutlinedArrowLeft)
+            ->color('gray')
+            ->url(fn (): string => EventResource::getUrl($kind->value, ['record' => $this->event()]));
     }
 
     private function createAction(): Action
