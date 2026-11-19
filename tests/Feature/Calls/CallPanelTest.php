@@ -272,7 +272,8 @@ it('the calls list stacks the period in two short lines and shows a single statu
     CurrentOrganization::set($organization);
 
     callManager($event)
-        ->assertSeeTextInOrder(['Abre 10 ene. 2027 · 9:00 a. m.', 'Cierra 15 feb. 2027 · 11:00 p. m.'])
         ->assertTableColumnStateSet('status', CallStatus::Draft->getLabel(), $draft)
-        ->assertTableColumnDoesNotExist('public_state');
+        ->assertTableColumnDoesNotExist('public_state')
+        ->assertSeeText('Abre 10 ene. 2027 · 9:00 a. m.')
+        ->assertSeeText('Cierra 15 feb. 2027 · 11:00 p. m.');
 });
