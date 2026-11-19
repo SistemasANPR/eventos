@@ -8,7 +8,9 @@ use App\Actions\Program\CreateActivity;
 use App\Actions\Program\DeleteActivity;
 use App\Actions\Program\SetActivityPublication;
 use App\Actions\Program\UpdateActivity;
+use App\Enums\ProgramCategoryKind;
 use App\Filament\Resources\Events\EventResource;
+use App\Filament\Resources\Events\ProgramCategoryShortcuts;
 use App\Filament\Resources\Submissions\SubmissionResource;
 use App\Filament\Support\ActionErrors;
 use App\Models\Event;
@@ -160,7 +162,7 @@ class ManageEventActivities extends ManageRelatedRecords
     /** @return array<int, Action> */
     protected function getHeaderActions(): array
     {
-        return [$this->createAction()];
+        return [ProgramCategoryShortcuts::button($this->event(), ProgramCategoryKind::Activity), $this->createAction()];
     }
 
     private function createAction(): Action
@@ -267,11 +269,15 @@ class ManageEventActivities extends ManageRelatedRecords
                 ->preload()
                 ->searchable()
                 ->options(fn (): array => $this->speakerOptions()),
-            Select::make('category_ids')
-                ->label(__('program.activities.form.categories'))
-                ->multiple()
-                ->preload()
-                ->options(fn (): array => $this->event()->activityCategories()->orderBy('position')->pluck('name', 'id')->all()),
+            ProgramCategoryShortcuts::withInlineCreate(
+                Select::make('category_ids')
+                    ->label(__('program.activities.form.categories'))
+                    ->multiple()
+                    ->preload()
+                    ->options(fn (): array => $this->event()->activityCategories()->orderBy('position')->pluck('name', 'id')->all()),
+                $this->event(),
+                ProgramCategoryKind::Activity,
+            ),
             Toggle::make('is_published')
                 ->label(__('program.activities.form.is_published'))
                 ->default(true),

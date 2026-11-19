@@ -8,7 +8,9 @@ use App\Actions\Program\CreateSpeaker;
 use App\Actions\Program\DeleteSpeaker;
 use App\Actions\Program\SetSpeakerPublication;
 use App\Actions\Program\UpdateSpeaker;
+use App\Enums\ProgramCategoryKind;
 use App\Filament\Resources\Events\EventResource;
+use App\Filament\Resources\Events\ProgramCategoryShortcuts;
 use App\Filament\Resources\Events\Schemas\SpeakerForm;
 use App\Filament\Support\ActionErrors;
 use App\Models\Event;
@@ -109,7 +111,7 @@ class ManageEventSpeakers extends ManageRelatedRecords
     /** @return array<int, Action> */
     protected function getHeaderActions(): array
     {
-        return [$this->createAction()];
+        return [ProgramCategoryShortcuts::button($this->event(), ProgramCategoryKind::Speaker), $this->createAction()];
     }
 
     private function createAction(): Action
