@@ -63,6 +63,7 @@ Solo nombres; nunca valores en el repositorio. Toda variable nueva se añade a `
 | `MAIL_*` | Correo transaccional | Sí |
 | `NOTIFICATIONS_MAILER` | Proveedor del correo transaccional: `resend` en staging y producción, `smtp` en local (Mailpit). Un valor desconocido falla al enviar; no cae a otro proveedor (ADR-0009, plan 008) | Sí |
 | `RESEND_API_KEY` | Clave de la API de Resend; solo cuando `NOTIFICATIONS_MAILER=resend`. Es un secreto: solo en variables del entorno, nunca en el repositorio | Sí, con `resend` |
+| `RUN_QUEUE_WORKER` | Con `true`, el contenedor web procesa también la cola de correos (acuses de propuesta, avisos): para un despliegue de un solo servicio. Con un servicio `worker` aparte (`php artisan queue:work`) se deja sin definir. Sin ningún worker los correos se quedan en la cola y no salen | No |
 | `TURNSTILE_SITE_KEY` | Llave pública de Cloudflare Turnstile; va al formulario público (plan 006). En local, la llave de prueba que siempre aprueba | Sí, en producción |
 | `TURNSTILE_SECRET_KEY` | Llave secreta de Turnstile; solo la usa el servidor para verificar el envío. Es un secreto: solo en variables del entorno | Sí, en producción |
 | `SUBMISSIONS_LIMIT_MULTIPLIER` | Multiplica los intentos de los límites de los formularios públicos de propuestas (5 envíos por IP cada 10 min, 3 acuses por correo por hora, enlaces de acceso y cuotas de carga). Por defecto 1, que son los valores del plan 006; en staging se sube (por ejemplo 100) para no quedar bloqueado en las pruebas. En producción se deja en 1: bajarlo de 1 no es posible | No |
