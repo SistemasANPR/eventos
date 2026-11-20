@@ -69,6 +69,9 @@ class StoreEventRequest extends FormRequest
             'currency' => ['required', 'string', Rule::in(self::CURRENCIES)],
             // Opcional: si falta, la creación usa el valor por defecto (12 h) y la edición conserva el actual (plan 023).
             'time_format' => ['nullable', Rule::enum(TimeFormat::class)],
+            // Logotipo (plan 027): el CONTENIDO lo decide `StoreEventLogo`; aquí solo el tope de bytes (2 MB) para fallar pronto.
+            'logo' => ['nullable', 'file', 'max:2048'],
+            'remove_logo' => ['nullable', 'boolean'],
         ];
     }
 

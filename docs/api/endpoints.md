@@ -56,8 +56,10 @@ Rutas web del sitio público que sirven archivos del disco privado `media` (plan
 | Método y ruta | Auth | Respuesta | Errores | Plan |
 |---|---|---|---|---|
 | `GET /{organization}/events/{event}/landing/images/{image}` (`public.landings.image`) | Ninguna | 200 con la imagen (`image/jpeg`, `png` o `webp`), `Cache-Control: public, max-age=300`, `X-Content-Type-Options: nosniff` | 404 si el evento no está publicado, no hay landing publicada, la imagen no figura en `published_blocks`, está borrada, es de otro evento u organización, el identificador no es un uuid o el archivo falta | 022 |
+| `GET /{organization}/events/{event}/logo` (`public.events.logo`) | Ninguna | 200 con el logotipo del evento (`image/jpeg`, `png` o `webp`), `Cache-Control: public, max-age=300`, `X-Content-Type-Options: nosniff` | 404 uniforme si el evento no está publicado (borrador o archivado), no tiene logotipo, es de otra organización o el archivo falta | 027 |
 
 El editor del panel ve las imágenes del borrador por una ruta autenticada propia (`admin/{organization}/events/{event}/landing/images/{image}`, `events.manage`); esa ruta no es pública.
+El formulario del panel ve el logotipo del evento, también en borrador, por `admin/{organization}/events/{event}/logo` (`event-logo.show`, `events.manage`, `Cache-Control: private, no-store`); esa ruta no es pública (plan 027).
 
 Una imagen de un registro no publicado nunca se sirve: el panel la previsualiza con una miniatura incrustada hecha en el servidor, no con estas rutas. La caché corta (5 minutos) acota cuánto sigue visible una imagen tras despublicarla.
 

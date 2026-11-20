@@ -3,12 +3,14 @@
 declare(strict_types=1);
 
 use App\Http\Controllers\Internal\ShowComponentCatalogController;
+use App\Http\Controllers\Panel\ShowEventLogoEditorController;
 use App\Http\Controllers\Panel\ShowLandingEditorImageController;
 use App\Http\Controllers\Panel\SubmissionExportDownloadController;
 use App\Http\Controllers\Panel\SubmissionFileDownloadController;
 use App\Http\Controllers\Public\ShowActivityMediaController;
 use App\Http\Controllers\Public\ShowCallController;
 use App\Http\Controllers\Public\ShowEventController;
+use App\Http\Controllers\Public\ShowEventLogoController;
 use App\Http\Controllers\Public\ShowLandingImageController;
 use App\Http\Controllers\Public\ShowPrivacyNoticeController;
 use App\Http\Controllers\Public\ShowSpeakerPhotoController;
@@ -43,6 +45,8 @@ Route::middleware([SetOrganizationFromRoute::class, HandleInertiaRequests::class
     ->scopeBindings()
     ->group(function (): void {
         Route::get('events/{event:slug}', ShowEventController::class)->name('events.show');
+        // Logotipo del evento (plan 027, CA-027-10 y 11): el disco `media` es privado; solo con el evento publicado.
+        Route::get('events/{event:slug}/logo', ShowEventLogoController::class)->name('public.events.logo');
         Route::get('events/{event:slug}/privacy', ShowPrivacyNoticeController::class)->name('events.privacy');
         Route::get('events/{event:slug}/call/{call:slug}', ShowCallController::class)->name('calls.show');
         // Imágenes del programa (plan 021, CA-021-18): el disco `media` es privado y solo se sirven las
@@ -79,6 +83,12 @@ Route::middleware(['auth', SetOrganizationFromRoute::class])
 Route::middleware(['auth', SetOrganizationFromRoute::class])
     ->get('admin/{organization:slug}/events/{event}/landing/images/{image}', ShowLandingEditorImageController::class)
     ->name('landing-editor.images.show');
+
+// Logotipo del evento para el formulario del panel (plan 027, DA-4): también con el evento en borrador.
+// `events.manage` lo decide la Policy dentro del controlador.
+Route::middleware(['auth', SetOrganizationFromRoute::class])
+    ->get('admin/{organization:slug}/events/{event}/logo', ShowEventLogoEditorController::class)
+    ->name('event-logo.show');
 
 // Descarga del archivo de una exportación de propuestas (plan 009, H-009-3, CA-009-19). Misma forma que
 // la descarga de archivos de propuesta: `auth`, organización fijada por la ruta y, además, URL firmada
