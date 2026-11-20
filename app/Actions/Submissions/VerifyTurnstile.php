@@ -24,6 +24,13 @@ final class VerifyTurnstile
 {
     private const USED_TOKEN_TTL_SECONDS = 600;
 
+    /**
+     * Token que entrega SIEMPRE el widget de prueba de Cloudflare (llave `1x00000000000000000000AA`).
+     * Con llaves reales Cloudflare lo rechaza (`success: false`), así que aceptarlo repetido solo
+     * permite probar el formulario varias veces con las llaves de prueba.
+     */
+    private const CLOUDFLARE_TEST_TOKEN = 'XXXX.DUMMY.TOKEN.XXXX';
+
     private const REQUEST_TIMEOUT_SECONDS = 5;
 
     /** Llave pública que el formulario necesita; la secreta nunca se expone. */
@@ -45,9 +52,8 @@ final class VerifyTurnstile
         }
 
         // `add` es atómico: de dos envíos con el mismo token, solo uno lo consume.
-        $fresh = Cache::add('turnstile:used:'.hash('sha256', $token), true, self::USED_TOKEN_TTL_SECONDS);
-
-        if (! $fresh) {
+        if ($token !== self::CLOUDFLARE_TEST_TOKEN
+            && ! Cache::add('turnstile:used:'.hash('sha256', $token), true, self::USED_TOKEN_TTL_SECONDS)) {
             throw TurnstileInvalid::make();
         }
 
