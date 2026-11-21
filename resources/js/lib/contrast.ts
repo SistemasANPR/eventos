@@ -18,6 +18,12 @@ export const TEXT_ON_BACKGROUND_PAIRS: ReadonlyArray<readonly [string, string]> 
     ['primary-contrast', 'primary'],
     ['primary-contrast', 'primary-hover'],
     ['accent-contrast', 'accent'],
+    // Marca del sitio público: portadas violeta e índigo y botón lima.
+    ['primary-contrast', 'brand'],
+    ['primary-contrast', 'brand-deep'],
+    ['cta-contrast', 'cta'],
+    ['brand', 'surface'],
+    ['brand-cyan', 'brand-deep'],
     ['support', 'bg'],
     ['support', 'surface'],
     ['success', 'success-bg'],
@@ -35,6 +41,8 @@ export const UI_COMPONENT_PAIRS: ReadonlyArray<readonly [string, string]> = [
     ['primary', 'bg'],
     ['primary', 'surface'],
     ['accent', 'primary'],
+    ['cta', 'brand-deep'],
+    ['cta', 'brand'],
 ];
 
 function luminance(hex: string): number {

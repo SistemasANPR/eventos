@@ -38,6 +38,15 @@ export const registry: CatalogEntry[] = [
         preview: 'demo',
     },
     {
+        name: 'HexagonPattern',
+        path: 'atoms/HexagonPattern',
+        level: 'atom',
+        category: 'Decoration',
+        useWhen: 'Adorno de hexágonos (motivo de la marca) en cabeceras, pies y portadas de color; siempre oculto a los lectores de pantalla',
+        avoidFor: 'Transmitir información o servir de icono con significado (usar un icono con texto)',
+        preview: 'none',
+    },
+    {
         name: 'EventLogo',
         path: 'atoms/EventLogo',
         level: 'atom',
