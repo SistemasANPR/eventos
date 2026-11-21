@@ -39,3 +39,23 @@ describe('Calls/Submitted page', () => {
         expect(screen.getByRole('link', { name: 'Volver al evento' })).toHaveAttribute('href', '/parques/events/congreso?lang=es');
     });
 });
+
+describe('Calls/Submitted page: logo (plan 027)', () => {
+    const props = {
+        call: { title: 'Convocatoria de ponencias' },
+        organization: { name: 'Parques', slug: 'parques' },
+        callUrl: '/c',
+        eventUrl: '/e',
+    };
+
+    it('CA-027-13: shows the logo with the event name as alt text and nothing without it', () => {
+        const { unmount } = render(<Submitted {...props} event={{ name: 'Congreso', logoUrl: '/parques/events/congreso/logo?v=ab12' }} />);
+
+        expect(screen.getByRole('img', { name: 'Congreso' })).toHaveAttribute('src', '/parques/events/congreso/logo?v=ab12');
+        unmount();
+
+        render(<Submitted {...props} event={{ name: 'Congreso', logoUrl: null }} />);
+
+        expect(screen.queryByRole('img')).not.toBeInTheDocument();
+    });
+});

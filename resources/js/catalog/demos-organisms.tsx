@@ -18,6 +18,7 @@ export function EventHeroDemo() {
         city: t('catalog.demo_data.event_city'),
         locale,
         locales: ['es', 'en'],
+        logoUrl: null,
     };
 
     return <EventHero event={event} privacyUrl="#" />;

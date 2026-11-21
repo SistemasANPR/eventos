@@ -45,6 +45,7 @@ const event: PublicEvent = {
     city: 'Ciudad de México',
     locale: 'es',
     locales: ['es', 'en'],
+    logoUrl: null,
 };
 const organization = { name: 'Parques de México', slug: 'parques' };
 
@@ -88,5 +89,26 @@ describe('Events/Show page', () => {
         render(<Show event={event} organization={organization} privacyUrl={null} />);
 
         expect(screen.getByRole('heading', { level: 1, name: 'Congreso Parques' })).toBeInTheDocument();
+    });
+});
+
+describe('Events/Show page: logo (plan 027)', () => {
+    const logoUrl = '/parques/events/congreso/logo?v=ab12cd34';
+
+    it('CA-027-13: shows the logo with the event name as alt text, with and without landing', () => {
+        const { unmount } = render(<Show event={{ ...event, logoUrl }} organization={organization} privacyUrl={null} />);
+
+        expect(screen.getByRole('img', { name: 'Congreso Parques' })).toHaveAttribute('src', logoUrl);
+        unmount();
+
+        render(<Show event={{ ...event, logoUrl }} organization={organization} privacyUrl={null} landing={landing} />);
+
+        expect(screen.getByRole('img', { name: 'Congreso Parques' })).toHaveAttribute('src', logoUrl);
+    });
+
+    it('CA-027-13: without a logo there is no image', () => {
+        render(<Show event={{ ...event, logoUrl: null }} organization={organization} privacyUrl={null} />);
+
+        expect(screen.queryByRole('img')).not.toBeInTheDocument();
     });
 });

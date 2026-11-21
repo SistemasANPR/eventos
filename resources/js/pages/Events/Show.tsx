@@ -1,5 +1,6 @@
 import { Head } from '@inertiajs/react';
 
+import { EventLogo } from '@/components/atoms/EventLogo';
 import { TextLink } from '@/components/atoms/TextLink';
 import { LocaleSwitcher } from '@/components/molecules/LocaleSwitcher';
 import { EventHero } from '@/components/organisms/EventHero';
@@ -39,9 +40,13 @@ export default function Show({ event, organization, privacyUrl, landing = null }
                 {hero !== null && hero.imageUrl !== null && <meta property="og:image" content={hero.imageUrl} />}
             </Head>
             {landing === null ? (
-                <EventHero event={event} privacyUrl={privacyUrl} />
+                <div className="flex flex-col gap-6">
+                    <EventLogo src={event.logoUrl} name={event.name} />
+                    <EventHero event={event} privacyUrl={privacyUrl} />
+                </div>
             ) : (
                 <div className="flex flex-col gap-8">
+                    <EventLogo src={event.logoUrl} name={event.name} />
                     <LandingRenderer blocks={landing.blocks} locale={event.locale} t={t} />
                     <div className={PAGE_FOOTER}>
                         {privacyUrl !== null && <TextLink href={privacyUrl}>{t('event.privacy_link')}</TextLink>}

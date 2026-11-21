@@ -33,6 +33,7 @@ const event: PublicEvent = {
     city: 'Ciudad de México',
     locale: 'es',
     locales: ['es', 'en'],
+    logoUrl: null,
 };
 
 describe('EventHero', () => {

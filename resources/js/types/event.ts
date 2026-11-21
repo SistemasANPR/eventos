@@ -20,6 +20,8 @@ export interface PublicEvent {
     locale: string;
     /** Idiomas en que el evento está disponible. */
     locales: string[];
+    /** Dirección pública del logotipo del evento, o `null` si no tiene (plan 027). Nunca la ruta del disco. */
+    logoUrl: string | null;
 }
 
 export interface PublicOrganization {

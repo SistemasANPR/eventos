@@ -1,5 +1,6 @@
 import { Head } from '@inertiajs/react';
 
+import { EventLogo } from '@/components/atoms/EventLogo';
 import { TextLink } from '@/components/atoms/TextLink';
 import { CallStateBadge } from '@/components/molecules/CallStateBadge';
 import { EventFact } from '@/components/molecules/EventFact';
@@ -14,7 +15,7 @@ import type { PublicOrganization } from '@/types/event';
 
 interface ShowProps {
     call: PublicCall;
-    event: { name: string };
+    event: { name: string; logoUrl?: string | null };
     organization: PublicOrganization;
     /** URL de la página del evento, con el idioma de esta página: la entrega el servidor. */
     eventUrl: string;
@@ -41,6 +42,7 @@ export default function Show({ call, event, organization, eventUrl, privacyUrl, 
             </Head>
             <article aria-labelledby="call-title" className="flex flex-col gap-8">
                 <header className="flex flex-col gap-3">
+                    <EventLogo src={event.logoUrl} name={event.name} />
                     <p className="text-base font-medium text-text-muted">{event.name}</p>
                     <h1 id="call-title" className={PAGE_TITLE}>
                         {call.title}
