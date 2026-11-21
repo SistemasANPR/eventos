@@ -176,3 +176,18 @@ describe('Calls/Show page', () => {
         expect(screen.queryByRole('button')).not.toBeInTheDocument();
     });
 });
+
+describe('Calls/Show page: logo (plan 027)', () => {
+    it('CA-027-13: shows the logo with the event name as alt text and nothing without it', () => {
+        const { unmount } = render(
+            <Show call={call} event={{ ...event, logoUrl: '/parques/events/congreso/logo?v=ab12' }} organization={organization} eventUrl="/e" privacyUrl={null} />,
+        );
+
+        expect(screen.getByRole('img', { name: 'Congreso Parques' })).toHaveAttribute('src', '/parques/events/congreso/logo?v=ab12');
+        unmount();
+
+        render(<Show call={call} event={{ ...event, logoUrl: null }} organization={organization} eventUrl="/e" privacyUrl={null} />);
+
+        expect(screen.queryByRole('img')).not.toBeInTheDocument();
+    });
+});

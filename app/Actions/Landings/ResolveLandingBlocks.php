@@ -67,7 +67,7 @@ final class ResolveLandingBlocks
                     'html' => RichTextSanitizer::clean($this->text($event, $block['html'] ?? null, $locale)),
                     'width' => (string) ($block['width'] ?? 'narrow'),
                 ],
-                LandingBlockType::EventInfo => $this->eventInfo($event, $locale),
+                LandingBlockType::EventInfo => $this->eventInfo($event, $organization, $locale),
                 LandingBlockType::Calls => [
                     'title' => $this->nullable($this->text($event, $block['title'] ?? null, $locale)),
                     'calls' => $live['calls'] ??= $this->calls($event, $organization, $locale),
@@ -100,7 +100,7 @@ final class ResolveLandingBlocks
     public function preview(Event $event, Organization $organization, string $locale): array
     {
         return [
-            'event' => $this->eventInfo($event, $locale),
+            'event' => $this->eventInfo($event, $organization, $locale),
             'calls' => $this->calls($event, $organization, $locale),
             'tracks' => $this->tracks($event, $locale),
         ];
@@ -158,9 +158,9 @@ final class ResolveLandingBlocks
     }
 
     /** @return array<string, mixed> */
-    private function eventInfo(Event $event, string $locale): array
+    private function eventInfo(Event $event, Organization $organization, string $locale): array
     {
-        return Arr::only(PublicEventData::from($event, $locale), ['name', 'description', 'startsAt', 'endsAt', 'timezone', 'timeFormat', 'venueName', 'city']);
+        return Arr::only(PublicEventData::from($event, $organization, $locale), ['name', 'description', 'startsAt', 'endsAt', 'timezone', 'timeFormat', 'venueName', 'city']);
     }
 
     /**

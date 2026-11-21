@@ -22,6 +22,9 @@ function receivedVariables(array $overrides = []): array
         'author_name' => 'Ana Pérez',
         'submission_title' => 'Parques vivos',
         'submission_reference' => 'PR-2027-0042',
+        'call_title' => 'Convocatoria de Sesiones',
+        'submission_type' => 'Sesión',
+        'track_name' => 'Naturaleza',
         'event_name' => 'Congreso Parques 2027',
     ], ...$overrides];
 }

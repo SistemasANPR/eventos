@@ -5,9 +5,12 @@ declare(strict_types=1);
 namespace App\Actions\Submissions;
 
 use App\Actions\Notifications\SendNotification;
+use App\Models\CallForSubmissions;
 use App\Models\Event;
 use App\Models\Submission;
 use App\Models\SubmissionParticipant;
+use App\Models\SubmissionType;
+use App\Models\Track;
 use App\Support\Notifications\MailRecipient;
 use App\Support\Submissions\SubmissionOrganizers;
 use App\Support\Submissions\SubmissionReference;
@@ -37,6 +40,9 @@ final class NotifySubmissionReceived
             ->where('is_primary', true)
             ->firstOrFail();
         $eventName = $event->getTranslation('name', $submission->locale);
+        $call = CallForSubmissions::query()->find($submission->call_for_submissions_id);
+        $type = SubmissionType::query()->find($submission->submission_type_id);
+        $track = Track::query()->find($submission->track_id);
 
         $this->notify->handle(
             key: 'submission.received',
@@ -46,6 +52,10 @@ final class NotifySubmissionReceived
                 'submission_title' => $submission->title,
                 'submission_reference' => SubmissionReference::for($submission),
                 'event_name' => $eventName,
+                // Datos de la convocatoria que el autor eligió (idioma de su envío; si falta, el del evento).
+                'call_title' => (string) $call?->getTranslation('title', $submission->locale),
+                'submission_type' => (string) $type?->getTranslation('name', $submission->locale),
+                'track_name' => (string) $track?->getTranslation('name', $submission->locale),
             ],
             factId: $submission->id,
             organization: $organization,

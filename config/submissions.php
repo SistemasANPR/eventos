@@ -2,6 +2,13 @@
 
 declare(strict_types=1);
 
+/*
+ * Multiplica los intentos de los límites de abajo. Por defecto 1 (los valores del plan 006). En
+ * staging o en pruebas manuales se sube (por ejemplo 100) para no quedar bloqueado; en producción
+ * se deja en 1. Nunca baja de 1.
+ */
+$multiplier = max(1, (int) env('SUBMISSIONS_LIMIT_MULTIPLIER', 1));
+
 return [
 
     /*
@@ -15,10 +22,10 @@ return [
     */
 
     'limits' => [
-        'submission_per_ip' => ['attempts' => 5, 'decay_seconds' => 600],
-        'received_per_email' => ['attempts' => 3, 'decay_seconds' => 3600],
-        'access_link_per_email' => ['attempts' => 3, 'decay_seconds' => 3600],
-        'access_link_per_ip' => ['attempts' => 10, 'decay_seconds' => 3600],
+        'submission_per_ip' => ['attempts' => 5 * $multiplier, 'decay_seconds' => 600],
+        'received_per_email' => ['attempts' => 3 * $multiplier, 'decay_seconds' => 3600],
+        'access_link_per_email' => ['attempts' => 3 * $multiplier, 'decay_seconds' => 3600],
+        'access_link_per_ip' => ['attempts' => 10 * $multiplier, 'decay_seconds' => 3600],
     ],
 
     /*
@@ -32,8 +39,8 @@ return [
     */
 
     'upload_quota' => [
-        'per_token' => ['attempts' => 10, 'decay_seconds' => 3600],
-        'per_ip' => ['attempts' => 30, 'decay_seconds' => 3600],
+        'per_token' => ['attempts' => 10 * $multiplier, 'decay_seconds' => 3600],
+        'per_ip' => ['attempts' => 30 * $multiplier, 'decay_seconds' => 3600],
     ],
 
     /*

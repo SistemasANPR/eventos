@@ -1,5 +1,6 @@
 import { Head } from '@inertiajs/react';
 
+import { EventLogo } from '@/components/atoms/EventLogo';
 import { TextLink } from '@/components/atoms/TextLink';
 import { useTranslation } from '@/hooks/useTranslation';
 import { PublicLayout } from '@/layouts/PublicLayout';
@@ -8,7 +9,7 @@ import type { PublicOrganization } from '@/types/event';
 
 interface SubmittedProps {
     call: { title: string };
-    event: { name: string };
+    event: { name: string; logoUrl?: string | null };
     organization: PublicOrganization;
     callUrl: string;
     eventUrl: string;
@@ -27,6 +28,7 @@ export default function Submitted({ call, event, organization, callUrl, eventUrl
                 <meta name="robots" content="noindex" />
             </Head>
             <article aria-labelledby="submitted-title" className="flex flex-col gap-6">
+                <EventLogo src={event.logoUrl} name={event.name} />
                 <p className="text-base font-medium text-text-muted">{event.name}</p>
                 <h1 id="submitted-title" className={PAGE_TITLE}>
                     {t('submitted.title')}

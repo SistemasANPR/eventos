@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Actions\Events;
 
+use App\Actions\Program\DeleteProgramImage;
 use App\Exceptions\Domain\EventLocaleInUse;
 use App\Http\Requests\Events\StoreEventRequest;
 use App\Models\CallForSubmissions;
@@ -15,9 +16,11 @@ use App\Support\Auth\AuthorizesInOrganization;
 use App\Support\Events\EventAttributes;
 use App\Support\Tenancy\CurrentOrganization;
 use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
+use Throwable;
 
 /**
  * Edita un evento (plan 003, CA-003-3, -5, -6 y -9). Se ejecuta en la
@@ -29,6 +32,9 @@ use Illuminate\Validation\ValidationException;
  * Quitar un idioma que usa una convocatoria o el aviso de privacidad publicado también exige
  * confirmación (plan 026, DA-1); nada se borra y la auditoría registra los idiomas quitados y agregados.
  *
+ * Con `logo` cambia el logotipo y con `remove_logo` lo quita (plan 027): en la misma transacción
+ * que los datos, sin dejar archivos huérfanos si algo falla.
+ *
  * @throws AuthorizationException si quien edita no tiene `events.manage` en la organización del evento
  * @throws ValidationException si los datos no son válidos o falta confirmar el cambio de `slug`
  * @throws EventLocaleInUse si se quita un idioma en uso y falta `confirmLocaleRemoval`
@@ -36,6 +42,12 @@ use Illuminate\Validation\ValidationException;
 final class UpdateEvent
 {
     use AuthorizesInOrganization;
+
+    public function __construct(
+        private readonly StoreEventLogo $storeLogo,
+        private readonly RemoveEventLogo $removeLogo,
+        private readonly DeleteProgramImage $deleteImage,
+    ) {}
 
     /** @param  array<string, mixed>  $data */
     public function handle(User $actor, Event $event, array $data, bool $confirmSlugChange = false, bool $confirmLocaleRemoval = false): Event
@@ -67,27 +79,56 @@ final class UpdateEvent
                 }
             }
 
-            return DB::transaction(function () use ($actor, $event, $validated, $slugChanges, $previousSlug, $removed, $added): Event {
-                $event->fill(EventAttributes::fromValidated($validated))->save();
+            $logoBefore = $event->logo_path;
 
+            try {
+                return $this->save($actor, $event, $validated, $slugChanges, $previousSlug, $removed, $added);
+            } catch (Throwable $exception) {
+                // La transacción deshizo la fila pero no un archivo nuevo ya guardado: se borra para no dejar huérfanos.
+                if ($event->logo_path !== null && $event->logo_path !== $logoBefore) {
+                    $this->deleteImage->handle($event, $event->logo_path);
+                    $event->logo_path = $logoBefore;
+                }
+
+                throw $exception;
+            }
+        });
+    }
+
+    /**
+     * @param  array<string, mixed>  $validated
+     * @param  list<string>  $removed
+     * @param  list<string>  $added
+     */
+    private function save(User $actor, Event $event, array $validated, bool $slugChanges, string $previousSlug, array $removed, array $added): Event
+    {
+        return DB::transaction(function () use ($actor, $event, $validated, $slugChanges, $previousSlug, $removed, $added): Event {
+            $event->fill(EventAttributes::fromValidated($validated))->save();
+
+            // El logotipo nuevo manda sobre «quitar»; ambos dentro de la misma transacción que los datos (plan 027, CA-027-5 a 7).
+            if (($validated['logo'] ?? null) instanceof UploadedFile) {
+                $this->storeLogo->handle($actor, $event, $validated['logo']);
+            } elseif (($validated['remove_logo'] ?? false) === true) {
+                $this->removeLogo->handle($actor, $event);
+            }
+
+            activity()
+                ->causedBy($actor)
+                ->performedOn($event)
+                ->event('event_updated')
+                ->withProperties(['organization_id' => $event->organization_id, 'removed_locales' => $removed, 'added_locales' => $added])
+                ->log('event_updated');
+
+            if ($slugChanges && $event->isPublished()) {
                 activity()
                     ->causedBy($actor)
                     ->performedOn($event)
-                    ->event('event_updated')
-                    ->withProperties(['organization_id' => $event->organization_id, 'removed_locales' => $removed, 'added_locales' => $added])
-                    ->log('event_updated');
+                    ->event('event_slug_changed')
+                    ->withProperties(['organization_id' => $event->organization_id, 'from' => $previousSlug, 'to' => $event->slug])
+                    ->log('event_slug_changed');
+            }
 
-                if ($slugChanges && $event->isPublished()) {
-                    activity()
-                        ->causedBy($actor)
-                        ->performedOn($event)
-                        ->event('event_slug_changed')
-                        ->withProperties(['organization_id' => $event->organization_id, 'from' => $previousSlug, 'to' => $event->slug])
-                        ->log('event_slug_changed');
-                }
-
-                return $event;
-            });
+            return $event;
         });
     }
 

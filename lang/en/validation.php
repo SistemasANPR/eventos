@@ -217,6 +217,19 @@ return [
         'currency' => 'currency',
         'email' => 'email address',
         'password' => 'password',
+        // Public submission form (plan 006).
+        'title' => 'proposal title',
+        'track_id' => 'topic',
+        'participants' => 'participants',
+        'participants.*.first_name' => 'first name',
+        'participants.*.last_name' => 'last name',
+        'participants.*.email' => 'email address',
+        'participants.*.country' => 'country',
+        'participants.*.job_title' => 'job title',
+        'participants.*.company' => 'organization',
+        'participants.*.bio' => 'biography',
+        'consent' => 'consent',
+        'turnstile_token' => 'security check',
     ],
 
 ];

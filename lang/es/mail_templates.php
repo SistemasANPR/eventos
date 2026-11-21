@@ -31,7 +31,7 @@ return [
     'submission' => [
         'received' => [
             'subject' => 'Recibimos tu propuesta para {{ event_name }}',
-            'body' => "Hola {{ author_name }},\n\nRecibimos tu propuesta «{{ submission_title }}». Tu referencia es {{ submission_reference }}.",
+            'body' => "Hola {{ author_name }},\n\n¡Gracias por participar! Confirmamos que tu registro quedó recibido.\n\n**Evento:** {{ event_name }}\n\n**Convocatoria:** {{ call_title }}\n\n**Tipo de propuesta:** {{ submission_type }}\n\n**Tema:** {{ track_name }}\n\n**Tu propuesta:** «{{ submission_title }}»\n\n**Tu referencia:** {{ submission_reference }}\n\nGuarda tu referencia: te servirá si necesitas escribirnos sobre tu propuesta. Nuestro equipo la revisará y te avisaremos de los siguientes pasos.",
         ],
         'access_link' => [
             'subject' => 'Tu enlace de acceso a {{ event_name }}',

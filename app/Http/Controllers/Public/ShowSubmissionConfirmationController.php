@@ -8,6 +8,7 @@ use App\Models\CallForSubmissions;
 use App\Models\Event;
 use App\Models\Organization;
 use App\Support\Calls\PublicCallData;
+use App\Support\Events\PublicEventData;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -42,7 +43,7 @@ final class ShowSubmissionConfirmationController
 
         return Inertia::render('Calls/Submitted', [
             'call' => ['title' => $call->getTranslation('title', $locale), 'locale' => $locale, 'locales' => $event->effectiveLocalesForCall($call)],
-            'event' => ['name' => $event->getTranslation('name', $locale)],
+            'event' => ['name' => $event->getTranslation('name', $locale), 'logoUrl' => PublicEventData::logoUrl($event, $organization)],
             'organization' => ['name' => $organization->name, 'slug' => $organization->slug],
             'callUrl' => route('calls.show', $callRoute, false)."?lang={$locale}",
             'eventUrl' => route('events.show', $route, false)."?lang={$locale}",

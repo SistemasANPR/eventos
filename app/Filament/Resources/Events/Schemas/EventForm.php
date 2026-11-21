@@ -8,16 +8,20 @@ use App\Enums\EventType;
 use App\Enums\TimeFormat;
 use App\Http\Requests\Events\StoreEventRequest;
 use App\Models\Event;
+use App\Support\Tenancy\CurrentOrganization;
 use DateTimeZone;
 use Filament\Forms\Components\CheckboxList;
 use Filament\Forms\Components\DateTimePicker;
+use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
+use Filament\Schemas\Components\Image;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Schema;
+use Illuminate\Database\Eloquent\Model;
 
 /**
  * Formulario de un evento. Es solo presentación: la validación y las reglas
@@ -46,6 +50,7 @@ final class EventForm
                         ->options(EventType::class)
                         ->default(EventType::Congress)
                         ->required(),
+                    ...self::logoFields(),
                 ]),
             Section::make(__('events.sections.dates'))
                 ->description(__('events.fields.dates_help'))
@@ -140,6 +145,39 @@ final class EventForm
         }
 
         return $fields;
+    }
+
+    /**
+     * Logotipo opcional del evento (plan 027). El formulario no escribe en el disco: `StoreEventLogo`
+     * lo valida por su contenido y lo guarda. La vista previa usa una ruta autenticada, de modo que un
+     * evento en borrador no filtra la imagen.
+     *
+     * @return list<Image|FileUpload|Toggle>
+     */
+    private static function logoFields(): array
+    {
+        $hasLogo = static fn (?Model $record): bool => $record instanceof Event && $record->logo_path !== null && CurrentOrganization::has();
+
+        return [
+            Image::make(
+                static fn (?Model $record): string => $record instanceof Event && CurrentOrganization::has()
+                    ? route('event-logo.show', ['organization' => CurrentOrganization::get()->slug, 'event' => $record->id, 'v' => hash('crc32b', (string) $record->logo_path)], false)
+                    : '',
+                static fn (?Model $record): string => $record instanceof Event ? $record->getTranslation('name', $record->default_locale) : '',
+            )
+                ->imageSize(96)
+                ->visible($hasLogo),
+            FileUpload::make('logo')
+                ->label(__('events.fields.logo'))
+                ->helperText(__('events.fields.logo_help'))
+                ->image()
+                ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp'])
+                ->maxSize(2 * 1024)
+                ->storeFiles(false),
+            Toggle::make('remove_logo')
+                ->label(__('events.fields.remove_logo'))
+                ->visible($hasLogo),
+        ];
     }
 
     /** Cómo muestran las fechas los selectores, según el formato de hora elegido en el mismo formulario (plan 023, DA-3). */

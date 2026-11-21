@@ -38,6 +38,15 @@ export const registry: CatalogEntry[] = [
         preview: 'demo',
     },
     {
+        name: 'EventLogo',
+        path: 'atoms/EventLogo',
+        level: 'atom',
+        category: 'Data display',
+        useWhen: 'El logotipo del evento en la cabecera de sus páginas públicas, con el nombre del evento como texto alternativo; no dibuja nada sin logotipo',
+        avoidFor: 'Fotografías o imágenes de contenido (galerías y bloques de la landing) y el nombre de la organización',
+        preview: 'none',
+    },
+    {
         name: 'EventFact',
         path: 'molecules/EventFact',
         level: 'molecule',

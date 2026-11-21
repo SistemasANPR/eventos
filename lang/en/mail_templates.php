@@ -31,7 +31,7 @@ return [
     'submission' => [
         'received' => [
             'subject' => 'We received your submission for {{ event_name }}',
-            'body' => "Hello {{ author_name }},\n\nWe received your submission \"{{ submission_title }}\". Your reference is {{ submission_reference }}.",
+            'body' => "Hello {{ author_name }},\n\nThank you for taking part! We confirm that your registration has been received.\n\n**Event:** {{ event_name }}\n\n**Call:** {{ call_title }}\n\n**Submission type:** {{ submission_type }}\n\n**Topic:** {{ track_name }}\n\n**Your submission:** \"{{ submission_title }}\"\n\n**Your reference:** {{ submission_reference }}\n\nKeep your reference: you will need it if you write to us about your submission. Our team will review it and let you know the next steps.",
         ],
         'access_link' => [
             'subject' => 'Your access link for {{ event_name }}',
