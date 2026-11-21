@@ -47,6 +47,15 @@ export const registry: CatalogEntry[] = [
         preview: 'none',
     },
     {
+        name: 'PageBanner',
+        path: 'molecules/PageBanner',
+        level: 'molecule',
+        category: 'Layout',
+        useWhen: 'El encabezado de color (violeta con hexágonos) de una portada o página de convocatoria: logotipo, título grande y contenido bajo el título',
+        avoidFor: 'Páginas de lectura sin identidad de marca (aviso de privacidad, acceso del autor)',
+        preview: 'none',
+    },
+    {
         name: 'EventLogo',
         path: 'atoms/EventLogo',
         level: 'atom',

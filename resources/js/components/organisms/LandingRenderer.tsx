@@ -34,7 +34,7 @@ export function LandingRenderer({ blocks, locale, t, wrapBlock }: LandingRendere
     const mainIndex = mainHeadingIndex(blocks);
 
     return (
-        <div className="flex flex-col gap-8">
+        <div className="flex flex-col gap-10 sm:gap-14">
             {blocks.map((block, index) => {
                 const content = renderBlock(block, index === mainIndex, locale, t);
 

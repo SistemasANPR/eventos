@@ -1,6 +1,6 @@
 import { useId } from 'react';
 
-import { HEADING_MD, LIST_CARD, SECTION_HEADING } from '@/lib/classes';
+import { FACTS_PANEL, HEADING_MD, LIST_CARD, SECTION_HEADING } from '@/lib/classes';
 import type { Translate } from '@/lib/translate';
 import type { PublicTracksBlock } from '@/types/landing';
 
@@ -21,7 +21,7 @@ export function LandingTracksBlock({ block, t }: LandingTracksBlockProps) {
             {block.tracks.length === 0 ? (
                 <p className="text-base text-text-muted">{t('landing.tracks_empty')}</p>
             ) : (
-                <ul className="grid gap-4 sm:grid-cols-2">
+                <ul className={FACTS_PANEL}>
                     {block.tracks.map((track, index) => (
                         <li key={`${index}-${track.name}`} className={LIST_CARD}>
                             <h3 className={HEADING_MD}>{track.name}</h3>

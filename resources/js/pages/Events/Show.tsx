@@ -7,7 +7,7 @@ import { EventHero } from '@/components/organisms/EventHero';
 import { LandingRenderer } from '@/components/organisms/LandingRenderer';
 import { useTranslation } from '@/hooks/useTranslation';
 import { PublicLayout } from '@/layouts/PublicLayout';
-import { PAGE_FOOTER } from '@/lib/classes';
+import { LOGO_PLATE, PAGE_FOOTER } from '@/lib/classes';
 import type { PublicEvent, PublicOrganization } from '@/types/event';
 import type { PublicLanding, PublicLandingBlock, PublicHeroBlock } from '@/types/landing';
 
@@ -32,7 +32,7 @@ export default function Show({ event, organization, privacyUrl, landing = null }
     const title = `${event.name} · ${organization.name}`;
 
     return (
-        <PublicLayout organizationName={organization.name}>
+        <PublicLayout organizationName={organization.name} isWide>
             <Head title={title}>
                 {description !== null && <meta name="description" content={description} />}
                 {landing !== null && <meta property="og:title" content={title} />}
@@ -40,13 +40,10 @@ export default function Show({ event, organization, privacyUrl, landing = null }
                 {hero !== null && hero.imageUrl !== null && <meta property="og:image" content={hero.imageUrl} />}
             </Head>
             {landing === null ? (
-                <div className="flex flex-col gap-6">
-                    <EventLogo src={event.logoUrl} name={event.name} />
-                    <EventHero event={event} privacyUrl={privacyUrl} />
-                </div>
+                <EventHero event={event} privacyUrl={privacyUrl} />
             ) : (
                 <div className="flex flex-col gap-8">
-                    <EventLogo src={event.logoUrl} name={event.name} />
+                    <EventLogo src={event.logoUrl} name={event.name} className={LOGO_PLATE} />
                     <LandingRenderer blocks={landing.blocks} locale={event.locale} t={t} />
                     <div className={PAGE_FOOTER}>
                         {privacyUrl !== null && <TextLink href={privacyUrl}>{t('event.privacy_link')}</TextLink>}

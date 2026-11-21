@@ -29,7 +29,7 @@ export function CallRegisterButton({ registerUrl, state, t }: CallRegisterButton
             type="button"
             disabled
             aria-disabled="true"
-            className="inline-flex min-h-11 cursor-not-allowed items-center justify-center rounded-md border border-border bg-bg px-6 text-base font-semibold text-text-muted"
+            className="inline-flex min-h-12 cursor-not-allowed items-center justify-center rounded-full border border-border bg-bg px-8 text-base font-extrabold uppercase tracking-wide text-text-muted"
         >
             {t('submit.send_action')}
             <span className="sr-only">{t('landing.register_unavailable', { state: t(`call.state.${state}`) })}</span>

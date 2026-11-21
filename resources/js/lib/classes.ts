@@ -7,8 +7,8 @@
 /** Título principal (h1) de una página pública. */
 export const PAGE_TITLE = 'font-display text-3xl font-extrabold uppercase tracking-wide text-text sm:text-4xl';
 
-/** Panel con los datos de un evento o una convocatoria, en una o dos columnas. */
-export const FACTS_PANEL = 'grid gap-4 rounded-lg border border-border bg-surface p-4 sm:grid-cols-2 sm:p-6';
+/** Cuadrícula de tarjetas con los datos de un evento o una convocatoria: 1 columna en móvil, 2 y 3 después. */
+export const FACTS_PANEL = 'grid gap-4 sm:grid-cols-2 lg:grid-cols-3';
 
 /** Anillo de foco visible sobre fondo claro (design.md §3.1). */
 export const FOCUS_RING = 'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary';
@@ -38,10 +38,19 @@ export const SECTION_HEADING =
     'relative pb-3 font-display text-2xl font-extrabold uppercase tracking-wide text-text after:absolute after:bottom-0 after:left-0 after:h-1 after:w-14 after:rounded-full after:bg-cta';
 
 /** Tarjeta de un elemento de lista de la landing (convocatoria, eje, pregunta). */
-export const LIST_CARD = 'flex flex-col gap-3 rounded-lg border border-border bg-surface p-4 sm:p-6';
+export const LIST_CARD = 'flex flex-col gap-3 rounded-2xl border border-border border-t-4 border-t-cta bg-surface p-5 shadow-md sm:p-6';
 
 /** Título de nivel intermedio de la landing y su editor (h2 de un panel, h3 de una tarjeta grande). */
 export const HEADING_LG = 'font-display text-xl font-bold text-text';
 
 /** Título de una tarjeta de lista de la landing (h3). */
 export const HEADING_MD = 'font-display text-lg font-bold text-text';
+
+/** Bloque de color de una portada o encabezado: degradado violeta con texto blanco y esquinas grandes. */
+export const HERO_PANEL = 'relative overflow-hidden rounded-3xl bg-linear-to-br from-brand via-brand to-brand-deep text-primary-contrast';
+
+/** Título (h1) sobre un bloque de color: muy grueso, en mayúsculas y con espaciado. */
+export const HERO_TITLE = 'font-display text-3xl font-extrabold uppercase leading-tight tracking-wide text-primary-contrast sm:text-5xl';
+
+/** Placa blanca bajo el logotipo del evento para que se vea sobre cualquier fondo. */
+export const LOGO_PLATE = 'rounded-2xl bg-surface p-3 shadow-lg';
