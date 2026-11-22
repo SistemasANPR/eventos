@@ -18,7 +18,7 @@ export function PublicLayout({ organizationName, isWide = false, children }: Pub
     const width = cn('mx-auto w-full px-4 sm:px-6', isWide ? 'max-w-6xl' : 'max-w-3xl');
 
     return (
-        <div className="flex min-h-screen flex-col bg-bg font-sans text-text">
+        <div className="flex min-h-screen flex-col bg-brand/10 font-sans text-text">
             <SkipToContent />
             <header className="relative overflow-hidden border-b-4 border-cta bg-brand-deep text-primary-contrast">
                 <HexagonPattern className="absolute -right-6 -top-8 h-28 w-28 text-brand-cyan/40 sm:right-10 sm:h-36 sm:w-36" />

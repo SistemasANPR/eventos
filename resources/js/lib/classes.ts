@@ -54,3 +54,6 @@ export const HERO_TITLE = 'font-display text-3xl font-extrabold uppercase leadin
 
 /** Placa blanca bajo el logotipo del evento para que se vea sobre cualquier fondo. */
 export const LOGO_PLATE = 'rounded-2xl bg-surface p-3 shadow-lg';
+
+/** Anillo de foco sobre un bloque de color (violeta o índigo): lima (design.md §3.1). */
+export const FOCUS_RING_ON_DARK = 'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cta';

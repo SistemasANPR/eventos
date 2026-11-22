@@ -23,6 +23,8 @@ interface PageBannerProps {
     children?: ReactNode;
     /** Espacio extra abajo para que las tarjetas siguientes se monten sobre el borde. */
     hasOverlap?: boolean;
+    /** Más aire arriba y abajo: portada de una página sin tarjetas debajo. */
+    isRoomy?: boolean;
 }
 
 /**
@@ -30,11 +32,11 @@ interface PageBannerProps {
  * logotipo, título grande y un hueco para el estado y la acción principal.
  * Usar en: convocatoria, formulario de envío y confirmación; no en páginas de lectura o de autor.
  */
-export function PageBanner({ eyebrow, title, titleId, logoUrl, logoName = '', badge, align = 'start', children, hasOverlap = false }: PageBannerProps) {
+export function PageBanner({ eyebrow, title, titleId, logoUrl, logoName = '', badge, align = 'start', children, hasOverlap = false, isRoomy = false }: PageBannerProps) {
     const isCentered = align === 'center';
 
     return (
-        <header className={cn(HERO_PANEL, 'px-6 pt-8 sm:px-12 sm:pt-12', hasOverlap ? 'pb-20 sm:pb-24' : 'pb-8 sm:pb-12')}>
+        <header className={cn(HERO_PANEL, isRoomy ? 'px-6 pt-10 sm:px-14 sm:pt-16' : 'px-6 pt-8 sm:px-12 sm:pt-12', hasOverlap ? 'pb-20 sm:pb-24' : isRoomy ? 'pb-10 sm:pb-16' : 'pb-8 sm:pb-12')}>
             <HexagonPattern className="absolute -right-12 -top-12 h-56 w-56 text-brand-cyan/50 sm:-right-6 sm:h-80 sm:w-80" />
             <HexagonPattern className="absolute -bottom-16 left-1/4 h-40 w-40 text-cta/40" />
             <div className={cn('relative flex flex-col gap-4', isCentered ? 'items-center text-center' : 'items-start')}>

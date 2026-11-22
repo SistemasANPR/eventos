@@ -1,13 +1,13 @@
 import { Head } from '@inertiajs/react';
 
-import { EventLogo } from '@/components/atoms/EventLogo';
 import { TextLink } from '@/components/atoms/TextLink';
 import { CallStateBadge } from '@/components/molecules/CallStateBadge';
 import { EventFact } from '@/components/molecules/EventFact';
 import { LocaleSwitcher } from '@/components/molecules/LocaleSwitcher';
+import { PageBanner } from '@/components/molecules/PageBanner';
 import { useTranslation } from '@/hooks/useTranslation';
 import { PublicLayout } from '@/layouts/PublicLayout';
-import { BUTTON_PRIMARY, FACTS_PANEL, FOCUS_RING, PAGE_TITLE } from '@/lib/classes';
+import { BUTTON_PRIMARY, FACTS_PANEL, FOCUS_RING_ON_DARK } from '@/lib/classes';
 import { formatEventInstant } from '@/lib/date-format';
 import { cn } from '@/lib/utils';
 import type { PublicCall } from '@/types/call';
@@ -27,8 +27,9 @@ interface ShowProps {
 
 /**
  * Página pública de una convocatoria: `/{organización}/events/{evento}/call/{convocatoria}`.
- * Informa el estado, las fechas y los ejes; con la convocatoria abierta ofrece el botón que lleva
- * al formulario de envío (`submitUrl`, plan 006).
+ * Portada de color con el título, el estado y la descripción; con la convocatoria abierta ofrece el
+ * botón grande que lleva al formulario de envío (`submitUrl`, plan 006). Muestra apertura, cierre y resultados en fichas; la categoría, la zona horaria y los ejes se
+ * ocultan (los ejes siguen en el formulario de envío).
  */
 export default function Show({ call, event, organization, eventUrl, privacyUrl, submitUrl = null }: ShowProps) {
     const { t } = useTranslation();
@@ -36,58 +37,35 @@ export default function Show({ call, event, organization, eventUrl, privacyUrl, 
     const formatDate = (instant: string): string => formatEventInstant(instant, call.timezone, call.locale, call.timeFormat);
 
     return (
-        <PublicLayout organizationName={organization.name}>
+        <PublicLayout organizationName={organization.name} isWide>
             <Head title={`${call.title} · ${event.name} · ${organization.name}`}>
                 {call.description !== null && <meta name="description" content={call.description} />}
             </Head>
-            <article aria-labelledby="call-title" className="flex flex-col gap-8">
-                <header className="flex flex-col gap-3">
-                    <EventLogo src={event.logoUrl} name={event.name} />
-                    <p className="text-base font-medium text-text-muted">{event.name}</p>
-                    <h1 id="call-title" className={PAGE_TITLE}>
-                        {call.title}
-                    </h1>
+            <article aria-labelledby="call-title" className="mx-auto flex w-full max-w-4xl flex-col gap-8">
+                <PageBanner eyebrow={event.name} title={call.title} titleId="call-title" logoUrl={event.logoUrl} logoName={event.name} isRoomy>
                     <div className="flex flex-col items-start gap-2">
                         <CallStateBadge state={call.state} t={t} />
-                        <p className="text-base text-text-muted">{t(`call.state_hint.${call.state}`)}</p>
+                        <p className="text-base text-primary-contrast">{t(`call.state_hint.${call.state}`)}</p>
                     </div>
-                    {call.description !== null && <p className="max-w-prose text-lg text-text">{call.description}</p>}
+                    {call.description !== null && (
+                        <p className="max-w-prose border-l-4 border-cta pl-4 text-lg leading-relaxed text-primary-contrast sm:text-xl">{call.description}</p>
+                    )}
                     {submitUrl !== null && (
-                        <a href={submitUrl} className={cn(BUTTON_PRIMARY, FOCUS_RING)}>
+                        <a href={submitUrl} className={cn(BUTTON_PRIMARY, FOCUS_RING_ON_DARK, 'min-h-14 w-full px-10 text-lg sm:w-auto')}>
                             {t('submit.send_action')}
                         </a>
                     )}
-                </header>
+                </PageBanner>
 
                 <dl className={FACTS_PANEL}>
-                    <EventFact label={t('call.type')}>{call.submissionType}</EventFact>
-                    <EventFact label={t('call.timezone')}>{call.timezone}</EventFact>
-                    <EventFact label={t('call.opens_at')}>{formatDate(call.opensAt)}</EventFact>
-                    <EventFact label={t('call.closes_at')}>{formatDate(call.closesAt)}</EventFact>
-                    {call.resultsAt !== undefined && <EventFact label={t('call.results_at')}>{formatDate(call.resultsAt)}</EventFact>}
+                    <EventFact variant="tile" label={t('call.opens_at')}>{formatDate(call.opensAt)}</EventFact>
+                    <EventFact variant="tile" label={t('call.closes_at')}>{formatDate(call.closesAt)}</EventFact>
+                    {call.resultsAt !== undefined && (
+                        <EventFact variant="tile" label={t('call.results_at')}>{formatDate(call.resultsAt)}</EventFact>
+                    )}
                 </dl>
 
-                <section aria-labelledby="call-tracks" className="flex flex-col gap-3">
-                    <h2 id="call-tracks" className="text-2xl font-semibold text-text">
-                        {t('call.tracks')}
-                    </h2>
-                    {call.tracks.length === 0 ? (
-                        <p className="text-base text-text-muted">{t('call.no_tracks')}</p>
-                    ) : (
-                        <ul aria-labelledby="call-tracks" className="flex flex-col gap-3">
-                            {call.tracks.map((track, index) => (
-                                <li key={`${index}-${track.name}`} className="rounded-lg border border-border bg-surface p-4">
-                                    <p className="text-lg font-semibold text-text">{track.name}</p>
-                                    {track.description !== null && (
-                                        <p className="mt-1 max-w-prose text-base text-text-muted">{track.description}</p>
-                                    )}
-                                </li>
-                            ))}
-                        </ul>
-                    )}
-                </section>
-
-                <div className="flex flex-col gap-2 border-t border-border pt-4 sm:flex-row sm:flex-wrap sm:items-center sm:gap-6">
+                <div className="flex flex-col gap-2 rounded-3xl border border-border bg-surface p-5 shadow-md sm:flex-row sm:flex-wrap sm:items-center sm:gap-6 sm:p-8">
                     <TextLink href={eventUrl} className="-ml-3">
                         {t('call.back_to_event')}
                     </TextLink>

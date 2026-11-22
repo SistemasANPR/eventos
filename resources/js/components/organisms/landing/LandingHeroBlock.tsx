@@ -1,7 +1,7 @@
 import { useId } from 'react';
 
 import { HexagonPattern } from '@/components/atoms/HexagonPattern';
-import { BUTTON_PRIMARY, FOCUS_RING, HERO_PANEL, HERO_TITLE, PAGE_TITLE } from '@/lib/classes';
+import { BUTTON_PRIMARY, FOCUS_RING, FOCUS_RING_ON_DARK, HERO_PANEL, HERO_TITLE, PAGE_TITLE } from '@/lib/classes';
 import { cn } from '@/lib/utils';
 import type { LandingTone, PublicHeroBlock } from '@/types/landing';
 
@@ -12,9 +12,6 @@ interface LandingHeroBlockProps {
 }
 
 const LINK_REL = 'noopener noreferrer nofollow';
-
-/** Anillo de foco sobre el bloque violeta: lima, como en la cabecera (design.md §3.1). */
-const FOCUS_RING_ON_DARK = 'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cta';
 
 const TONE_CLASSES: Record<LandingTone, { panel: string; title: string; subtitle: string; button: string; hexagons: string }> = {
     light: {
