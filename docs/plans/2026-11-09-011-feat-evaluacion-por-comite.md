@@ -27,7 +27,7 @@ Reemplazar el motor de evaluación del cpanel de origen (rúbrica 1 a 5, evaluad
 | H-011-3 | Como evaluador, quiero un panel propio cuya página de inicio sea un tablero con el resumen y la lista de mis propuestas asignadas, y calificar con guardado transaccional, para evaluar sin ver lo ajeno | M | H-011-1, H-011-2, H-014-1 |
 | H-011-4 | Como evaluador, quiero declarar conflicto de interés y, si el evento lo pide, evaluar en modo ciego, para una evaluación justa | M | H-011-3, H-005-1 (atributo `identifies_author`) |
 | H-011-5 | Como organizador, quiero resultados con promedio ponderado, desviación y discrepancias, para decidir con evidencia | M | H-011-3 |
-| H-011-6 | Como organizador, quiero ver el avance por evaluador y cerrar el periodo de evaluación, para dar seguimiento | S | H-011-3 |
+| H-011-6 | Como organizador, quiero ver el avance de cada evaluador (por ejemplo «Evaluador Ejemplo: 80 % de evaluaciones hechas, 8 de 10») y cerrar el periodo de evaluación, para dar seguimiento y recordarle a quien se atrasa | S | H-011-3 |
 | H-011-7 | Como sistema, quiero asignaciones de usuarios a eventos con rol (`event_assignments`), para que evaluadores y coordinadores vean solo su evento | M | H-001-3 (plan 001) |
 | H-011-8 | Como organizador, quiero invitar a un evaluador por correo con el rol `reviewer` y un enlace para establecer su contraseña, para que entre a su panel sin ver el de organizadores | M | H-011-7, H-008-6, H-014-1 |
 
@@ -41,7 +41,7 @@ Estado esperado al iniciar (se mide ese día, no se supone): R0 en producción; 
 
 Roles de organización (`spatie/laravel-permission` con la organización como *team*): `org_admin`, `organizer`, `reviewer` y `platform`. El rol `reviewer` **no tiene ningún permiso del panel de organizadores**: solo existe para entrar a su propio panel. El acceso a un evento concreto lo da `event_assignments (user_id, event_id, role)` con rol de evento `reviewer` o `coordinator` (el rol `speaker` llega en R2), consultado por las Policies. Alternativa descartada: un rol de organización «evaluador» con acceso a todos los eventos.
 
-Permisos que introduce este plan (nombres `entidad.accion`): `rubrics.manage`, `review_assignments.manage`, `reviews.view_results`, `reviews.close_period`, `event_assignments.manage`, `reviewers.invite`. La matriz rol × permiso se siembra en el plan 001.
+Permisos que introduce este plan (nombres `entidad.accion`): `rubrics.manage`, `review_assignments.manage`, `reviews.view_results`, `reviews.view_progress`, `reviews.close_period`, `event_assignments.manage`, `reviewers.invite`. La matriz rol × permiso se siembra en el plan 001.
 
 ### DA-2 · Versionado de la rúbrica — se recomienda **congelar la versión al primer uso**
 
@@ -90,7 +90,7 @@ Una asignación `pending` se elimina. Si el evaluador ya empezó o envió, pasa 
 
 | Pregunta | Respuesta |
 |---|---|
-| ¿Qué roles pueden hacer qué? | `org_admin` y coordinador de evento: crear y publicar rúbricas, asignar, invitar evaluadores (la asignación y su regla de alcance, `review_assignments.manage`, la tiene también `organizer`; DA-6), ver resultados, cerrar periodo. `reviewer` (con asignación de evento): ver solo sus propuestas asignadas, declarar conflicto, calificar y reevaluar mientras el periodo esté abierto; ningún permiso del panel de organizadores. Autor y público: nada |
+| ¿Qué roles pueden hacer qué? | `org_admin` y coordinador de evento: crear y publicar rúbricas, asignar, invitar evaluadores (la asignación y su regla de alcance, `review_assignments.manage`, y el avance por evaluador, `reviews.view_progress`, los tiene también `organizer`; DA-6), ver resultados, cerrar periodo. `reviewer` (con asignación de evento): ver solo sus propuestas asignadas, declarar conflicto, calificar y reevaluar mientras el periodo esté abierto; ningún permiso del panel de organizadores. Autor y público: nada |
 | ¿Qué Policy cubre cada acción y dónde se prueba? | `RubricPolicy`, `ReviewAssignmentPolicy`, `ReviewPolicy`, `EventAssignmentPolicy`; `tests/Feature/Reviews/` con una prueba por rol y acción, permitido y denegado |
 | ¿Hay modelos nuevos con datos de una organización? | Sí, todos los de §4; usan `BelongsToOrganization` y se cubren con `ModelsAreScopedTest` y `TenantIsolationTest` |
 | ¿El acceso cruza eventos o depende de `event_assignments`? | Depende de `event_assignments`: un evaluador de un evento no ve otro; un identificador ajeno responde 404 |
@@ -111,7 +111,7 @@ Una asignación `pending` se elimina. Si el evaluador ya empezó o envió, pasa 
 | F3b | Alcances por eje y convocatoria con regla permanente y job idempotente, vista por evaluador e invitación desde la pantalla (H-011-2, H-011-8; CA-011-42, 43, 48, 49) | M |
 | F4 | Panel del evaluador con su tablero (resumen, lista, filtros, estados vacío y cerrado) y `SubmitReview` transaccional (H-011-3; CA-011-50 a 54) | M |
 | F5 | Conflicto de interés y modo ciego (H-011-4) | M |
-| F6 | Resultados, avance y cierre del periodo (H-011-5, H-011-6) | M |
+| F6 | Resultados, avance por evaluador y cierre del periodo (H-011-5, H-011-6; CA-011-25 y 55 a 60) | M |
 
 ## 7. Criterios de aceptación
 
@@ -178,9 +178,15 @@ Los CA-011-5 a 10 cubren el alcance por eje y las reglas comunes; los CA-011-38 
 
 ### H-011-6 · Avance y cierre del periodo
 
-- **CA-011-25:** *Dado* varios evaluadores con asignaciones, *cuando* el organizador abre el avance, *entonces* ve por evaluador el porcentaje de asignaciones enviadas.
+- **CA-011-25:** *Dado* varios evaluadores con asignaciones, *cuando* el organizador con `reviews.view_progress` abre el avance, *entonces* ve por evaluador su nombre, el porcentaje de evaluaciones hechas y el conteo («80 % · 8 de 10»).
 - **CA-011-26:** *Dado* un periodo abierto, *cuando* el organizador lo cierra, *entonces* los evaluadores ya no pueden crear ni cambiar evaluaciones (error visible) y queda auditado quién y cuándo.
 - **CA-011-27:** *Dado* un periodo cerrado, *cuando* un organizador con `reviews.close_period` lo reabre, *entonces* se permite y queda auditado; sin el permiso, se deniega.
+- **CA-011-55:** *Dado* un evaluador con diez asignaciones, de las cuales ocho están `submitted`, una `in_progress` y una `pending`, *cuando* el organizador abre el avance, *entonces* ve 80 % y el desglose por estado (enviadas, en progreso, pendientes y con conflicto declarado).
+- **CA-011-56:** *Dado* asignaciones `cancelled` y `declined_conflict`, *cuando* se calcula el porcentaje, *entonces* las canceladas no cuentan ni en el numerador ni en el denominador, y las de conflicto declarado se cuentan aparte y no restan al porcentaje; un evaluador sin asignaciones activas muestra «sin asignaciones» y no un 0 %.
+- **CA-011-57:** *Dado* la página de avance, *cuando* el organizador la abre, *entonces* puede ordenar por porcentaje y filtrar por evaluador, eje y convocatoria, ve el avance global del evento y los evaluadores con avance menor a un umbral aparecen resaltados.
+- **CA-011-58:** *Dado* un evaluador en la lista de avance, *cuando* el organizador abre su detalle, *entonces* ve la lista de sus propuestas con el estado de cada asignación y la fecha de su última actividad, sin mostrar las calificaciones ni los comentarios (eso requiere `reviews.view_results`).
+- **CA-011-59:** *Dado* un usuario sin `reviews.view_progress` (incluido un evaluador), *cuando* abre la página de avance o su detalle por la ruta, *entonces* se deniega en el servidor; un evaluador de otro evento u organización no aparece y su identificador responde 404.
+- **CA-011-60:** *Dado* un evaluador, *cuando* abre su propio tablero, *entonces* ve su propio porcentaje de avance y nunca el de otros evaluadores.
 
 ### H-011-7 · Asignaciones de usuarios a eventos
 
