@@ -4,7 +4,7 @@
 > `composer check:criteria` lee el **Estado** y los criterios de este archivo: no cambiar el formato de esas líneas.
 
 - **Fecha:** 2026-11-09
-- **Estado:** Borrador
+- **Estado:** Aprobado (Antonio, 2026-11-23: especificacion y propuesta de datos de 2FA; alcance autorizado F0 y F1 (H-014-1); F2 a F5 en espera)
 - **Esfuerzo:** L
 - **Deuda relacionada:** cierra RC-1 (RLS, P1), RC-2 (2FA, P1) y RC-3 (escaneo de archivos, P2) de `docs/plan-de-desarrollo.md` §3.4; estos puntos se registran en `docs/sprints/deuda-tecnica.md` al aprobar el ADR de recortes de seguridad
 
