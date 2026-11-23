@@ -36,4 +36,19 @@ return [
         'device' => 'Dispositivo aproximado: :device',
         'ignore' => 'Si fuiste tú, no hace falta que hagas nada. Si no, cambia tu contraseña de inmediato.',
     ],
+    'two_factor_enabled' => [
+        'subject' => 'Activaste la verificación en dos pasos',
+        'greeting' => 'Hola',
+        'line' => 'Se activó la verificación en dos pasos en tu cuenta.',
+        'when' => 'Fecha: :date (UTC)',
+        'ignore' => 'Si no fuiste tú, avisa de inmediato a un administrador de tu organización.',
+    ],
+    'two_factor_reset' => [
+        'subject' => 'Reiniciaron tu verificación en dos pasos',
+        'greeting' => 'Hola',
+        'line' => 'Un administrador reinició la verificación en dos pasos de tu cuenta.',
+        'when' => 'Fecha: :date (UTC)',
+        'next' => 'La próxima vez que inicies sesión deberás configurarla de nuevo con tu aplicación autenticadora.',
+        'ignore' => 'Si no lo esperabas, avisa de inmediato a un administrador de tu organización y cambia tu contraseña.',
+    ],
 ];

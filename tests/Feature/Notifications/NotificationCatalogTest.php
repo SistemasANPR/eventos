@@ -13,6 +13,8 @@ use Illuminate\Notifications\Notification;
 const R0_NOTIFICATION_KEYS = [
     'auth.password_reset',
     'auth.new_device_login',
+    'auth.two_factor_enabled',
+    'auth.two_factor_reset',
     'team.set_password',
     'team.membership_added',
     'submission.received',
@@ -26,6 +28,8 @@ const R0_NOTIFICATION_KEYS = [
 const CRITICAL_NOTIFICATION_KEYS = [
     'auth.password_reset',
     'auth.new_device_login',
+    'auth.two_factor_enabled',
+    'auth.two_factor_reset',
     'team.set_password',
     'team.membership_added',
     'submission.received',

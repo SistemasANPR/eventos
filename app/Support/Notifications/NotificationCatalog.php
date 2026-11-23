@@ -40,6 +40,8 @@ final class NotificationCatalog
         $descriptors = [
             new NotificationDescriptor('auth.password_reset', ['user_name', 'reset_url', 'expires_in_minutes'], critical: true),
             new NotificationDescriptor('auth.new_device_login', ['user_name', 'occurred_at', 'device'], critical: true),
+            new NotificationDescriptor('auth.two_factor_enabled', ['user_name', 'occurred_at'], critical: true),
+            new NotificationDescriptor('auth.two_factor_reset', ['user_name', 'occurred_at'], critical: true),
             new NotificationDescriptor('team.set_password', ['member_name', 'organization_name', 'role_name', 'set_password_url'], critical: true),
             new NotificationDescriptor('team.membership_added', ['member_name', 'organization_name', 'role_name', 'login_url'], critical: true),
             new NotificationDescriptor('submission.received', ['author_name', 'submission_title', 'submission_reference', 'event_name', 'call_title', 'submission_type', 'track_name'], critical: true, recipientLimit: 5),

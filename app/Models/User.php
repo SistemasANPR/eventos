@@ -6,7 +6,12 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use App\Enums\OrganizationStatus;
+use App\Exceptions\Domain\TwoFactorCannotBeDisabled;
 use Database\Factories\UserFactory;
+use Filament\Auth\MultiFactor\App\Concerns\InteractsWithAppAuthentication;
+use Filament\Auth\MultiFactor\App\Concerns\InteractsWithAppAuthenticationRecovery;
+use Filament\Auth\MultiFactor\App\Contracts\HasAppAuthentication;
+use Filament\Auth\MultiFactor\App\Contracts\HasAppAuthenticationRecovery;
 use Filament\Models\Contracts\FilamentUser;
 use Filament\Models\Contracts\HasTenants;
 use Filament\Panel;
@@ -21,17 +26,82 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\DB;
+use SensitiveParameter;
 use Spatie\Permission\Traits\HasRoles;
 
 #[Fillable(['name', 'email', 'password'])]
 #[Hidden(['password', 'remember_token'])]
-class User extends Authenticatable implements FilamentUser, HasTenants
+class User extends Authenticatable implements FilamentUser, HasAppAuthentication, HasAppAuthenticationRecovery, HasTenants
 {
     /** @use HasFactory<UserFactory> */
-    use HasFactory, HasRoles, HasUuids, Notifiable;
+    use HasFactory, HasRoles, HasUuids, InteractsWithAppAuthentication, InteractsWithAppAuthenticationRecovery, Notifiable;
 
-    /** Igual que el DEFAULT de la columna: un usuario recién creado no es de plataforma (modo estricto exige el atributo). */
-    protected $attributes = ['is_platform_admin' => false];
+    /** Roles de organización que exigen la verificación en dos pasos (plan 014, DA-1); `platform` es `is_platform_admin`. */
+    private const TWO_FACTOR_ROLES = ['org_admin', 'organizer', 'reviewer'];
+
+    /**
+     * Igual que el DEFAULT de las columnas: un usuario recién creado no es de plataforma y no tiene
+     * 2FA (modo estricto exige los atributos).
+     */
+    protected $attributes = [
+        'is_platform_admin' => false,
+        'app_authentication_secret' => null,
+        'app_authentication_recovery_codes' => null,
+        'two_factor_confirmed_at' => null,
+    ];
+
+    /**
+     * ¿A esta persona se le exige la 2FA? A todo usuario de plataforma y a quien tenga un rol de
+     * organización con acceso a datos de autores en alguna organización (plan 014, DA-1). Los roles
+     * se consultan sin filtrar por organización en contexto: la exigencia es por persona.
+     */
+    public function requiresTwoFactor(): bool
+    {
+        if ($this->is_platform_admin) {
+            return true;
+        }
+
+        return DB::table(config('permission.table_names.model_has_roles').' as assignments')
+            ->join(config('permission.table_names.roles').' as roles', 'roles.id', '=', 'assignments.role_id')
+            ->where('assignments.model_type', $this->getMorphClass())
+            ->where('assignments.model_id', $this->getKey())
+            ->whereIn('roles.name', self::TWO_FACTOR_ROLES)
+            ->exists();
+    }
+
+    /** Configuró su segundo factor y lo confirmó con un código válido. */
+    public function hasConfirmedTwoFactor(): bool
+    {
+        return filled($this->app_authentication_secret) && $this->two_factor_confirmed_at !== null;
+    }
+
+    /**
+     * Filament llama aquí al confirmar la configuración (con el secreto) y al desactivarla (con `null`).
+     * Nadie desactiva su propia 2FA (CA-014-4): quitarla es `clearTwoFactor()`, que solo usan las
+     * Actions de reinicio, ya autorizadas y auditadas.
+     */
+    public function saveAppAuthenticationSecret(#[SensitiveParameter] ?string $secret): void
+    {
+        if (blank($secret)) {
+            throw new TwoFactorCannotBeDisabled;
+        }
+
+        $this->forceFill([
+            'app_authentication_secret' => $secret,
+            'two_factor_confirmed_at' => now(),
+        ])->save();
+    }
+
+    /** Quita el segundo factor y los códigos de recuperación. Solo para el reinicio autorizado (CA-014-4 y -5). */
+    public function clearTwoFactor(): void
+    {
+        $this->forceFill([
+            'app_authentication_secret' => null,
+            'app_authentication_recovery_codes' => null,
+            'two_factor_confirmed_at' => null,
+        ])->save();
+    }
 
     /** @return BelongsToMany<Organization, $this> */
     public function organizations(): BelongsToMany
@@ -177,6 +247,7 @@ class User extends Authenticatable implements FilamentUser, HasTenants
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'is_platform_admin' => 'boolean',
+            'two_factor_confirmed_at' => 'datetime',
         ];
     }
 }

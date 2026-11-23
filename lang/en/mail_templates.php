@@ -17,6 +17,14 @@ return [
             'subject' => 'Sign-in from a new device',
             'body' => "Hello {{ user_name }},\n\nYour account was signed in to on {{ occurred_at }} (UTC) from {{ device }}.\n\nIf it was you, no action is needed. If not, change your password right away.",
         ],
+        'two_factor_enabled' => [
+            'subject' => 'You turned on two-step verification',
+            'body' => "Hello {{ user_name }},\n\nTwo-step verification was turned on for your account on {{ occurred_at }} (UTC).\n\nIf it was not you, tell an administrator of your organization right away.",
+        ],
+        'two_factor_reset' => [
+            'subject' => 'Your two-step verification was reset',
+            'body' => "Hello {{ user_name }},\n\nAn administrator reset the two-step verification of your account on {{ occurred_at }} (UTC). The next time you sign in you will have to set it up again.\n\nIf you did not expect this, tell an administrator of your organization right away and change your password.",
+        ],
     ],
     'team' => [
         'set_password' => [
