@@ -7,6 +7,7 @@ use App\Http\Controllers\Panel\ShowEventLogoEditorController;
 use App\Http\Controllers\Panel\ShowLandingEditorImageController;
 use App\Http\Controllers\Panel\SubmissionExportDownloadController;
 use App\Http\Controllers\Panel\SubmissionFileDownloadController;
+use App\Http\Controllers\Panel\SubmissionFilePreviewController;
 use App\Http\Controllers\Public\ShowActivityMediaController;
 use App\Http\Controllers\Public\ShowCallController;
 use App\Http\Controllers\Public\ShowEventController;
@@ -77,6 +78,11 @@ Route::middleware([SetOrganizationFromRoute::class, HandleInertiaRequests::class
 Route::middleware(['auth', SetOrganizationFromRoute::class])
     ->get('admin/{organization:slug}/submission-files/{file}', SubmissionFileDownloadController::class)
     ->name('submission-files.download');
+
+// Vista previa de la imagen de una propuesta dentro del detalle del panel (misma autorización que la descarga).
+Route::middleware(['auth', SetOrganizationFromRoute::class])
+    ->get('admin/{organization:slug}/submission-files/{file}/preview', SubmissionFilePreviewController::class)
+    ->name('submission-files.preview');
 
 // Imágenes de la landing para el editor del panel (plan 022, DA-7): también las del borrador. Misma forma que
 // la descarga de archivos de propuesta; `events.manage` lo decide la Policy dentro del controlador.

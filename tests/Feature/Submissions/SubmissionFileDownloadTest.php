@@ -239,3 +239,49 @@ it('CA-007-18: the action without organization context fails instead of answerin
     expect(fn () => app(DownloadSubmissionFile::class)->handle($organizer, $file->id))
         ->toThrow(MissingOrganizationContext::class);
 });
+
+/** Un archivo de imagen ya ligado a una propuesta, con su contenido en el disco. */
+function previewImage(Organization $organization, string $mime = 'image/png'): SubmissionFile
+{
+    return CurrentOrganization::run($organization, function () use ($organization, $mime): SubmissionFile {
+        $file = SubmissionFile::factory()->attachedTo((string) Str::uuid())->create([
+            'organization_id' => $organization->id,
+            'original_name' => 'foto.png',
+            'mime_type' => $mime,
+        ]);
+        Storage::disk(config('filesystems.private_uploads_disk'))->put($file->storage_path, 'contenido-de-imagen');
+
+        return $file;
+    });
+}
+
+it('an organizer sees the image of a submission inline, and the view is audited', function (): void {
+    $organization = Memberships::organization();
+    $file = previewImage($organization);
+    $user = dlUser($organization, OrganizationRole::Organizer);
+
+    $response = $this->actingAs($user)->get("/admin/{$organization->slug}/submission-files/{$file->id}/preview");
+
+    $response->assertOk()
+        ->assertHeader('X-Content-Type-Options', 'nosniff')
+        ->assertHeader('Content-Type', 'image/png');
+    expect($response->headers->get('Content-Disposition'))->toStartWith('inline')
+        ->and(Activity::query()->where('event', 'submission_file_previewed')->count())->toBe(1);
+});
+
+it('the preview refuses non-images, other organizations and members without files.download', function (): void {
+    $organization = Memberships::organization();
+    $other = Memberships::organization();
+    $pdf = previewImage($organization, 'application/pdf');
+    $foreign = previewImage($other);
+    $image = previewImage($organization);
+    $organizer = dlUser($organization, OrganizationRole::Organizer);
+    $reviewer = dlUser($organization, OrganizationRole::Reviewer);
+    $base = "/admin/{$organization->slug}/submission-files";
+
+    $this->actingAs($organizer)->get("{$base}/{$pdf->id}/preview")->assertNotFound();
+    $this->actingAs($organizer)->get("{$base}/{$foreign->id}/preview")->assertNotFound();
+    $this->actingAs($reviewer)->get("{$base}/{$image->id}/preview")->assertForbidden();
+    auth()->logout();
+    $this->get("{$base}/{$image->id}/preview")->assertRedirect();
+});
