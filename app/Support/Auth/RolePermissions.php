@@ -41,6 +41,7 @@ final class RolePermissions
         'personal_data.manage',
         'speakers.delete',
         'activities.delete',
+        'two_factor.reset',
     ];
 
     /** @return array<string, list<string>> permisos por nombre de rol */

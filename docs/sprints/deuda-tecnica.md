@@ -14,7 +14,8 @@ Lo que NO está aquí porque se decidió no cambiarlo: [RELLENAR: decisiones de 
 
 | # | Punto | Archivos | Esfuerzo |
 |---|---|---|---|
-| DT-02 | Sin límite global por IP ni 2FA frente a fuerza bruta distribuida (hoy el límite es por correo + IP, 5 intentos / 15 min). Se aborda en el plan 014. Dueño: [PENDIENTE]. Fecha límite sugerida: según el calendario del plan 014; [PENDIENTE] fecha | `app/Support/Auth/AccessThrottle.php`, plan 014 | L |
+| DT-02 | Sin límite global por IP ni 2FA frente a fuerza bruta distribuida (hoy el límite es por correo + IP, 5 intentos / 15 min). Se aborda en el plan 014. **Avance 2026-11-23:** la 2FA obligatoria esta implementada en la rama `feat/plan-014-2fa` (plan 014 F1); falta el limite global por IP, asi que el punto sigue abierto. Dueño: [PENDIENTE]. Fecha límite sugerida: según el calendario del plan 014; [PENDIENTE] fecha | `app/Support/Auth/AccessThrottle.php`, plan 014 | L |
+| DT-18 | Con la 2FA obligatoria, el middleware solo actua al abrir una pagina: una pestana ya abierta de alguien a quien se reinicio la 2FA puede seguir enviando acciones de Livewire hasta que navegue. Dueno: [PENDIENTE]. Fecha limite sugerida: [PENDIENTE] | `app/Http/Middleware/EnsureTwoFactorConfirmed.php`, plan 014 §4.1 | S |
 
 ### P2 · Contratos
 

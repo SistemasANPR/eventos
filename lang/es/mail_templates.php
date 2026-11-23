@@ -17,6 +17,14 @@ return [
             'subject' => 'Inicio de sesión desde un dispositivo nuevo',
             'body' => "Hola {{ user_name }},\n\nIniciaron sesión en tu cuenta el {{ occurred_at }} (UTC) desde {{ device }}.\n\nSi fuiste tú, no tienes que hacer nada. Si no, cambia tu contraseña de inmediato.",
         ],
+        'two_factor_enabled' => [
+            'subject' => 'Activaste la verificación en dos pasos',
+            'body' => "Hola {{ user_name }},\n\nSe activó la verificación en dos pasos en tu cuenta el {{ occurred_at }} (UTC).\n\nSi no fuiste tú, avisa de inmediato a un administrador de tu organización.",
+        ],
+        'two_factor_reset' => [
+            'subject' => 'Reiniciaron tu verificación en dos pasos',
+            'body' => "Hola {{ user_name }},\n\nUn administrador reinició la verificación en dos pasos de tu cuenta el {{ occurred_at }} (UTC). La próxima vez que inicies sesión deberás configurarla de nuevo.\n\nSi no lo esperabas, avisa de inmediato a un administrador de tu organización y cambia tu contraseña.",
+        ],
     ],
     'team' => [
         'set_password' => [

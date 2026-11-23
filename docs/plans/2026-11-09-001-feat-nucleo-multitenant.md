@@ -79,6 +79,7 @@ Medido el 2026-11-09: el repositorio contiene solo la plantilla (documentos, reg
 | `speakers.delete` | sí | no | no |
 | `activities.manage` | sí | sí | no |
 | `activities.delete` | sí | no | no |
+| `two_factor.reset` | sí | no | no |
 
   El `reviewer` (R1) no tiene permisos de organizador; sus permisos propios llegan con el plan 011. El usuario de plataforma no recibe permisos de organización por defecto.
 - **Convención de claves compuestas:** toda tabla con tenant a la que otra tabla hace referencia declara `unique(id, organization_id)` para que las claves foráneas compuestas impidan referencias entre organizaciones (la aplican `contacts` aquí, `events` en el plan 002 y calls, tracks y forms en los planes 004 y 005).

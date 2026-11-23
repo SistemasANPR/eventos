@@ -38,6 +38,7 @@ function expectedMatrix(): array
             ...$organizer,
             'events.publish', 'event_assignments.manage', 'privacy_notices.manage', 'team.manage',
             'mail-templates.manage', 'personal_data.manage', 'speakers.delete', 'activities.delete',
+            'two_factor.reset',
         ],
         'organizer' => $organizer,
         'reviewer' => [],

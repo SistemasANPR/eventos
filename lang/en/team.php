@@ -59,6 +59,11 @@ return [
         'confirm' => 'The person will lose access to this organization. Their history is kept.',
         'done' => 'Member deactivated.',
     ],
+    'reset_two_factor' => [
+        'action' => 'Reset two-step verification',
+        'confirm' => 'The person\'s two-step verification will be erased and they will have to set it up again when they sign in. They will get an email notice and it will be logged.',
+        'done' => 'Two-step verification reset.',
+    ],
     'errors' => [
         'last_admin' => 'The organization must keep at least one active administrator.',
         'not_pending' => 'This person has already signed in: they can use "Forgot your password?" if they lost it.',

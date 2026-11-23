@@ -21,6 +21,19 @@ return [
             'platform' => 'Platform user',
             'organizations' => 'Active organizations',
         ],
+        'reset_two_factor' => [
+            'action' => 'Reset two-step verification',
+            'help' => 'Only when no other administrator is left who can do it. Confirm the person\'s identity through a channel other than the account email and record it: it is audited and the person gets an email notice.',
+            'channel' => 'Verification channel',
+            'channels' => [
+                'phone_call' => 'Call to a registered contact',
+                'message' => 'Message to a registered contact',
+                'in_person' => 'In person',
+            ],
+            'note' => 'Verification note',
+            'note_help' => 'Who confirmed the identity and to which previously registered contact (no passwords or codes).',
+            'done' => 'Two-step verification reset.',
+        ],
     ],
 
     'events' => [

@@ -7,6 +7,8 @@ namespace App\Providers\Filament;
 use App\Filament\Pages\Auth\UnifiedLoginRedirect;
 use App\Filament\Support\PanelSwitcher;
 use App\Http\Middleware\EnsurePlatformPanelEnabled;
+use App\Http\Middleware\EnsureTwoFactorConfirmed;
+use App\Support\Auth\TotpAuthentication;
 use App\Support\Panel\BrandPalette;
 use Filament\FontProviders\LocalFontProvider;
 use Filament\Http\Middleware\Authenticate;
@@ -41,6 +43,9 @@ class PlatformPanelProvider extends PanelProvider
             ->brandName(fn (): string => __('platform.brand'))
             // El acceso y la recuperación de contraseña son únicos y viven en `/admin` (plan 017).
             ->login(UnifiedLoginRedirect::class)
+            // 2FA obligatoria también para la plataforma (plan 014); la configura aquí mismo.
+            ->multiFactorAuthentication([TotpAuthentication::configured()], isRequired: true)
+            ->multiFactorAuthenticationRequiredMiddlewareName(EnsureTwoFactorConfirmed::class)
             ->middleware([EnsurePlatformPanelEnabled::class], isPersistent: true)
             ->viteTheme('resources/css/filament/admin/theme.css')
             ->font('Roboto', provider: LocalFontProvider::class)

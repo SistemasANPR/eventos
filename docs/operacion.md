@@ -60,6 +60,7 @@ Solo nombres; nunca valores en el repositorio. Toda variable nueva se añade a `
 | `FILESYSTEM_DISK` y credenciales del bucket | Archivos | Sí |
 | `PRIVATE_UPLOADS_DISK` | Disco privado de los archivos de propuestas (por defecto `local`). En staging y producción apunta a un bucket S3 compatible **privado**; nunca a `public` | Sí |
 | `PLATFORM_PANEL_ENABLED` | Habilita el panel de plataforma (`/platform`, plan 016). Por defecto solo en `local` y pruebas; en staging y producción queda apagado (404) y **no debe activarse hasta que exista la 2FA del plan 014** (DA-1) | No |
+| `TWO_FACTOR_REQUIRED` | Exige la verificación en dos pasos a `org_admin`, `organizer`, `reviewer` y plataforma (plan 014 F1). **Encendida por defecto**; solo se apaga (`false`) en pruebas y desarrollo. Al aplicar las migraciones del plan con ella encendida, todo usuario existente debe configurarla en su siguiente apertura de página: ver plan 014 §4.2 (paso de despliegue y cuenta de recuperación). Con ella apagada, el plan 011 rechaza invitar a evaluadores externos | No |
 | `MAIL_*` | Correo transaccional | Sí |
 | `NOTIFICATIONS_MAILER` | Proveedor del correo transaccional: `resend` en staging y producción, `smtp` en local (Mailpit). Un valor desconocido falla al enviar; no cae a otro proveedor (ADR-0009, plan 008) | Sí |
 | `RESEND_API_KEY` | Clave de la API de Resend; solo cuando `NOTIFICATIONS_MAILER=resend`. Es un secreto: solo en variables del entorno, nunca en el repositorio | Sí, con `resend` |

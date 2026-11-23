@@ -21,6 +21,18 @@ return [
             'trigger' => 'Se inicia sesión desde un dispositivo no registrado.',
             'recipient' => 'El titular de la cuenta.',
         ],
+        'two_factor_enabled' => [
+            'name' => 'Verificación en dos pasos activada',
+            'description' => 'Aviso de seguridad con la fecha; nunca lleva el secreto ni los códigos de recuperación.',
+            'trigger' => 'Alguien confirma la verificación en dos pasos de su cuenta.',
+            'recipient' => 'El titular de la cuenta.',
+        ],
+        'two_factor_reset' => [
+            'name' => 'Verificación en dos pasos reiniciada',
+            'description' => 'Aviso de seguridad de que otro administrador reinició la verificación, con la fecha.',
+            'trigger' => 'Un administrador o la plataforma reinicia la verificación en dos pasos de una cuenta.',
+            'recipient' => 'El titular de la cuenta.',
+        ],
     ],
     'team' => [
         'set_password' => [

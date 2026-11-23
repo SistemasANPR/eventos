@@ -10,7 +10,9 @@ use App\Filament\Pages\Auth\ResetPassword;
 use App\Filament\Pages\Organization\EditOrganizationProfile;
 use App\Filament\Support\PanelSwitcher;
 use App\Http\Middleware\ApplyOrganizationContext;
+use App\Http\Middleware\EnsureTwoFactorConfirmed;
 use App\Models\Organization;
+use App\Support\Auth\TotpAuthentication;
 use App\Support\Panel\BrandPalette;
 use Filament\Actions\Action;
 use Filament\FontProviders\LocalFontProvider;
@@ -48,6 +50,9 @@ class AdminPanelProvider extends PanelProvider
             ->path('admin')
             ->login(Login::class)
             ->passwordReset(RequestPasswordReset::class, ResetPassword::class)
+            // 2FA obligatoria (plan 014): el middleware decide por petición si aplica y a quién (TwoFactorRequirement).
+            ->multiFactorAuthentication([TotpAuthentication::configured()], isRequired: true)
+            ->multiFactorAuthenticationRequiredMiddlewareName(EnsureTwoFactorConfirmed::class)
             ->renderHook(
                 PanelsRenderHook::SCRIPTS_AFTER,
                 fn (): View => view('filament.auth.throttle-notice'),

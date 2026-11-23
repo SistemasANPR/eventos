@@ -21,6 +21,18 @@ return [
             'trigger' => 'Someone signs in from an unregistered device.',
             'recipient' => 'The account owner.',
         ],
+        'two_factor_enabled' => [
+            'name' => 'Two-step verification turned on',
+            'description' => 'Security notice with the date; it never carries the secret or recovery codes.',
+            'trigger' => 'Someone confirms two-step verification on their account.',
+            'recipient' => 'The account owner.',
+        ],
+        'two_factor_reset' => [
+            'name' => 'Two-step verification reset',
+            'description' => 'Security notice that another administrator reset the verification, with the date.',
+            'trigger' => 'An administrator or the platform resets the two-step verification of an account.',
+            'recipient' => 'The account owner.',
+        ],
     ],
     'team' => [
         'set_password' => [
