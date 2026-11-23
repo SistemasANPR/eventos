@@ -7,7 +7,7 @@ import { LocaleSwitcher } from '@/components/molecules/LocaleSwitcher';
 import { PageBanner } from '@/components/molecules/PageBanner';
 import { useTranslation } from '@/hooks/useTranslation';
 import { PublicLayout } from '@/layouts/PublicLayout';
-import { BUTTON_PRIMARY, FACTS_PANEL, FOCUS_RING_ON_DARK } from '@/lib/classes';
+import { BUTTON_PRIMARY, CALL_COLUMN, FACTS_PANEL, FOCUS_RING_ON_DARK } from '@/lib/classes';
 import { formatEventInstant } from '@/lib/date-format';
 import { cn } from '@/lib/utils';
 import type { PublicCall } from '@/types/call';
@@ -41,7 +41,7 @@ export default function Show({ call, event, organization, eventUrl, privacyUrl, 
             <Head title={`${call.title} · ${event.name} · ${organization.name}`}>
                 {call.description !== null && <meta name="description" content={call.description} />}
             </Head>
-            <article aria-labelledby="call-title" className="mx-auto flex w-full max-w-4xl flex-col gap-8">
+            <article aria-labelledby="call-title" className={CALL_COLUMN}>
                 <PageBanner eyebrow={event.name} title={call.title} titleId="call-title" logoUrl={event.logoUrl} logoName={event.name} isRoomy>
                     <div className="flex flex-col items-start gap-2">
                         <CallStateBadge state={call.state} t={t} />

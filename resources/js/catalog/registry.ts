@@ -56,6 +56,15 @@ export const registry: CatalogEntry[] = [
         preview: 'none',
     },
     {
+        name: 'HexagonBadge',
+        path: 'atoms/HexagonBadge',
+        level: 'atom',
+        category: 'Decoration',
+        useWhen: 'El sello de «listo» (hexágono lima con palomita) en confirmaciones; siempre acompañado de un texto que diga el estado',
+        avoidFor: 'Botones o el único aviso de un estado (es adorno oculto a los lectores de pantalla)',
+        preview: 'none',
+    },
+    {
         name: 'EventLogo',
         path: 'atoms/EventLogo',
         level: 'atom',

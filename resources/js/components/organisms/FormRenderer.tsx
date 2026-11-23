@@ -1,7 +1,7 @@
 import type { ReactNode, SyntheticEvent } from 'react';
 
 import { FormFieldInput } from '@/components/molecules/FormFieldInput';
-import { BUTTON_PRIMARY, FOCUS_RING } from '@/lib/classes';
+import { BUTTON_PRIMARY, FOCUS_RING, SECTION_CARD, SECTION_HEADING } from '@/lib/classes';
 import { activeFields } from '@/lib/form-text';
 import type { Translate } from '@/lib/translate';
 import { cn } from '@/lib/utils';
@@ -21,6 +21,8 @@ interface FormRendererProps {
     onSubmit?: (answers: FormData) => void;
     idPrefix?: string;
     className?: string;
+    /** Título de la tarjeta que agrupa los campos de la definición; sin él, los campos van sueltos. */
+    fieldsTitle?: string;
     /** Contenido dentro del `<form>`, antes de los campos de la definición (bloque fijo del envío público). */
     leading?: ReactNode;
     /** Contenido dentro del `<form>`, entre los campos y el botón de envío (consentimiento, anti-robots). */
@@ -53,6 +55,7 @@ export function FormRenderer({
     className,
     leading,
     trailing,
+    fieldsTitle,
     isSubmitting = false,
     submitLabel,
     isSubmitDisabled = false,
@@ -73,6 +76,19 @@ export function FormRenderer({
         return <p className="text-base text-text-muted">{t('forms.renderer.empty')}</p>;
     }
 
+    const fieldInputs = visibleFields.map((field) => (
+        <FormFieldInput
+            key={field.key}
+            field={field}
+            locale={locale}
+            defaultLocale={defaultLocale}
+            idPrefix={idPrefix}
+            t={t}
+            error={errors[field.key]}
+            initialValue={initialValues[field.key]}
+        />
+    ));
+
     return (
         <form
             aria-label={t('forms.renderer.form_label')}
@@ -81,25 +97,23 @@ export function FormRenderer({
             className={cn('space-y-6', className)}
         >
             {leading}
-            {visibleFields.map((field) => (
-                <FormFieldInput
-                    key={field.key}
-                    field={field}
-                    locale={locale}
-                    defaultLocale={defaultLocale}
-                    idPrefix={idPrefix}
-                    t={t}
-                    error={errors[field.key]}
-                    initialValue={initialValues[field.key]}
-                />
-            ))}
+            {fieldsTitle !== undefined && visibleFields.length > 0 ? (
+                <section aria-labelledby={`${idPrefix}-fields`} className={cn(SECTION_CARD, 'space-y-6')}>
+                    <h2 id={`${idPrefix}-fields`} className={SECTION_HEADING}>
+                        {fieldsTitle}
+                    </h2>
+                    {fieldInputs}
+                </section>
+            ) : (
+                fieldInputs
+            )}
             {trailing}
             <div data-form-submit className="space-y-2">
                 <button
                     type="submit"
                     disabled={isPreview || isSubmitting || isSubmitDisabled}
                     aria-busy={isSubmitting ? true : undefined}
-                    className={cn(BUTTON_PRIMARY, FOCUS_RING)}
+                    className={cn(BUTTON_PRIMARY, FOCUS_RING, 'w-full sm:w-auto')}
                 >
                     {submitLabel ?? t('forms.renderer.submit')}
                 </button>

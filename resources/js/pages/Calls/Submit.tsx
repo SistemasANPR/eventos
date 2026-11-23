@@ -2,11 +2,13 @@ import { Head, router, usePage } from '@inertiajs/react';
 import { useMemo, useState } from 'react';
 
 import { TextLink } from '@/components/atoms/TextLink';
+import { PageBanner } from '@/components/molecules/PageBanner';
 import { SubmissionForm } from '@/components/organisms/SubmissionForm';
 import { PublicLayout } from '@/layouts/PublicLayout';
-import { PAGE_TITLE } from '@/lib/classes';
+import { CALL_COLUMN, HEADING_LG, SECTION_CARD } from '@/lib/classes';
 import { toSubmitFailure } from '@/lib/submit-failure';
 import { createTranslate } from '@/lib/translate';
+import { cn } from '@/lib/utils';
 import type { PublicCall } from '@/types/call';
 import type { PublicOrganization } from '@/types/event';
 import type { SharedProps } from '@/types/inertia';
@@ -14,7 +16,7 @@ import type { PublicSubmissionForm, SubmissionPayload, SubmitFailure } from '@/t
 
 interface SubmitProps {
     call: PublicCall;
-    event: { name: string };
+    event: { name: string; logoUrl?: string | null };
     organization: PublicOrganization;
     /** URL de la página de la convocatoria, con el idioma de esta página. */
     callUrl: string;
@@ -75,19 +77,18 @@ export default function Submit({ call, event, organization, callUrl, submitUrl, 
     const hint = form === null ? (call.state === 'open' ? t('submit.not_ready_hint') : t(`call.state_hint.${call.state}`)) : null;
 
     return (
-        <PublicLayout organizationName={organization.name}>
+        <PublicLayout organizationName={organization.name} isWide>
             <Head title={`${t('submit.title')} · ${call.title} · ${organization.name}`}>
                 <meta name="robots" content="noindex" />
             </Head>
-            <article aria-labelledby="submit-title" className="flex flex-col gap-8">
-                <header className="flex flex-col gap-2">
-                    <p className="text-base font-medium text-text-muted">
-                        {event.name} · {call.title}
-                    </p>
-                    <h1 id="submit-title" className={PAGE_TITLE}>
-                        {t('submit.title')}
-                    </h1>
-                </header>
+            <article aria-labelledby="submit-title" className={CALL_COLUMN}>
+                <PageBanner
+                    eyebrow={`${event.name} · ${call.title}`}
+                    title={t('submit.title')}
+                    titleId="submit-title"
+                    logoUrl={event.logoUrl}
+                    logoName={event.name}
+                />
 
                 {form !== null ? (
                     <SubmissionForm
@@ -102,8 +103,8 @@ export default function Submit({ call, event, organization, callUrl, submitUrl, 
                         onRefresh={handleRefresh}
                     />
                 ) : (
-                    <section data-testid="submit-unavailable" className="space-y-2 rounded-lg border border-border bg-surface p-4 sm:p-6">
-                        <h2 className="text-xl font-semibold text-text">
+                    <section data-testid="submit-unavailable" className={cn(SECTION_CARD, 'space-y-2')}>
+                        <h2 className={HEADING_LG}>
                             {call.state === 'open' ? t('submit.not_ready_title') : t(`call.state.${call.state}`)}
                         </h2>
                         <p className="max-w-prose text-base text-text-muted">{hint}</p>

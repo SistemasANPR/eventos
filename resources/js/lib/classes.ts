@@ -15,7 +15,7 @@ export const FOCUS_RING = 'focus-visible:outline-2 focus-visible:outline-offset-
 
 /** Campo de texto, número, fecha o lista de un formulario: borde de 3:1 y objetivo táctil de 44 px. */
 export const FORM_CONTROL =
-    'block min-h-11 w-full rounded-md border border-border-input bg-surface px-3 py-2 text-base text-text focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:opacity-60';
+    'block min-h-11 w-full rounded-xl border border-border-input bg-surface px-3 py-2 text-base text-text focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:opacity-60';
 
 
 /** Botón de acción principal: píldora lima con texto índigo (`cta`), objetivo táctil de 48 px. */
@@ -31,7 +31,7 @@ export const PAGE_FOOTER =
     'flex flex-col gap-2 border-t border-border pt-4 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between';
 
 /** Tarjeta de un participante en un formulario de propuesta (envío y edición). */
-export const PARTICIPANT_CARD = 'space-y-4 rounded-lg border border-border bg-surface p-4';
+export const PARTICIPANT_CARD = 'space-y-4 rounded-2xl border border-border bg-bg p-4';
 
 /** Título de una sección de la landing (h2), con subrayado lima. */
 export const SECTION_HEADING =
@@ -57,3 +57,9 @@ export const LOGO_PLATE = 'rounded-2xl bg-surface p-3 shadow-lg';
 
 /** Anillo de foco sobre un bloque de color (violeta o índigo): lima (design.md §3.1). */
 export const FOCUS_RING_ON_DARK = 'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cta';
+
+/** Tarjeta de una sección de un formulario público: esquinas grandes y sombra suave. */
+export const SECTION_CARD = 'rounded-3xl border border-border bg-surface p-5 shadow-md sm:p-8';
+
+/** Columna central de una página de la convocatoria (portada, formulario o confirmación). */
+export const CALL_COLUMN = 'mx-auto flex w-full max-w-4xl flex-col gap-8';

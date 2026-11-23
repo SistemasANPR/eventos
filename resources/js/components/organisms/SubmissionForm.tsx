@@ -4,8 +4,7 @@ import { TurnstileWidget } from '@/components/infrastructure/TurnstileWidget';
 import { AcceptanceField } from '@/components/molecules/AcceptanceField';
 import { FormRenderer } from '@/components/organisms/FormRenderer';
 import { SubmissionBlock } from '@/components/organisms/SubmissionBlock';
-import { BUTTON_SECONDARY, FOCUS_RING } from '@/lib/classes';
-import { activeFields } from '@/lib/form-text';
+import { BUTTON_SECONDARY, FOCUS_RING, SECTION_CARD, SECTION_HEADING } from '@/lib/classes';
 import { hasErrors, mapServerErrors } from '@/lib/submission-errors';
 import { readSubmission } from '@/lib/submission-payload';
 import type { Translate } from '@/lib/translate';
@@ -204,7 +203,6 @@ export function SubmissionForm({ form, locale, t, errors, failure, isProcessing,
         void submit(data);
     };
 
-    const hasQuestions = activeFields(form.fields).length > 0;
     const submitLabel = isUploading ? t('submit.uploading') : isProcessing ? t('submit.sending') : t('submit.send_action');
 
     const leading = (
@@ -222,15 +220,12 @@ export function SubmissionForm({ form, locale, t, errors, failure, isProcessing,
                 errors={fieldErrors}
                 participantsError={mapped.participants}
             />
-            {hasQuestions ? (
-                <h2 className="text-xl font-semibold text-text">{t('submit.section_questions')}</h2>
-            ) : null}
         </>
     );
 
     const trailing = (
-        <section aria-labelledby="submit-consent-heading" className="space-y-4">
-            <h2 id="submit-consent-heading" className="text-xl font-semibold text-text">
+        <section aria-labelledby="submit-consent-heading" className={cn(SECTION_CARD, 'space-y-4')}>
+            <h2 id="submit-consent-heading" className={SECTION_HEADING}>
                 {t('submit.section_consent')}
             </h2>
             <AcceptanceField id="submit-consent" isChecked={consent} onChange={setConsent} error={mapped.consent}>
@@ -281,7 +276,7 @@ export function SubmissionForm({ form, locale, t, errors, failure, isProcessing,
         <div ref={container} className="space-y-6">
             <div ref={alert} tabIndex={-1} role="alert" aria-live="assertive" className={cn(!hasAlert && 'hidden')}>
                 {hasAlert ? (
-                    <div className="space-y-3 rounded-lg border border-error bg-error-bg p-4 text-error">
+                    <div className="space-y-3 rounded-2xl border border-error bg-error-bg p-4 text-error">
                         <p className="text-base font-semibold">{t('submit.error_title')}</p>
                         {failureMessage(failure, t) !== null ? <p className="text-base">{failureMessage(failure, t)}</p> : null}
                         {mapped.general.map((message) => (
@@ -307,6 +302,7 @@ export function SubmissionForm({ form, locale, t, errors, failure, isProcessing,
                 errors={fieldErrors}
                 onSubmit={handleSubmit}
                 leading={leading}
+                fieldsTitle={t('submit.section_questions')}
                 trailing={trailing}
                 isSubmitting={isProcessing || isUploading}
                 isSubmitDisabled={isClosed}
