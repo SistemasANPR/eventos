@@ -15,9 +15,9 @@ El equipo desarrolla en local con VS Code y Docker. El PHP instalado en las máq
 3. **Datos locales ficticios.** Nunca se copian datos de producción al entorno local (`docs/privacidad.md`).
 4. **VS Code** es el editor estándar, con extensiones recomendadas en `.vscode/extensions.json`.
 5. **Ramas:**
-   - **`staging`** es la rama de integración y pruebas: aquí va todo el desarrollo. Para un trabajo grande se puede abrir una rama corta desde `staging`, que vuelve a `staging` por pull request.
+   - **`staging`** es la rama de integración y pruebas. No se desarrolla directamente en ella: cada bloque de trabajo (mismo módulo, plan o fase, o arreglos relacionados) vive en una rama corta `tipo/modulo-tema` creada desde `staging`, que vuelve a `staging` con `--no-ff` o pull request cuando pasa `composer check` (enmienda del 2026-11-23).
    - **`main`** es producción: solo recibe lo que pasó el punto de control de `staging`, mediante pull request con aprobación humana.
-   - El agente de código trabaja en `staging`. **Nunca hace commit ni merge en `main`** (`AGENTS.md`, acción 12). Los commits se hacen solo si el usuario los pide; `git push`, nunca sin petición explícita.
+   - El agente de código trabaja en la rama de su bloque, nunca directo en `staging`. **Nunca hace commit ni merge en `main`** (`AGENTS.md`, acción 12). Los commits se hacen solo si el usuario los pide; `git push`, nunca sin petición explícita.
 6. **CI** corre en cada pull request y en cada push a `main` y a `staging`.
 7. **Fin de línea LF** en todo el repo (`.gitattributes`), para que los scripts funcionen igual dentro de los contenedores y en Windows.
 
@@ -36,7 +36,7 @@ El equipo desarrolla en local con VS Code y Docker. El PHP instalado en las máq
 
 **Negativas o riesgos:** mayor consumo de memoria y disco; en Windows el acceso a archivos desde contenedores es lento si el repo está en una unidad de Windows (ver DA-2); conflictos de puertos con otros servicios locales como XAMPP (80, 443 y 3306).
 
-**Qué cambia para el equipo:** leer `docs/entorno-local.md`; usar el prefijo `docker compose exec app` en los comandos; trabajar en `staging`.
+**Qué cambia para el equipo:** leer `docs/entorno-local.md`; usar el prefijo `docker compose exec app` en los comandos; trabajar en una rama por bloque creada desde `staging` (`docs/convenciones.md` §5).
 
 ## Decisiones abiertas
 
