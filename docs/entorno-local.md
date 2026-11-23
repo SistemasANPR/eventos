@@ -83,7 +83,7 @@ El correo no sale a Internet: `MAIL_*` apunta a **Mailpit**, que guarda cada men
 
 ## 8. Git y ramas
 
-`staging` es la rama de trabajo; `main`, producción (ADR-0008, `docs/convenciones.md` §5). Verificar la rama antes de empezar: `git branch --show-current`.
+`staging` es la rama de integración y `main`, producción (ADR-0008, `docs/convenciones.md` §5). No se trabaja directo en `staging`: cada bloque de cambios va en su rama `tipo/modulo-tema` creada desde `staging`. Verificar la rama antes de empezar: `git branch --show-current`.
 
 ### Cuenta de GitHub de este repositorio
 
