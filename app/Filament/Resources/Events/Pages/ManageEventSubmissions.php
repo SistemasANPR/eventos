@@ -7,6 +7,7 @@ namespace App\Filament\Resources\Events\Pages;
 use App\Actions\SubmissionExports\ExportSubmissions;
 use App\Exceptions\Domain\SubmissionExportTooLarge;
 use App\Filament\Resources\Events\EventResource;
+use App\Filament\Resources\Submissions\Actions\ReviewAssignmentActions;
 use App\Filament\Resources\Submissions\SubmissionResource;
 use App\Filament\Resources\Submissions\Tables\SubmissionsTable;
 use App\Models\Event;
@@ -100,6 +101,7 @@ class ManageEventSubmissions extends ManageRelatedRecords
     protected function getHeaderActions(): array
     {
         return [
+            ReviewAssignmentActions::assignByScope(),
             Action::make('summary')
                 ->label(__('submission_panel.summary.action'))
                 ->icon(Heroicon::OutlinedChartBar)

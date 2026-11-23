@@ -66,4 +66,10 @@ Confirmamos que retiraste tu propuesta «{{ submission_title }}». Ya no partici
 Si necesitas volver a consultarla, pide un nuevo enlace de acceso: [{{ request_link_url }}]({{ request_link_url }})',
         ],
     ],
+    'reviewer' => [
+        'assignment' => [
+            'subject' => 'Tienes propuestas por evaluar en {{ event_name }}',
+            'body' => "Hola {{ reviewer_name }},\n\nTe asignaron {{ assigned_count }} propuesta(s) para evaluar en {{ event_name }}.\n\nEntra a tu tablero para verlas: [{{ dashboard_url }}]({{ dashboard_url }})",
+        ],
+    ],
 ];

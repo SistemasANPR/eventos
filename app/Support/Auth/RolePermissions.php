@@ -31,6 +31,7 @@ final class RolePermissions
         'mail-templates.view',
         'speakers.manage',
         'activities.manage',
+        'review_assignments.manage',
     ];
 
     private const ADMIN_ONLY = [

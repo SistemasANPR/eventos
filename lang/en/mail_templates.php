@@ -66,4 +66,10 @@ We confirm you withdrew your submission "{{ submission_title }}". It no longer t
 If you need to look at it again, request a new access link: [{{ request_link_url }}]({{ request_link_url }})',
         ],
     ],
+    'reviewer' => [
+        'assignment' => [
+            'subject' => 'You have submissions to review in {{ event_name }}',
+            'body' => "Hi {{ reviewer_name }},\n\nYou were assigned {{ assigned_count }} submission(s) to review in {{ event_name }}.\n\nOpen your dashboard to see them: [{{ dashboard_url }}]({{ dashboard_url }})",
+        ],
+    ],
 ];

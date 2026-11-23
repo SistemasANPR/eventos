@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Filament\Resources\Submissions\Pages;
 
 use App\Filament\Resources\Submissions\Actions\DecisionActions;
+use App\Filament\Resources\Submissions\Actions\ReviewAssignmentActions;
 use App\Filament\Resources\Submissions\SubmissionResource;
 use App\Filament\Resources\Submissions\Support\SubmissionActivityLink;
 use App\Filament\Resources\Submissions\Support\SubmissionDetail;
@@ -64,6 +65,7 @@ class ViewSubmission extends ViewRecord
             DecisionActions::waitlist(),
             DecisionActions::reject(),
             DecisionActions::revert(),
+            ReviewAssignmentActions::remove(),
         ];
     }
 
