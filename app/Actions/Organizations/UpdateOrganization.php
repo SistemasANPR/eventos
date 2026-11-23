@@ -14,12 +14,13 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 
 /**
- * Cambia el nombre de una organización desde su propio panel (plan 028). El
- * `slug` no se toca: va en las direcciones públicas. Solo un administrador
- * activo de esa organización; deja auditoría con el nombre anterior y el nuevo.
+ * Cambia el nombre y, si se envía, el identificador (`slug`) de una organización
+ * desde su propio panel (plan 028). Cambiar el `slug` deja de resolver las URL
+ * anteriores (sin redirecciones, por decisión expresa). Solo un administrador
+ * activo de esa organización; deja auditoría con los valores anteriores y nuevos.
  *
  * @throws AuthorizationException si quien edita no administra esa organización
- * @throws ValidationException si el nombre no cumple las reglas
+ * @throws ValidationException si el nombre o el identificador no cumplen las reglas
  */
 final class UpdateOrganization
 {
@@ -28,27 +29,24 @@ final class UpdateOrganization
     {
         Gate::forUser($actor)->authorize('update', $organization);
 
-        $validated = Validator::make($data, UpdateOrganizationRequest::rulesFor())->validate();
+        $validated = Validator::make($data, UpdateOrganizationRequest::rulesFor($organization))->validate();
 
         return DB::transaction(function () use ($actor, $organization, $validated): Organization {
             $current = Organization::query()->whereKey($organization->id)->lockForUpdate()->sole();
-            $previous = $current->name;
+            $old = ['name' => $current->name, 'slug' => $current->slug];
+            $new = ['name' => $validated['name'], 'slug' => $validated['slug'] ?? $current->slug];
 
-            if ($previous === $validated['name']) {
+            if ($old === $new) {
                 return $current;
             }
 
-            $current->forceFill(['name' => $validated['name']])->save();
+            $current->forceFill($new)->save();
 
             activity()
                 ->causedBy($actor)
                 ->performedOn($current)
                 ->event('organization_updated')
-                ->withProperties([
-                    'organization_id' => $current->id,
-                    'old' => ['name' => $previous],
-                    'new' => ['name' => $current->name],
-                ])
+                ->withProperties(['organization_id' => $current->id, 'old' => $old, 'new' => $new])
                 ->log('organization_updated');
 
             return $current;

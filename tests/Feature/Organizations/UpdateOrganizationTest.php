@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Actions\Organizations\UpdateOrganization;
 use App\Enums\OrganizationRole;
 use App\Filament\Pages\Organization\EditOrganizationProfile;
+use App\Models\Event;
 use App\Models\Organization;
 use App\Models\User;
 use App\Support\Tenancy\CurrentOrganization;
@@ -89,17 +90,81 @@ it('CA-028-4: an administrator of A cannot edit organization B', function (): vo
     expect($b->fresh()->name)->toBe($oldName);
 });
 
-it('CA-028-5: the page shows an editable name and a read-only identifier, and saves', function (): void {
+it('CA-028-5: the page shows an editable name and identifier with a warning about old URLs, and saves the name', function (): void {
     $organization = Memberships::organization();
     $admin = Memberships::attach(User::factory()->create(), $organization, OrganizationRole::OrgAdmin);
     actInProfilePanel($admin, $organization);
 
     Livewire::test(EditOrganizationProfile::class)
         ->assertFormSet(['name' => $organization->name, 'slug' => $organization->slug])
-        ->assertFormFieldDisabled('slug')
+        ->assertFormFieldEnabled('slug')
+        ->assertSee(__('organizations.profile.slug_warning'))
         ->fillForm(['name' => 'Desde la página'])
         ->call('save')
         ->assertHasNoFormErrors();
 
-    expect($organization->fresh()->name)->toBe('Desde la página');
+    expect($organization->fresh()->name)->toBe('Desde la página')
+        ->and($organization->fresh()->slug)->toBe($organization->slug);
+});
+
+it('CA-028-6: an administrator changes the slug, it is audited and the panel redirects to the new URL', function (): void {
+    $organization = Memberships::organization();
+    $admin = Memberships::attach(User::factory()->create(), $organization, OrganizationRole::OrgAdmin);
+    $oldSlug = $organization->slug;
+    actInProfilePanel($admin, $organization);
+
+    Livewire::test(EditOrganizationProfile::class)
+        ->fillForm(['slug' => 'nuevo-identificador'])
+        ->call('save')
+        ->assertHasNoFormErrors()
+        ->assertRedirect(url('/admin/nuevo-identificador/profile'));
+
+    expect($organization->fresh()->slug)->toBe('nuevo-identificador');
+
+    $log = Activity::query()->where('event', 'organization_updated')->sole();
+    expect($log->properties['old']['slug'])->toBe($oldSlug)
+        ->and($log->properties['new']['slug'])->toBe('nuevo-identificador');
+});
+
+it('CA-028-7: an invalid, reserved or taken slug is rejected and nothing changes', function (string $slug): void {
+    $organization = Memberships::organization();
+    $admin = Memberships::attach(User::factory()->create(), $organization, OrganizationRole::OrgAdmin);
+    Organization::factory()->create(['slug' => 'ocupado']);
+    Organization::factory()->create(['slug' => 'eliminado'])->delete();
+    $oldSlug = $organization->slug;
+
+    expect(fn () => app(UpdateOrganization::class)->handle($admin, $organization, ['name' => $organization->name, 'slug' => $slug]))
+        ->toThrow(ValidationException::class);
+
+    expect($organization->fresh()->slug)->toBe($oldSlug);
+})->with([
+    'uppercase' => 'Mayusculas',
+    'spaces' => 'con espacios',
+    'too short' => 'ab',
+    'reserved' => 'admin',
+    'taken' => 'ocupado',
+    'taken by a deleted one' => 'eliminado',
+]);
+
+it('CA-028-7: keeping its own slug is not a duplicate', function (): void {
+    $organization = Memberships::organization();
+    $admin = Memberships::attach(User::factory()->create(), $organization, OrganizationRole::OrgAdmin);
+
+    $updated = app(UpdateOrganization::class)->handle($admin, $organization, ['name' => 'Mismo slug', 'slug' => $organization->slug]);
+
+    expect($updated->slug)->toBe($organization->slug)->and($updated->name)->toBe('Mismo slug');
+});
+
+it('CA-028-8: after the slug changes, the old public URL answers 404 and the new one works', function (): void {
+    $this->withoutVite();
+    $organization = Memberships::organization();
+    $admin = Memberships::attach(User::factory()->create(), $organization, OrganizationRole::OrgAdmin);
+    $event = Event::factory()->published()->create(['organization_id' => $organization->id, 'slug' => 'congreso']);
+    $oldSlug = $organization->slug;
+    $this->get("/{$oldSlug}/events/congreso")->assertOk();
+
+    app(UpdateOrganization::class)->handle($admin, $organization, ['name' => $organization->name, 'slug' => 'identificador-nuevo']);
+
+    $this->get("/{$oldSlug}/events/congreso")->assertNotFound();
+    $this->get('/identificador-nuevo/events/congreso')->assertOk();
 });
