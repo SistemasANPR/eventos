@@ -23,8 +23,9 @@ use Illuminate\Database\Eloquent\Relations\Relation;
  * consulta de `EventResource`, que pasa por el scope de organización, así que un
  * evento de otra organización responde 404 (DA-6). La lista es la página del evento
  * `ManageEventSubmissions` (plan 020, F2); este recurso aporta la tabla y, con el
- * detalle de H-009-2, las páginas de cada propuesta. Solo lectura: sin crear, editar
- * ni borrar desde aquí. La Policy decide quién ve.
+ * detalle de H-009-2, las páginas de cada propuesta. Sin crear, editar ni borrar desde
+ * aquí; el estado cambia solo con las acciones de decisión del detalle (plan 012). La Policy
+ * decide quién ve, quién decide y quién revierte.
  */
 class SubmissionResource extends Resource
 {
