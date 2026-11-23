@@ -2,3 +2,6 @@
 # Cada línea es la huella exacta del hallazgo (commit:archivo:regla:línea); no se excluyen carpetas enteras.
 b75fc4014b79b62c7c6557f098d4d2ebb1820e6c:tests/Feature/Submissions/SubmissionFileUploadTest.php:generic-api-key:28
 b75fc4014b79b62c7c6557f098d4d2ebb1820e6c:tests/Feature/Submissions/SubmissionFileUploadTest.php:generic-api-key:392
+
+# Clave ficticia de Resend en la prueba de app:mail-check, no es una credencial.
+4b16994e15b884d6a1841d9c3edb6e1eba019e31:tests/Feature/Notifications/MailCheckCommandTest.php:generic-api-key:25

@@ -75,6 +75,7 @@ it('SUBMISSIONS_LIMIT_MULTIPLIER escala los intentos de los limites y nunca baja
     $load = function (string $value): array {
         putenv("SUBMISSIONS_LIMIT_MULTIPLIER={$value}");
         $_ENV['SUBMISSIONS_LIMIT_MULTIPLIER'] = $value;
+        $_SERVER['SUBMISSIONS_LIMIT_MULTIPLIER'] = $value;
 
         return require config_path('submissions.php');
     };
@@ -85,7 +86,7 @@ it('SUBMISSIONS_LIMIT_MULTIPLIER escala los intentos de los limites y nunca baja
         $invalid = $load('0');
     } finally {
         putenv('SUBMISSIONS_LIMIT_MULTIPLIER');
-        unset($_ENV['SUBMISSIONS_LIMIT_MULTIPLIER']);
+        unset($_ENV['SUBMISSIONS_LIMIT_MULTIPLIER'], $_SERVER['SUBMISSIONS_LIMIT_MULTIPLIER']);
     }
 
     expect($default['limits']['submission_per_ip']['attempts'])->toBe(5)
