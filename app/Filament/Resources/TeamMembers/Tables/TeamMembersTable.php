@@ -32,6 +32,7 @@ final class TeamMembersTable
             ->recordActions([
                 TeamMemberActions::resendInvitation(),
                 TeamMemberActions::changeRole(),
+                TeamMemberActions::resetTwoFactor(),
                 TeamMemberActions::deactivate(),
                 TeamMemberActions::reactivate(),
             ]);

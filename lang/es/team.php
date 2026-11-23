@@ -59,6 +59,11 @@ return [
         'confirm' => 'La persona perderá el acceso a esta organización. Su historial se conserva.',
         'done' => 'Integrante desactivado.',
     ],
+    'reset_two_factor' => [
+        'action' => 'Reiniciar verificación en dos pasos',
+        'confirm' => 'Se borrará la verificación en dos pasos de la persona y deberá configurarla de nuevo al iniciar sesión. Recibirá un aviso por correo y quedará registrado.',
+        'done' => 'Verificación en dos pasos reiniciada.',
+    ],
     'errors' => [
         'last_admin' => 'La organización debe conservar al menos un administrador activo.',
         'not_pending' => 'Esa persona ya inició sesión: puede usar «¿Olvidaste tu contraseña?» si la perdió.',

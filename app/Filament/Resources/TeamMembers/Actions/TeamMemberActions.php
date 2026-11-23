@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Filament\Resources\TeamMembers\Actions;
 
+use App\Actions\Auth\ResetTwoFactor;
 use App\Actions\Organizations\ChangeMemberRole;
 use App\Actions\Organizations\DeactivateMember;
 use App\Actions\Organizations\InviteTeamMember;
@@ -117,6 +118,25 @@ final class TeamMemberActions
                 self::run(
                     fn () => app(DeactivateMember::class)->handle(ActionErrors::actor(), CurrentOrganization::get(), $record),
                     __('team.deactivate.done'),
+                );
+            });
+    }
+
+    /** Reinicio de la 2FA de otro integrante (plan 014, CA-014-4); solo aparece si la persona la tiene activa. */
+    public static function resetTwoFactor(): Action
+    {
+        return Action::make('resetTwoFactor')
+            ->label(__('team.reset_two_factor.action'))
+            ->icon(Heroicon::OutlinedShieldExclamation)
+            ->color('warning')
+            ->authorize('resetTwoFactor')
+            ->visible(fn (User $record): bool => $record->hasConfirmedTwoFactor())
+            ->requiresConfirmation()
+            ->modalDescription(__('team.reset_two_factor.confirm'))
+            ->action(function (User $record): void {
+                self::run(
+                    fn () => app(ResetTwoFactor::class)->handle(ActionErrors::actor(), CurrentOrganization::get(), $record),
+                    __('team.reset_two_factor.done'),
                 );
             });
     }
