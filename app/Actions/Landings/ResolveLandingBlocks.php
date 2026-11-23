@@ -31,7 +31,7 @@ use Illuminate\Support\Arr;
  * - `event_info`: `name`, `description`, `startsAt`, `endsAt`, `timezone`, `timeFormat`, `venueName`, `city`.
  * - `calls`: `title` y `calls: [{title, submissionType, state, opensAt, closesAt, timezone, timeFormat,
  *   registerUrl}]`. Solo las convocatorias PUBLICADAS del evento (nunca borradores), por fecha de apertura.
- *   `registerUrl` es nulo si la convocatoria no está abierta: el cliente muestra el botón bloqueado (DA-17).
+ *   `registerUrl` es la URL de la PÁGINA de la convocatoria; es nulo si no está abierta: el cliente muestra el botón bloqueado (DA-17).
  * - `tracks`: `title` y `tracks: [{name, description}]` (ejes activos).
  * - `faq`: `title` e `items: [{question, answerHtml}]`.
  * - `image_gallery`: `title` e `images: [{url, alt}]`.
@@ -257,9 +257,10 @@ final class ResolveLandingBlocks
 
             $calls[] = [
                 ...Arr::only($data, ['title', 'submissionType', 'state', 'opensAt', 'closesAt', 'timezone', 'timeFormat']),
-                // Solo con la convocatoria abierta hay enlace de registro; si no, el botón queda bloqueado (DA-17).
+                // Solo con la convocatoria abierta hay enlace; si no, el botón queda bloqueado (DA-17). El
+                // botón lleva a la PÁGINA de la convocatoria, no directo al formulario (decisión del organizador).
                 'registerUrl' => $state === CallState::Open
-                    ? route('calls.submit.show', $route + ['call' => $call->slug], false)."?lang={$locale}"
+                    ? route('calls.show', $route + ['call' => $call->slug], false)."?lang={$locale}"
                     : null,
             ];
         }

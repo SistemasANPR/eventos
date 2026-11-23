@@ -82,7 +82,7 @@ export interface PublicLandingCall {
     closesAt: string;
     timezone: string;
     timeFormat: TimeFormat;
-    /** URL del formulario de envío; `null` si la convocatoria no está abierta (botón bloqueado, DA-17). */
+    /** URL de la página de la convocatoria; `null` si no está abierta (botón bloqueado, DA-17). */
     registerUrl: string | null;
 }
 
