@@ -34,6 +34,7 @@ interface ShowProps {
 export default function Show({ call, event, organization, eventUrl, privacyUrl, submitUrl = null }: ShowProps) {
     const { t } = useTranslation();
 
+    const showBackLink = call.showBackLink !== false;
     const formatDate = (instant: string): string => formatEventInstant(instant, call.timezone, call.locale, call.timeFormat);
 
     return (
@@ -42,13 +43,22 @@ export default function Show({ call, event, organization, eventUrl, privacyUrl, 
                 {call.description !== null && <meta name="description" content={call.description} />}
             </Head>
             <article aria-labelledby="call-title" className={CALL_COLUMN}>
-                <PageBanner eyebrow={event.name} title={call.title} titleId="call-title" logoUrl={event.logoUrl} logoName={event.name} isRoomy>
+                <PageBanner
+                    eyebrow={event.name}
+                    title={call.title}
+                    titleId="call-title"
+                    logoUrl={event.logoUrl}
+                    logoName={event.name}
+                    isRoomy
+                >
                     <div className="flex flex-col items-start gap-2">
                         <CallStateBadge state={call.state} t={t} />
                         <p className="text-base text-primary-contrast">{t(`call.state_hint.${call.state}`)}</p>
                     </div>
                     {call.description !== null && (
-                        <p className="max-w-prose border-l-4 border-cta pl-4 text-lg leading-relaxed text-primary-contrast sm:text-xl">{call.description}</p>
+                        <p className="max-w-prose border-l-4 border-cta pl-4 text-lg leading-relaxed text-primary-contrast sm:text-xl">
+                            {call.description}
+                        </p>
                     )}
                     {submitUrl !== null && (
                         <a href={submitUrl} className={cn(BUTTON_PRIMARY, FOCUS_RING_ON_DARK, 'min-h-14 w-full px-10 text-lg sm:w-auto')}>
@@ -58,18 +68,31 @@ export default function Show({ call, event, organization, eventUrl, privacyUrl, 
                 </PageBanner>
 
                 <dl className={FACTS_PANEL}>
-                    <EventFact variant="tile" label={t('call.opens_at')}>{formatDate(call.opensAt)}</EventFact>
-                    <EventFact variant="tile" label={t('call.closes_at')}>{formatDate(call.closesAt)}</EventFact>
+                    <EventFact variant="tile" label={t('call.opens_at')}>
+                        {formatDate(call.opensAt)}
+                    </EventFact>
+                    <EventFact variant="tile" label={t('call.closes_at')}>
+                        {formatDate(call.closesAt)}
+                    </EventFact>
                     {call.resultsAt !== undefined && (
-                        <EventFact variant="tile" label={t('call.results_at')}>{formatDate(call.resultsAt)}</EventFact>
+                        <EventFact variant="tile" label={t('call.results_at')}>
+                            {formatDate(call.resultsAt)}
+                        </EventFact>
                     )}
                 </dl>
 
                 <div className="flex flex-col gap-2 rounded-3xl border border-border bg-surface p-5 shadow-md sm:flex-row sm:flex-wrap sm:items-center sm:gap-6 sm:p-8">
-                    <TextLink href={eventUrl} className="-ml-3">
-                        {t('call.back_to_event')}
-                    </TextLink>
+                    {showBackLink && (
+                        <TextLink href={eventUrl} className="-ml-3">
+                            {t('call.back_to_event')}
+                        </TextLink>
+                    )}
                     {privacyUrl !== null && <TextLink href={privacyUrl}>{t('event.privacy_link')}</TextLink>}
+                    {call.extraLink != null && (
+                        <TextLink href={call.extraLink.url} rel="noopener noreferrer nofollow">
+                            {call.extraLink.label}
+                        </TextLink>
+                    )}
                     <LocaleSwitcher locales={call.locales} currentLocale={call.locale} />
                 </div>
             </article>

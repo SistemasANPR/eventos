@@ -35,6 +35,7 @@ use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Toggle;
 use Filament\Notifications\Notification;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Schemas\Components\Actions;
@@ -269,6 +270,9 @@ class CallsRelationManager extends RelationManager
                 'opens_at' => $this->localTime($record->opens_at, 'Y-m-d H:i'),
                 'closes_at' => $this->localTime($record->closes_at, 'Y-m-d H:i'),
                 'results_at' => $record->results_at === null ? null : $this->localTime($record->results_at, 'Y-m-d H:i'),
+                'show_back_link' => $record->show_back_link,
+                'extra_link_label' => $record->extra_link_label,
+                'extra_link_url' => $record->extra_link_url,
             ])
             ->visible(fn (CallForSubmissions $record): bool => Gate::allows('update', $record))
             ->action(fn (CallForSubmissions $record, array $data) => $this->run(
@@ -417,6 +421,20 @@ class CallsRelationManager extends RelationManager
             DateTimePicker::make('opens_at')->label(__('calls.fields.opens_at'))->seconds(false)->format('Y-m-d H:i')->displayFormat($this->pickerFormat())->required(),
             DateTimePicker::make('closes_at')->label(__('calls.fields.closes_at'))->seconds(false)->format('Y-m-d H:i')->displayFormat($this->pickerFormat())->required(),
             DateTimePicker::make('results_at')->label(__('calls.fields.results_at'))->seconds(false)->format('Y-m-d H:i')->displayFormat($this->pickerFormat()),
+            // Enlaces del pie de la página pública.
+            Toggle::make('show_back_link')
+                ->label(__('calls.fields.show_back_link'))
+                ->helperText(__('calls.fields.show_back_link_help'))
+                ->default(true),
+            TextInput::make('extra_link_label')
+                ->label(__('calls.fields.extra_link_label'))
+                ->helperText(__('calls.fields.extra_link_help'))
+                ->maxLength(100),
+            TextInput::make('extra_link_url')
+                ->label(__('calls.fields.extra_link_url'))
+                ->placeholder('https://')
+                ->url()
+                ->maxLength(2048),
         ];
     }
 

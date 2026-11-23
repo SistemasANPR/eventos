@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Filament\Resources\Submissions\Support;
 
+use App\Actions\Submissions\DownloadSubmissionFile;
 use App\Enums\FieldType;
 use App\Enums\SubmissionFileStatus;
 use App\Models\Organization;
@@ -25,7 +26,7 @@ final class SubmissionDetail
 {
     /**
      * @return array{
-     *     answers: list<array{label: string, retired: bool, type: string, value: string|bool|list<string>|null, files: list<array{name: string, size: string, url: string|null}>, fileCount: int}>,
+     *     answers: list<array{label: string, retired: bool, type: string, value: string|bool|list<string>|null, files: list<array{name: string, size: string, url: string|null, previewUrl: string|null}>, fileCount: int}>,
      *     participants: list<array{name: string, email: string, country: string, jobTitle: ?string, company: ?string, bio: ?string, primary: bool}>,
      *     canDownload: bool
      * }
@@ -65,7 +66,7 @@ final class SubmissionDetail
 
     /**
      * @param  array<string, list<SubmissionFile>>  $filesByField
-     * @return list<array{label: string, retired: bool, type: string, value: string|bool|list<string>|null, files: list<array{name: string, size: string, url: string|null}>, fileCount: int}>
+     * @return list<array{label: string, retired: bool, type: string, value: string|bool|list<string>|null, files: list<array{name: string, size: string, url: string|null, previewUrl: string|null}>, fileCount: int}>
      */
     private static function answers(Submission $submission, array $filesByField, bool $canDownload, Organization $organization): array
     {
@@ -122,7 +123,7 @@ final class SubmissionDetail
 
     /**
      * @param  list<SubmissionFile>  $files
-     * @return list<array{name: string, size: string, url: string|null}>
+     * @return list<array{name: string, size: string, url: string|null, previewUrl: string|null}>
      */
     private static function files(array $files, bool $canDownload, Organization $organization): array
     {
@@ -134,6 +135,10 @@ final class SubmissionDetail
             'name' => $file->original_name,
             'size' => Number::fileSize($file->size_bytes),
             'url' => route('submission-files.download', ['organization' => $organization->slug, 'file' => $file->id]),
+            // Las imágenes (JPG, PNG) también se muestran dentro de la página.
+            'previewUrl' => in_array($file->mime_type, DownloadSubmissionFile::IMAGE_TYPES, true)
+                ? route('submission-files.preview', ['organization' => $organization->slug, 'file' => $file->id])
+                : null,
         ], $files);
     }
 

@@ -58,6 +58,10 @@ class StoreCallForSubmissionsRequest extends FormRequest
             'opens_at' => ['required', 'date_format:Y-m-d H:i'],
             'closes_at' => ['required', 'date_format:Y-m-d H:i', 'after:opens_at'],
             'results_at' => ['nullable', 'date_format:Y-m-d H:i', 'after_or_equal:closes_at'],
+            'show_back_link' => ['nullable', 'boolean'],
+            // El enlace propio lleva texto y dirección juntos; la dirección solo puede ser https (como los enlaces del texto enriquecido).
+            'extra_link_label' => ['nullable', 'string', 'max:100', 'required_with:extra_link_url'],
+            'extra_link_url' => ['nullable', 'string', 'max:2048', 'url:https', 'required_with:extra_link_label'],
         ];
     }
 

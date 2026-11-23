@@ -39,6 +39,9 @@ final class DownloadSubmissionFile
     /** Vigencia de la URL firmada (DA-4). */
     public const URL_MINUTES = 5;
 
+    /** Tipos que se pueden mostrar en la página (vista previa). @var list<string> */
+    public const IMAGE_TYPES = ['image/jpeg', 'image/png'];
+
     public function __construct(private readonly PrivateUploads $uploads) {}
 
     public function handle(User $actor, string $fileId): string
@@ -71,6 +74,41 @@ final class DownloadSubmissionFile
             now()->addMinutes(self::URL_MINUTES),
             $file->id.'.'.SubmissionFileData::extension($file),
         );
+    }
+
+    /**
+     * Imagen para mostrarla dentro del detalle de la propuesta (no es una descarga). Mismas reglas que
+     * `handle` (organización de la ruta, archivo ya ligado, `files.download`), y solo JPG o PNG: cualquier
+     * otro tipo es 404. Queda en la auditoría como `submission_file_previewed`.
+     *
+     * @throws NotFoundHttpException archivo inexistente, de otra organización, `pending` o que no es imagen
+     * @throws AuthorizationException sin `files.download` o sin membresía activa (queda auditado)
+     */
+    public function preview(User $actor, string $fileId): SubmissionFile
+    {
+        $organizationId = CurrentOrganization::id();
+
+        try {
+            $file = SubmissionFile::query()->findOrFail($fileId);
+        } catch (ModelNotFoundException) {
+            throw new NotFoundHttpException;
+        }
+
+        if ($file->status !== SubmissionFileStatus::Attached || ! in_array($file->mime_type, self::IMAGE_TYPES, true)) {
+            throw new NotFoundHttpException;
+        }
+
+        try {
+            $this->authorizeActor($actor, 'download', $file);
+        } catch (AuthorizationException $exception) {
+            $this->audit($actor, $file, 'submission_file_download_denied', $organizationId);
+
+            throw $exception;
+        }
+
+        $this->audit($actor, $file, 'submission_file_previewed', $organizationId);
+
+        return $file;
     }
 
     private function audit(User $actor, SubmissionFile $file, string $event, string $organizationId): void

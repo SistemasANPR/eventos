@@ -82,6 +82,7 @@ final class FormTemplates
                     self::longText('Justificación', 'Rationale', 'Justificativa', 1500, required: false),
                     self::language(),
                     self::keywords(),
+                    self::image(),
                 ],
             ],
             self::PANEL => [
@@ -103,6 +104,7 @@ final class FormTemplates
                         'config' => ['maxLength' => 200],
                     ],
                     self::language(),
+                    self::image(),
                 ],
             ],
             self::POSTER => [
@@ -125,10 +127,27 @@ final class FormTemplates
                         'label' => ['es' => 'Archivo del póster', 'en' => 'Poster file', 'pt' => 'Arquivo do pôster'],
                         'config' => ['accept' => ['pdf', 'png', 'jpg'], 'maxFiles' => 1],
                     ],
+                    self::image(),
                 ],
             ],
             default => throw new InvalidArgumentException("Plantilla de formulario desconocida: {$template}."),
         };
+    }
+
+    /**
+     * Imagen opcional de la propuesta (JPG o PNG), presente en todas las plantillas; se ve en el detalle de la propuesta.
+     *
+     * @return array<string, mixed>
+     */
+    private static function image(): array
+    {
+        return [
+            'type' => 'file',
+            'required' => false,
+            'label' => ['es' => 'Imagen', 'en' => 'Image', 'pt' => 'Imagem'],
+            'help' => ['es' => 'JPG o PNG.', 'en' => 'JPG or PNG.', 'pt' => 'JPG ou PNG.'],
+            'config' => ['accept' => ['jpg', 'png'], 'maxFiles' => 1],
+        ];
     }
 
     /** @return array<string, mixed> */

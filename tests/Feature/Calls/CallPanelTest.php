@@ -277,3 +277,39 @@ it('the calls list stacks the period in two short lines and shows a single statu
         ->assertSeeText('Abre 10 ene. 2027 · 9:00 a. m.')
         ->assertSeeText('Cierra 15 feb. 2027 · 11:00 p. m.');
 });
+
+it('an admin turns off the back link and adds a custom link from the edit form', function (): void {
+    [$organization, $event, $admin] = callPanelScenario();
+    $call = app(CreateCallForSubmissions::class)->handle($admin, $event, panelCallData($event));
+    CurrentOrganization::set($organization);
+
+    expect($call->fresh()->show_back_link)->toBeTrue();
+
+    callManager($event)->callAction(TestAction::make('editCall')->table($call), [
+        ...panelCallData($event),
+        'show_back_link' => false,
+        'extra_link_label' => 'Sitio del congreso',
+        'extra_link_url' => 'https://example.test/congreso',
+    ])->assertHasNoActionErrors();
+
+    $call = $call->fresh();
+
+    expect($call->show_back_link)->toBeFalse()
+        ->and($call->extra_link_label)->toBe('Sitio del congreso')
+        ->and($call->extra_link_url)->toBe('https://example.test/congreso');
+});
+
+it('the custom link needs both text and an https address', function (array $link): void {
+    [$organization, $event, $admin] = callPanelScenario();
+    $call = app(CreateCallForSubmissions::class)->handle($admin, $event, panelCallData($event));
+    CurrentOrganization::set($organization);
+
+    callManager($event)->callAction(TestAction::make('editCall')->table($call), [...panelCallData($event), ...$link]);
+
+    expect($call->fresh()->extra_link_url)->toBeNull();
+})->with([
+    'text without address' => [['extra_link_label' => 'Sitio']],
+    'address without text' => [['extra_link_url' => 'https://example.test']],
+    'insecure address' => [['extra_link_label' => 'Sitio', 'extra_link_url' => 'http://example.test']],
+    'script address' => [['extra_link_label' => 'Sitio', 'extra_link_url' => 'javascript:alert(1)']],
+]);
