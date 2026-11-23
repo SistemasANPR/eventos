@@ -26,8 +26,8 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use Illuminate\Support\Facades\DB;
 use SensitiveParameter;
+use Spatie\Permission\Models\Role;
 use Spatie\Permission\Traits\HasRoles;
 
 #[Fillable(['name', 'email', 'password'])]
@@ -62,11 +62,10 @@ class User extends Authenticatable implements FilamentUser, HasAppAuthentication
             return true;
         }
 
-        return DB::table(config('permission.table_names.model_has_roles').' as assignments')
-            ->join(config('permission.table_names.roles').' as roles', 'roles.id', '=', 'assignments.role_id')
-            ->where('assignments.model_type', $this->getMorphClass())
-            ->where('assignments.model_id', $this->getKey())
-            ->whereIn('roles.name', self::TWO_FACTOR_ROLES)
+        // `Role::users()` no filtra por organización (solo `$user->roles()` lo hace), que es lo que se necesita aquí.
+        return Role::query()
+            ->whereIn('name', self::TWO_FACTOR_ROLES)
+            ->whereHas('users', fn (Builder $assignees) => $assignees->whereKey($this->getKey()))
             ->exists();
     }
 
