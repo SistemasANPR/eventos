@@ -6,6 +6,7 @@
      * @var \App\Models\Submission $submission
      * @var array{answers: list<array<string, mixed>>, participants: list<array<string, mixed>>, canDownload: bool} $detail
      * @var string $submittedAt
+     * @var list<array{when: string, from: string, to: string, actor: string|null, comment: string|null}> $history
      * @var array{title: string, url: string}|null $activityLink
      */
 @endphp
@@ -97,6 +98,22 @@
             </div>
         @empty
             <p style="margin: 0;">{{ __('submission_panel.detail.no_answers') }}</p>
+        @endforelse
+    </x-filament::section>
+
+    <x-filament::section :heading="__('submission_decisions.history.heading')">
+        @forelse ($history as $row)
+            <div style="margin-bottom: 1rem; overflow-wrap: anywhere;">
+                <div>
+                    <strong>{{ $row['from'] }} &rarr; {{ $row['to'] }}</strong>
+                </div>
+                <div>{{ $row['when'] }} · {{ $row['actor'] ?? __('submission_decisions.history.system') }}</div>
+                @if ($row['comment'] !== null)
+                    <p style="margin: 0.25rem 0 0; white-space: pre-line;">{{ $row['comment'] }}</p>
+                @endif
+            </div>
+        @empty
+            <p style="margin: 0;">{{ __('submission_decisions.history.empty') }}</p>
         @endforelse
     </x-filament::section>
 
