@@ -4,7 +4,7 @@
 > `composer check:criteria` lee el **Estado** y los criterios de este archivo: no cambiar el formato de esas líneas.
 
 - **Fecha:** 2026-11-17
-- **Estado:** Aprobado (2026-11-17: especificación y recomendaciones de DA-1 a DA-6; alcance F0 a F2, con F1 y F2 sujetas al momento de DA-6)
+- **Estado:** Terminado (2026-11-23: F0 a F2 construidas y registradas en §9)
 - **Esfuerzo:** M
 - **Deuda relacionada:** ninguna directa. DT-15 (el botón «Retirar campo» sin prueba de panel) toca `FormDefinitionForm`, uno de los archivos de este plan; no se cierra aquí.
 

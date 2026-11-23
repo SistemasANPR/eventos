@@ -3,7 +3,7 @@
 > Plan 027. Especificación (SDD, ADR-0001).
 
 - **Fecha:** 2026-11-20
-- **Estado:** Aprobado (2026-11-20: Gabriel aprueba el plan y sus decisiones por la delegación de AGENTS.md)
+- **Estado:** Terminado (2026-11-23: F1 a F3 construidas y registradas en §9)
 - **Esfuerzo:** M
 - **Deuda relacionada:** ninguna
 
