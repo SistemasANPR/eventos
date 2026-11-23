@@ -70,6 +70,11 @@
                         <ul style="margin: 0; padding-left: 1.25rem;">
                             @foreach ($answer['files'] as $file)
                                 <li>
+                                    @if ($file['previewUrl'] !== null)
+                                        <a href="{{ $file['previewUrl'] }}" target="_blank" rel="noopener" style="display: block; margin-bottom: 0.5rem;">
+                                            <img src="{{ $file['previewUrl'] }}" alt="{{ $file['name'] }}" loading="lazy" style="max-width: 100%; max-height: 24rem; border-radius: 0.5rem; border: 1px solid rgb(0 0 0 / 0.1);">
+                                        </a>
+                                    @endif
                                     <a href="{{ $file['url'] }}" class="fi-link" rel="noopener" style="overflow-wrap: anywhere;">{{ $file['name'] }}</a>
                                     <span>({{ $file['size'] }})</span>
                                 </li>

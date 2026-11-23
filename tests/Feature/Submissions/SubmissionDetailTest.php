@@ -215,3 +215,30 @@ it('CA-009-7: an unknown submission id is a 404', function (): void {
     $this->actingAs($user)->get(EventResource::getUrl('submissions', ['record' => $event], panel: 'admin', tenant: $organization).'/'.Str::uuid())
         ->assertNotFound();
 });
+
+it('the detail shows an image file inline with its preview and keeps the download link', function (): void {
+    [$organization, $event, $user] = formScenario(OrganizationRole::Organizer);
+    $submission = detailedSubmission($organization, $event);
+    $file = SubmissionFile::factory()->attachedTo($submission->id)->create([
+        'organization_id' => $organization->id,
+        'call_id' => $submission->call_for_submissions_id,
+        'form_field_key' => 'f_presentacion',
+        'original_name' => 'foto.png',
+        'mime_type' => 'image/png',
+    ]);
+
+    $this->actingAs($user)->get(detailUrl($organization, $event, $submission))
+        ->assertOk()
+        ->assertSee('<img src="'.route('submission-files.preview', ['organization' => $organization->slug, 'file' => $file->id]).'"', false)
+        ->assertSee(route('submission-files.download', ['organization' => $organization->slug, 'file' => $file->id]), false);
+});
+
+it('the detail shows no preview for a file that is not an image', function (): void {
+    [$organization, $event, $user] = formScenario(OrganizationRole::Organizer);
+    $submission = detailedSubmission($organization, $event);
+    attachedFile($submission);
+
+    $this->actingAs($user)->get(detailUrl($organization, $event, $submission))
+        ->assertOk()
+        ->assertDontSee('/preview', false);
+});

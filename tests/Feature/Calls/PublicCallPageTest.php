@@ -233,3 +233,27 @@ it('CA-004-23: the organization is in context before the model binding and is cl
 
     expect(CurrentOrganization::has())->toBeFalse();
 });
+
+it('the public call shows the back link and no custom link by default', function (): void {
+    $call = publicCall();
+
+    $this->get(callUrl($call))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('call.showBackLink', true)
+            ->where('call.extraLink', null));
+});
+
+it('the public call carries the switch of the back link and the custom link of the organizer', function (): void {
+    $call = publicCall(attributes: [
+        'show_back_link' => false,
+        'extra_link_label' => 'Sitio del congreso',
+        'extra_link_url' => 'https://example.test/congreso',
+    ]);
+
+    $this->get(callUrl($call))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('call.showBackLink', false)
+            ->where('call.extraLink', ['label' => 'Sitio del congreso', 'url' => 'https://example.test/congreso']));
+});

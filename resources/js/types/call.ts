@@ -31,4 +31,8 @@ export interface PublicCall {
     /** Idiomas de la convocatoria. */
     locales: string[];
     tracks: PublicTrack[];
+    /** Si se ofrece el enlace «Volver al evento»; ausente se entiende que sí. */
+    showBackLink?: boolean;
+    /** Enlace propio del pie (texto y dirección https), o `null`. */
+    extraLink?: { label: string; url: string } | null;
 }

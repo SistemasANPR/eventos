@@ -36,6 +36,9 @@ use Spatie\Translatable\HasTranslations;
  * @property int $min_participants mínimo de participantes por propuesta (plan 006; por defecto 1)
  * @property int $max_participants máximo de participantes por propuesta (plan 006; por defecto 5)
  * @property string|null $form_definition_id formulario de propuestas; nulo hasta que se publica uno (plan 005)
+ * @property bool $show_back_link si la página pública ofrece el enlace «Volver al evento» (por defecto sí)
+ * @property string|null $extra_link_label texto del enlace propio del pie de la página pública
+ * @property string|null $extra_link_url dirección https del enlace propio; va siempre junto con su texto
  */
 class CallForSubmissions extends Model
 {
@@ -63,6 +66,7 @@ class CallForSubmissions extends Model
             'results_at' => 'datetime',
             'min_participants' => 'integer',
             'max_participants' => 'integer',
+            'show_back_link' => 'boolean',
         ];
     }
 
