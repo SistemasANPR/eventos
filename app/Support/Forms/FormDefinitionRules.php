@@ -28,6 +28,9 @@ final class FormDefinitionRules
 
     public const MAX_OPTIONS = 50;
 
+    /** Tope del límite de personas por propuesta que se puede fijar en un formulario. */
+    public const MAX_PARTICIPANTS = 20;
+
     /** Extensiones que un campo `file` puede aceptar (CA-005-4). */
     public const FILE_EXTENSIONS = ['pdf', 'pptx', 'jpg', 'png'];
 
@@ -92,6 +95,7 @@ final class FormDefinitionRules
 
         return [
             'name' => ['required', 'string', 'max:150'],
+            'max_participants' => ['nullable', 'integer', 'min:1', 'max:'.self::MAX_PARTICIPANTS],
             'fields' => ['present', 'array', 'max:'.self::MAX_FIELDS],
             'fields.*' => ['array'],
             'fields.*.key' => ['nullable', 'string', 'max:64'],

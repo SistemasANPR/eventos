@@ -10,6 +10,7 @@ return [
     'sections' => [
         'general' => 'Datos del formulario',
         'fields' => 'Campos',
+        'live_preview' => 'Así se ve',
     ],
     'status' => [
         'draft' => 'Borrador',
@@ -36,6 +37,8 @@ return [
     ],
     'fields' => [
         'name' => 'Nombre del formulario',
+        'max_participants' => 'Máximo de personas por propuesta',
+        'max_participants_help' => 'Cuántas personas se pueden agregar al enviar una propuesta (1 a 20). Vacío = 5. Se aplica a la convocatoria que use este formulario.',
         'fields' => 'Campos',
         'fields_help' => 'Cada campo recibe una clave interna que no cambia al editarlo. Con propuestas recibidas, un campo no se elimina ni cambia de tipo.',
         'add_field' => 'Añadir campo',
@@ -80,6 +83,7 @@ return [
         'action' => 'Vista previa',
         'title' => 'Vista previa: :name',
         'language' => 'Idioma de la vista previa',
+        'live_notice' => 'Se actualiza al cambiar un campo. El envío está desactivado.',
     ],
     'renderer' => [
         'required' => 'obligatorio',

@@ -187,14 +187,20 @@ it('CA-005-36: in the panel the table action duplicates a form into an independe
     expect($names)->toBe(['Base', 'Base (copia)']);
 });
 
-it('every system template offers an optional image field (JPG or PNG, one file)', function (string $template): void {
+it('every system template offers a required image field (JPG or PNG, one file)', function (string $template): void {
     [, $event, $admin] = formScenario();
 
     $form = app(CreateFormFromTemplate::class)->handle($admin, $event, $template);
     $image = collect($form->fields)->first(fn (array $field): bool => $field['type'] === 'file' && ($field['label']['es'] ?? null) === 'Imagen');
 
     expect($image)->not->toBeNull()
-        ->and($image['required'])->toBeFalse()
+        ->and($image['required'])->toBeTrue()
         ->and($image['config']['accept'])->toBe(['jpg', 'png'])
         ->and($image['config']['maxFiles'])->toBe(1);
+})->with(FormTemplates::names());
+
+it('every question of every system template is required', function (string $template): void {
+    foreach (FormTemplates::definition($template)['fields'] as $field) {
+        expect($field['required'])->toBeTrue();
+    }
 })->with(FormTemplates::names());

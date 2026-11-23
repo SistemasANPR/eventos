@@ -79,7 +79,7 @@ final class FormTemplates
                     self::title(),
                     self::longText('Descripción', 'Description', 'Descrição', 2000),
                     self::longText('Objetivos', 'Objectives', 'Objetivos', 1500),
-                    self::longText('Justificación', 'Rationale', 'Justificativa', 1500, required: false),
+                    self::longText('Justificación', 'Rationale', 'Justificativa', 1500),
                     self::language(),
                     self::keywords(),
                     self::image(),
@@ -99,7 +99,7 @@ final class FormTemplates
                     ],
                     [
                         'type' => 'short_text',
-                        'required' => false,
+                        'required' => true,
                         'label' => ['es' => 'Moderador o moderadora', 'en' => 'Moderator', 'pt' => 'Moderador ou moderadora'],
                         'config' => ['maxLength' => 200],
                     ],
@@ -123,7 +123,7 @@ final class FormTemplates
                     ],
                     [
                         'type' => 'file',
-                        'required' => false,
+                        'required' => true,
                         'label' => ['es' => 'Archivo del póster', 'en' => 'Poster file', 'pt' => 'Arquivo do pôster'],
                         'config' => ['accept' => ['pdf', 'png', 'jpg'], 'maxFiles' => 1],
                     ],
@@ -135,7 +135,7 @@ final class FormTemplates
     }
 
     /**
-     * Imagen opcional de la propuesta (JPG o PNG), presente en todas las plantillas; se ve en el detalle de la propuesta.
+     * Imagen de la propuesta (JPG o PNG), presente en todas las plantillas; se ve en el detalle de la propuesta.
      *
      * @return array<string, mixed>
      */
@@ -143,7 +143,7 @@ final class FormTemplates
     {
         return [
             'type' => 'file',
-            'required' => false,
+            'required' => true,
             'label' => ['es' => 'Imagen', 'en' => 'Image', 'pt' => 'Imagem'],
             'help' => ['es' => 'JPG o PNG.', 'en' => 'JPG or PNG.', 'pt' => 'JPG ou PNG.'],
             'config' => ['accept' => ['jpg', 'png'], 'maxFiles' => 1],
@@ -162,11 +162,11 @@ final class FormTemplates
     }
 
     /** @return array<string, mixed> */
-    private static function longText(string $es, string $en, string $pt, int $maxLength, bool $required = true): array
+    private static function longText(string $es, string $en, string $pt, int $maxLength): array
     {
         return [
             'type' => 'long_text',
-            'required' => $required,
+            'required' => true,
             'label' => ['es' => $es, 'en' => $en, 'pt' => $pt],
             'config' => ['maxLength' => $maxLength],
         ];
@@ -177,7 +177,7 @@ final class FormTemplates
     {
         return [
             'type' => 'short_text',
-            'required' => false,
+            'required' => true,
             'label' => ['es' => 'Palabras clave', 'en' => 'Keywords', 'pt' => 'Palavras-chave'],
             'help' => ['es' => 'Separadas por comas.', 'en' => 'Separated by commas.', 'pt' => 'Separadas por vírgulas.'],
             'config' => ['maxLength' => 200],

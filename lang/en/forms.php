@@ -9,6 +9,7 @@ return [
 
     'sections' => [
         'general' => 'Form details',
+        'live_preview' => 'How it looks',
         'fields' => 'Fields',
     ],
     'status' => [
@@ -36,6 +37,8 @@ return [
     ],
     'fields' => [
         'name' => 'Form name',
+        'max_participants' => 'Maximum people per submission',
+        'max_participants_help' => 'How many people can be added when sending a submission (1 to 20). Empty = 5. It applies to the call that uses this form.',
         'fields' => 'Fields',
         'fields_help' => 'Each field gets an internal key that does not change when you edit it. Once proposals have been received, a field cannot be deleted or change its type.',
         'add_field' => 'Add field',
@@ -80,6 +83,7 @@ return [
         'action' => 'Preview',
         'title' => 'Preview: :name',
         'language' => 'Preview language',
+        'live_notice' => 'It updates when you change a field. Submitting is disabled.',
     ],
     'renderer' => [
         'required' => 'required',

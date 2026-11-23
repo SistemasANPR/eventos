@@ -12,6 +12,7 @@ use App\Filament\Support\LocalizedFields;
 use App\Models\Event;
 use App\Models\FormDefinition;
 use App\Support\Forms\FormDefinitionRules;
+use App\Support\Forms\FormPreviewProps;
 use Filament\Actions\Action;
 use Filament\Forms\Components\CheckboxList;
 use Filament\Forms\Components\Hidden;
@@ -21,8 +22,10 @@ use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Notifications\Notification;
+use Filament\Schemas\Components\Group;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Utilities\Get;
+use Filament\Schemas\Components\View;
 use Filament\Schemas\Schema;
 use Illuminate\Validation\ValidationException;
 
@@ -37,16 +40,37 @@ final class FormDefinitionForm
     public static function configure(Schema $schema): Schema
     {
         return $schema->components([
-            Section::make(__('forms.sections.general'))
-                ->schema([
-                    // El evento sale de la ruta (recurso anidado, plan 020) y no cambia nunca.
-                    TextInput::make('name')
-                        ->label(__('forms.fields.name'))
-                        ->required()
-                        ->maxLength(150),
-                    // Versión que se está editando: el servidor la compara para no pisar el cambio de otra persona.
-                    Hidden::make('version'),
-                ]),
+            // Columna izquierda: datos del formulario y, debajo, cómo se ve lo que se está editando.
+            Group::make([
+                Section::make(__('forms.sections.general'))
+                    ->schema([
+                        // El evento sale de la ruta (recurso anidado, plan 020) y no cambia nunca.
+                        TextInput::make('name')
+                            ->label(__('forms.fields.name'))
+                            ->required()
+                            ->maxLength(150),
+                        TextInput::make('max_participants')
+                            ->label(__('forms.fields.max_participants'))
+                            ->helperText(__('forms.fields.max_participants_help'))
+                            ->numeric()
+                            ->integer()
+                            ->minValue(1)
+                            ->maxValue(FormDefinitionRules::MAX_PARTICIPANTS)
+                            ->placeholder('5'),
+                        // Versión que se está editando: el servidor la compara para no pisar el cambio de otra persona.
+                        Hidden::make('version'),
+                    ]),
+                Section::make(__('forms.sections.live_preview'))
+                    ->schema([
+                        View::make('filament.forms.live-preview')
+                            ->viewData(fn (Get $get, $livewire): array => [
+                                'props' => app(FormPreviewProps::class)->fromState(
+                                    (array) ($get('fields') ?? []),
+                                    LocalizedFields::eventOf($livewire),
+                                ),
+                            ]),
+                    ]),
+            ]),
             Section::make(__('forms.sections.fields'))
                 ->description(__('forms.fields.fields_help'))
                 ->schema([
@@ -55,6 +79,8 @@ final class FormDefinitionForm
                         ->hiddenLabel()
                         ->addActionLabel(__('forms.fields.add_field'))
                         ->maxItems(FormDefinitionRules::MAX_FIELDS)
+                        // Al salir de un campo se refresca «Así se ve» (columna izquierda).
+                        ->live(onBlur: true)
                         ->collapsible()
                         // Orden con flechas además de arrastrar: se puede reordenar con teclado (CA-005-11).
                         ->reorderableWithButtons()

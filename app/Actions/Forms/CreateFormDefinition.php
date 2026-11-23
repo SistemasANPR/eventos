@@ -51,11 +51,14 @@ final class CreateFormDefinition
 
             $fields = $this->normalizer->normalize($validated['fields']);
 
-            return DB::transaction(function () use ($actor, $event, $name, $fields): FormDefinition {
+            $maxParticipants = $validated['max_participants'] ?? null;
+
+            return DB::transaction(function () use ($actor, $event, $name, $fields, $maxParticipants): FormDefinition {
                 $form = new FormDefinition;
                 $form->event_id = $event->id;
                 $form->forceFill([
                     'name' => $name,
+                    'max_participants' => $maxParticipants,
                     'status' => FormDefinitionStatus::Draft,
                     'fields' => $fields,
                     'version' => 1,
