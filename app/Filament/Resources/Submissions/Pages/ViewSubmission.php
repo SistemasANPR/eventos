@@ -4,14 +4,17 @@ declare(strict_types=1);
 
 namespace App\Filament\Resources\Submissions\Pages;
 
+use App\Filament\Resources\Submissions\Actions\DecisionActions;
 use App\Filament\Resources\Submissions\SubmissionResource;
 use App\Filament\Resources\Submissions\Support\SubmissionActivityLink;
 use App\Filament\Resources\Submissions\Support\SubmissionDetail;
+use App\Filament\Resources\Submissions\Support\SubmissionStatusHistory;
 use App\Filament\Support\ActionErrors;
 use App\Models\Event;
 use App\Models\Submission;
 use App\Support\Events\EventTime;
 use App\Support\Tenancy\CurrentOrganization;
+use Filament\Actions\Action;
 use Filament\Resources\Pages\ViewRecord;
 use Filament\Schemas\Components\View;
 use Filament\Schemas\Schema;
@@ -48,6 +51,22 @@ class ViewSubmission extends ViewRecord
      */
     protected function fillForm(): void {}
 
+    /**
+     * Decidir y revertir (plan 012). Cada botón solo aparece si el estado lo permite y la Policy lo autoriza;
+     * la Action vuelve a autorizar en el servidor.
+     *
+     * @return array<int, Action>
+     */
+    protected function getHeaderActions(): array
+    {
+        return [
+            DecisionActions::accept(),
+            DecisionActions::waitlist(),
+            DecisionActions::reject(),
+            DecisionActions::revert(),
+        ];
+    }
+
     public function getTitle(): string
     {
         return $this->submission()->title;
@@ -72,6 +91,7 @@ class ViewSubmission extends ViewRecord
             'submission' => $submission,
             'detail' => SubmissionDetail::for($submission, $user, CurrentOrganization::get()),
             'activityLink' => SubmissionActivityLink::for($submission),
+            'history' => SubmissionStatusHistory::for($submission, $event),
             'submittedAt' => EventTime::for($event)->dateTime($submission->submitted_at, __('submission_panel.long_date_format'), ' ').' ('.$event->timezone.')',
         ];
     }
