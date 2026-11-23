@@ -4,7 +4,7 @@
 > `composer check:criteria` lee el **Estado** y los criterios de este archivo: no cambiar el formato de esas líneas.
 
 - **Fecha:** 2026-11-09
-- **Estado:** En curso, con la ampliacion de H-011-2 y H-011-3 en borrador pendiente de aprobacion (2026-11-23: F0 a F2 construidas, rubrica y asignaciones; F3 a F6 pendientes: invitacion y asignacion de evaluadores, panel del evaluador, conflicto de interes y resultados)
+- **Estado:** En curso (aprobado: Antonio, 2026-11-23: ampliacion de H-011-2 y H-011-3, DA-6 a DA-8 como se recomiendan, avance por evaluador con `reviews.view_progress` y propuesta de datos de `review_assignment_scopes` y del estado `cancelled`; F0 a F2 construidas, rubrica y asignaciones; F3a a F6 pendientes)
 - **Esfuerzo:** L
 - **Deuda relacionada:** ninguna (depende de RC-2: la 2FA obligatoria, H-014-1, debe estar activa antes de dar acceso a evaluadores externos; ver plan 014)
 
