@@ -142,13 +142,19 @@ describe('Calls/Show page', () => {
         expect(screen.getByRole('link', { name: 'Aviso de privacidad' })).toBeInTheDocument();
     });
 
-    it('shows the custom link of the organizer with safe rel', () => {
-        renderPage({ extraLink: { label: 'Sitio del congreso', url: 'https://example.test/congreso' } });
+    it('shows every custom link of the organizer, in order and with safe rel', () => {
+        renderPage({
+            extraLinks: [
+                { label: 'Sitio del congreso', url: 'https://example.test/congreso' },
+                { label: 'Programa', url: 'https://example.test/programa' },
+            ],
+        });
 
         const link = screen.getByRole('link', { name: 'Sitio del congreso' });
 
         expect(link).toHaveAttribute('href', 'https://example.test/congreso');
         expect(link).toHaveAttribute('rel', 'noopener noreferrer nofollow');
+        expect(screen.getByRole('link', { name: 'Programa' })).toHaveAttribute('href', 'https://example.test/programa');
     });
 
     it('offers the other languages of the call', () => {

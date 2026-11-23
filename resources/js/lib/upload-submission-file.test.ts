@@ -8,7 +8,9 @@ afterEach(() => {
 });
 
 function mockFetch(status: number, body: unknown) {
-    return vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json' } }));
+    return vi
+        .spyOn(globalThis, 'fetch')
+        .mockResolvedValue(new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json' } }));
 }
 
 describe('uploadSubmissionFile', () => {

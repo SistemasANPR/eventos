@@ -1,14 +1,18 @@
 import '../css/form-preview.css';
 
+import { useMemo, useRef, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 
 import { FormRenderer } from '@/components/organisms/FormRenderer';
+import { SubmissionBlock } from '@/components/organisms/SubmissionBlock';
 import { createTranslate } from '@/lib/translate';
 import type { FormPreviewProps } from '@/types/form';
+import type { Translations } from '@/types/inertia';
 
 declare global {
     interface Window {
         mountFormPreview?: (element: HTMLElement) => void;
+        mountParticipantsPreview?: (element: HTMLElement) => void;
     }
 }
 
@@ -68,5 +72,60 @@ function isPreviewProps(value: unknown): value is FormPreviewProps {
     );
 }
 
+/** Datos de la vista previa de Participantes (`App\Support\Forms\FormPreviewProps::participants`). */
+interface ParticipantsPreviewProps {
+    locale: string;
+    defaultLocale: string;
+    maxParticipants: number;
+    translations: Translations;
+}
+
+/** Bloque de Participantes tal como lo ve quien envía una propuesta, con el límite de personas del formulario. */
+function ParticipantsPreview({ props }: { props: ParticipantsPreviewProps }) {
+    const t = useMemo(() => createTranslate(props.translations), [props.translations]);
+    const [ids, setIds] = useState<number[]>([0]);
+    const nextId = useRef(1);
+
+    return (
+        <div className="rounded-lg border border-border bg-surface p-4 text-text sm:p-6">
+            <SubmissionBlock
+                showDetails={false}
+                locale={props.locale}
+                defaultLocale={props.defaultLocale}
+                t={t}
+                tracks={[]}
+                minParticipants={1}
+                maxParticipants={props.maxParticipants}
+                participantIds={ids}
+                onAddParticipant={() => setIds((current) => [...current, nextId.current++])}
+                onRemoveParticipant={(id) => setIds((current) => current.filter((item) => item !== id))}
+                errors={{}}
+                idPrefix="preview"
+            />
+        </div>
+    );
+}
+
+export function mountParticipantsPreview(element: HTMLElement): void {
+    if (element.dataset.mounted === 'true') {
+        return;
+    }
+
+    try {
+        const parsed: unknown = JSON.parse(element.dataset.props ?? '');
+
+        if (typeof parsed !== 'object' || parsed === null) {
+            return;
+        }
+
+        element.dataset.mounted = 'true';
+        createRoot(element).render(<ParticipantsPreview props={parsed as ParticipantsPreviewProps} />);
+    } catch {
+        // Sin datos válidos no se monta nada.
+    }
+}
+
 window.mountFormPreview = mountFormPreview;
+window.mountParticipantsPreview = mountParticipantsPreview;
 document.querySelectorAll<HTMLElement>('[data-form-preview]').forEach(mountFormPreview);
+document.querySelectorAll<HTMLElement>('[data-participants-preview]').forEach(mountParticipantsPreview);

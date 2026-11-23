@@ -67,7 +67,7 @@ final class SubmitSubmission
     ];
 
     /** `full_name` no es del contrato: lo calcula el servidor a partir de nombre y apellido. */
-    private const PARTICIPANT_KEYS = ['first_name', 'last_name', 'email', 'country', 'job_title', 'company', 'bio', 'is_primary'];
+    private const PARTICIPANT_KEYS = ['first_name', 'last_name', 'email', 'country', 'phone', 'job_title', 'company', 'bio', 'is_primary'];
 
     public function __construct(
         private readonly LoadPublishedForm $publishedForm,
@@ -304,6 +304,7 @@ final class SubmitSubmission
             'full_name' => self::fullName($participant),
             'email' => $participant['email'],
             'country' => $participant['country'],
+            'phone' => $participant['phone'] ?? null,
             'job_title' => $participant['job_title'] ?? null,
             'company' => $participant['company'] ?? null,
             'bio' => $participant['bio'] ?? null,

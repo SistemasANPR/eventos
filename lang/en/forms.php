@@ -83,7 +83,7 @@ return [
         'action' => 'Preview',
         'title' => 'Preview: :name',
         'language' => 'Preview language',
-        'live_notice' => 'It updates when you change a field. Submitting is disabled.',
+        'live_notice' => 'How the Participants block looks to whoever sends a submission. It updates when you change the maximum number of people.',
     ],
     'renderer' => [
         'required' => 'required',

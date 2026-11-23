@@ -24,7 +24,8 @@ const translations = {
         participant_country: 'País',
         participant_job_title: 'Cargo',
         participant_company: 'Empresa',
-        participant_bio: 'Biografía',
+        participant_bio: 'Semblanza profesional',
+        participant_phone: 'Número de teléfono',
     },
     author: {
         show: { reference: 'Referencia :reference' },
@@ -56,12 +57,58 @@ const edit: AuthorEditData = {
     version: 4,
     formVersion: 7,
     fields: [
-        { key: 'summary', type: 'long_text', required: true, position: 1, identifiesAuthor: false, label: { es: 'Resumen' }, help: [], config: [], retiredAt: null },
-        { key: 'ok', type: 'checkbox', required: false, position: 2, identifiesAuthor: false, label: { es: 'Acepto' }, help: [], config: [], retiredAt: null },
-        { key: 'level', type: 'single_choice', required: false, position: 3, identifiesAuthor: false, label: { es: 'Nivel' }, help: [], config: { options: [{ value: 'a', label: { es: 'Básico' } }, { value: 'b', label: { es: 'Avanzado' } }] }, retiredAt: null },
+        {
+            key: 'summary',
+            type: 'long_text',
+            required: true,
+            position: 1,
+            identifiesAuthor: false,
+            label: { es: 'Resumen' },
+            help: [],
+            config: [],
+            retiredAt: null,
+        },
+        {
+            key: 'ok',
+            type: 'checkbox',
+            required: false,
+            position: 2,
+            identifiesAuthor: false,
+            label: { es: 'Acepto' },
+            help: [],
+            config: [],
+            retiredAt: null,
+        },
+        {
+            key: 'level',
+            type: 'single_choice',
+            required: false,
+            position: 3,
+            identifiesAuthor: false,
+            label: { es: 'Nivel' },
+            help: [],
+            config: {
+                options: [
+                    { value: 'a', label: { es: 'Básico' } },
+                    { value: 'b', label: { es: 'Avanzado' } },
+                ],
+            },
+            retiredAt: null,
+        },
     ],
     defaultLocale: 'es',
-    translations: { forms: { renderer: { form_label: 'Formulario', submit: 'Enviar', required: 'obligatorio', select_country: 'Elige un país', empty: 'Vacío', preview_notice: '' } } },
+    translations: {
+        forms: {
+            renderer: {
+                form_label: 'Formulario',
+                submit: 'Enviar',
+                required: 'obligatorio',
+                select_country: 'Elige un país',
+                empty: 'Vacío',
+                preview_notice: '',
+            },
+        },
+    },
     tracks: [
         { id: 't1', name: 'Gestión' },
         { id: 't2', name: 'Ecología' },
@@ -123,7 +170,13 @@ describe('Author/Edit page', () => {
         expect(patch).toHaveBeenCalledTimes(1);
         const [url, payload] = patch.mock.calls[0] as [string, Record<string, unknown>];
         expect(url).toBe('/parques/events/congreso/my-submission/edit');
-        expect(payload).toMatchObject({ version: 4, form_version: 7, title: 'Parques muy vivos', track_id: 't2', answers: { summary: 'Un resumen', ok: true, level: 'b' } });
+        expect(payload).toMatchObject({
+            version: 4,
+            form_version: 7,
+            title: 'Parques muy vivos',
+            track_id: 't2',
+            answers: { summary: 'Un resumen', ok: true, level: 'b' },
+        });
     });
 
     it('shows a domain error with a reload button and keeps the form', () => {
@@ -133,7 +186,10 @@ describe('Author/Edit page', () => {
         expect(screen.getByRole('alert')).toHaveTextContent('La propuesta cambió mientras la editabas.');
         fireEvent.click(screen.getByRole('button', { name: 'Recargar la propuesta' }));
 
-        expect(visit).toHaveBeenCalledWith('/parques/events/congreso/my-submission/edit', expect.objectContaining({ method: 'get', preserveState: false }));
+        expect(visit).toHaveBeenCalledWith(
+            '/parques/events/congreso/my-submission/edit',
+            expect.objectContaining({ method: 'get', preserveState: false }),
+        );
         expect(screen.getByLabelText(/Título de la propuesta/)).toBeInTheDocument();
     });
 

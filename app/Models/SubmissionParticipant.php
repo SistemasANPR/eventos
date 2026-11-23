@@ -26,6 +26,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property string $full_name «nombre apellido» calculado por el servidor
  * @property string $email
  * @property string $country
+ * @property string|null $phone
  * @property string|null $job_title
  * @property string|null $company
  * @property string|null $bio

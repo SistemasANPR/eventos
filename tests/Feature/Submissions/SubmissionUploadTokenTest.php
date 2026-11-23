@@ -145,7 +145,7 @@ it('CA-006-27: an upload bound to another token cannot be attached when submitti
         'title' => 'Mi propuesta',
         'track_id' => $ctx['track']->id,
         'answers' => ['deck' => [$fileId]],
-        'participants' => [['first_name' => 'Ana', 'last_name' => 'Perez', 'email' => 'ana@example.test', 'country' => 'MX', 'is_primary' => true]],
+        'participants' => [['first_name' => 'Ana', 'last_name' => 'Perez', 'email' => 'ana@example.test', 'country' => 'MX', 'phone' => '+52 55 1234 5678', 'job_title' => 'Dra.', 'company' => 'ACME', 'bio' => 'Semblanza profesional', 'is_primary' => true]],
         'consent' => true,
         'privacy_notice_version_id' => $second['privacyNotice']['id'],
         'turnstile_token' => 'token-unico',

@@ -6,7 +6,14 @@ import type { SubmissionTrack } from '@/types/submission';
 /** Límites del bloque fijo: los mismos de `StoreSubmissionRequest`. */
 export const TITLE_MAX = 200;
 
-function fixedField(key: string, type: FormField['type'], label: string, locale: string, required: boolean, config: FormField['config'] = []): FormField {
+function fixedField(
+    key: string,
+    type: FormField['type'],
+    label: string,
+    locale: string,
+    required: boolean,
+    config: FormField['config'] = [],
+): FormField {
     return {
         key: `${FIXED_PREFIX}${key}`,
         type,
@@ -40,8 +47,9 @@ export function participantFields(index: number, locale: string, t: Translate): 
         fixedField(`${prefix}last_name`, 'short_text', t('submit.participant_last_name'), locale, true, { maxLength: 100 }),
         fixedField(`${prefix}email`, 'short_text', t('submit.participant_email'), locale, true, { maxLength: 254 }),
         fixedField(`${prefix}country`, 'country', t('submit.participant_country'), locale, true),
-        fixedField(`${prefix}job_title`, 'short_text', t('submit.participant_job_title'), locale, false, { maxLength: 120 }),
-        fixedField(`${prefix}company`, 'short_text', t('submit.participant_company'), locale, false, { maxLength: 160 }),
-        fixedField(`${prefix}bio`, 'long_text', t('submit.participant_bio'), locale, false, { maxLength: 2000 }),
+        fixedField(`${prefix}phone`, 'short_text', t('submit.participant_phone'), locale, true, { maxLength: 30 }),
+        fixedField(`${prefix}job_title`, 'short_text', t('submit.participant_job_title'), locale, true, { maxLength: 120 }),
+        fixedField(`${prefix}company`, 'short_text', t('submit.participant_company'), locale, true, { maxLength: 160 }),
+        fixedField(`${prefix}bio`, 'long_text', t('submit.participant_bio'), locale, true, { maxLength: 2000 }),
     ];
 }

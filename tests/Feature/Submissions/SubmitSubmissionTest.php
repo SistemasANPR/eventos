@@ -120,7 +120,7 @@ function subSubmit(array $ctx, array $input): Submission
  */
 function subParticipant(string $email, array $overrides = []): array
 {
-    return array_replace(['first_name' => 'Persona', 'last_name' => $email, 'email' => $email, 'country' => 'CO', 'is_primary' => false], $overrides);
+    return array_replace(['first_name' => 'Persona', 'last_name' => $email, 'email' => $email, 'country' => 'CO', 'phone' => '+52 55 1234 5678', 'job_title' => 'Dra.', 'company' => 'ACME', 'bio' => 'Semblanza profesional', 'is_primary' => false], $overrides);
 }
 
 /**
@@ -219,7 +219,7 @@ it('CA-006-5: enforces participant count, required data, one primary and distinc
 })->with([
     'none' => [[], 'participants'],
     'four' => [[subParticipant('a@x.com', ['is_primary' => true]), subParticipant('b@x.com'), subParticipant('c@x.com'), subParticipant('d@x.com')], 'participants'],
-    'no name' => [[['first_name' => '', 'last_name' => 'Pérez', 'email' => 'a@x.com', 'country' => 'MX', 'is_primary' => true]], 'participants.0.first_name'],
+    'no name' => [[['first_name' => '', 'last_name' => 'Pérez', 'email' => 'a@x.com', 'country' => 'MX', 'phone' => '+52 55 1234 5678', 'job_title' => 'Dra.', 'company' => 'ACME', 'bio' => 'Semblanza profesional', 'is_primary' => true]], 'participants.0.first_name'],
     'bad email' => [[subParticipant('no-es-correo', ['is_primary' => true])], 'participants.0.email'],
     'bad country' => [[subParticipant('a@x.com', ['is_primary' => true, 'country' => 'ZZ'])], 'participants.0.country'],
     'no primary' => [[subParticipant('a@x.com')], 'participants'],
@@ -337,7 +337,7 @@ it('CA-006-10: reuses an existing contact without modifying it, and creates a ne
 
     $submission = subSubmit($ctx, subInput($ctx, [
         'participants' => [
-            ['first_name' => 'Ana', 'last_name' => 'Distinta', 'email' => 'ana@example.com', 'country' => 'MX', 'is_primary' => true],
+            ['first_name' => 'Ana', 'last_name' => 'Distinta', 'email' => 'ana@example.com', 'country' => 'MX', 'phone' => '+52 55 1234 5678', 'job_title' => 'Dra.', 'company' => 'ACME', 'bio' => 'Semblanza profesional', 'is_primary' => true],
             subParticipant('nueva@example.com'),
         ],
         'third_parties_authorized' => true,
@@ -554,7 +554,7 @@ it('CA-021-13: stores first and last name separately and computes full_name on t
     $ctx = subScenario();
 
     $submission = subSubmit($ctx, subInput($ctx, ['participants' => [
-        ['first_name' => ' Ana  ', 'last_name' => 'Pérez Gómez', 'full_name' => 'Falso Cliente', 'email' => 'ana@example.com', 'country' => 'MX', 'is_primary' => true],
+        ['first_name' => ' Ana  ', 'last_name' => 'Pérez Gómez', 'full_name' => 'Falso Cliente', 'email' => 'ana@example.com', 'country' => 'MX', 'phone' => '+52 55 1234 5678', 'job_title' => 'Dra.', 'company' => 'ACME', 'bio' => 'Semblanza profesional', 'is_primary' => true],
     ]]));
 
     $participant = $submission->participants()->sole();
@@ -586,7 +586,7 @@ it('CA-021-13: accepts names of 100 characters and keeps full_name within its co
     $ctx = subScenario();
 
     $submission = subSubmit($ctx, subInput($ctx, ['participants' => [
-        ['first_name' => str_repeat('ñ', 100), 'last_name' => str_repeat('á', 100), 'email' => 'a@x.com', 'country' => 'MX', 'is_primary' => true],
+        ['first_name' => str_repeat('ñ', 100), 'last_name' => str_repeat('á', 100), 'email' => 'a@x.com', 'country' => 'MX', 'phone' => '+52 55 1234 5678', 'job_title' => 'Dra.', 'company' => 'ACME', 'bio' => 'Semblanza profesional', 'is_primary' => true],
     ]]));
 
     expect(mb_strlen($submission->participants()->sole()->full_name))->toBe(201);

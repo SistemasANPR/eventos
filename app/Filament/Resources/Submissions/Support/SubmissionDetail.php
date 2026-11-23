@@ -27,7 +27,7 @@ final class SubmissionDetail
     /**
      * @return array{
      *     answers: list<array{label: string, retired: bool, type: string, value: string|bool|list<string>|null, files: list<array{name: string, size: string, url: string|null, previewUrl: string|null}>, fileCount: int}>,
-     *     participants: list<array{name: string, email: string, country: string, jobTitle: ?string, company: ?string, bio: ?string, primary: bool}>,
+     *     participants: list<array{name: string, email: string, country: string, phone: ?string, jobTitle: ?string, company: ?string, bio: ?string, primary: bool}>,
      *     canDownload: bool
      * }
      */
@@ -42,6 +42,7 @@ final class SubmissionDetail
                 'name' => $participant->full_name,
                 'email' => $participant->email,
                 'country' => $participant->country,
+                'phone' => $participant->phone,
                 'jobTitle' => $participant->job_title,
                 'company' => $participant->company,
                 'bio' => $participant->bio,

@@ -53,7 +53,7 @@ final class UpdateSubmissionByAuthor
 {
     private const KEYS = ['version', 'form_version', 'title', 'track_id', 'answers', 'participants'];
 
-    private const PARTICIPANT_KEYS = ['first_name', 'last_name', 'country', 'job_title', 'company', 'bio'];
+    private const PARTICIPANT_KEYS = ['first_name', 'last_name', 'country', 'phone', 'job_title', 'company', 'bio'];
 
     public function __construct(
         private readonly LoadPublishedForm $publishedForm,
@@ -223,6 +223,7 @@ final class UpdateSubmissionByAuthor
                 'last_name' => $values['last_name'],
                 'full_name' => $values['first_name'].' '.$values['last_name'],
                 'country' => $values['country'],
+                'phone' => $values['phone'] ?? null,
                 'job_title' => $values['job_title'] ?? null,
                 'company' => $values['company'] ?? null,
                 'bio' => $values['bio'] ?? null,

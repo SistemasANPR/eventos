@@ -1,7 +1,9 @@
 import { participantFields, titleField, trackField } from '@/lib/submission-fields';
 import { createTranslate } from '@/lib/translate';
 
-const t = createTranslate({ submit: { field_title: 'Título', field_track: 'Eje', participant_first_name: 'Nombre', participant_last_name: 'Apellido' } });
+const t = createTranslate({
+    submit: { field_title: 'Título', field_track: 'Eje', participant_first_name: 'Nombre', participant_last_name: 'Apellido' },
+});
 
 describe('fixed block fields', () => {
     it('prefixes every key so it never collides with a form field key', () => {
@@ -27,6 +29,7 @@ describe('fixed block fields', () => {
             's.participants.2.last_name',
             's.participants.2.email',
             's.participants.2.country',
+            's.participants.2.phone',
             's.participants.2.job_title',
             's.participants.2.company',
             's.participants.2.bio',
@@ -36,6 +39,10 @@ describe('fixed block fields', () => {
             's.participants.2.last_name',
             's.participants.2.email',
             's.participants.2.country',
+            's.participants.2.phone',
+            's.participants.2.job_title',
+            's.participants.2.company',
+            's.participants.2.bio',
         ]);
     });
 });

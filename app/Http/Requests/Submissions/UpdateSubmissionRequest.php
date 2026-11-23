@@ -36,9 +36,10 @@ final class UpdateSubmissionRequest extends FormRequest
             'participants.*.first_name' => ['required', 'string', 'max:100'],
             'participants.*.last_name' => ['required', 'string', 'max:100'],
             'participants.*.country' => ['required', 'string', Rule::in(Countries::CODES)],
-            'participants.*.job_title' => ['nullable', 'string', 'max:120'],
-            'participants.*.company' => ['nullable', 'string', 'max:160'],
-            'participants.*.bio' => ['nullable', 'string', 'max:2000'],
+            'participants.*.job_title' => ['required', 'string', 'max:120'],
+            'participants.*.company' => ['required', 'string', 'max:160'],
+            'participants.*.phone' => ['required', 'string', 'regex:'.StoreSubmissionRequest::PHONE_PATTERN],
+            'participants.*.bio' => ['required', 'string', 'max:2000'],
         ];
     }
 }

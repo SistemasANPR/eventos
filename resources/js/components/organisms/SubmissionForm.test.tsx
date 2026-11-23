@@ -15,7 +15,14 @@ vi.mock('@/components/infrastructure/TurnstileWidget', () => ({
 }));
 
 const t = createTranslate({
-    forms: { renderer: { required: 'obligatorio', select_country: 'Selecciona un país', form_label: 'Formulario de propuesta', submit: 'Enviar propuesta' } },
+    forms: {
+        renderer: {
+            required: 'obligatorio',
+            select_country: 'Selecciona un país',
+            form_label: 'Formulario de propuesta',
+            submit: 'Enviar propuesta',
+        },
+    },
     submit: {
         send_action: 'Enviar propuesta',
         sending: 'Enviando…',
@@ -27,7 +34,8 @@ const t = createTranslate({
         participant_country: 'País',
         participant_job_title: 'Cargo',
         participant_company: 'Empresa',
-        participant_bio: 'Biografía',
+        participant_bio: 'Semblanza profesional',
+        participant_phone: 'Número de teléfono',
         participant_heading: 'Participante :number',
         participant_add: 'Agregar participante',
         participant_remove: 'Quitar participante :number',
@@ -205,7 +213,9 @@ describe('SubmissionForm', () => {
         expect(document.getElementById(email.getAttribute('aria-describedby') ?? '')).toHaveTextContent('Correo no válido.');
         const summaryField = screen.getByLabelText(/Resumen/);
         expect(summaryField).toHaveAttribute('aria-invalid', 'true');
-        expect(document.getElementById(summaryField.getAttribute('aria-describedby') ?? '')).toHaveTextContent('El resumen es obligatorio.');
+        expect(document.getElementById(summaryField.getAttribute('aria-describedby') ?? '')).toHaveTextContent(
+            'El resumen es obligatorio.',
+        );
         expect(screen.getByLabelText(/He leído y acepto/)).toHaveAttribute('aria-invalid', 'true');
 
         // El foco va al primer error en el orden del formulario.

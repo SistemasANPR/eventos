@@ -31,6 +31,9 @@ final class StoreSubmissionRequest extends FormRequest
 {
     public const TITLE_MAX = 200;
 
+    /** Teléfono: dígitos, `+`, paréntesis, guiones, puntos y espacios; de 7 a 30 caracteres. */
+    public const PHONE_PATTERN = '/^[0-9+().\s-]{7,30}$/';
+
     /**
      * Formulario público: no hay usuario que autorizar; la protección es el límite de peticiones y el
      * anti-robots. Sí se cierra el paso a lo que el público no ve: un evento sin publicar o una
@@ -143,9 +146,10 @@ final class StoreSubmissionRequest extends FormRequest
             'participants.*.last_name' => ['required', 'string', 'max:100', 'regex:/^[^\p{Cc}]+$/u'],
             'participants.*.email' => ['required', 'string', 'email:rfc', 'max:254', 'distinct:ignore_case'],
             'participants.*.country' => ['required', 'string', Rule::in(Countries::CODES)],
-            'participants.*.job_title' => ['nullable', 'string', 'max:120'],
-            'participants.*.company' => ['nullable', 'string', 'max:160'],
-            'participants.*.bio' => ['nullable', 'string', 'max:2000'],
+            'participants.*.job_title' => ['required', 'string', 'max:120'],
+            'participants.*.company' => ['required', 'string', 'max:160'],
+            'participants.*.phone' => ['required', 'string', 'regex:'.self::PHONE_PATTERN],
+            'participants.*.bio' => ['required', 'string', 'max:2000'],
             'participants.*.is_primary' => ['nullable', 'boolean'],
             'consent' => ['accepted'],
             'privacy_notice_version_id' => ['nullable', 'uuid'],

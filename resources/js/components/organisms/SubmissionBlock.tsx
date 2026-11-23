@@ -27,6 +27,8 @@ interface SubmissionBlockProps {
     participantsError?: string;
     idPrefix?: string;
     className?: string;
+    /** `false` oculta la tarjeta de título y eje y deja solo la de participantes (vista previa del editor de formularios). */
+    showDetails?: boolean;
 }
 
 /**
@@ -49,6 +51,7 @@ export function SubmissionBlock({
     participantsError,
     idPrefix = 'submit',
     className,
+    showDetails = true,
 }: SubmissionBlockProps) {
     const [announcement, setAnnouncement] = useState('');
     const addButton = useRef<HTMLButtonElement>(null);
@@ -84,13 +87,15 @@ export function SubmissionBlock({
 
     return (
         <div className={cn('space-y-8', className)}>
-            <section aria-labelledby={`${idPrefix}-details`} className={cn(SECTION_CARD, 'space-y-6')}>
-                <h2 id={`${idPrefix}-details`} className={SECTION_HEADING}>
-                    {t('submit.section_details')}
-                </h2>
-                <FormFieldInput {...shared} field={titleField(locale, t)} error={errors['s.title']} />
-                <FormFieldInput {...shared} field={trackField(tracks, locale, t)} error={errors['s.track_id']} />
-            </section>
+            {showDetails ? (
+                <section aria-labelledby={`${idPrefix}-details`} className={cn(SECTION_CARD, 'space-y-6')}>
+                    <h2 id={`${idPrefix}-details`} className={SECTION_HEADING}>
+                        {t('submit.section_details')}
+                    </h2>
+                    <FormFieldInput {...shared} field={titleField(locale, t)} error={errors['s.title']} />
+                    <FormFieldInput {...shared} field={trackField(tracks, locale, t)} error={errors['s.track_id']} />
+                </section>
+            ) : null}
 
             <section aria-labelledby={`${idPrefix}-participants`} className={cn(SECTION_CARD, 'space-y-4')}>
                 <h2 id={`${idPrefix}-participants`} className={SECTION_HEADING}>
@@ -116,16 +121,12 @@ export function SubmissionBlock({
                                 {...shared}
                                 field={field}
                                 error={errors[field.key]}
-                                inputType={field.key.endsWith('.email') ? 'email' : 'text'}
+                                inputType={field.key.endsWith('.email') ? 'email' : field.key.endsWith('.phone') ? 'tel' : 'text'}
                                 autoComplete={index === 0 ? autoCompleteFor(field.key) : undefined}
                             />
                         ))}
                         {index > 0 && count > minParticipants ? (
-                            <button
-                                type="button"
-                                onClick={() => handleRemove(id)}
-                                className={cn(BUTTON_SECONDARY, FOCUS_RING)}
-                            >
+                            <button type="button" onClick={() => handleRemove(id)} className={cn(BUTTON_SECONDARY, FOCUS_RING)}>
                                 {t('submit.participant_remove', { number: String(index + 1) })}
                             </button>
                         ) : null}
@@ -150,6 +151,7 @@ function autoCompleteFor(key: string): string | undefined {
     if (key.endsWith('.last_name')) return 'family-name';
     if (key.endsWith('.email')) return 'email';
     if (key.endsWith('.country')) return 'country';
+    if (key.endsWith('.phone')) return 'tel';
     if (key.endsWith('.job_title')) return 'organization-title';
     if (key.endsWith('.company')) return 'organization';
 

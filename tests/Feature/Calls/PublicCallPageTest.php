@@ -241,19 +241,24 @@ it('the public call shows the back link and no custom link by default', function
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
             ->where('call.showBackLink', true)
-            ->where('call.extraLink', null));
+            ->where('call.extraLinks', []));
 });
 
 it('the public call carries the switch of the back link and the custom link of the organizer', function (): void {
     $call = publicCall(attributes: [
         'show_back_link' => false,
-        'extra_link_label' => 'Sitio del congreso',
-        'extra_link_url' => 'https://example.test/congreso',
+        'extra_links' => [
+            ['label' => 'Sitio del congreso', 'url' => 'https://example.test/congreso'],
+            ['label' => 'Programa', 'url' => 'https://example.test/programa'],
+        ],
     ]);
 
     $this->get(callUrl($call))
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
             ->where('call.showBackLink', false)
-            ->where('call.extraLink', ['label' => 'Sitio del congreso', 'url' => 'https://example.test/congreso']));
+            ->where('call.extraLinks', [
+                ['label' => 'Sitio del congreso', 'url' => 'https://example.test/congreso'],
+                ['label' => 'Programa', 'url' => 'https://example.test/programa'],
+            ]));
 });

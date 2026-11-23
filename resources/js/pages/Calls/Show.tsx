@@ -88,11 +88,11 @@ export default function Show({ call, event, organization, eventUrl, privacyUrl, 
                         </TextLink>
                     )}
                     {privacyUrl !== null && <TextLink href={privacyUrl}>{t('event.privacy_link')}</TextLink>}
-                    {call.extraLink != null && (
-                        <TextLink href={call.extraLink.url} rel="noopener noreferrer nofollow">
-                            {call.extraLink.label}
+                    {(call.extraLinks ?? []).map((link, index) => (
+                        <TextLink key={`${index}-${link.url}`} href={link.url} rel="noopener noreferrer nofollow">
+                            {link.label}
                         </TextLink>
-                    )}
+                    ))}
                     <LocaleSwitcher locales={call.locales} currentLocale={call.locale} />
                 </div>
             </article>

@@ -85,6 +85,7 @@ final class PrepareAuthorEdit
             $values[$prefix.'first_name'] = $participant->first_name ?? $participant->full_name;
             $values[$prefix.'last_name'] = $participant->last_name ?? '';
             $values[$prefix.'country'] = $participant->country;
+            $values[$prefix.'phone'] = (string) $participant->phone;
             $values[$prefix.'job_title'] = (string) $participant->job_title;
             $values[$prefix.'company'] = (string) $participant->company;
             $values[$prefix.'bio'] = (string) $participant->bio;

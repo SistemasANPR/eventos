@@ -109,7 +109,7 @@
                 @endif
                 <div>{{ $participant['email'] }}</div>
                 <div>
-                    {{ collect([$participant['jobTitle'], $participant['company'], $participant['country']])->filter()->implode(' · ') }}
+                    {{ collect([$participant['jobTitle'], $participant['company'], $participant['country'], $participant['phone']])->filter()->implode(' · ') }}
                 </div>
                 @if ($participant['bio'])
                     <p style="margin: 0.25rem 0 0; white-space: pre-line;">{{ $participant['bio'] }}</p>

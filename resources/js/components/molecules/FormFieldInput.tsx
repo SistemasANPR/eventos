@@ -19,7 +19,7 @@ interface FormFieldInputProps {
     error?: string;
     className?: string;
     /** Solo en `short_text`: tipo del `<input>` (el correo del bloque fijo usa `email`). */
-    inputType?: 'text' | 'email';
+    inputType?: 'text' | 'email' | 'tel';
     /** Valor de `autocomplete` del control, para que el navegador pueda sugerir datos de la persona. */
     autoComplete?: string;
     /** Valor con que arranca el control (edición de una propuesta); sin él, el control nace vacío. */
@@ -121,7 +121,14 @@ function renderError(error: string | undefined, id: string): ReactNode {
     );
 }
 
-function renderGroup(field: FormField, id: string, locale: string, defaultLocale: string, hasError: boolean, initialValue?: AnswerValue): ReactNode {
+function renderGroup(
+    field: FormField,
+    id: string,
+    locale: string,
+    defaultLocale: string,
+    hasError: boolean,
+    initialValue?: AnswerValue,
+): ReactNode {
     const inputType = field.type === 'single_choice' ? 'radio' : 'checkbox';
 
     return (configOf(field).options ?? []).map((option) => (
@@ -150,7 +157,7 @@ function renderControl(
     locale: string,
     defaultLocale: string,
     t: Translate,
-    inputType: 'text' | 'email',
+    inputType: 'text' | 'email' | 'tel',
     initialValue?: AnswerValue,
 ): ReactNode {
     const config = configOf(field);
@@ -158,11 +165,39 @@ function renderControl(
 
     switch (field.type) {
         case 'short_text':
-            return <input {...shared} type={inputType} defaultValue={text} minLength={config.minLength} maxLength={config.maxLength} className={FORM_CONTROL} />;
+            return (
+                <input
+                    {...shared}
+                    type={inputType}
+                    defaultValue={text}
+                    minLength={config.minLength}
+                    maxLength={config.maxLength}
+                    className={FORM_CONTROL}
+                />
+            );
         case 'long_text':
-            return <textarea {...shared} rows={5} defaultValue={text} minLength={config.minLength} maxLength={config.maxLength} className={FORM_CONTROL} />;
+            return (
+                <textarea
+                    {...shared}
+                    rows={5}
+                    defaultValue={text}
+                    minLength={config.minLength}
+                    maxLength={config.maxLength}
+                    className={FORM_CONTROL}
+                />
+            );
         case 'number':
-            return <input {...shared} type="number" step="any" defaultValue={text} min={config.min} max={config.max} className={FORM_CONTROL} />;
+            return (
+                <input
+                    {...shared}
+                    type="number"
+                    step="any"
+                    defaultValue={text}
+                    min={config.min}
+                    max={config.max}
+                    className={FORM_CONTROL}
+                />
+            );
         case 'date':
             return <input {...shared} type="date" defaultValue={text} className={FORM_CONTROL} />;
         case 'checkbox':
@@ -216,7 +251,5 @@ function renderFileHints(accept: string[] | undefined, maxFiles: number | undefi
 function countryOptions(locale: string): Array<[string, string]> {
     const names = new Intl.DisplayNames([locale], { type: 'region' });
 
-    return COUNTRY_CODES.map((code): [string, string] => [code, names.of(code) ?? code]).sort((a, b) =>
-        a[1].localeCompare(b[1], locale),
-    );
+    return COUNTRY_CODES.map((code): [string, string] => [code, names.of(code) ?? code]).sort((a, b) => a[1].localeCompare(b[1], locale));
 }

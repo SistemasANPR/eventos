@@ -56,7 +56,9 @@ final class FormDefinitionForm
                             ->integer()
                             ->minValue(1)
                             ->maxValue(FormDefinitionRules::MAX_PARTICIPANTS)
-                            ->placeholder('5'),
+                            ->placeholder('5')
+                            // Al salir del campo se refresca «Así se ve» con el nuevo límite.
+                            ->live(onBlur: true),
                         // Versión que se está editando: el servidor la compara para no pisar el cambio de otra persona.
                         Hidden::make('version'),
                     ]),
@@ -64,9 +66,9 @@ final class FormDefinitionForm
                     ->schema([
                         View::make('filament.forms.live-preview')
                             ->viewData(fn (Get $get, $livewire): array => [
-                                'props' => app(FormPreviewProps::class)->fromState(
-                                    (array) ($get('fields') ?? []),
+                                'props' => app(FormPreviewProps::class)->participants(
                                     LocalizedFields::eventOf($livewire),
+                                    $get('max_participants'),
                                 ),
                             ]),
                     ]),
@@ -79,8 +81,6 @@ final class FormDefinitionForm
                         ->hiddenLabel()
                         ->addActionLabel(__('forms.fields.add_field'))
                         ->maxItems(FormDefinitionRules::MAX_FIELDS)
-                        // Al salir de un campo se refresca «Así se ve» (columna izquierda).
-                        ->live(onBlur: true)
                         ->collapsible()
                         // Orden con flechas además de arrastrar: se puede reordenar con teclado (CA-005-11).
                         ->reorderableWithButtons()

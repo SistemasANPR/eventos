@@ -83,7 +83,7 @@ return [
         'action' => 'Vista previa',
         'title' => 'Vista previa: :name',
         'language' => 'Idioma de la vista previa',
-        'live_notice' => 'Se actualiza al cambiar un campo. El envío está desactivado.',
+        'live_notice' => 'Así verá quien envíe la propuesta el bloque de Participantes. Se actualiza al cambiar el máximo de personas.',
     ],
     'renderer' => [
         'required' => 'obligatorio',
