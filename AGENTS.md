@@ -79,7 +79,7 @@ El agente **no** hace esto sin que el humano lo pida. Varias están reforzadas e
 9. Cambiar reglas de autorización (Policies, roles, permisos) sin especificación aprobada y pruebas.
 10. Saltarse el filtro de organización (`withoutOrganizationScope`) fuera de los casos que lista el ADR-0003.
 11. Implementar una funcionalidad nueva sin especificación aprobada (ADR-0001).
-12. Hacer push, reescribir historial, hacer **commit o merge en `main`**, o tocar configuración de despliegue, secretos del CI o infraestructura. El desarrollo va en `staging` (ADR-0008).
+12. Hacer push, reescribir historial, hacer **commit o merge en `main`**, o tocar configuración de despliegue, secretos del CI o infraestructura. El desarrollo va en ramas aparte que se integran a `staging` (ADR-0008).
 13. Tocar pagos, comisiones, reembolsos o facturación sin leer el ADR-0007.
 14. Modificar `Dockerfile`, `docker-compose.yml` o la configuración del entorno local, o destruir datos locales (`docker compose down -v`, `docker volume rm`, `docker system prune`).
 15. [RELLENAR: acción sensible propia del proyecto, o borrar esta línea.]
@@ -90,7 +90,9 @@ El agente **no** hace esto sin que el humano lo pida. Varias están reforzadas e
 
 - Resolver la causa raíz con el cambio más pequeño y coherente. Sin refactors, renombrados ni reformateos masivos fuera del alcance.
 - Buscar primero una implementación análoga en el mismo módulo y respetar su estructura, estilo e imports. Antes de crear un componente React, consultar el catálogo (`design.md` §1.4); antes de un helper, buscar en `app/Support/` y `resources/js/lib/`.
-- Trabajar en la rama `staging` (`git branch --show-current` antes de empezar). No crear commits hasta que el usuario lo pida; nunca hacer push sin petición explícita.
+- **Ramas por bloque de trabajo:** nunca se edita ni se hace commit directo en `staging`. Cada bloque de cambios del mismo módulo, plan o fase, o de arreglos relacionados, vive en una rama propia `tipo/modulo-tema` (`feat`, `fix`, `docs`, `ux`, `chore`; p. ej. `ux/categorias-en-ponentes`) creada desde `staging` actualizada. Antes de empezar: `git branch --show-current` y `git status --short`; si hay una rama abierta del mismo bloque, se reutiliza. Un cambio de otro módulo va a otra rama; un ajuste trivial aislado puede sumarse a la rama abierta más cercana.
+- Se integra a `staging` con `--no-ff` (o pull request) cuando `composer check` y la revisión del diff están en verde; después se borra la rama. `main` solo recibe `staging` (ADR-0008). Hotfix de producción: rama `fix/` desde `main`, pull request a `main` y luego se lleva también a `staging`. Un commit directo en `staging` por descuido se informa, no se oculta.
+- Commits dentro de la rama: uno por cambio coherente y verificado; nunca hacer push sin petición explícita.
 - No leer, mostrar, copiar ni versionar secretos.
 - Mantener compatibilidad hacia atrás en API y datos, salvo que la tarea exija y documente una ruptura.
 - No suprimir errores con `@phpstan-ignore`, `@ts-ignore`, `any`, `eslint-disable` ni casts amplios sin una justificación local y comprobable.

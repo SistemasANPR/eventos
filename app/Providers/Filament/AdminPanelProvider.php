@@ -7,6 +7,7 @@ namespace App\Providers\Filament;
 use App\Filament\Pages\Auth\Login;
 use App\Filament\Pages\Auth\RequestPasswordReset;
 use App\Filament\Pages\Auth\ResetPassword;
+use App\Filament\Pages\Organization\EditOrganizationProfile;
 use App\Filament\Support\PanelSwitcher;
 use App\Http\Middleware\ApplyOrganizationContext;
 use App\Models\Organization;
@@ -54,6 +55,7 @@ class AdminPanelProvider extends PanelProvider
             )
             ->tenant(Organization::class, slugAttribute: 'slug')
             ->tenantMiddleware([ApplyOrganizationContext::class], isPersistent: true)
+            ->tenantProfile(EditOrganizationProfile::class)
             ->viteTheme('resources/css/filament/admin/theme.css')
             ->font('Roboto', provider: LocalFontProvider::class)
             ->darkMode(false)

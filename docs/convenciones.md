@@ -76,11 +76,15 @@ Modelo de ramas (ADR-0008):
 
 | Rama | Para qué | Quién escribe |
 |---|---|---|
-| **`staging`** | Integración y pruebas: **aquí va todo el desarrollo** | El equipo y el agente (commits solo si el usuario los pide) |
+| **`staging`** | Integración y pruebas: recibe solo merges de ramas de trabajo, **nunca commits directos** | Merge de las ramas de bloque |
+| **`tipo/modulo-tema`** | Un bloque de trabajo: mismo módulo, plan o fase, o arreglos relacionados | El equipo y el agente |
 | **`main`** | Producción | Solo recibe lo que pasó el punto de control de `staging`, por pull request con aprobación humana |
 
 - Verificar la rama antes de empezar: `git branch --show-current`. **El agente nunca hace commit ni merge en `main`.**
-- Para un trabajo grande se puede abrir una rama corta desde `staging` (`feat/<tema>`, `fix/<tema>`, `docs/<tema>`) que vuelve a `staging` por pull request.
+- Todo cambio va en una rama de bloque creada desde `staging` actualizada (`feat/`, `fix/`, `docs/`, `ux/`, `chore/` + `<modulo-tema>`). Si ya hay una rama abierta del mismo bloque, se reutiliza; un cambio de otro módulo va a otra rama; un ajuste trivial aislado puede sumarse a la rama abierta más cercana.
+- La rama vuelve a `staging` con `--no-ff` o pull request cuando `composer check` (y los chequeos de frontend si aplica) pasan y el diff está revisado; después se borra.
+- Hotfix de producción: rama `fix/` desde `main`, pull request a `main` y después se lleva también a `staging`.
+- Un commit directo en `staging` por descuido se informa, no se oculta.
 - Una promoción `staging` → `main` es un pull request con el CI en verde, el punto de control del release cumplido y una revisión humana.
 - Un pull request por cambio lógico, con la plantilla de `.github/pull_request_template.md`.
 - El CI corre en cada pull request y en cada push a `staging` y `main`. Las rutas sensibles (`.github/CODEOWNERS`) requieren revisión humana.
