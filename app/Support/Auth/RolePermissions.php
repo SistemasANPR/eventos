@@ -26,6 +26,7 @@ final class RolePermissions
         'forms.manage',
         'submissions.view',
         'submissions.export',
+        'submissions.decide',
         'files.download',
         'mail-templates.view',
         'speakers.manage',
@@ -41,6 +42,7 @@ final class RolePermissions
         'personal_data.manage',
         'speakers.delete',
         'activities.delete',
+        'submissions.revert',
     ];
 
     /** @return array<string, list<string>> permisos por nombre de rol */
