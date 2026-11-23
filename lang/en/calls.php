@@ -121,6 +121,11 @@ return [
         'opens_at' => 'Opens',
         'closes_at' => 'Closes',
         'results_at' => 'Results',
+        'show_back_link' => 'Show the "Back to the event" link',
+        'show_back_link_help' => 'Turn it off to hide it on the public call page.',
+        'extra_link_label' => 'Custom link: text',
+        'extra_link_help' => 'Optional. Shown next to the other links in the page footer; it needs both text and address.',
+        'extra_link_url' => 'Custom link: address (https)',
     ],
     'actions' => [
         'edit' => 'Edit',

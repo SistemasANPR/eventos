@@ -123,6 +123,11 @@ return [
         'opens_at' => 'Apertura',
         'closes_at' => 'Cierre',
         'results_at' => 'Resultados',
+        'show_back_link' => 'Mostrar el enlace «Volver al evento»',
+        'show_back_link_help' => 'Desactívalo para ocultarlo en la página pública de la convocatoria.',
+        'extra_link_label' => 'Enlace propio: texto',
+        'extra_link_help' => 'Opcional. Aparece junto a los demás enlaces del pie de la página; necesita texto y dirección.',
+        'extra_link_url' => 'Enlace propio: dirección (https)',
     ],
     'actions' => [
         'edit' => 'Editar',

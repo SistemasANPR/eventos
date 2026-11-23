@@ -135,6 +135,22 @@ describe('Calls/Show page', () => {
         expect(screen.getByRole('link', { name: 'Aviso de privacidad' })).toHaveAttribute('href', '/parques/events/congreso/privacy');
     });
 
+    it('hides the back link when the organizer turns it off, and keeps the other links', () => {
+        renderPage({ showBackLink: false }, '/parques/events/congreso/privacy');
+
+        expect(screen.queryByRole('link', { name: 'Volver al evento' })).not.toBeInTheDocument();
+        expect(screen.getByRole('link', { name: 'Aviso de privacidad' })).toBeInTheDocument();
+    });
+
+    it('shows the custom link of the organizer with safe rel', () => {
+        renderPage({ extraLink: { label: 'Sitio del congreso', url: 'https://example.test/congreso' } });
+
+        const link = screen.getByRole('link', { name: 'Sitio del congreso' });
+
+        expect(link).toHaveAttribute('href', 'https://example.test/congreso');
+        expect(link).toHaveAttribute('rel', 'noopener noreferrer nofollow');
+    });
+
     it('offers the other languages of the call', () => {
         renderPage();
 
@@ -156,7 +172,10 @@ describe('Calls/Show page', () => {
 
         renderPage({}, null, '/parques/events/congreso/call/ponencias/submit?lang=es');
 
-        expect(screen.getByRole('link', { name: 'Enviar propuesta' })).toHaveAttribute('href', '/parques/events/congreso/call/ponencias/submit?lang=es');
+        expect(screen.getByRole('link', { name: 'Enviar propuesta' })).toHaveAttribute(
+            'href',
+            '/parques/events/congreso/call/ponencias/submit?lang=es',
+        );
     });
 
     it('has no submit button element: the entry to the form is a link', () => {
@@ -169,7 +188,13 @@ describe('Calls/Show page', () => {
 describe('Calls/Show page: logo (plan 027)', () => {
     it('CA-027-13: shows the logo with the event name as alt text and nothing without it', () => {
         const { unmount } = render(
-            <Show call={call} event={{ ...event, logoUrl: '/parques/events/congreso/logo?v=ab12' }} organization={organization} eventUrl="/e" privacyUrl={null} />,
+            <Show
+                call={call}
+                event={{ ...event, logoUrl: '/parques/events/congreso/logo?v=ab12' }}
+                organization={organization}
+                eventUrl="/e"
+                privacyUrl={null}
+            />,
         );
 
         expect(screen.getByRole('img', { name: 'Congreso Parques' })).toHaveAttribute('src', '/parques/events/congreso/logo?v=ab12');
