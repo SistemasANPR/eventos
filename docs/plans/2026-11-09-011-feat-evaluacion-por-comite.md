@@ -4,7 +4,7 @@
 > `composer check:criteria` lee el **Estado** y los criterios de este archivo: no cambiar el formato de esas líneas.
 
 - **Fecha:** 2026-11-09
-- **Estado:** En curso (2026-11-23: F0 a F2 construidas, rubrica y asignaciones; F3 a F6 pendientes: invitacion y asignacion de evaluadores, panel del evaluador, conflicto de interes y resultados)
+- **Estado:** En curso, con la ampliacion de H-011-2 y H-011-3 en borrador pendiente de aprobacion (2026-11-23: F0 a F2 construidas, rubrica y asignaciones; F3 a F6 pendientes: invitacion y asignacion de evaluadores, panel del evaluador, conflicto de interes y resultados)
 - **Esfuerzo:** L
 - **Deuda relacionada:** ninguna (depende de RC-2: la 2FA obligatoria, H-014-1, debe estar activa antes de dar acceso a evaluadores externos; ver plan 014)
 
@@ -23,8 +23,8 @@ Reemplazar el motor de evaluación del cpanel de origen (rúbrica 1 a 5, evaluad
 | Historia | Enunciado | Tam. | Dependencias |
 |---|---|---|---|
 | H-011-1 | Como organizador, quiero crear una rúbrica por evento y tipo de propuesta con criterios, escala, peso y umbral de discrepancia, para evaluar con mis reglas | M | H-006-1 |
-| H-011-2 | Como organizador, quiero asignar evaluadores a ejes y propuestas con un mínimo por propuesta, para repartir la carga | M | H-011-7, H-012-1 (Action `MarkSubmissionUnderReview`) |
-| H-011-3 | Como evaluador, quiero un panel propio con mis propuestas asignadas y calificar con guardado transaccional, para evaluar sin ver lo ajeno | M | H-011-1, H-011-2, H-014-1 |
+| H-011-2 | Como integrante del equipo con permiso de asignación, quiero asignar evaluadores a una propuesta, a un eje o a una convocatoria completa, con un mínimo por propuesta y viendo la cobertura y la carga de cada evaluador, para repartir el trabajo | L | H-011-7, H-012-1 (Action `MarkSubmissionUnderReview`) |
+| H-011-3 | Como evaluador, quiero un panel propio cuya página de inicio sea un tablero con el resumen y la lista de mis propuestas asignadas, y calificar con guardado transaccional, para evaluar sin ver lo ajeno | M | H-011-1, H-011-2, H-014-1 |
 | H-011-4 | Como evaluador, quiero declarar conflicto de interés y, si el evento lo pide, evaluar en modo ciego, para una evaluación justa | M | H-011-3, H-005-1 (atributo `identifies_author`) |
 | H-011-5 | Como organizador, quiero resultados con promedio ponderado, desviación y discrepancias, para decidir con evidencia | M | H-011-3 |
 | H-011-6 | Como organizador, quiero ver el avance por evaluador y cerrar el periodo de evaluación, para dar seguimiento | S | H-011-3 |
@@ -59,15 +59,27 @@ En modo ciego el evaluador no ve nombre, correo, empresa, país ni biografía de
 
 `AssignReviewers` solo acepta propuestas con `origin = call`: un conferencista invitado (plan 018) nace `accepted` y no se evalúa. `AssignReviewers` llama a `MarkSubmissionUnderReview` (plan 012) para pasar de `submitted` a `under_review` con historial. Un evento sin comité no pasa por aquí: el plan 012 permite decidir desde `submitted`.
 
+### DA-6 · Alcances de la asignación — se recomienda **tres: propuesta, eje y convocatoria, con regla permanente**
+
+Se asigna a una **propuesta** (individual o en lote desde la lista del plan 009), a un **eje** (`Track`) o a una **convocatoria** (`CallForSubmissions`). Un evaluador asignado a un alcance evalúa **todas** las propuestas del alcance; no hay reparto automático balanceado (R2). Asignar por eje o convocatoria guarda además una **regla de alcance** (`review_assignment_scopes`): cada propuesta que llegue después dentro del alcance se asigna sola, mediante un job idempotente que se encola al enviarse la propuesta. Quitar la regla no borra las asignaciones ya hechas. Alternativa descartada: solo instantánea con un botón «Asignar propuestas nuevas», que depende de que alguien lo recuerde mientras la convocatoria sigue abierta.
+
+### DA-7 · Quitar una asignación — se recomienda **solo `pending` se elimina; con evaluación en curso o enviada se cancela**
+
+Una asignación `pending` se elimina. Si el evaluador ya empezó o envió, pasa a `cancelled` y se conserva su evaluación, que deja de contar en los resultados. Exige ampliar el `CHECK` de estado con `cancelled` (§4, propuesta de datos).
+
+### DA-8 · Aviso por correo — se recomienda **un resumen por evaluador y por operación**
+
+`reviewer.assignment` es un solo correo por evaluador y por operación de asignación («te asignaron N propuestas», con el enlace a su tablero), no uno por propuesta. Una propuesta que llega después por una regla de alcance no genera correo (el evaluador la ve en su tablero). Alternativa descartada: un correo por propuesta, que satura al evaluador en una asignación por convocatoria.
+
 ## 4. Contrato
 
-- **Rutas web (Filament, sin JSON público):** recursos `RubricResource`, `ReviewAssignmentResource`, `ReviewResultsPage`, `ReviewerProgressPage` e invitación de evaluadores en el panel de organizadores; panel `Reviewer` (un panel por rol, ADR-0004) con `AssignedSubmissionResource`. Sin entradas nuevas en `docs/api/endpoints.md`.
-- **Form Requests:** `StoreRubricRequest`, `PublishRubricRequest`, `AssignReviewersRequest`, `SubmitReviewRequest` (valida cada respuesta contra los criterios de la versión), `DeclareConflictRequest`, `CloseReviewPeriodRequest`, `InviteReviewerRequest`.
-- **Actions:** `PublishRubric`, `AssignReviewers`, `SubmitReview` (transaccional), `DeclareConflictOfInterest`, `ComputeSubmissionResults`, `CloseReviewPeriod`, `AssignUserToEvent`, `InviteReviewer`.
-- **Correos nuevos en el catálogo del plan 008:** `reviewer.invitation` (con enlace para establecer contraseña, mismo mecanismo y caducidad que `team.set_password` del plan 003) y `reviewer.assignment`, ambos críticos, con predeterminadas es/en.
+- **Rutas web (Filament, sin JSON público):** recursos `RubricResource`, `ReviewAssignmentResource` (pantalla «Asignación» del evento con tres vistas: por alcance, individual y por evaluador), `ReviewResultsPage`, `ReviewerProgressPage` e invitación de evaluadores en el panel de organizadores; panel `Reviewer` (un panel por rol, ADR-0004) con la página de inicio `ReviewerDashboard` y `AssignedSubmissionResource`. Sin entradas nuevas en `docs/api/endpoints.md`.
+- **Form Requests:** `StoreRubricRequest`, `PublishRubricRequest`, `AssignReviewersRequest` (alcance `submission|track|call`), `RemoveReviewAssignmentRequest`, `SubmitReviewRequest` (valida cada respuesta contra los criterios de la versión), `DeclareConflictRequest`, `CloseReviewPeriodRequest`, `InviteReviewerRequest`.
+- **Actions:** `PublishRubric`, `AssignReviewers`, `SyncScopedAssignments` (idempotente; la usan la creación de la regla, el envío de una propuesta nueva y un botón manual), `RemoveReviewAssignment`, `SubmitReview` (transaccional), `DeclareConflictOfInterest`, `ComputeSubmissionResults`, `CloseReviewPeriod`, `AssignUserToEvent`, `InviteReviewer`.
+- **Correos nuevos en el catálogo del plan 008:** `reviewer.invitation` (con enlace para establecer contraseña, mismo mecanismo y caducidad que `team.set_password` del plan 003) y `reviewer.assignment` (resumen por evaluador y operación, DA-8), ambos críticos, con predeterminadas es/en.
 - **Propuesta de datos (`docs/database-design.md` §6):**
   1. *Necesidad:* evaluar propuestas con criterios propios del evento y acceso acotado; dueño: módulo de evaluación; ciclo de vida: vigente hasta archivar el evento.
-  2. *Modelo:* `rubrics` (evento, tipo de propuesta, versión, estado `draft|published`, `blind_review` bool, `min_reviewers`, `discrepancy_threshold` en unidades de la escala); `rubric_criteria` (rúbrica, posición, `label` traducible, `scale_min`, `scale_max`, `weight`, `kind` `scale|text`); `event_assignments` (usuario, evento, rol `reviewer|coordinator`, único por usuario, evento y rol); `review_assignments` (propuesta, evaluador, estado `pending|in_progress|submitted|declined_conflict`); `reviews` (asignación, versión de rúbrica, enviada en, `revision` entero); `review_answers` (evaluación, criterio, valor entero o texto); `review_history` de negocio para reevaluaciones. Todas con `organization_id` NOT NULL, UUID, y `event_id` donde aplique; ámbito: organización y evento.
+  2. *Modelo:* `rubrics` (evento, tipo de propuesta, versión, estado `draft|published`, `blind_review` bool, `min_reviewers`, `discrepancy_threshold` en unidades de la escala); `rubric_criteria` (rúbrica, posición, `label` traducible, `scale_min`, `scale_max`, `weight`, `kind` `scale|text`); `event_assignments` (usuario, evento, rol `reviewer|coordinator`, único por usuario, evento y rol); `review_assignments` (propuesta, evaluador, estado `pending|in_progress|submitted|declined_conflict|cancelled`, `assigned_by`, `assigned_at`, `source` `manual|scope`); `review_assignment_scopes` (evento, evaluador, tipo de alcance `track|call`, identificador del alcance, `created_by`; único por evaluador y alcance; claves compuestas para que el eje o la convocatoria pertenezcan al mismo evento y organización); `reviews` (asignación, versión de rúbrica, enviada en, `revision` entero); `review_answers` (evaluación, criterio, valor entero o texto); `review_history` de negocio para reevaluaciones. Todas con `organization_id` NOT NULL, UUID, y `event_id` donde aplique; ámbito: organización y evento.
   2b. *Concreción de `event_assignments` y `rubrics` (F0):* `event_assignments(id uuid, organization_id, event_id, user_id, role, created_at, updated_at)` con `role` `string` y `CHECK (role IN ('reviewer','coordinator'))` (`speaker` llega en R2); `unique(id, organization_id)`; `unique(event_id, user_id, role)`; FK compuesta `(event_id, organization_id)` hacia `events` y FK compuesta `(organization_id, user_id)` hacia `organization_user` (garantiza la membresía en la base; el estado `deactivated` lo vigilan la Action y la Policy); trigger de inmutabilidad de `organization_id`. `rubrics(id, organization_id, event_id, submission_type_id, version, status, blind_review, min_reviewers, discrepancy_threshold)` con `unique(event_id, submission_type_id, version)`. Permisos nuevos en `RolePermissions` con migración de sincronización; el rol de evento `coordinator` se resuelve en las Policies consultando `event_assignments`, no con spatie.
   3. *Integridad:* claves foráneas compuestas para que propuesta, evaluador y evento compartan la organización (con `unique(id, organization_id)` en las tablas referenciadas); `CHECK` de `scale_min < scale_max`, `weight > 0` y `discrepancy_threshold > 0`; único por `(submission_id, reviewer_id)`; `SoftDeletes` en `reviews`.
   4. *Cambio:* tablas nuevas, sin datos existentes; migraciones generadas por el agente y aplicadas por una persona.
@@ -78,7 +90,7 @@ En modo ciego el evaluador no ve nombre, correo, empresa, país ni biografía de
 
 | Pregunta | Respuesta |
 |---|---|
-| ¿Qué roles pueden hacer qué? | `org_admin` y coordinador de evento: crear y publicar rúbricas, asignar, invitar evaluadores, ver resultados, cerrar periodo. `reviewer` (con asignación de evento): ver solo sus propuestas asignadas, declarar conflicto, calificar y reevaluar mientras el periodo esté abierto; ningún permiso del panel de organizadores. Autor y público: nada |
+| ¿Qué roles pueden hacer qué? | `org_admin` y coordinador de evento: crear y publicar rúbricas, asignar, invitar evaluadores (la asignación y su regla de alcance, `review_assignments.manage`, la tiene también `organizer`; DA-6), ver resultados, cerrar periodo. `reviewer` (con asignación de evento): ver solo sus propuestas asignadas, declarar conflicto, calificar y reevaluar mientras el periodo esté abierto; ningún permiso del panel de organizadores. Autor y público: nada |
 | ¿Qué Policy cubre cada acción y dónde se prueba? | `RubricPolicy`, `ReviewAssignmentPolicy`, `ReviewPolicy`, `EventAssignmentPolicy`; `tests/Feature/Reviews/` con una prueba por rol y acción, permitido y denegado |
 | ¿Hay modelos nuevos con datos de una organización? | Sí, todos los de §4; usan `BelongsToOrganization` y se cubren con `ModelsAreScopedTest` y `TenantIsolationTest` |
 | ¿El acceso cruza eventos o depende de `event_assignments`? | Depende de `event_assignments`: un evaluador de un evento no ve otro; un identificador ajeno responde 404 |
@@ -95,8 +107,9 @@ En modo ciego el evaluador no ve nombre, correo, empresa, país ni biografía de
 | F0 | Propuesta de datos aprobada (2026-11-13); Policies y guardianas con modelos vacíos | S |
 | F1 | `event_assignments` y su Policy (H-011-7) | M |
 | F2 | Rúbrica, criterios, versionado y publicación (H-011-1) | M |
-| F3 | Asignación de evaluadores, paso a `under_review` e invitación (H-011-2, H-011-8) | M |
-| F4 | Panel del evaluador y `SubmitReview` transaccional (H-011-3) | M |
+| F3a | Asignación individual y en lote, informe de omitidas, paso a `under_review`, quitar y cancelar, correo resumen (H-011-2; CA-011-5 a 10, 38 a 41, 44 a 47); depende de H-012-1 | M |
+| F3b | Alcances por eje y convocatoria con regla permanente y job idempotente, vista por evaluador e invitación desde la pantalla (H-011-2, H-011-8; CA-011-42, 43, 48, 49) | M |
+| F4 | Panel del evaluador con su tablero (resumen, lista, filtros, estados vacío y cerrado) y `SubmitReview` transaccional (H-011-3; CA-011-50 a 54) | M |
 | F5 | Conflicto de interés y modo ciego (H-011-4) | M |
 | F6 | Resultados, avance y cierre del periodo (H-011-5, H-011-6) | M |
 
@@ -113,12 +126,26 @@ Cada uno tiene al menos una prueba cuyo nombre lo cita (`CA-011-n: ...`) o decla
 
 ### H-011-2 · Asignación de evaluadores
 
+Los CA-011-5 a 10 cubren el alcance por eje y las reglas comunes; los CA-011-38 a 49 cubren los otros alcances, la regla permanente y la pantalla.
+
 - **CA-011-5:** *Dado* un evento con evaluadores asignados a un eje, *cuando* el organizador asigna ese eje, *entonces* cada propuesta del eje recibe al menos `min_reviewers` asignaciones `pending`.
 - **CA-011-6:** *Dado* una propuesta con menos asignaciones que el mínimo, *cuando* se consulta el avance, *entonces* aparece marcada como «cobertura incompleta».
 - **CA-011-7:** *Dado* un evaluador cuyo correo coincide (sin distinguir mayúsculas) con el del autor o con el de cualquier participante de una propuesta, *cuando* se intenta asignarle esa propuesta, *entonces* se rechaza.
-- **CA-011-8:** *Dado* una asignación nueva, *cuando* se crea, *entonces* se encola `reviewer.assignment` al evaluador y queda registro de auditoría; si el correo falla, la asignación persiste y el fallo es visible.
+- **CA-011-8:** *Dado* una asignación nueva, *cuando* se crea, *entonces* queda registro de auditoría y se encola un solo `reviewer.assignment` por evaluador y operación (DA-8, CA-011-44); si el correo falla, la asignación persiste y el fallo es visible.
 - **CA-011-9:** *Dado* una propuesta `submitted`, *cuando* recibe su primera asignación, *entonces* pasa a `under_review` mediante `MarkSubmissionUnderReview` con historial; una propuesta que ya está `under_review` no cambia de estado ni duplica el historial.
 - **CA-011-10:** *Dado* un usuario sin `event_assignments` de rol `reviewer` en el evento de la propuesta, *cuando* se intenta asignarle una propuesta, *entonces* se rechaza.
+- **CA-011-38:** *Dado* un integrante con `review_assignments.manage` y una convocatoria con propuestas de varios ejes, *cuando* asigna a dos evaluadores esa convocatoria, *entonces* cada evaluador recibe una asignación `pending` por cada propuesta elegible de la convocatoria y queda guardada la regla de alcance.
+- **CA-011-39:** *Dado* la lista de propuestas del evento con filtros, *cuando* el integrante marca varias y usa «Asignar evaluadores», *entonces* solo esas propuestas se asignan (`source = manual`) y no se crea regla de alcance.
+- **CA-011-40:** *Dado* un alcance con propuestas retiradas, invitadas (`origin = invited`) o en un estado distinto de `submitted` y `under_review`, *cuando* se asigna, *entonces* esas propuestas se omiten y el informe de la operación indica cuántas y por qué.
+- **CA-011-41:** *Dado* una asignación que omite parejas por conflicto de correo (CA-011-7), *cuando* termina, *entonces* el informe lista cada pareja omitida con su motivo y las demás asignaciones se crean; nunca se falla en silencio.
+- **CA-011-42:** *Dado* una regla de alcance vigente, *cuando* llega una propuesta nueva dentro del alcance, *entonces* un job idempotente asigna a los evaluadores de la regla (sin duplicar si se ejecuta dos veces) y la propuesta pasa a `under_review` (CA-011-9).
+- **CA-011-43:** *Dado* una regla de alcance, *cuando* se quita, *entonces* las asignaciones ya creadas se conservan y las propuestas nuevas dejan de asignarse.
+- **CA-011-44:** *Dado* una operación que asigna doce propuestas a un evaluador, *cuando* termina, *entonces* se encola un solo correo `reviewer.assignment` con la cantidad y el enlace a su tablero; una propuesta asignada después por una regla no envía correo.
+- **CA-011-45:** *Dado* una asignación `pending`, *cuando* el integrante la quita, *entonces* se elimina y queda auditada; si está `in_progress` o `submitted`, pasa a `cancelled`, se conserva la evaluación y deja de contar en los resultados.
+- **CA-011-46:** *Dado* un usuario sin `review_assignments.manage` (incluido un evaluador), *cuando* intenta asignar o quitar por cualquiera de los alcances, *entonces* se deniega en el servidor aunque la ruta se invoque directamente.
+- **CA-011-47:** *Dado* una convocatoria, un eje o una propuesta de otro evento o de otra organización, *cuando* se intenta asignar por su identificador, *entonces* la respuesta es 404 y no se crea nada.
+- **CA-011-48:** *Dado* la vista «por evaluador», *cuando* se abre, *entonces* muestra por evaluador el número de propuestas asignadas y su avance, y un alcance con menos evaluadores que `min_reviewers` aparece como «cobertura incompleta» (CA-011-6).
+- **CA-011-49:** *Dado* un evaluador que aún no tiene asignación de evento, *cuando* el integrante lo elige en la pantalla de asignación, *entonces* la pantalla ofrece invitarlo (H-011-8) y no crea ninguna asignación de propuesta hasta que exista su `event_assignments`.
 
 ### H-011-3 · Panel del evaluador y calificación transaccional
 
@@ -128,6 +155,11 @@ Cada uno tiene al menos una prueba cuyo nombre lo cita (`CA-011-n: ...`) o decla
 - **CA-011-14:** *Dado* un envío con un valor fuera de la escala o un criterio obligatorio vacío, *cuando* se guarda, *entonces* se rechaza y no queda ningún dato parcial.
 - **CA-011-15:** *Dado* una evaluación enviada y el periodo abierto, *cuando* el evaluador reevalúa, *entonces* se incrementa `revision`, la versión anterior se conserva en el historial y los resultados usan la última.
 - **CA-011-16:** *Dado* un usuario con rol `reviewer` y sesión con 2FA, *cuando* abre el panel de organizadores o cualquier recurso de propuestas de ese panel, *entonces* la respuesta es 403.
+- **CA-011-50:** *Dado* un evaluador con asignaciones en distintos estados, *cuando* abre su panel, *entonces* la página de inicio muestra el total de asignadas y cuántas están pendientes, en progreso, enviadas y con conflicto declarado, y si el periodo de evaluación está abierto o cerrado.
+- **CA-011-51:** *Dado* un evaluador con más de una página de asignaciones, *cuando* abre su lista, *entonces* se pagina con tope de 100, se ordena con las pendientes primero y se filtra por estado, eje y convocatoria.
+- **CA-011-52:** *Dado* un evaluador sin asignaciones, o con el periodo cerrado, *cuando* abre su panel, *entonces* ve un estado vacío o un aviso de periodo cerrado que lo explica, y las acciones de calificar no están disponibles.
+- **CA-011-53:** *Dado* un evaluador con una asignación `cancelled` o `declined_conflict`, *cuando* abre su lista, *entonces* la cancelada no aparece y la de conflicto se muestra sin acción de calificar.
+- **CA-011-54:** *Dado* un evaluador con el panel abierto en un evento con modo ciego, *cuando* se pide al servidor la lista del tablero, *entonces* no contiene nombre ni correo de autores (aplica CA-011-19 al tablero).
 
 ### H-011-4 · Conflicto de interés y revisión ciega
 
