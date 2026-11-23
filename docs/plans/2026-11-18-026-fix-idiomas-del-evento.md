@@ -3,7 +3,7 @@
 > `composer check:criteria` lee el **Estado** y los criterios de este archivo: no cambiar el formato de esas líneas.
 
 - **Fecha:** 2026-11-18
-- **Estado:** Aprobado (2026-11-18: especificación, DA-1 a DA-3 del usuario; DA-4 y DA-5 con la recomendación)
+- **Estado:** Terminado (2026-11-23: F1 a F3 fusionadas en staging; quedan huecos abiertos anotados en §9)
 - **Esfuerzo:** M
 - **Deuda relacionada:** ninguna
 

@@ -4,7 +4,7 @@
 > `composer check:criteria` lee el **Estado** y los criterios de este archivo: no cambiar el formato de esas líneas.
 
 - **Fecha:** 2026-11-09
-- **Estado:** Aprobado (Antonio, 2026-11-13: especificacion y propuesta de datos de §4; alcance autorizado F0 a F2; F3 a F6 en espera de los planes 006, 012 y 014)
+- **Estado:** En curso (2026-11-23: F0 a F2 construidas, rubrica y asignaciones; F3 a F6 pendientes: invitacion y asignacion de evaluadores, panel del evaluador, conflicto de interes y resultados)
 - **Esfuerzo:** L
 - **Deuda relacionada:** ninguna (depende de RC-2: la 2FA obligatoria, H-014-1, debe estar activa antes de dar acceso a evaluadores externos; ver plan 014)
 

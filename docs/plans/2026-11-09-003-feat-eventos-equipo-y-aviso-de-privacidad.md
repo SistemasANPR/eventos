@@ -3,7 +3,7 @@
 > Épica E-03 de `docs/plan-de-desarrollo.md` (R0). El organizador configura su evento, escribe su propio aviso de privacidad por idioma y da de alta a su equipo, todo desde el panel y sin tocar código ni base de datos. Ningún evento ni texto se siembra: "Congreso Parques 2027" se captura en la interfaz.
 
 - **Fecha:** 2026-11-09
-- **Estado:** Borrador
+- **Estado:** Terminado (2026-11-23: H-003-1 a H-003-3 y DT-03 construidas y registradas en §9; antes figuraba como Borrador)
 - **Esfuerzo:** M
 - **Deuda relacionada:** ninguna
 
