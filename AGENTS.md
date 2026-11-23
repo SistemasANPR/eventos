@@ -79,7 +79,7 @@ El agente **no** hace esto sin que el humano lo pida. Varias están reforzadas e
 9. Cambiar reglas de autorización (Policies, roles, permisos) sin especificación aprobada y pruebas.
 10. Saltarse el filtro de organización (`withoutOrganizationScope`) fuera de los casos que lista el ADR-0003.
 11. Implementar una funcionalidad nueva sin especificación aprobada (ADR-0001).
-12. Hacer push, reescribir historial, hacer **commit o merge en `main`**, o tocar configuración de despliegue, secretos del CI o infraestructura. El desarrollo va en `staging` (ADR-0008).
+12. Hacer push, reescribir historial, hacer **commit o merge en `main`**, o tocar configuración de despliegue, secretos del CI o infraestructura. El desarrollo va en ramas aparte que se integran a `staging` (ADR-0008).
 13. Tocar pagos, comisiones, reembolsos o facturación sin leer el ADR-0007.
 14. Modificar `Dockerfile`, `docker-compose.yml` o la configuración del entorno local, o destruir datos locales (`docker compose down -v`, `docker volume rm`, `docker system prune`).
 15. [RELLENAR: acción sensible propia del proyecto, o borrar esta línea.]
@@ -90,7 +90,8 @@ El agente **no** hace esto sin que el humano lo pida. Varias están reforzadas e
 
 - Resolver la causa raíz con el cambio más pequeño y coherente. Sin refactors, renombrados ni reformateos masivos fuera del alcance.
 - Buscar primero una implementación análoga en el mismo módulo y respetar su estructura, estilo e imports. Antes de crear un componente React, consultar el catálogo (`design.md` §1.4); antes de un helper, buscar en `app/Support/` y `resources/js/lib/`.
-- Trabajar en la rama `staging` (`git branch --show-current` antes de empezar). No crear commits hasta que el usuario lo pida; nunca hacer push sin petición explícita.
+- **Una rama por modificación:** nunca se edita ni se hace commit directo en `staging`. Cada cambio nace en su propia rama a partir de `staging` actualizada (`git branch --show-current` antes de empezar; nombre `tipo/descripcion-corta` en inglés, p. ej. `fix/throttle-test`, `feat/event-logo`) y se integra a `staging` con merge (`--no-ff`) o pull request cuando está verificado. `staging` solo recibe merges; `main` solo recibe `staging` (ADR-0008).
+- Commits: uno por modificación completada y verificada, en la rama de trabajo; nunca hacer push sin petición explícita.
 - No leer, mostrar, copiar ni versionar secretos.
 - Mantener compatibilidad hacia atrás en API y datos, salvo que la tarea exija y documente una ruptura.
 - No suprimir errores con `@phpstan-ignore`, `@ts-ignore`, `any`, `eslint-disable` ni casts amplios sin una justificación local y comprobable.
