@@ -29,7 +29,7 @@ export function LandingCallsBlock({ block, locale, t }: LandingCallsBlockProps) 
             {block.calls.length === 0 ? (
                 <p className="text-base text-text-muted">{t('landing.calls_empty')}</p>
             ) : (
-                <ul className="flex flex-col gap-4">
+                <ul className="grid gap-4 lg:grid-cols-2">
                     {block.calls.map((call, index) => (
                         <li key={`${index}-${call.title}`} className={LIST_CARD}>
                             <h3 className={HEADING_MD}>{call.title}</h3>
@@ -37,12 +37,11 @@ export function LandingCallsBlock({ block, locale, t }: LandingCallsBlockProps) 
                                 <CallStateBadge state={call.state} t={t} />
                                 <p className="text-base text-text-muted">{t(`call.state_hint.${call.state}`)}</p>
                             </div>
-                            <dl className="grid gap-3 sm:grid-cols-3">
-                                <EventFact label={t('call.type')}>{call.submissionType}</EventFact>
-                                <EventFact label={t('call.opens_at')}>
+                            <dl className="grid gap-3 sm:grid-cols-2">
+                                <EventFact label={t('call.opens_at')} variant="plain">
                                     {formatEventInstant(call.opensAt, call.timezone, locale, call.timeFormat)}
                                 </EventFact>
-                                <EventFact label={t('call.closes_at')}>
+                                <EventFact label={t('call.closes_at')} variant="plain">
                                     {formatEventInstant(call.closesAt, call.timezone, locale, call.timeFormat)}
                                 </EventFact>
                             </dl>

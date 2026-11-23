@@ -22,14 +22,14 @@ export function LandingGalleryBlock({ block }: LandingGalleryBlockProps) {
                     {block.title}
                 </h2>
             )}
-            <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+            <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
                 {block.images.map((image, index) => (
                     <li key={`${index}-${image.url}`}>
                         <img
                             src={image.url}
                             alt={image.alt}
                             loading="lazy"
-                            className="aspect-square w-full rounded-lg border border-border object-cover"
+                            className="aspect-square w-full rounded-2xl object-cover shadow-md"
                         />
                     </li>
                 ))}

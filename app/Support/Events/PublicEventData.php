@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Support\Events;
 
 use App\Models\Event;
+use App\Models\Organization;
 use Illuminate\Http\Request;
 
 /**
@@ -15,8 +16,8 @@ use Illuminate\Http\Request;
  */
 final class PublicEventData
 {
-    /** @return array{name: string, description: ?string, startsAt: string, endsAt: string, timezone: string, venueName: ?string, venueAddress: ?string, city: ?string, timeFormat: string, locale: string, locales: list<string>} */
-    public static function from(Event $event, string $locale): array
+    /** @return array{name: string, description: ?string, startsAt: string, endsAt: string, timezone: string, venueName: ?string, venueAddress: ?string, city: ?string, timeFormat: string, locale: string, locales: list<string>, logoUrl: ?string} */
+    public static function from(Event $event, Organization $organization, string $locale): array
     {
         return [
             'name' => $event->getTranslation('name', $locale),
@@ -30,7 +31,26 @@ final class PublicEventData
             'timeFormat' => $event->time_format->value,
             'locale' => $locale,
             'locales' => $event->offeredLocales(),
+            'logoUrl' => self::logoUrl($event, $organization),
         ];
+    }
+
+    /**
+     * Dirección pública del logotipo (plan 027, CA-027-12) o `null` si el evento no tiene. Nunca la
+     * ruta del disco; `v` solo cambia con el archivo, para que el navegador no muestre el anterior
+     * durante la caché corta de la ruta.
+     */
+    public static function logoUrl(Event $event, Organization $organization): ?string
+    {
+        if ($event->logo_path === null) {
+            return null;
+        }
+
+        return route('public.events.logo', [
+            'organization' => $organization->slug,
+            'event' => $event->slug,
+            'v' => hash('crc32b', $event->logo_path),
+        ], false);
     }
 
     /**

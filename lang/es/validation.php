@@ -186,5 +186,18 @@ return [
         'currency' => 'moneda',
         'email' => 'correo electrónico',
         'password' => 'contraseña',
+        // Formulario público de propuestas (plan 006): sin estos nombres el error dice «el campo title».
+        'title' => 'título de la propuesta',
+        'track_id' => 'tema',
+        'participants' => 'participantes',
+        'participants.*.first_name' => 'nombre',
+        'participants.*.last_name' => 'apellido',
+        'participants.*.email' => 'correo electrónico',
+        'participants.*.country' => 'país',
+        'participants.*.job_title' => 'cargo',
+        'participants.*.company' => 'organización',
+        'participants.*.bio' => 'biografía',
+        'consent' => 'consentimiento',
+        'turnstile_token' => 'verificación de seguridad',
     ],
 ];

@@ -94,6 +94,39 @@ describe('LandingRenderer', () => {
         expect(screen.getByText(/marzo de 2027/)).toBeInTheDocument();
     });
 
+    it('hides the time zone, the call category and the tracks on the public site (organizer decision)', () => {
+        renderBlocks([
+            {
+                id: 'i',
+                type: 'event_info',
+                name: 'Evento',
+                description: null,
+                startsAt: '2027-03-10T15:00:00Z',
+                endsAt: '2027-03-12T23:00:00Z',
+                timezone: 'America/Mexico_City',
+                timeFormat: '12h',
+                venueName: 'Sede',
+                city: 'CDMX',
+            },
+            { id: 'c', type: 'calls', title: null, calls: [call('open', '/enviar')] },
+            {
+                id: 't',
+                type: 'tracks',
+                title: 'Temas',
+                tracks: [{ name: 'Ciencia', description: null }],
+            },
+        ]);
+
+        expect(screen.queryByText('America/Mexico_City')).not.toBeInTheDocument();
+        expect(screen.queryByText('event.timezone')).not.toBeInTheDocument();
+        expect(screen.queryByText('call.type')).not.toBeInTheDocument();
+        expect(screen.queryByText('Sesión')).not.toBeInTheDocument();
+        expect(screen.queryByText('Ciencia')).not.toBeInTheDocument();
+        // Lo demás sigue visible: sede, fechas y las fechas de la convocatoria.
+        expect(screen.getByText('Sede, CDMX')).toBeInTheDocument();
+        expect(screen.getByText('call.opens_at')).toBeInTheDocument();
+    });
+
     it('CA-022-25: an open call links its register button to the submission form', () => {
         renderBlocks([
             {
@@ -130,7 +163,7 @@ describe('LandingRenderer', () => {
         expect(screen.getByText('landing.calls_empty')).toBeInTheDocument();
     });
 
-    it('CA-022-40: tracks, faq, gallery, columns and spacer render with their headings and alt texts', () => {
+    it('CA-022-40: faq, gallery, columns and spacer render with their headings and alt texts, and the tracks stay hidden', () => {
         const { container } = renderBlocks([
             {
                 id: 't',
@@ -161,8 +194,8 @@ describe('LandingRenderer', () => {
             { id: 's', type: 'spacer', size: 'lg' },
         ]);
 
-        expect(screen.getByRole('heading', { level: 2, name: 'Nuestros ejes' })).toBeInTheDocument();
-        expect(screen.getByRole('heading', { level: 3, name: 'Ciencia' })).toBeInTheDocument();
+        expect(screen.queryByRole('heading', { level: 2, name: 'Nuestros ejes' })).not.toBeInTheDocument();
+        expect(screen.queryByText('Ciencia')).not.toBeInTheDocument();
         expect(screen.getByRole('heading', { level: 2, name: 'landing.faq_title' })).toBeInTheDocument();
         expect(screen.getByRole('heading', { level: 3, name: '¿Dónde?' })).toBeInTheDocument();
         expect(screen.getByRole('img', { name: 'Foto uno' })).toBeInTheDocument();

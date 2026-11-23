@@ -31,7 +31,7 @@ final class ShowEventController
         app()->setLocale($locale);
 
         return Inertia::render('Events/Show', [
-            'event' => PublicEventData::from($event, $locale),
+            'event' => PublicEventData::from($event, $organization, $locale),
             // La landing publicada del evento, con sus bloques ya resueltos (plan 022, CA-022-21 y 27); sin ella, `null`
             // y la página muestra la plantilla fija de siempre (CA-022-22). Nunca viaja el borrador.
             'landing' => $this->landing($event, $organization, $locale, $resolve),

@@ -1,6 +1,6 @@
 import { useId } from 'react';
 
-import { HEADING_MD, LIST_CARD, SECTION_HEADING } from '@/lib/classes';
+import { FACTS_PANEL, HEADING_MD, LIST_CARD, SECTION_HEADING } from '@/lib/classes';
 import type { Translate } from '@/lib/translate';
 import type { PublicTracksBlock } from '@/types/landing';
 
@@ -9,9 +9,19 @@ interface LandingTracksBlockProps {
     t: Translate;
 }
 
+/**
+ * Si es `true`, el sitio público no muestra los ejes (temas) del evento: decisión del organizador. Siguen
+ * existiendo en los datos y en el formulario de envío; para volver a mostrarlos basta ponerlo en `false`.
+ */
+const HIDE_TRACKS = true;
+
 /** Ejes temáticos activos del evento. Usar en: `LandingRenderer`. */
 export function LandingTracksBlock({ block, t }: LandingTracksBlockProps) {
     const headingId = useId();
+
+    if (HIDE_TRACKS) {
+        return null;
+    }
 
     return (
         <section aria-labelledby={headingId} className="flex flex-col gap-4">
@@ -21,7 +31,7 @@ export function LandingTracksBlock({ block, t }: LandingTracksBlockProps) {
             {block.tracks.length === 0 ? (
                 <p className="text-base text-text-muted">{t('landing.tracks_empty')}</p>
             ) : (
-                <ul className="grid gap-4 sm:grid-cols-2">
+                <ul className={FACTS_PANEL}>
                     {block.tracks.map((track, index) => (
                         <li key={`${index}-${track.name}`} className={LIST_CARD}>
                             <h3 className={HEADING_MD}>{track.name}</h3>

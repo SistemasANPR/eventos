@@ -11,6 +11,7 @@ use App\Models\Organization;
 use App\Models\PrivacyNotice;
 use App\Support\Calls\PublicCallData;
 use App\Support\Calls\ResolveCallState;
+use App\Support\Events\PublicEventData;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -38,7 +39,7 @@ final class ShowCallController
 
         return Inertia::render('Calls/Show', [
             'call' => PublicCallData::from($call, $event, $state, $locale),
-            'event' => ['name' => $event->getTranslation('name', $locale)],
+            'event' => ['name' => $event->getTranslation('name', $locale), 'logoUrl' => PublicEventData::logoUrl($event, $organization)],
             'organization' => ['name' => $organization->name, 'slug' => $organization->slug],
             'eventUrl' => route('events.show', $eventRoute, false)."?lang={$locale}",
             // Solo con la convocatoria abierta se ofrece el botón de envío (plan 006, H-006-7).

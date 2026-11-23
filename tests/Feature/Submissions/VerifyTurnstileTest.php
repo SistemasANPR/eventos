@@ -89,3 +89,19 @@ it('CA-006-24: el token no se guarda en claro en la cache', function (): void {
     expect(Cache::has('turnstile:used:token-secreto-123'))->toBeFalse()
         ->and(Cache::has('turnstile:used:'.hash('sha256', 'token-secreto-123')))->toBeTrue();
 });
+
+it('CA-006-24: el token de prueba de Cloudflare se acepta repetido para poder probar el formulario con las llaves de prueba', function (): void {
+    Http::fake(['turnstile.test/*' => Http::response(['success' => true])]);
+
+    app(VerifyTurnstile::class)->handle('XXXX.DUMMY.TOKEN.XXXX', '203.0.113.9');
+    app(VerifyTurnstile::class)->handle('XXXX.DUMMY.TOKEN.XXXX', '203.0.113.9');
+
+    Http::assertSentCount(2);
+});
+
+it('CA-006-24: el token de prueba sigue verificandose con el servicio y se rechaza si este lo declara invalido', function (): void {
+    Http::fake(['turnstile.test/*' => Http::response(['success' => false])]);
+
+    expect(fn () => app(VerifyTurnstile::class)->handle('XXXX.DUMMY.TOKEN.XXXX', '203.0.113.9'))
+        ->toThrow(TurnstileInvalid::class);
+});

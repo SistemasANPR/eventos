@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 
 import { FormFieldInput } from '@/components/molecules/FormFieldInput';
-import { BUTTON_SECONDARY, FOCUS_RING, PARTICIPANT_CARD } from '@/lib/classes';
+import { BUTTON_SECONDARY, FOCUS_RING, PARTICIPANT_CARD, SECTION_CARD, SECTION_HEADING } from '@/lib/classes';
 import { participantFields, titleField, trackField } from '@/lib/submission-fields';
 import type { Translate } from '@/lib/translate';
 import { cn } from '@/lib/utils';
@@ -84,16 +84,16 @@ export function SubmissionBlock({
 
     return (
         <div className={cn('space-y-8', className)}>
-            <section aria-labelledby={`${idPrefix}-details`} className="space-y-6">
-                <h2 id={`${idPrefix}-details`} className="text-xl font-semibold text-text">
+            <section aria-labelledby={`${idPrefix}-details`} className={cn(SECTION_CARD, 'space-y-6')}>
+                <h2 id={`${idPrefix}-details`} className={SECTION_HEADING}>
                     {t('submit.section_details')}
                 </h2>
                 <FormFieldInput {...shared} field={titleField(locale, t)} error={errors['s.title']} />
                 <FormFieldInput {...shared} field={trackField(tracks, locale, t)} error={errors['s.track_id']} />
             </section>
 
-            <section aria-labelledby={`${idPrefix}-participants`} className="space-y-4">
-                <h2 id={`${idPrefix}-participants`} className="text-xl font-semibold text-text">
+            <section aria-labelledby={`${idPrefix}-participants`} className={cn(SECTION_CARD, 'space-y-4')}>
+                <h2 id={`${idPrefix}-participants`} className={SECTION_HEADING}>
                     {t('submit.section_participants')}
                 </h2>
                 <p className="text-sm text-text-muted">

@@ -73,6 +73,18 @@
     /* Verde-azulado: etiquetas, iconos e información de apoyo. */
     --color-support: #156a62;
 
+    /*
+     * Marca del Congreso Parques para el sitio público (portadas, cabeceras y detalles).
+     * `brand` y `brand-deep` son fondos con texto blanco; `cta` es la lima de los botones
+     * principales (texto `cta-contrast`; nunca texto sobre claro); `brand-cyan` es solo
+     * decorativo o acento en texto grande sobre fondo oscuro.
+     */
+    --color-brand: #6847f6;
+    --color-brand-deep: #0e0477;
+    --color-brand-cyan: #00deff;
+    --color-cta: #d2dd0a;
+    --color-cta-contrast: #0e0477;
+
     --color-success: #2e7d32;
     --color-success-bg: #e8f5e9;
     --color-warning: #92400e;

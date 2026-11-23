@@ -30,7 +30,6 @@ export function LandingEventInfoBlock({ block, locale, t, isMainHeading }: Landi
             <dl className={FACTS_PANEL}>
                 <EventFact label={t('event.when')}>{dates}</EventFact>
                 <EventFact label={t('event.where')}>{venue === '' ? t('event.no_venue') : venue}</EventFact>
-                <EventFact label={t('event.timezone')}>{block.timezone}</EventFact>
             </dl>
         </section>
     );

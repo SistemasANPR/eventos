@@ -93,47 +93,36 @@ describe('Calls/Show page', () => {
         expect(screen.getByText(hint)).toBeInTheDocument();
     });
 
-    it('shows the dates in the timezone of the event', () => {
+    it('shows opening, closing and results dates in the timezone of the event', () => {
         renderPage();
 
         // 15:00 UTC = 09:00 en Ciudad de México (UTC-6 en enero).
+        expect(screen.getByText('Apertura')).toBeInTheDocument();
+        expect(screen.getByText('Cierre')).toBeInTheDocument();
         expect(screen.getByText(/10 de enero de 2027/)).toHaveTextContent(/9:00/);
         expect(screen.getByText(/15 de febrero de 2027/)).toHaveTextContent(/17:00|5:00/);
-        expect(screen.getByText('America/Mexico_City')).toBeInTheDocument();
+        expect(screen.getByText('Resultados')).toBeInTheDocument();
+        expect(screen.getByText(/1 de marzo de 2027/)).toBeInTheDocument();
     });
 
     it('hides the results date when the call has none', () => {
         renderPage({ resultsAt: undefined });
 
         expect(screen.queryByText('Resultados')).not.toBeInTheDocument();
+        expect(screen.getByText('Apertura')).toBeInTheDocument();
     });
 
-    it('shows the results date when it is defined', () => {
+    it('does not show the category, the timezone nor the tracks', () => {
         renderPage();
 
-        expect(screen.getByText('Resultados')).toBeInTheDocument();
-        expect(screen.getByText(/1 de marzo de 2027/)).toBeInTheDocument();
-    });
-
-    it('lists the tracks in order with their description', () => {
-        renderPage();
-
-        const list = screen.getByRole('list', { name: 'Ejes temáticos' });
-        const items = within(list).getAllByRole('listitem');
-
-        expect(items).toHaveLength(2);
-        expect(items[0]).toHaveTextContent('Ciencia');
-        expect(items[0]).toHaveTextContent('Investigación');
-        expect(items[1]).toHaveTextContent('Gestión');
-    });
-
-    it('shows an empty state when there are no tracks', () => {
-        renderPage({ tracks: [] });
-
-        expect(screen.getByText('Esta convocatoria aún no tiene ejes temáticos.')).toBeInTheDocument();
+        expect(screen.queryByText('Tipo de propuesta')).not.toBeInTheDocument();
+        expect(screen.queryByText('Sesión')).not.toBeInTheDocument();
+        expect(screen.queryByText('Zona horaria')).not.toBeInTheDocument();
+        expect(screen.queryByText('America/Mexico_City')).not.toBeInTheDocument();
+        expect(screen.queryByRole('heading', { level: 2 })).not.toBeInTheDocument();
         expect(screen.queryByRole('list', { name: 'Ejes temáticos' })).not.toBeInTheDocument();
+        expect(screen.queryByText('Ciencia')).not.toBeInTheDocument();
     });
-
     it('links back to the event, and to the privacy notice only when there is one', () => {
         const { unmount } = renderPage();
 
@@ -174,5 +163,20 @@ describe('Calls/Show page', () => {
         renderPage();
 
         expect(screen.queryByRole('button')).not.toBeInTheDocument();
+    });
+});
+
+describe('Calls/Show page: logo (plan 027)', () => {
+    it('CA-027-13: shows the logo with the event name as alt text and nothing without it', () => {
+        const { unmount } = render(
+            <Show call={call} event={{ ...event, logoUrl: '/parques/events/congreso/logo?v=ab12' }} organization={organization} eventUrl="/e" privacyUrl={null} />,
+        );
+
+        expect(screen.getByRole('img', { name: 'Congreso Parques' })).toHaveAttribute('src', '/parques/events/congreso/logo?v=ab12');
+        unmount();
+
+        render(<Show call={call} event={{ ...event, logoUrl: null }} organization={organization} eventUrl="/e" privacyUrl={null} />);
+
+        expect(screen.queryByRole('img')).not.toBeInTheDocument();
     });
 });

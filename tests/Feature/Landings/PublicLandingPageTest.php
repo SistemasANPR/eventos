@@ -176,13 +176,13 @@ it('CA-022-24: the calls block lists only the published calls of the event and f
     $this->get(pageUrl($event))->assertInertia(fn (Assert $page) => $page->where('landing.blocks.0.calls.0.state', 'closed'));
 });
 
-it('CA-022-25: an open call links its register button to the submission form', function (): void {
+it('CA-022-25: an open call links its register button to the call page, not straight to the form', function (): void {
     $event = pageEvent();
     pageLanding($event, [['type' => 'calls']]);
     $call = pageCall($event, 'Ponencias');
 
     $this->get(pageUrl($event, '?lang=es'))->assertInertia(fn (Assert $page) => $page
-        ->where('landing.blocks.0.calls.0.registerUrl', "/{$event->organization->slug}/events/{$event->slug}/call/{$call->slug}/submit?lang=es"));
+        ->where('landing.blocks.0.calls.0.registerUrl', "/{$event->organization->slug}/events/{$event->slug}/call/{$call->slug}?lang=es"));
 });
 
 it('CA-022-26: a scheduled, paused or closed call has no register link, and the direct link does not offer the form', function (string $label, array $attributes, string $state): void {

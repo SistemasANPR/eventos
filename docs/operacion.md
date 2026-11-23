@@ -36,6 +36,12 @@ Todo el desarrollo ocurre en `staging`; `main` solo recibe lo ya probado (ADR-00
 2. Integrar en `staging` despliega al entorno de pruebas (si existe, ADR-0008 DA-3).
 3. Producción se despliega desde `main`, que solo recibe `staging` por pull request, con **aprobación manual**.
 4. **Migraciones:** el paso de despliegue las aplica solo tras la aprobación de una persona (regla 1 de `AGENTS.md`). Cambios incompatibles siguen «expandir y contraer» (`docs/database-design.md` §5).
+   **En Railway el despliegue no ejecuta `migrate`:** tras desplegar una versión con migraciones nuevas quedan pendientes hasta que una persona las aplica. Pasos, en este orden:
+   1. Ver cuáles faltan: `railway ssh --service eventos -- php artisan migrate:status` (las filas `Pending`). Es solo lectura.
+   2. Revisar que sean aditivas (`create table`, columnas nuevas con valor por defecto); una destructiva sigue «expandir y contraer» y lleva su plan de reversa.
+   3. Aplicarlas: `railway ssh --service eventos -- php artisan migrate --force`. Es idempotente: reintentarla no repite las ya aplicadas.
+   4. Comprobar que `migrate:status` ya no muestra `Pending`.
+   Hacerlo en cuanto termine el despliegue: mientras tanto, las pantallas que usan las tablas nuevas fallan con «tabla inexistente».
 5. Después del despliegue: comprobar `/up`, reiniciar los workers y revisar errores durante 15 minutos.
 6. **Recursos de Filament en el build:** `railway.json` fija el constructor `DOCKERFILE`. Los scripts y fuentes de Filament (`public/js/filament`, `public/fonts/filament`) no están en Git: los publica `filament:upgrade` (script `post-autoload-dump`) cuando el `Dockerfile` ejecuta `composer dump-autoload` con scripts. Sin ese paso responden 404 y en el acceso desaparecen el botón «Entrar» y el icono del ojo (con Railpack ocurrió). Tras desplegar, comprobar que `/js/filament/filament/app.js` responde 200.
 
@@ -57,8 +63,11 @@ Solo nombres; nunca valores en el repositorio. Toda variable nueva se añade a `
 | `MAIL_*` | Correo transaccional | Sí |
 | `NOTIFICATIONS_MAILER` | Proveedor del correo transaccional: `resend` en staging y producción, `smtp` en local (Mailpit). Un valor desconocido falla al enviar; no cae a otro proveedor (ADR-0009, plan 008) | Sí |
 | `RESEND_API_KEY` | Clave de la API de Resend; solo cuando `NOTIFICATIONS_MAILER=resend`. Es un secreto: solo en variables del entorno, nunca en el repositorio | Sí, con `resend` |
+| `RUN_QUEUE_WORKER` | Con `true`, el contenedor web procesa también la cola de correos (acuses de propuesta, avisos): para un despliegue de un solo servicio. Con un servicio `worker` aparte (`php artisan queue:work`) se deja sin definir. Sin ningún worker los correos se quedan en la cola y no salen | No |
+| `RUN_MIGRATIONS` | Con `true`, el contenedor web aplica las migraciones pendientes (`php artisan migrate --force`) al arrancar, sin entrar al servidor tras cada despliegue. Si una migración falla, el contenedor no arranca y Railway conserva la versión anterior. Es una decisión explícita de quien administra el entorno (AGENTS.md, regla 1): se activa a propósito; por defecto apagado | No |
 | `TURNSTILE_SITE_KEY` | Llave pública de Cloudflare Turnstile; va al formulario público (plan 006). En local, la llave de prueba que siempre aprueba | Sí, en producción |
 | `TURNSTILE_SECRET_KEY` | Llave secreta de Turnstile; solo la usa el servidor para verificar el envío. Es un secreto: solo en variables del entorno | Sí, en producción |
+| `SUBMISSIONS_LIMIT_MULTIPLIER` | Multiplica los intentos de los límites de los formularios públicos de propuestas (5 envíos por IP cada 10 min, 3 acuses por correo por hora, enlaces de acceso y cuotas de carga). Por defecto 1, que son los valores del plan 006; en staging se sube (por ejemplo 100) para no quedar bloqueado en las pruebas. En producción se deja en 1: bajarlo de 1 no es posible | No |
 | `[RELLENAR: proveedor de pagos]` | Pagos (ADR-0007) | Según módulo |
 | `[RELLENAR: errores]` | Registro de errores | Recomendada |
 

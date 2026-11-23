@@ -21,5 +21,5 @@ function ColumnContent({ column }: { column: PublicColumn }) {
         return <RichText html={column.html} />;
     }
 
-    return <img src={column.url} alt={column.alt} loading="lazy" className="w-full rounded-lg border border-border object-cover" />;
+    return <img src={column.url} alt={column.alt} loading="lazy" className="w-full rounded-2xl object-cover shadow-md" />;
 }

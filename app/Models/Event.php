@@ -38,6 +38,7 @@ use Spatie\Translatable\HasTranslations;
  * @property string|null $venue_name
  * @property string|null $venue_address
  * @property string|null $city
+ * @property string|null $logo_path ruta en el disco `media` (plan 027); no es asignable en masa
  * @property list<string> $locales
  * @property string $default_locale
  * @property string $currency
