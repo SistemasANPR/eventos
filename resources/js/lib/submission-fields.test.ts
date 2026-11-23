@@ -24,25 +24,29 @@ describe('fixed block fields', () => {
     it('builds the participant fields by position with the limits of the server', () => {
         const fields = participantFields(2, 'es', t);
 
-        expect(fields.map((field) => field.key)).toEqual([
-            's.participants.2.first_name',
-            's.participants.2.last_name',
-            's.participants.2.email',
-            's.participants.2.country',
-            's.participants.2.phone',
-            's.participants.2.job_title',
-            's.participants.2.company',
-            's.participants.2.bio',
-        ]);
-        expect(fields.filter((field) => field.required).map((field) => field.key)).toEqual([
-            's.participants.2.first_name',
-            's.participants.2.last_name',
-            's.participants.2.email',
-            's.participants.2.country',
-            's.participants.2.phone',
-            's.participants.2.job_title',
-            's.participants.2.company',
-            's.participants.2.bio',
-        ]);
+        const keys = [
+            'first_name',
+            'last_name',
+            'second_last_name',
+            'email',
+            'alt_email',
+            'mobile',
+            'phone',
+            'company',
+            'job_title',
+            'country',
+            'state',
+            'city',
+            'bio',
+            'photo',
+        ].map((name) => `s.participants.2.${name}`);
+
+        expect(fields.map((field) => field.key)).toEqual(keys);
+        // Son obligatorios todos menos el apellido materno, el correo alternativo y la fotografía.
+        expect(fields.filter((field) => field.required).map((field) => field.key)).toEqual(
+            keys.filter((key) => !key.endsWith('.second_last_name') && !key.endsWith('.alt_email') && !key.endsWith('.photo')),
+        );
+        // El celular: exactamente 14 dígitos y solo números.
+        expect(fields.find((field) => field.key.endsWith('.mobile'))?.config).toEqual({ minLength: 14, maxLength: 14, digitsOnly: true });
     });
 });

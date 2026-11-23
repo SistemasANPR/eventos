@@ -10,6 +10,7 @@ use App\Enums\SubmissionFileStatus;
 use App\Models\Organization;
 use App\Models\Submission;
 use App\Models\SubmissionFile;
+use App\Models\SubmissionParticipant;
 use App\Models\User;
 use Illuminate\Support\Number;
 
@@ -27,7 +28,7 @@ final class SubmissionDetail
     /**
      * @return array{
      *     answers: list<array{label: string, retired: bool, type: string, value: string|bool|list<string>|null, files: list<array{name: string, size: string, url: string|null, previewUrl: string|null}>, fileCount: int}>,
-     *     participants: list<array{name: string, email: string, country: string, phone: ?string, jobTitle: ?string, company: ?string, bio: ?string, primary: bool}>,
+     *     participants: list<array{photoUrl: ?string, fields: list<array{label: string, value: string}>, name: string, email: string, country: string, state: ?string, city: ?string, phone: ?string, mobile: ?string, altEmail: ?string, jobTitle: ?string, company: ?string, bio: ?string, primary: bool}>,
      *     canDownload: bool
      * }
      */
@@ -38,11 +39,17 @@ final class SubmissionDetail
 
         return [
             'answers' => self::answers($submission, $filesByField, $canDownload, $organization),
-            'participants' => $submission->participants->map(static fn ($participant): array => [
+            'participants' => $submission->participants->map(fn ($participant): array => [
+                'photoUrl' => self::photoUrl($participant->photo_file_id, $canDownload, $organization),
+                'fields' => self::participantFields($participant),
                 'name' => $participant->full_name,
                 'email' => $participant->email,
                 'country' => $participant->country,
+                'state' => $participant->state,
+                'city' => $participant->city,
                 'phone' => $participant->phone,
+                'mobile' => $participant->mobile,
+                'altEmail' => $participant->alt_email,
                 'jobTitle' => $participant->job_title,
                 'company' => $participant->company,
                 'bio' => $participant->bio,
@@ -50,6 +57,53 @@ final class SubmissionDetail
             ])->values()->all(),
             'canDownload' => $canDownload,
         ];
+    }
+
+    /** Imagen de la fotografía del participante en el panel; sin permiso de descarga o sin foto, nada. */
+    private static function photoUrl(?string $fileId, bool $canDownload, Organization $organization): ?string
+    {
+        if ($fileId === null || ! $canDownload) {
+            return null;
+        }
+
+        $isImage = SubmissionFile::query()
+            ->whereKey($fileId)
+            ->where('status', SubmissionFileStatus::Attached)
+            ->whereIn('mime_type', DownloadSubmissionFile::IMAGE_TYPES)
+            ->exists();
+
+        return $isImage ? route('submission-files.preview', ['organization' => $organization->slug, 'file' => $fileId]) : null;
+    }
+
+    /**
+     * Cada dato del participante con su etiqueta (todo lo que dejó en el formulario); los vacíos no se muestran.
+     *
+     * @return list<array{label: string, value: string}>
+     */
+    private static function participantFields(SubmissionParticipant $participant): array
+    {
+        $values = [
+            'email' => $participant->email,
+            'alt_email' => $participant->alt_email,
+            'mobile' => $participant->mobile,
+            'phone' => $participant->phone,
+            'company' => $participant->company,
+            'job_title' => $participant->job_title,
+            'country' => $participant->country,
+            'state' => $participant->state,
+            'city' => $participant->city,
+            'bio' => $participant->bio,
+        ];
+
+        $rows = [];
+
+        foreach ($values as $key => $value) {
+            if (is_string($value) && $value !== '') {
+                $rows[] = ['label' => __("submission_panel.detail.participant.{$key}"), 'value' => $value];
+            }
+        }
+
+        return $rows;
     }
 
     /** @return array<string, list<SubmissionFile>> archivos ya ligados a la propuesta, por clave de campo */

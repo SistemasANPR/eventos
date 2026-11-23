@@ -4,14 +4,7 @@ import type { AnswerValue, SubmissionTrack } from '@/types/submission';
 import type { PublicOrganization } from '@/types/event';
 
 /** Estado de una propuesta: coincide con `App\Enums\SubmissionStatus`. */
-export type SubmissionStatus =
-    | 'submitted'
-    | 'under_review'
-    | 'accepted'
-    | 'waitlisted'
-    | 'rejected'
-    | 'confirmed'
-    | 'withdrawn';
+export type SubmissionStatus = 'submitted' | 'under_review' | 'accepted' | 'waitlisted' | 'rejected' | 'confirmed' | 'withdrawn';
 
 /** Props de `Author/RequestLink`: coincide con `App\Support\Submissions\AccessLinkPageData`. */
 export interface AccessLinkPageProps {

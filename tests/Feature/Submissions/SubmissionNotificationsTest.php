@@ -77,7 +77,7 @@ function notifyInput(array $ctx): array
         'title' => 'Parques vivos',
         'track_id' => $ctx['track']->id,
         'answers' => [],
-        'participants' => [['first_name' => 'Ana', 'last_name' => 'Pérez', 'email' => 'ana@example.test', 'country' => 'MX', 'phone' => '+52 55 1234 5678', 'job_title' => 'Dra.', 'company' => 'ACME', 'bio' => 'Semblanza profesional', 'is_primary' => true]],
+        'participants' => [['first_name' => 'Ana', 'last_name' => 'Pérez', 'email' => 'ana@example.test', 'country' => 'MX', 'mobile' => '52155123456789', 'state' => 'CDMX', 'city' => 'Ciudad de México', 'phone' => '+52 55 1234 5678', 'job_title' => 'Dra.', 'company' => 'ACME', 'bio' => 'Semblanza profesional', 'is_primary' => true]],
         'consent' => true,
     ];
 }

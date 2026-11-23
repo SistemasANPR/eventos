@@ -24,5 +24,12 @@ export function EventLogo({ src, name, className }: EventLogoProps) {
 
     const handleError = (): void => setHasFailed(true);
 
-    return <img src={src} alt={name} className={cn('block h-auto max-h-16 w-auto max-w-full object-contain object-left sm:max-h-20', className)} onError={handleError} />;
+    return (
+        <img
+            src={src}
+            alt={name}
+            className={cn('block h-auto max-h-16 w-auto max-w-full object-contain object-left sm:max-h-20', className)}
+            onError={handleError}
+        />
+    );
 }

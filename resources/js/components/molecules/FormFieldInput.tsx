@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import type { FormEvent, ReactNode } from 'react';
 
 import { COUNTRY_CODES } from '@/lib/countries';
 import { FORM_CONTROL } from '@/lib/classes';
@@ -172,6 +172,15 @@ function renderControl(
                     defaultValue={text}
                     minLength={config.minLength}
                     maxLength={config.maxLength}
+                    {...(config.digitsOnly === true
+                        ? {
+                              inputMode: 'numeric' as const,
+                              pattern: '[0-9]*',
+                              onInput: (event: FormEvent<HTMLInputElement>) => {
+                                  event.currentTarget.value = event.currentTarget.value.replace(/\D/g, '');
+                              },
+                          }
+                        : {})}
                     className={FORM_CONTROL}
                 />
             );

@@ -62,8 +62,24 @@ export default function Edit({ event, organization, reference, participants, edi
                 <h2 id="edit-details" className="text-2xl font-semibold text-text">
                     {t('submit.section_details')}
                 </h2>
-                <FormFieldInput field={titleField(locale, t)} locale={locale} defaultLocale={edit.defaultLocale} idPrefix="edit" t={t} error={mapped.fields['s.title']} initialValue={edit.initialValues['s.title']} />
-                <FormFieldInput field={trackField(edit.tracks, locale, t)} locale={locale} defaultLocale={edit.defaultLocale} idPrefix="edit" t={t} error={mapped.fields['s.track_id']} initialValue={edit.initialValues['s.track_id']} />
+                <FormFieldInput
+                    field={titleField(locale, t)}
+                    locale={locale}
+                    defaultLocale={edit.defaultLocale}
+                    idPrefix="edit"
+                    t={t}
+                    error={mapped.fields['s.title']}
+                    initialValue={edit.initialValues['s.title']}
+                />
+                <FormFieldInput
+                    field={trackField(edit.tracks, locale, t)}
+                    locale={locale}
+                    defaultLocale={edit.defaultLocale}
+                    idPrefix="edit"
+                    t={t}
+                    error={mapped.fields['s.track_id']}
+                    initialValue={edit.initialValues['s.track_id']}
+                />
             </section>
             <section aria-labelledby="edit-participants" className="space-y-4">
                 <h2 id="edit-participants" className="text-2xl font-semibold text-text">
@@ -119,7 +135,11 @@ export default function Edit({ event, organization, reference, participants, edi
                 </header>
 
                 {editError !== undefined && (
-                    <section role="alert" aria-labelledby="edit-error-title" className="flex flex-col gap-2 rounded-lg border border-border bg-error-bg p-4">
+                    <section
+                        role="alert"
+                        aria-labelledby="edit-error-title"
+                        className="flex flex-col gap-2 rounded-lg border border-border bg-error-bg p-4"
+                    >
                         <h2 id="edit-error-title" className="text-lg font-semibold text-error">
                             {t('author.edit.error_title')}
                         </h2>

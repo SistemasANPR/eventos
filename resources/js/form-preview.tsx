@@ -87,7 +87,13 @@ function ParticipantsPreview({ props }: { props: ParticipantsPreviewProps }) {
     const nextId = useRef(1);
 
     return (
-        <div className="rounded-lg border border-border bg-surface p-4 text-text sm:p-6">
+        // Es solo una vista: va en su propio formulario (sin validar ni enviar) para que lo «obligatorio» de estos campos
+        // no impida guardar el editor de Filament que la contiene.
+        <form
+            noValidate
+            onSubmit={(event) => event.preventDefault()}
+            className="rounded-lg border border-border bg-surface p-4 text-text sm:p-6"
+        >
             <SubmissionBlock
                 showDetails={false}
                 locale={props.locale}
@@ -102,7 +108,7 @@ function ParticipantsPreview({ props }: { props: ParticipantsPreviewProps }) {
                 errors={{}}
                 idPrefix="preview"
             />
-        </div>
+        </form>
     );
 }
 

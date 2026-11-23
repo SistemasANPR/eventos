@@ -30,6 +30,9 @@ class EditFormDefinition extends EditRecord
     protected function getHeaderActions(): array
     {
         return [
+            // Guardar y cancelar arriba: el formulario es largo y así no hay que bajar hasta el final.
+            $this->getSaveFormAction()->formId('form'),
+            $this->getCancelFormAction()->formId('form'),
             Action::make('preview')
                 ->label(__('forms.preview.action'))
                 ->icon('heroicon-o-eye')
@@ -40,6 +43,12 @@ class EditFormDefinition extends EditRecord
                 ])),
             $this->publishAction(),
         ];
+    }
+
+    /** Los botones de guardar y cancelar van en la cabecera, no al final del formulario. */
+    protected function getFormActions(): array
+    {
+        return [];
     }
 
     /** @param  array<string, mixed>  $data */

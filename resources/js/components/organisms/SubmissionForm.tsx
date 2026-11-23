@@ -5,7 +5,8 @@ import { AcceptanceField } from '@/components/molecules/AcceptanceField';
 import { FormRenderer } from '@/components/organisms/FormRenderer';
 import { SubmissionBlock } from '@/components/organisms/SubmissionBlock';
 import { BUTTON_SECONDARY, FOCUS_RING, SECTION_CARD, SECTION_HEADING } from '@/lib/classes';
-import { hasErrors, mapServerErrors } from '@/lib/submission-errors';
+import { FIXED_PREFIX, hasErrors, mapServerErrors } from '@/lib/submission-errors';
+import { participantPhotoKey } from '@/lib/submission-fields';
 import { readSubmission } from '@/lib/submission-payload';
 import type { Translate } from '@/lib/translate';
 import { UploadFailedError, uploadSubmissionFile } from '@/lib/upload-submission-file';
@@ -74,8 +75,7 @@ export function SubmissionForm({ form, locale, t, errors, failure, isProcessing,
     const hasSiteKey = form.turnstileSiteKey !== '';
     const turnstileError = mapped.turnstile ?? turnstileMessage;
     const isClosed = failure?.code === 'CALL_NOT_OPEN';
-    const needsRefresh =
-        (failure !== null && NEEDS_REFRESH.includes(failure.code)) || mapped.general.length > 0;
+    const needsRefresh = (failure !== null && NEEDS_REFRESH.includes(failure.code)) || mapped.general.length > 0;
     const hasFieldErrors = hasErrors({ ...mapped, general: [] }) || Object.keys(uploadErrors).length > 0;
     const hasAlert = failure !== null || mapped.general.length > 0 || hasFieldErrors;
 
@@ -133,7 +133,10 @@ export function SubmissionForm({ form, locale, t, errors, failure, isProcessing,
                     try {
                         id = await uploadSubmissionFile(form.uploadUrl, file, fieldKey, credentials.token);
                     } catch (error) {
-                        const message = error instanceof UploadFailedError && error.message !== '' ? error.message : t('submit.error_upload', { name: file.name });
+                        const message =
+                            error instanceof UploadFailedError && error.message !== ''
+                                ? error.message
+                                : t('submit.error_upload', { name: file.name });
                         throw new FieldUploadError(fieldKey, message);
                     }
 
@@ -171,7 +174,9 @@ export function SubmissionForm({ form, locale, t, errors, failure, isProcessing,
             fileAnswers = await uploadFiles(files);
         } catch (error) {
             if (error instanceof FieldUploadError) {
-                setUploadErrors({ [error.fieldKey]: error.message });
+                const photo = /^participant_photo_(\d+)$/.exec(error.fieldKey);
+
+                setUploadErrors({ [photo === null ? error.fieldKey : `${FIXED_PREFIX}participants.${photo[1]}.photo`]: error.message });
             }
 
             return;
@@ -186,8 +191,12 @@ export function SubmissionForm({ form, locale, t, errors, failure, isProcessing,
             locale,
             title: values.title,
             track_id: values.track_id,
-            answers: { ...values.answers, ...fileAnswers },
-            participants: values.participants,
+            answers: Object.fromEntries(Object.entries({ ...values.answers, ...fileAnswers }).filter(([key]) => !isPhotoKey(key))),
+            participants: values.participants.map((participant, index) => {
+                const photoId = fileAnswers[participantPhotoKey(index)];
+
+                return Array.isArray(photoId) && photoId[0] !== undefined ? { ...participant, photo_file_id: photoId[0] } : participant;
+            }),
             consent,
             privacy_notice_version_id: form.privacyNotice.id,
             third_parties_authorized: thirdParties && participantIds.length > 1,
@@ -310,6 +319,11 @@ export function SubmissionForm({ form, locale, t, errors, failure, isProcessing,
             />
         </div>
     );
+}
+
+/** Las fotografías de participantes viajan en cada participante, no entre las respuestas del formulario. */
+function isPhotoKey(key: string): boolean {
+    return key.startsWith('participant_photo_');
 }
 
 /** Error de la subida de un campo concreto: se muestra junto a ese campo. */

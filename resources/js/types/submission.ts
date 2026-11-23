@@ -34,7 +34,14 @@ export type ParticipantPayload = {
     last_name: string;
     email: string;
     country: string;
+    second_last_name?: string;
+    alt_email?: string;
+    mobile?: string;
+    state?: string;
+    city?: string;
     phone?: string;
+    /** Identificador de la fotografía ya subida (lo agrega el envío, no el formulario). */
+    photo_file_id?: string;
     job_title?: string;
     company?: string;
     bio?: string;

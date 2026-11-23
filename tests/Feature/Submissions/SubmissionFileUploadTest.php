@@ -11,6 +11,7 @@ use App\Models\Organization;
 use App\Models\SubmissionFile;
 use App\Support\Files\FileFieldRegistry;
 use App\Support\Files\PrivateUploads;
+use App\Support\Files\PublishedFormFileFields;
 use App\Support\Files\UploadTokenVerifier;
 use App\Support\Tenancy\CurrentOrganization;
 use Illuminate\Contracts\Filesystem\Filesystem;
@@ -479,4 +480,16 @@ it('answers 404 when the call, the event or the organization of the URL do not m
     uplPost($this, $organization, $sibling, $call, uplFile('a.pdf', uplPdf()))->assertNotFound();
 
     uplNothingStored();
+});
+
+it('the participant photo uses a fixed key per position and accepts only JPG and PNG', function (): void {
+    app()->instance(FileFieldRegistry::class, new PublishedFormFileFields);
+    [$organization, $event, $call] = uplScenario();
+
+    uplPost($this, $organization, $event, $call, uplFile('foto.png', uplPng()), ['form_field_key' => 'participant_photo_0'])->assertCreated();
+    uplPost($this, $organization, $event, $call, uplFile('foto.jpg', uplJpg()), ['form_field_key' => 'participant_photo_2'])->assertCreated();
+    // Un PDF no es una fotografía.
+    uplPost($this, $organization, $event, $call, uplFile('foto.pdf', uplPdf()), ['form_field_key' => 'participant_photo_1'])->assertUnprocessable();
+    // La clave tiene que ser exactamente la de una posición.
+    uplPost($this, $organization, $event, $call, uplFile('foto.png', uplPng()), ['form_field_key' => 'participant_photo_x'])->assertUnprocessable();
 });

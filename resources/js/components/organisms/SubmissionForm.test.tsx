@@ -35,7 +35,11 @@ const t = createTranslate({
         participant_job_title: 'Cargo',
         participant_company: 'Empresa',
         participant_bio: 'Semblanza profesional',
-        participant_phone: 'Número de teléfono',
+        participant_phone: 'Teléfono con código de país',
+        participants_extra_question: '¿La propuesta incluye a otras personas participantes?',
+        participants_extra_0: 'No, la participación es individual.',
+        participants_extra_1: 'Sí, incluye a una persona adicional.',
+        participants_extra_2: 'Sí, incluye a dos personas adicionales.',
         participant_heading: 'Participante :number',
         participant_add: 'Agregar participante',
         participant_remove: 'Quitar participante :number',
@@ -136,21 +140,25 @@ describe('SubmissionForm', () => {
         expect(screen.queryByLabelText(/autorización/)).not.toBeInTheDocument();
     });
 
-    it('CA-006-5: adds and removes participants within the minimum and maximum of the call and asks for the third-party declaration', () => {
+    it('CA-006-5: the question about other people adds and removes participants within the limits of the call and asks for the third-party declaration', () => {
         render(ui());
 
-        fireEvent.click(screen.getByRole('button', { name: 'Agregar participante' }));
-        fireEvent.click(screen.getByRole('button', { name: 'Agregar participante' }));
+        expect(screen.getAllByRole('group', { name: /Participante \d/ })).toHaveLength(1);
+        expect(screen.getByRole('radio', { name: 'No, la participación es individual.' })).toBeChecked();
+
+        fireEvent.click(screen.getByRole('radio', { name: 'Sí, incluye a dos personas adicionales.' }));
 
         expect(screen.getAllByRole('group', { name: /Participante \d/ })).toHaveLength(3);
-        expect(screen.queryByRole('button', { name: 'Agregar participante' })).not.toBeInTheDocument();
         expect(screen.getByLabelText(/autorización/)).toBeInTheDocument();
 
-        fireEvent.click(screen.getByRole('button', { name: 'Quitar participante 3' }));
+        fireEvent.click(screen.getByRole('radio', { name: 'Sí, incluye a una persona adicional.' }));
 
         expect(screen.getAllByRole('group', { name: /Participante \d/ })).toHaveLength(2);
-        // El primero es el principal y no se puede quitar.
-        expect(screen.queryByRole('button', { name: 'Quitar participante 1' })).not.toBeInTheDocument();
+
+        fireEvent.click(screen.getByRole('radio', { name: 'No, la participación es individual.' }));
+
+        expect(screen.getAllByRole('group', { name: /Participante \d/ })).toHaveLength(1);
+        expect(screen.queryByLabelText(/autorización/)).not.toBeInTheDocument();
     });
 
     it('sends the payload with the issued credentials, the form version, the consent and the Turnstile token', async () => {

@@ -25,7 +25,11 @@ const translations = {
         participant_job_title: 'Cargo',
         participant_company: 'Empresa',
         participant_bio: 'Semblanza profesional',
-        participant_phone: 'Número de teléfono',
+        participant_phone: 'Teléfono con código de país',
+        participants_extra_question: '¿La propuesta incluye a otras personas participantes?',
+        participants_extra_0: 'No, la participación es individual.',
+        participants_extra_1: 'Sí, incluye a una persona adicional.',
+        participants_extra_2: 'Sí, incluye a dos personas adicionales.',
     },
     author: {
         show: { reference: 'Referencia :reference' },
