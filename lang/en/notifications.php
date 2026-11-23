@@ -86,4 +86,12 @@ return [
             'recipient' => 'The person who sent the submission.',
         ],
     ],
+    'reviewer' => [
+        'assignment' => [
+            'name' => 'Submissions assigned to the reviewer',
+            'description' => 'A single summary per reviewer and per assignment operation, with the number of new submissions and the link to their dashboard; a submission assigned later by a scope rule sends no email.',
+            'trigger' => 'A team member assigns submissions to a reviewer.',
+            'recipient' => 'The assigned reviewer.',
+        ],
+    ],
 ];

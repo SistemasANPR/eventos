@@ -25,6 +25,8 @@ final class SampleMailData
         'expires_in_minutes' => '30',
         'occurred_at' => '2027-01-15 14:30',
         'device' => 'Chrome en Windows',
+        'reviewer_name' => 'Luis Ramírez',
+        'assigned_count' => '12',
     ];
 
     /** @return array<string, string> valor de ejemplo por cada variable del descriptor */

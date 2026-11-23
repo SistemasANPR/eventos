@@ -153,6 +153,16 @@ class Submission extends Model
         return $this->hasMany(SubmissionStatusChange::class)->orderBy('created_at');
     }
 
+    /**
+     * Asignaciones de evaluadores (plan 011).
+     *
+     * @return HasMany<ReviewAssignment, $this>
+     */
+    public function reviewAssignments(): HasMany
+    {
+        return $this->hasMany(ReviewAssignment::class);
+    }
+
     /** @return HasMany<SubmissionAccessToken, $this> */
     public function accessTokens(): HasMany
     {

@@ -86,4 +86,12 @@ return [
             'recipient' => 'La persona que envió la propuesta.',
         ],
     ],
+    'reviewer' => [
+        'assignment' => [
+            'name' => 'Propuestas asignadas al evaluador',
+            'description' => 'Un solo resumen por evaluador y por operación de asignación, con la cantidad de propuestas nuevas y el enlace a su tablero; una propuesta asignada después por una regla de alcance no envía correo.',
+            'trigger' => 'Un integrante del equipo asigna propuestas a un evaluador.',
+            'recipient' => 'El evaluador asignado.',
+        ],
+    ],
 ];
