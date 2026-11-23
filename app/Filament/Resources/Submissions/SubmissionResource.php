@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Filament\Resources\Submissions;
 
+use App\Enums\ReviewAssignmentStatus;
 use App\Enums\SubmissionOrigin;
 use App\Filament\Resources\Events\EventResource;
 use App\Filament\Resources\Submissions\Pages\ViewSubmission;
@@ -79,7 +80,10 @@ class SubmissionResource extends Resource
     {
         return $query
             ->where('origin', SubmissionOrigin::Call)
-            ->with(['event', 'call', 'submissionType', 'track', 'activity']);
+            ->with(['event', 'call', 'submissionType', 'track', 'activity'])
+            // Evaluadores que cuentan para la cobertura (plan 011, CA-011-6): sin canceladas ni en conflicto.
+            ->withCount(['reviewAssignments as active_reviewers_count' => fn (Builder $assignments) => $assignments
+                ->whereIn('status', ReviewAssignmentStatus::coverageValues())]);
     }
 
     /**
