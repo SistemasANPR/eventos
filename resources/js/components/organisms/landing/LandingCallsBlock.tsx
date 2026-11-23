@@ -37,8 +37,7 @@ export function LandingCallsBlock({ block, locale, t }: LandingCallsBlockProps) 
                                 <CallStateBadge state={call.state} t={t} />
                                 <p className="text-base text-text-muted">{t(`call.state_hint.${call.state}`)}</p>
                             </div>
-                            <dl className="grid gap-3 sm:grid-cols-3">
-                                <EventFact label={t('call.type')} variant="plain">{call.submissionType}</EventFact>
+                            <dl className="grid gap-3 sm:grid-cols-2">
                                 <EventFact label={t('call.opens_at')} variant="plain">
                                     {formatEventInstant(call.opensAt, call.timezone, locale, call.timeFormat)}
                                 </EventFact>

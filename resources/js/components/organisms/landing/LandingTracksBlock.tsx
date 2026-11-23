@@ -9,9 +9,19 @@ interface LandingTracksBlockProps {
     t: Translate;
 }
 
+/**
+ * Si es `true`, el sitio público no muestra los ejes (temas) del evento: decisión del organizador. Siguen
+ * existiendo en los datos y en el formulario de envío; para volver a mostrarlos basta ponerlo en `false`.
+ */
+const HIDE_TRACKS = true;
+
 /** Ejes temáticos activos del evento. Usar en: `LandingRenderer`. */
 export function LandingTracksBlock({ block, t }: LandingTracksBlockProps) {
     const headingId = useId();
+
+    if (HIDE_TRACKS) {
+        return null;
+    }
 
     return (
         <section aria-labelledby={headingId} className="flex flex-col gap-4">
