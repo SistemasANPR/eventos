@@ -10,7 +10,9 @@ use App\Filament\Resources\Events\Pages\EditEventLanding;
 use App\Filament\Resources\Events\Pages\ListEvents;
 use App\Filament\Resources\Events\Pages\ManageEventActivities;
 use App\Filament\Resources\Events\Pages\ManageEventActivityCategories;
+use App\Filament\Resources\Events\Pages\ManageEventAssignmentRules;
 use App\Filament\Resources\Events\Pages\ManageEventFormDefinitions;
+use App\Filament\Resources\Events\Pages\ManageEventReviewers;
 use App\Filament\Resources\Events\Pages\ManageEventSpeakerCategories;
 use App\Filament\Resources\Events\Pages\ManageEventSpeakers;
 use App\Filament\Resources\Events\Pages\ManageEventSubmissions;
@@ -98,6 +100,9 @@ class EventResource extends Resource
             // Nombre = ruta del recurso anidado (`FormDefinitionResource`): Filament lo usa como su índice.
             'form-definitions' => ManageEventFormDefinitions::route('/{record}/form-definitions'),
             'submissions' => ManageEventSubmissions::route('/{record}/submissions'),
+            // Evaluadores del evento y sus reglas permanentes de alcance (plan 011, F3b).
+            'reviewers' => ManageEventReviewers::route('/{record}/reviewers'),
+            'assignment-rules' => ManageEventAssignmentRules::route('/{record}/assignment-rules'),
             // Ponentes del evento (plan 021, F2).
             'speakers' => ManageEventSpeakers::route('/{record}/speakers'),
             // Actividades del programa (plan 021, F3).
