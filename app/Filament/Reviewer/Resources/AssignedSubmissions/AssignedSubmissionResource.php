@@ -58,7 +58,9 @@ class AssignedSubmissionResource extends Resource
     public static function getEloquentQuery(): Builder
     {
         return ReviewerAssignments::for(ActionErrors::actor())
-            ->with(['event', 'submission.track', 'submission.call', 'submission.submissionType', 'submission.participants']);
+            // Sin `submission.participants`: el tablero y la lista no necesitan a los autores y, con revisión
+            // ciega, no deben pasar ni por memoria (CA-011-54). El detalle los pide a `SubmissionDetail::forReviewer`.
+            ->with(['event', 'submission.track', 'submission.call', 'submission.submissionType']);
     }
 
     public static function canViewAny(): bool

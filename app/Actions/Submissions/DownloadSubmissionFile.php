@@ -13,6 +13,7 @@ use App\Support\Files\SubmissionFileData;
 use App\Support\Tenancy\CurrentOrganization;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Support\Facades\Gate;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 /**
@@ -22,7 +23,8 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
  * de otra organización no exista (404). Un archivo `pending` tampoco existe.
  *
  * La URL caduca a los 5 minutos y fuerza `attachment` con un nombre construido
- * SOLO con el uuid y la extensión validada, nunca con `original_name` (CA-007-22).
+ * SOLO con datos del servidor, nunca con `original_name` (CA-007-22): el uuid y la
+ * extensión validada para el organizador y `propuesta-{n}.{ext}` para el evaluador (CA-011-20).
  * Cada descarga y cada intento denegado quedan en la auditoría, sin contenido ni nombre.
  *
  * Nota: el driver `local` (solo desarrollo) sirve el archivo con su propia ruta
@@ -69,11 +71,13 @@ final class DownloadSubmissionFile
 
         $this->audit($actor, $file, 'submission_file_downloaded', $organizationId);
 
-        return $this->uploads->temporaryUrl(
-            $file->storage_path,
-            now()->addMinutes(self::URL_MINUTES),
-            $file->id.'.'.SubmissionFileData::extension($file),
-        );
+        // Quien descarga solo como evaluador recibe un nombre neutro `propuesta-N.ext` (plan 011, CA-011-20):
+        // el generado también es neutro, pero el evaluador no debe ni ver el identificador interno.
+        $name = Gate::forUser($actor)->allows('downloadAsOrganizer', $file)
+            ? $file->id.'.'.SubmissionFileData::extension($file)
+            : SubmissionFileData::neutralDownloadName($file);
+
+        return $this->uploads->temporaryUrl($file->storage_path, now()->addMinutes(self::URL_MINUTES), $name);
     }
 
     /**
