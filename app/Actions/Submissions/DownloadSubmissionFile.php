@@ -57,7 +57,8 @@ final class DownloadSubmissionFile
         }
 
         // Sin propuesta no hay nada que descargar (CA-007-24): es 404 para todos, antes de autorizar.
-        if ($file->status !== SubmissionFileStatus::Attached) {
+        // Un archivo anonimizado (plan 014, DA-4) ya no tiene contenido en el disco.
+        if ($file->status !== SubmissionFileStatus::Attached || $file->anonymized_at !== null) {
             throw new NotFoundHttpException;
         }
 

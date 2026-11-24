@@ -36,6 +36,7 @@ use Illuminate\Support\Carbon;
  * @property string $sha256
  * @property SubmissionFileStatus $status
  * @property Carbon $uploaded_at
+ * @property Carbon|null $anonymized_at instante en que se borró su contenido y se anonimizó la ficha (plan 014)
  */
 class SubmissionFile extends Model
 {
@@ -57,6 +58,7 @@ class SubmissionFile extends Model
             'status' => SubmissionFileStatus::class,
             'size_bytes' => 'integer',
             'uploaded_at' => 'datetime',
+            'anonymized_at' => 'datetime',
         ];
     }
 

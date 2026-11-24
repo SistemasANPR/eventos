@@ -18,3 +18,5 @@ Schedule::command('submission-exports:purge')->hourly()->withoutOverlapping();
 
 // Recordatorio de cierre de la convocatoria a los autores con propuestas enviadas (plan 012, H-012-4). Una vez por autor y convocatoria; vigilancia: docs/operacion.md.
 Schedule::command('calls:send-closing-reminders')->dailyAt('09:00')->withoutOverlapping();
+// Retención de datos por organización (plan 014, H-014-6): solo actúa donde la organización fijó un plazo. Vigilancia: docs/operacion.md §8.
+Schedule::command('retention:apply')->dailyAt('04:00')->withoutOverlapping();

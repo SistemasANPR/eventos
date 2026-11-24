@@ -70,6 +70,7 @@ Solo nombres; nunca valores en el repositorio. Toda variable nueva se añade a `
 | `TURNSTILE_SITE_KEY` | Llave pública de Cloudflare Turnstile; va al formulario público (plan 006). En local, la llave de prueba que siempre aprueba | Sí, en producción |
 | `TURNSTILE_SECRET_KEY` | Llave secreta de Turnstile; solo la usa el servidor para verificar el envío. Es un secreto: solo en variables del entorno | Sí, en producción |
 | `SUBMISSIONS_LIMIT_MULTIPLIER` | Multiplica los intentos de los límites de los formularios públicos de propuestas (5 envíos por IP cada 10 min, 3 acuses por correo por hora, enlaces de acceso y cuotas de carga). Por defecto 1, que son los valores del plan 006; en staging se sube (por ejemplo 100) para no quedar bloqueado en las pruebas. En producción se deja en 1: bajarlo de 1 no es posible | No |
+| `ANONYMIZATION_SALT` | Sal de la huella no reversible de las personas anonimizadas (plan 014, F4; `config/privacy.php`). Un valor aleatorio largo (`openssl rand -hex 32`), distinto en cada entorno y guardado como secreto. **Sin ella no se puede anonimizar a nadie. Cambiarla invalida las huellas ya registradas** (`app:reapply-anonymizations` dejaría de reconocer a las personas anonimizadas): se define una vez, antes de la primera anonimización, y se conserva con los respaldos de secretos. En `.env.example` solo hay un valor ficticio | Sí, para anonimizar |
 | `[RELLENAR: proveedor de pagos]` | Pagos (ADR-0007) | Según módulo |
 | `[RELLENAR: errores]` | Registro de errores | Recomendada |
 
@@ -91,6 +92,52 @@ Detrás de un balanceador (Railway u otro), sin `TRUSTED_PROXIES` la aplicación
 |---|---|---|---|
 
 - Objetivos: punto de recuperación `[RELLENAR]` y tiempo de recuperación `[RELLENAR]`.
+- **Retención máxima de los respaldos** (plan 014, DA-5, CA-014-37): `[PENDIENTE: días]`. Es el plazo tras el cual un dato anonimizado deja de existir también en los respaldos. Se declara por organización en la categoría `backups` de «Retención de datos» (solo declarativa: ningún trabajo borra respaldos) y se configura en el proveedor. **Revisión manual:** entrar al proveedor de la base y al bucket de respaldos, comprobar que ningún respaldo supera ese plazo y anotar abajo la fecha de la revisión y quién la hizo.
+
+| Fecha de la revisión de retención | Quién | Retención configurada en la base | Retención en el bucket | Resultado |
+|---|---|---|---|---|
+
+### 5.1 Restaurar un respaldo (runbook)
+
+Quién lo hace: una persona de operación, con acceso al proveedor y al servicio. Tiempo estimado: `[RELLENAR tras el primer ensayo]`. **Un respaldo de producción es dato real**: solo se restaura en el propio entorno de producción (emergencia) o en `staging` **con los datos anonimizados**; nunca se deja un respaldo real sin anonimizar en un entorno que no sea producción (CA-014-18).
+
+**Por qué hay que reaplicar las anonimizaciones.** Un respaldo anterior a una anonimización trae de vuelta los datos de esa persona. Cada anonimización deja una huella no reversible en `anonymization_log`, pero ese registro está en la misma base que se restaura, así que también se pierde si el respaldo es anterior. Por eso se guarda antes de restaurar y se vuelve a cargar después.
+
+**Antes de restaurar** (en el entorno que se va a sobrescribir, mientras sigue funcionando):
+
+1. Anotar la hora y el motivo. Avisar a las organizaciones si es producción.
+2. Confirmar que `ANONYMIZATION_SALT` está en las variables del entorno y que es **la misma** que tendrá el entorno restaurado (la sal no está en la base: no cambia al restaurar). Sin la misma sal, la reaplicación no reconoce a nadie.
+3. Guardar el registro de anonimizaciones: `railway ssh --service eventos -- php artisan app:export-anonymization-log /tmp/anonymization-log.json` (solo huellas, fechas e identificadores de organización; sin correos). Copiar el archivo a un lugar privado de la persona operadora (nunca a `public/` ni a un bucket público).
+4. Poner la aplicación en mantenimiento (`php artisan down`) y detener los workers, para que nadie escriba durante la restauración.
+
+**Restaurar:**
+
+5. Restaurar la base con el método del proveedor `[RELLENAR: restauración a un punto en el tiempo o desde el archivo de respaldo]`. Restaurar también el bucket de archivos solo si hace falta recuperar archivos (los de las personas anonimizadas se borraron a propósito: no reaparecerán salvo que el bucket también se restaure; en ese caso, el paso 7 los vuelve a borrar).
+6. Comprobar que arranca (`/up`) y que las migraciones coinciden con las del código desplegado: `php artisan migrate:status`. Si faltan migraciones, aplicarlas con el procedimiento de §3.
+
+**Reaplicar las anonimizaciones:**
+
+7. Cargar el registro y reaplicar: `php artisan app:reapply-anonymizations --from-file=/tmp/anonymization-log.json`. El comando carga las huellas que falten, recorre cada organización y vuelve a anonimizar a quien reaparece; imprime por organización cuántas personas están registradas, cuántas reaparecieron con datos y cuántas se reaplicaron, y al final el total. Es idempotente: se puede repetir. Antes de ejecutarlo de verdad, `--dry-run` (sin `--from-file`) cuenta cuántas se reaplicarían sin cambiar nada.
+8. Si el comando termina con error, **no abrir el servicio**: lo que imprima dice qué quedó pendiente. Una persona «omitida por `last_administrator`» es el último administrador activo de una organización (se designa otro y se repite); «omitida por `platform_account`» es una cuenta de plataforma (se atiende a mano); «con error» es un archivo que el almacenamiento no pudo borrar (revisar el bucket y repetir).
+9. Borrar el archivo del registro del lugar donde se guardó.
+
+**Verificar:**
+
+10. Conteos: el número de propuestas de cada organización coincide con el del origen (`php artisan tinker --execute='echo App\Models\Submission::withoutGlobalScopes()->count();'` en ambos, o la consulta equivalente en la base).
+11. Anonimizaciones: elegir una persona anonimizada conocida y comprobar en el panel («Datos de una persona») que ya no figura con sus datos; el comando debe volver a decir `Personas reaplicadas: 0 de 0` al repetirlo.
+12. Salir de mantenimiento (`php artisan up`), reiniciar los workers y revisar errores durante 15 minutos.
+13. Anotar en la tabla de ensayos de arriba: fecha, qué se restauró, resultado y tiempo.
+
+### 5.2 Ensayo de restauración en `staging` (lista de verificación para una persona)
+
+El ensayo real **lo hace una persona**: no está automatizado ni se hizo en el desarrollo del plan 014 (CA-014-16 y CA-014-18 son manuales). Marcar cada paso al hacerlo:
+
+- [ ] Elegir un respaldo de producción reciente y restaurarlo **en `staging`** (pasos 5 y 6 de §5.1).
+- [ ] Antes de usar `staging`, anonimizar todo el respaldo restaurado: CA-014-18 prohíbe datos reales sin anonimizar fuera de producción. `[PENDIENTE: procedimiento de anonimización masiva de un respaldo para staging; hoy solo existe la anonimización por persona]`.
+- [ ] Antes de restaurar, guardar el registro de anonimizaciones de **producción** (paso 3) y cargarlo en `staging` con `--from-file` (paso 7): así el ensayo prueba la reaplicación con lo real.
+- [ ] Comprobar que la aplicación arranca, que las migraciones coinciden y que el conteo de propuestas coincide (paso 10).
+- [ ] Verificar una persona anonimizada después de la fecha del respaldo (paso 11).
+- [ ] Anotar fecha, qué se restauró, resultado y tiempo en la tabla de §5. Si algo falló o fue confuso, corregir este documento.
 
 ## 6. Observabilidad
 
@@ -112,17 +159,64 @@ Detrás de un balanceador (Railway u otro), sin `TRUSTED_PROXIES` la aplicación
 - **Tarea programada `files:purge-orphans`** (plan 007, H-007-3): diaria a las 03:00 (`routes/console.php`, `withoutOverlapping`). Borra del disco privado y marca como eliminados los archivos de propuesta `pending` con más de 24 h sin ligar a una propuesta, organización por organización; nunca toca los `attached`. Cada organización con borrados deja un registro de auditoría `submission_files_purged` con su conteo (sin nombres de archivo). **Vigilancia:** si el disco falla, el fallo de cada organización se reporta al gestor de errores (`OrphanFilesPurgeFailed`) y el comando termina con código distinto de 0 (las demás organizaciones se limpian igualmente); alertar por ese código de salida o por ese error. La tarea es idempotente: reintentarla a mano con `php artisan files:purge-orphans` es seguro.
 - **Tarea programada `submission-exports:purge`** (plan 009, H-009-3, DA-3): cada hora (`routes/console.php`, `withoutOverlapping`). Borra del disco privado los archivos de exportación de propuestas (`organizations/{id}/exports/`) con más de 24 h: los de exportaciones auditadas vencidas y, por si el job falló antes de auditar, cualquier archivo de esa carpeta con fecha de modificación anterior al plazo. **Vigilancia:** si no puede borrar un archivo, el comando termina con código distinto de 0; alertar por ese código de salida. Es idempotente. **Cola:** las exportaciones corren en el job `ExportSubmissionsJob` (3 intentos, espera de 30 s y 120 s); si agota los intentos deja la auditoría `submissions_export_failed` y un error en el registro, sin datos personales: vigilar los trabajos fallidos de la cola.
 - **Tarea programada `calls:send-closing-reminders`** (plan 012, H-012-4): diaria a las 09:00 (`routes/console.php`, `withoutOverlapping`). Para cada organización (con su contexto) avisa con `call.closing_reminder`, una sola vez por convocatoria y autor, a quien envió una propuesta `submitted` cuando faltan `submissions.closing_reminder_days` días de calendario o menos (3 por defecto) para el cierre en la zona horaria del evento. **Vigilancia:** el fallo de una organización o de un autor se reporta al gestor de errores y el comando termina con código distinto de 0 (las demás organizaciones se procesan igualmente); alertar por ese código de salida. Es idempotente: reintentarla a mano con `php artisan calls:send-closing-reminders` no duplica correos. **Resultados:** `PublishResults` (acción «Publicar resultados» de la lista de propuestas) avisa por la cola; un fallo del proveedor deja el registro del envío en `failed` (visible en el registro de correos) sin deshacer la decisión, y volver a publicar reintenta solo las propuestas cuyo aviso falló.
+- **Tarea programada `retention:apply`** (plan 014, H-014-6): diaria a las 04:00 (`routes/console.php`, `withoutOverlapping`). Para cada organización con plazos de retención fijados («Retención de datos» en su panel, permiso `retention.manage`), anonimiza o elimina lo vencido de cada categoría: propuestas rechazadas o retiradas (se anonimiza a sus autores y se borran sus archivos), texto de comentarios de evaluaciones, vínculo de los envíos de correo con su destinatario y registros de auditoría de la organización. **Sin plazo no se toca nada** y no hay plazos por defecto (`[PENDIENTE: plazos]`): hasta que cada organización los fija, la tarea no hace nada. Cada ejecución con plazos deja la auditoría `retention_applied` con totales, sin datos personales. **Vigilancia:** un fallo de una categoría (por ejemplo, un archivo que el almacenamiento no pudo borrar) se reporta al gestor de errores y el comando termina con código distinto de 0 (las demás organizaciones se procesan igualmente); alertar por ese código de salida. Es idempotente y reanudable: reintentarla a mano con `php artisan retention:apply` (o `--organization=<id o slug>`) es seguro. La categoría `backups` es solo declarativa (ver §5).
 - Modo de mantenimiento de Laravel para ventanas planificadas; aviso previo a las organizaciones.
 - Actualizaciones de dependencias: Dependabot, una por pull request; actualizaciones de seguridad de inmediato.
 - Rotación de secretos: al menos cada `[RELLENAR]` y siempre que se sospeche una exposición.
 
 ## 9. Guías de actuación (runbooks)
 
-Anotar aquí, al ocurrir o al ensayar, cómo se resuelve:
+Cada guía está escrita para una persona de operación que no escribió el código. Se ensayan en `staging` leyéndolas con alguien que no las escribió (CA-014-17, manual): si un paso no se entiende o falla, se corrige aquí. Los comandos usan `railway ssh --service eventos -- …` (el servicio web, como en §3); en local, `docker compose exec app …`. Lo que depende del proveedor y todavía no se eligió queda como `[RELLENAR]`.
 
-- Sitio caído · Cola atrasada o worker caído · Webhook de pagos que falla · Correo que no llega · Restauración de la base · Sospecha de fuga entre organizaciones · Secreto expuesto.
+### 9.1 Sitio caído
 
-[RELLENAR: un enlace o un párrafo por caso.]
+1. Comprobar `/up` desde fuera (navegador o `curl -i https://<dominio>/up`). Si responde 200, el problema es de una página concreta: pasar a revisar errores (paso 4).
+2. Si no responde: ver el estado del despliegue y del servicio en el proveedor `[RELLENAR]`; ¿hubo un despliegue en los últimos 30 minutos? Si sí, **redesplegar la versión anterior** (reversa de §3).
+3. Si no hubo despliegue: revisar la base (¿responde? conexiones agotadas, disco lleno) y Redis; reiniciar el servicio web.
+4. Revisar el gestor de errores `[RELLENAR]` y la bitácora del servicio en busca del primer error de la caída.
+5. Con el sitio de vuelta: reiniciar los workers, comprobar la cola (9.2) y avisar a las organizaciones si hubo pérdida de servicio visible.
+6. Anotar causa, duración y qué se hizo.
+
+### 9.2 Cola atrasada o worker caído
+
+1. Ver si hay un worker vivo: Horizon `[RELLENAR: URL]` o, sin Horizon, el servicio `worker` en el proveedor (o `RUN_QUEUE_WORKER=true` en el web, §4).
+2. Si el worker está caído: reiniciarlo. Si se cae de nuevo, mirar el primer error de la bitácora.
+3. Si hay trabajos fallidos: `railway ssh --service eventos -- php artisan queue:failed`; revisar el error de cada tipo (sin pegar datos personales en ningún mensaje) y, una vez corregida la causa, `php artisan queue:retry all`. Los trabajos son idempotentes: reintentar es seguro.
+4. Si la cola sigue creciendo con workers vivos: subir la cantidad de workers y revisar si un trabajo lento la bloquea.
+5. Comprobar que los correos pendientes salen (9.4).
+
+### 9.3 Webhook de pagos que falla
+
+No hay módulo de pagos en R1 (ADR-0007, R3). Esta guía se escribe con el módulo: firma verificada, idempotencia por identificador del evento y reintento desde el panel del proveedor.
+
+### 9.4 Correo que no llega
+
+1. Confirmar si el correo se **intentó enviar**: panel de la organización → «Correos» (catálogo) y la auditoría; un envío `throttled` o `disabled` no se manda por diseño (ADR-0009).
+2. Si está en cola: ver 9.2. Si falló: revisar el proveedor (Resend) `[RELLENAR: enlace al panel]`: clave `RESEND_API_KEY` vigente, dominio verificado (SPF, DKIM y DMARC) y límites de envío.
+3. Enviar una prueba a una dirección propia del equipo con `php artisan app:mail-check <correo-del-equipo>`: confirma que la configuración del proveedor funciona de extremo a extremo (nunca a una persona real).
+4. Si el destinatario es una persona anonimizada, el correo ya no corresponde a nadie: es lo esperado.
+5. Si el problema es de entrega (spam, rebote): pedir a la persona que revise la carpeta de no deseados y que añada el remitente; reenviar por la función de la plantilla solo si el catálogo lo permite.
+
+### 9.5 Restauración de la base
+
+Ver §5.1 (restaurar y reaplicar anonimizaciones) y §5.2 (ensayo en `staging`).
+
+### 9.6 Sospecha de fuga entre organizaciones
+
+1. **Contener:** si hay indicios de que una organización ve datos de otra, activar el modo de mantenimiento de las pantallas afectadas o de todo el sitio (`php artisan down`) hasta entender el alcance. Avisar al responsable de seguridad.
+2. **Conservar evidencia:** no borrar nada; exportar la auditoría (`activity_log`) del período y guardar los registros del servicio.
+3. **Acotar:** ¿qué organización, qué pantalla o ruta, qué datos? Reproducir en `staging` con dos organizaciones de prueba. Revisar primero lo que `docs/seguridad.md` y el ADR-0003 señalan: consulta sin scope (`withoutOrganizationScope`), route-model binding sin acotar, caché sin clave de organización, política ausente.
+4. **Corregir** con una prueba de regresión de aislamiento (`tests/Feature/Tenancy/`) y desplegar.
+5. **Notificar:** si hubo acceso real a datos personales de otra organización, aplicar el procedimiento de incidente de `docs/privacidad.md` §5 (a quién se avisa y en qué plazo `[RELLENAR]`).
+
+### 9.7 Secreto expuesto
+
+1. Identificar qué secreto es (`APP_KEY`, credenciales de base o del bucket, `RESEND_API_KEY`, `TURNSTILE_SECRET_KEY`, `ANONYMIZATION_SALT`, llaves del proveedor de pagos) y desde cuándo está expuesto.
+2. **Rotarlo en el proveedor primero** y actualizar la variable del entorno; reiniciar el servicio y los workers.
+3. Consecuencias propias de algunos secretos: cambiar `APP_KEY` invalida sesiones, enlaces firmados y datos cifrados (los secretos de 2FA: todos tendrían que reconfigurarla) y cambia la huella de los envíos de correo; cambiar `ANONYMIZATION_SALT` invalida las huellas del registro de anonimizaciones (antes de rotarla, evaluar el efecto: ver §4). Decidir con el responsable y registrar la decisión.
+4. Revisar la auditoría y los registros del proveedor desde la fecha de exposición en busca de uso indebido.
+5. Si estuvo en el repositorio, quitarlo del historial es una acción con permiso (AGENTS.md, regla 12); rotar de todos modos.
+6. Anotar causa, alcance y qué se rotó.
 
 ## 10. RLS: aislamiento entre organizaciones en la base de datos (plan 014, H-014-2)
 

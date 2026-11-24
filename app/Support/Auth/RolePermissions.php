@@ -49,6 +49,7 @@ final class RolePermissions
         'activities.delete',
         'two_factor.reset',
         'submissions.revert',
+        'retention.manage',
     ];
 
     /** @return array<string, list<string>> permisos por nombre de rol */

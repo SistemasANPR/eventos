@@ -42,6 +42,7 @@ function expectedMatrix(): array
             'mail-templates.manage', 'personal_data.manage', 'speakers.delete', 'activities.delete',
             'two_factor.reset',
             'submissions.revert',
+            'retention.manage',
         ],
         'organizer' => $organizer,
         'reviewer' => [],
