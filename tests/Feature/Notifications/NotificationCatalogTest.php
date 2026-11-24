@@ -23,11 +23,18 @@ const R0_NOTIFICATION_KEYS = [
     'submission.updated',
     'submission.withdrawn',
     'submission.withdrawn_author',
+    'submission.accepted',
+    'submission.rejected',
+    'submission.waitlisted',
+    'call.closing_reminder',
     'reviewer.assignment',
     'reviewer.invitation',
 ];
 
 const CRITICAL_NOTIFICATION_KEYS = [
+    'submission.accepted',
+    'submission.rejected',
+    'submission.waitlisted',
     'auth.password_reset',
     'auth.new_device_login',
     'auth.two_factor_enabled',
@@ -66,6 +73,39 @@ it('CA-008-1: only the documented notifications are critical', function () {
         ->all();
 
     expect($critical)->toEqualCanonicalizing(CRITICAL_NOTIFICATION_KEYS);
+});
+
+it('CA-012-17: the result mails are critical, have es and en defaults, cannot be turned off and carry no access link', function () {
+    $catalog = app(NotificationCatalog::class);
+
+    foreach (['submission.accepted', 'submission.rejected', 'submission.waitlisted'] as $key) {
+        $descriptor = $catalog->get($key);
+
+        expect($descriptor->critical)->toBeTrue()
+            ->and($descriptor->locales)->toContain('es', 'en')
+            ->and($descriptor->variables)->not->toContain('access_link', 'access_url')
+            ->and($descriptor->variables)->toContain('author_comment', 'request_link_url');
+
+        foreach (['es', 'en'] as $locale) {
+            foreach (['subject', 'body'] as $part) {
+                $text = trans("mail_templates.{$key}.{$part}", [], $locale);
+
+                expect($text)->toBeString()
+                    ->and($text)->not->toBe('')
+                    ->and($text)->not->toBe("mail_templates.{$key}.{$part}")
+                    ->and($text)->not->toContain('access_link')
+                    ->and($text)->not->toContain('access_url');
+            }
+        }
+    }
+});
+
+it('CA-012-23: the closing reminder is registered as non critical with an optional edit hint', function () {
+    $descriptor = app(NotificationCatalog::class)->get('call.closing_reminder');
+
+    expect($descriptor->critical)->toBeFalse()
+        ->and($descriptor->variables)->toContain('edit_hint', 'closing_date', 'request_link_url')
+        ->and($descriptor->variables)->not->toContain('access_link', 'access_url');
 });
 
 it('CA-008-1: recipient limits follow DA-8', function () {

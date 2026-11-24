@@ -22,6 +22,12 @@ enum SubmissionStatus: string implements HasColor, HasLabel
     case Confirmed = 'confirmed';
     case Withdrawn = 'withdrawn';
 
+    /** Una decisión del comité cuyo resultado se avisa al autor al publicarlo (plan 012, DA-2). */
+    public function isDecision(): bool
+    {
+        return in_array($this, [self::Accepted, self::Waitlisted, self::Rejected], true);
+    }
+
     public function getLabel(): string
     {
         return __("submissions.status.{$this->value}");

@@ -18,7 +18,8 @@ use Illuminate\Validation\ValidationException;
 
 /**
  * Pone una propuesta en lista de espera (plan 012, H-012-1 y H-012-5, CA-012-1, 2, 5, 6 y 27 a 29), desde
- * `under_review` o `submitted`. No envía correo (se avisa al publicar los resultados, F3).
+ * `under_review` o `submitted`. El correo no sale al decidir: se avisa al publicar los resultados, salvo que
+ * la convocatoria ya los haya publicado (F3).
  * `$submission->status` debe ser el que vio quien decide.
  *
  * @throws AuthorizationException si quien decide no tiene `submissions.decide` en la organización de la propuesta
@@ -30,7 +31,10 @@ final class WaitlistSubmission
 {
     use AuthorizesInOrganization;
 
-    public function __construct(private readonly ChangeSubmissionStatus $change) {}
+    public function __construct(
+        private readonly ChangeSubmissionStatus $change,
+        private readonly PublishSubmissionResult $publishResult,
+    ) {}
 
     public function handle(User $actor, Submission $submission, ?string $authorComment = null): Submission
     {
@@ -41,6 +45,9 @@ final class WaitlistSubmission
             $this->authorizeActor($actor, 'decide', $submission);
 
             $this->change->handle($actor, $submission, SubmissionStatus::Waitlisted, $comment);
+
+            // Si la convocatoria ya publicó sus resultados, el aviso sale al decidir (CA-012-21).
+            $this->publishResult->afterDecision($submission);
 
             return Submission::query()->findOrFail($submission->id);
         });

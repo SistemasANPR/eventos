@@ -7,6 +7,7 @@ namespace App\Filament\Resources\Events\Pages;
 use App\Actions\SubmissionExports\ExportSubmissions;
 use App\Exceptions\Domain\SubmissionExportTooLarge;
 use App\Filament\Resources\Events\EventResource;
+use App\Filament\Resources\Submissions\Actions\BulkDecisionActions;
 use App\Filament\Resources\Submissions\Actions\ReviewAssignmentActions;
 use App\Filament\Resources\Submissions\SubmissionResource;
 use App\Filament\Resources\Submissions\Tables\SubmissionsTable;
@@ -31,8 +32,9 @@ use LogicException;
  * Propuestas del evento (plan 020, F2; recurso del plan 009): la lista que antes se abría solo por URL
  * pasa a ser una sección del evento. La tabla viene de `SubmissionResource`, anidado bajo el evento;
  * el evento sale de la ruta, así que un evento de otra organización responde 404. Quién la ve lo
- * decide `SubmissionPolicy`. Solo lectura, salvo la exportación (plan 009, H-009-3): las acciones
- * «Exportar» y «Exportaciones recientes» aparecen solo con `submissions.export`.
+ * decide `SubmissionPolicy`. Solo lectura, salvo la exportación (plan 009, H-009-3), que aparece solo con
+ * `submissions.export`, y las decisiones masivas, la reversa de lotes y la publicación de resultados
+ * (plan 012, F2), que aparecen solo con `submissions.decide` y `submissions.revert`.
  */
 class ManageEventSubmissions extends ManageRelatedRecords
 {
@@ -103,6 +105,9 @@ class ManageEventSubmissions extends ManageRelatedRecords
         return [
             ReviewAssignmentActions::assignByScope(),
             ReviewAssignmentActions::invite(),
+            BulkDecisionActions::decideFiltered(),
+            BulkDecisionActions::revertBatch(),
+            BulkDecisionActions::publishResults(),
             Action::make('summary')
                 ->label(__('submission_panel.summary.action'))
                 ->icon(Heroicon::OutlinedChartBar)
@@ -155,7 +160,7 @@ class ManageEventSubmissions extends ManageRelatedRecords
         }
 
         try {
-            app(ExportSubmissions::class)->handle($event, $this->exportFilters(), $this->user(), $format);
+            app(ExportSubmissions::class)->handle($event, $this->activeFilters(), $this->user(), $format);
         } catch (SubmissionExportTooLarge $exception) {
             Notification::make()->danger()->title(__('submission_panel.export.action'))->body($exception->getMessage())->persistent()->send();
 
@@ -170,11 +175,12 @@ class ManageEventSubmissions extends ManageRelatedRecords
     }
 
     /**
-     * Filtros activos de la tabla, con la forma que espera la exportación.
+     * Filtros activos de la tabla, con la forma que esperan la exportación y la auditoría de las decisiones
+     * masivas (plan 012, F2).
      *
      * @return array<string, mixed>
      */
-    private function exportFilters(): array
+    public function activeFilters(): array
     {
         $filters = $this->tableFilters ?? [];
 

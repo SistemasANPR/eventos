@@ -47,8 +47,9 @@ final class ChangeSubmissionStatus
         ?string $authorComment = null,
         ?string $reason = null,
         bool $confirmedPublished = false,
+        ?string $decisionBatchId = null,
     ): SubmissionStatusChange {
-        return DB::transaction(function () use ($actor, $submission, $to, $authorComment, $reason, $confirmedPublished): SubmissionStatusChange {
+        return DB::transaction(function () use ($actor, $submission, $to, $authorComment, $reason, $confirmedPublished, $decisionBatchId): SubmissionStatusChange {
             $current = Submission::query()->lockForUpdate()->findOrFail($submission->id);
             $from = $current->status;
 
@@ -82,6 +83,7 @@ final class ChangeSubmissionStatus
                 'actor_user_id' => $actor?->id,
                 'comment' => $reason,
                 'author_comment' => $authorComment,
+                'decision_batch_id' => $decisionBatchId,
             ])->save();
 
             activity()
@@ -99,6 +101,7 @@ final class ChangeSubmissionStatus
                     'was_published' => $wasPublished,
                     'has_author_comment' => $authorComment !== null,
                     'has_reason' => $reason !== null,
+                    'decision_batch_id' => $decisionBatchId,
                 ])
                 ->log('submission_status_changed');
 

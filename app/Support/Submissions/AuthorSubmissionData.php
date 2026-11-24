@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Support\Submissions;
 
 use App\Enums\FieldType;
+use App\Enums\SubmissionStatus;
 use App\Models\Event;
 use App\Models\Submission;
 use App\Models\SubmissionParticipant;
@@ -26,7 +27,7 @@ final class AuthorSubmissionData
         return [
             'reference' => SubmissionReference::for($submission),
             'title' => $submission->title,
-            'status' => $submission->status->value,
+            'status' => self::visibleStatus($submission)->value,
             'locale' => $submission->locale,
             'version' => $submission->version,
             'submittedAt' => self::utc($submission->submitted_at),
@@ -35,6 +36,17 @@ final class AuthorSubmissionData
             'answers' => self::answers($submission, $locale, $event->default_locale),
             'participants' => $submission->participants->map(self::participant(...))->values()->all(),
         ];
+    }
+
+    /**
+     * Una decisión que todavía no se publicó es interna: el autor sigue viendo «en evaluación» (plan 012,
+     * CA-012-16), no el resultado. Al publicarse la convocatoria (o al revertirla, que la limpia) cambia.
+     */
+    private static function visibleStatus(Submission $submission): SubmissionStatus
+    {
+        return $submission->status->isDecision() && $submission->results_published_at === null
+            ? SubmissionStatus::UnderReview
+            : $submission->status;
     }
 
     /** @return list<array{key: string, label: string, type: string, value: string|bool|list<string>|null}> */

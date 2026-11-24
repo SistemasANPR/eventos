@@ -85,6 +85,32 @@ return [
             'trigger' => 'El autor retira su propuesta.',
             'recipient' => 'La persona que envió la propuesta.',
         ],
+        'accepted' => [
+            'name' => 'Propuesta aceptada',
+            'description' => 'Avisa al autor que su propuesta fue aceptada, con el comentario opcional del equipo. No lleva enlace de acceso: invita a pedir uno nuevo. No se puede desactivar.',
+            'trigger' => 'Un usuario con permiso publica los resultados de la convocatoria (o decide una propuesta cuando los resultados ya están publicados).',
+            'recipient' => 'La persona que envió la propuesta.',
+        ],
+        'rejected' => [
+            'name' => 'Propuesta no seleccionada',
+            'description' => 'Avisa al autor que su propuesta no fue seleccionada, con el comentario opcional del equipo. No lleva enlace de acceso. No se puede desactivar.',
+            'trigger' => 'Un usuario con permiso publica los resultados de la convocatoria (o decide una propuesta cuando los resultados ya están publicados).',
+            'recipient' => 'La persona que envió la propuesta.',
+        ],
+        'waitlisted' => [
+            'name' => 'Propuesta en lista de espera',
+            'description' => 'Avisa al autor que su propuesta quedó en lista de espera, con el comentario opcional del equipo. No lleva enlace de acceso. No se puede desactivar.',
+            'trigger' => 'Un usuario con permiso publica los resultados de la convocatoria (o decide una propuesta cuando los resultados ya están publicados).',
+            'recipient' => 'La persona que envió la propuesta.',
+        ],
+    ],
+    'call' => [
+        'closing_reminder' => [
+            'name' => 'Recordatorio de cierre de la convocatoria',
+            'description' => 'Recuerda a los autores con una propuesta enviada que la convocatoria está por cerrar. Un solo recordatorio por autor y convocatoria; si la edición por el autor está disponible, lo invita a corregir su propuesta.',
+            'trigger' => 'Tarea diaria: faltan los días configurados (por defecto 3) para el cierre de la convocatoria, en la zona horaria del evento.',
+            'recipient' => 'La persona que envió cada propuesta pendiente (una sola vez por convocatoria).',
+        ],
     ],
     'reviewer' => [
         'assignment' => [

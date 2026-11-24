@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Policies;
 
+use App\Models\CallForSubmissions;
+use App\Models\DecisionBatch;
 use App\Models\Submission;
 use App\Models\User;
 use App\Support\Auth\ChecksOrganizationPermissions;
@@ -44,5 +46,38 @@ final class SubmissionPolicy
     public function revert(User $user, Submission $submission): bool
     {
         return $this->allows($user, ['submissions.revert'], $submission->organization_id);
+    }
+
+    /**
+     * ¿Puede el usuario decidir (o publicar resultados) en la organización en contexto? Solo para mostrar u
+     * ocultar las acciones masivas; cada Action vuelve a autorizar sobre las propuestas (plan 012, F2).
+     */
+    public function decideMany(User $user): bool
+    {
+        return $this->allows($user, ['submissions.decide']);
+    }
+
+    /** ¿Puede el usuario revertir en la organización en contexto? Solo para mostrar u ocultar la reversa por lote. */
+    public function revertMany(User $user): bool
+    {
+        return $this->allows($user, ['submissions.revert']);
+    }
+
+    /**
+     * Publicar los resultados de una convocatoria (plan 012, F2, CA-012-19): `submissions.decide`. Se invoca
+     * con `[Submission::class, $convocatoria]`.
+     */
+    public function publishResults(User $user, CallForSubmissions $call): bool
+    {
+        return $this->allows($user, ['submissions.decide'], $call->organization_id);
+    }
+
+    /**
+     * Revertir un lote de decisión masiva (plan 012, F2, CA-012-12): `submissions.revert`. Se invoca con
+     * `[Submission::class, $lote]`.
+     */
+    public function revertBatch(User $user, DecisionBatch $batch): bool
+    {
+        return $this->allows($user, ['submissions.revert'], $batch->organization_id);
     }
 }

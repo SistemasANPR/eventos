@@ -65,6 +65,48 @@ We confirm you withdrew your submission "{{ submission_title }}". It no longer t
 
 If you need to look at it again, request a new access link: [{{ request_link_url }}]({{ request_link_url }})',
         ],
+        'accepted' => [
+            'subject' => 'Your submission was accepted at {{ event_name }}',
+            'body' => 'Hi {{ author_name }},
+
+Good news: your submission "{{ submission_title }}" was accepted at {{ event_name }}.
+
+{{ author_comment }}
+
+To look at your submission, request a one-time access link: [{{ request_link_url }}]({{ request_link_url }})',
+        ],
+        'rejected' => [
+            'subject' => 'Result of your submission at {{ event_name }}',
+            'body' => 'Hi {{ author_name }},
+
+Thank you for taking part. We are sorry to tell you that your submission "{{ submission_title }}" was not selected at {{ event_name }}.
+
+{{ author_comment }}
+
+To look at your submission, request a one-time access link: [{{ request_link_url }}]({{ request_link_url }})',
+        ],
+        'waitlisted' => [
+            'subject' => 'Your submission is on the waitlist at {{ event_name }}',
+            'body' => 'Hi {{ author_name }},
+
+Your submission "{{ submission_title }}" is on the waitlist at {{ event_name }}. If a spot opens up, we will let you know.
+
+{{ author_comment }}
+
+To look at your submission, request a one-time access link: [{{ request_link_url }}]({{ request_link_url }})',
+        ],
+    ],
+    'call' => [
+        'closing_reminder' => [
+            'subject' => 'The {{ event_name }} call closes on {{ closing_date }}',
+            'body' => 'Hi {{ author_name }},
+
+A reminder that the call for submissions of {{ event_name }} closes on {{ closing_date }}.
+
+{{ edit_hint }}
+
+To look at your submission, request a one-time access link: [{{ request_link_url }}]({{ request_link_url }})',
+        ],
     ],
     'reviewer' => [
         'assignment' => [
