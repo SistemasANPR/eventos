@@ -231,7 +231,6 @@ return [
         'participants.*.phone' => 'phone with country code',
         'participants.*.second_last_name' => 'maternal last name',
         'participants.*.alt_email' => 'alternative email',
-        'participants.*.mobile' => 'mobile phone',
         'participants.*.state' => 'state or region',
         'participants.*.city' => 'city',
         'consent' => 'consent',

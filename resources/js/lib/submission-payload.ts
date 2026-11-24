@@ -51,17 +51,7 @@ export function readSubmission(data: FormData, fields: readonly FormField[], par
             is_primary: index === 0,
         };
 
-        for (const optional of [
-            'second_last_name',
-            'alt_email',
-            'mobile',
-            'state',
-            'city',
-            'phone',
-            'job_title',
-            'company',
-            'bio',
-        ] as const) {
+        for (const optional of ['second_last_name', 'alt_email', 'state', 'city', 'phone', 'job_title', 'company', 'bio'] as const) {
             const value = read(optional);
             if (value !== '') {
                 participant[optional] = value;

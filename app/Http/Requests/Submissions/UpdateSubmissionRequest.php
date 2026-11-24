@@ -38,7 +38,6 @@ final class UpdateSubmissionRequest extends FormRequest
             'participants.*.country' => ['required', 'string', Rule::in(Countries::CODES)],
             'participants.*.second_last_name' => ['nullable', 'string', 'max:100', 'regex:/^[^\p{Cc}]+$/u'],
             'participants.*.alt_email' => ['nullable', 'string', 'email:rfc', 'max:254'],
-            'participants.*.mobile' => ['required', 'string', 'regex:'.StoreSubmissionRequest::MOBILE_PATTERN],
             'participants.*.state' => ['required', 'string', 'max:120'],
             'participants.*.city' => ['required', 'string', 'max:120'],
             'participants.*.job_title' => ['required', 'string', 'max:120'],

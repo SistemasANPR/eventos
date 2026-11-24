@@ -21,8 +21,6 @@ export interface FormFieldConfig {
     options?: FormFieldOption[];
     accept?: string[];
     maxFiles?: number;
-    /** Solo acepta números: el teclado numérico y se descarta lo que no sea un dígito (p. ej. el celular). */
-    digitsOnly?: boolean;
 }
 
 /** Un campo de la definición guardada de un formulario (docs/plans 005 §4). */

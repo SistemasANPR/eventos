@@ -200,7 +200,6 @@ return [
         'participants.*.phone' => 'teléfono con código de país',
         'participants.*.second_last_name' => 'apellido materno',
         'participants.*.alt_email' => 'correo electrónico alternativo',
-        'participants.*.mobile' => 'celular',
         'participants.*.state' => 'estado o entidad',
         'participants.*.city' => 'ciudad',
         'consent' => 'consentimiento',

@@ -36,7 +36,6 @@ export type ParticipantPayload = {
     country: string;
     second_last_name?: string;
     alt_email?: string;
-    mobile?: string;
     state?: string;
     city?: string;
     phone?: string;

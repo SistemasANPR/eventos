@@ -40,9 +40,9 @@ return [
         'no_answers' => 'This submission has no answers.',
         'no_participants' => 'This submission has no participants.',
         'participant' => [
+            'second_last_name' => 'Maternal last name',
             'email' => 'Email address',
             'alt_email' => 'Alternative email',
-            'mobile' => 'Mobile phone',
             'phone' => 'Phone with country code',
             'company' => 'Institution, organization or company',
             'job_title' => 'Job title or academic status',

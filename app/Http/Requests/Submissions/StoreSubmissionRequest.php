@@ -34,9 +34,6 @@ final class StoreSubmissionRequest extends FormRequest
     /** Teléfono: dígitos, `+`, paréntesis, guiones, puntos y espacios; de 7 a 30 caracteres. */
     public const PHONE_PATTERN = '/^[0-9+().\s-]{7,30}$/';
 
-    /** Celular: solo números, exactamente 14. */
-    public const MOBILE_PATTERN = '/^[0-9]{14}$/';
-
     /**
      * Formulario público: no hay usuario que autorizar; la protección es el límite de peticiones y el
      * anti-robots. Sí se cierra el paso a lo que el público no ve: un evento sin publicar o una
@@ -151,7 +148,6 @@ final class StoreSubmissionRequest extends FormRequest
             'participants.*.country' => ['required', 'string', Rule::in(Countries::CODES)],
             'participants.*.second_last_name' => ['nullable', 'string', 'max:100', 'regex:/^[^\p{Cc}]+$/u'],
             'participants.*.alt_email' => ['nullable', 'string', 'email:rfc', 'max:254'],
-            'participants.*.mobile' => ['required', 'string', 'regex:'.self::MOBILE_PATTERN],
             'participants.*.state' => ['required', 'string', 'max:120'],
             'participants.*.city' => ['required', 'string', 'max:120'],
             'participants.*.job_title' => ['required', 'string', 'max:120'],

@@ -53,7 +53,7 @@ final class UpdateSubmissionByAuthor
 {
     private const KEYS = ['version', 'form_version', 'title', 'track_id', 'answers', 'participants'];
 
-    private const PARTICIPANT_KEYS = ['first_name', 'last_name', 'country', 'second_last_name', 'alt_email', 'mobile', 'state', 'city', 'phone', 'job_title', 'company', 'bio'];
+    private const PARTICIPANT_KEYS = ['first_name', 'last_name', 'country', 'second_last_name', 'alt_email', 'state', 'city', 'phone', 'job_title', 'company', 'bio'];
 
     public function __construct(
         private readonly LoadPublishedForm $publishedForm,
@@ -221,11 +221,10 @@ final class UpdateSubmissionByAuthor
             $participant->forceFill([
                 'first_name' => $values['first_name'],
                 'last_name' => $values['last_name'],
-                'full_name' => SubmitSubmission::joinName($values['first_name'], $values['last_name'], $values['second_last_name'] ?? null),
+                'full_name' => $values['first_name'].' '.$values['last_name'],
                 'country' => $values['country'],
                 'second_last_name' => $values['second_last_name'] ?? null,
                 'alt_email' => $values['alt_email'] ?? null,
-                'mobile' => $values['mobile'] ?? null,
                 'state' => $values['state'] ?? null,
                 'city' => $values['city'] ?? null,
                 'phone' => $values['phone'] ?? null,
@@ -291,7 +290,7 @@ final class UpdateSubmissionByAuthor
 
                 $clean = array_map(self::clean(...), array_intersect_key($participant, array_flip(self::PARTICIPANT_KEYS)));
 
-                foreach (['second_last_name', 'alt_email', 'mobile', 'state', 'city', 'phone', 'job_title', 'company', 'bio'] as $optional) {
+                foreach (['second_last_name', 'alt_email', 'state', 'city', 'phone', 'job_title', 'company', 'bio'] as $optional) {
                     if (($clean[$optional] ?? null) === '') {
                         $clean[$optional] = null;
                     }

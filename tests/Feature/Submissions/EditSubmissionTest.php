@@ -88,7 +88,7 @@ function editScenario(): array
         'title' => 'Parques vivos',
         'track_id' => $track->id,
         'answers' => ['summary' => 'Un resumen', 'level' => 'Basico'],
-        'participants' => [['first_name' => 'Ana', 'last_name' => 'Perez', 'email' => 'ana@example.test', 'country' => 'MX', 'mobile' => '52155123456789', 'state' => 'CDMX', 'city' => 'Ciudad de México', 'phone' => '+52 55 1234 5678', 'job_title' => 'Dra.', 'company' => 'ACME', 'bio' => 'Semblanza profesional', 'is_primary' => true]],
+        'participants' => [['first_name' => 'Ana', 'last_name' => 'Perez', 'email' => 'ana@example.test', 'country' => 'MX', 'state' => 'CDMX', 'city' => 'Ciudad de México', 'phone' => '+52 55 1234 5678', 'job_title' => 'Dra.', 'company' => 'ACME', 'bio' => 'Semblanza profesional', 'is_primary' => true]],
         'consent' => true,
     ])->submission;
     app(AuthorSession::class)->open($submission);
@@ -109,7 +109,7 @@ function editPayload(array $ctx, array $overrides = []): array
         'title' => 'Parques muy vivos',
         'track_id' => $ctx['other']->id,
         'answers' => ['summary' => 'Resumen nuevo', 'level' => 'Avanzado'],
-        'participants' => [['first_name' => 'Ana María', 'last_name' => 'Pérez', 'country' => 'CO', 'mobile' => '52155123456789', 'state' => 'CDMX', 'city' => 'Ciudad de México', 'phone' => '+52 55 1234 5678', 'job_title' => 'Dra.', 'company' => 'ACME', 'bio' => 'Semblanza profesional']],
+        'participants' => [['first_name' => 'Ana María', 'last_name' => 'Pérez', 'country' => 'CO', 'state' => 'CDMX', 'city' => 'Ciudad de México', 'phone' => '+52 55 1234 5678', 'job_title' => 'Dra.', 'company' => 'ACME', 'bio' => 'Semblanza profesional']],
     ], $overrides);
 }
 
@@ -255,7 +255,7 @@ it('CA-006-45: the primary email, status, call and organization cannot be change
         'organization_id' => $stranger->id,
         'call_for_submissions_id' => (string) Str::uuid(),
         'event_id' => (string) Str::uuid(),
-        'participants' => [['first_name' => 'Ana', 'last_name' => 'Perez', 'country' => 'MX', 'mobile' => '52155123456789', 'state' => 'CDMX', 'city' => 'Ciudad de México', 'phone' => '+52 55 1234 5678', 'job_title' => 'Dra.', 'company' => 'ACME', 'bio' => 'Semblanza profesional', 'email' => 'secuestro@example.test', 'is_primary' => false]],
+        'participants' => [['first_name' => 'Ana', 'last_name' => 'Perez', 'country' => 'MX', 'state' => 'CDMX', 'city' => 'Ciudad de México', 'phone' => '+52 55 1234 5678', 'job_title' => 'Dra.', 'company' => 'ACME', 'bio' => 'Semblanza profesional', 'email' => 'secuestro@example.test', 'is_primary' => false]],
     ]);
 
     $this->patch(editPath($ctx), $payload)->assertRedirect(AuthorFixtures::path($ctx['submission']));

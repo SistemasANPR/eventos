@@ -67,7 +67,7 @@ final class SubmitSubmission
     ];
 
     /** `full_name` no es del contrato: lo calcula el servidor a partir de nombre y apellido. */
-    private const PARTICIPANT_KEYS = ['first_name', 'last_name', 'email', 'country', 'second_last_name', 'alt_email', 'mobile', 'state', 'city', 'phone', 'job_title', 'company', 'bio', 'photo_file_id', 'is_primary'];
+    private const PARTICIPANT_KEYS = ['first_name', 'last_name', 'email', 'country', 'second_last_name', 'alt_email', 'state', 'city', 'phone', 'job_title', 'company', 'bio', 'photo_file_id', 'is_primary'];
 
     public function __construct(
         private readonly LoadPublishedForm $publishedForm,
@@ -307,7 +307,6 @@ final class SubmitSubmission
             'country' => $participant['country'],
             'second_last_name' => $participant['second_last_name'] ?? null,
             'alt_email' => $participant['alt_email'] ?? null,
-            'mobile' => $participant['mobile'] ?? null,
             'state' => $participant['state'] ?? null,
             'city' => $participant['city'] ?? null,
             'phone' => $participant['phone'] ?? null,
@@ -347,13 +346,7 @@ final class SubmitSubmission
     /** @param  array<string, mixed>  $participant */
     private static function fullName(array $participant): string
     {
-        return self::joinName($participant['first_name'], $participant['last_name'], $participant['second_last_name'] ?? null);
-    }
-
-    /** Nombre completo: nombre(s), apellido paterno y, si lo hay, apellido materno. */
-    public static function joinName(string $first, string $last, ?string $second): string
-    {
-        return trim($first.' '.$last.' '.($second ?? ''));
+        return $participant['first_name'].' '.$participant['last_name'];
     }
 
     private function findContact(string $email): ?Contact
@@ -436,7 +429,7 @@ final class SubmitSubmission
                     $clean['email'] = mb_strtolower($clean['email']);
                 }
 
-                foreach (['second_last_name', 'alt_email', 'mobile', 'state', 'city', 'phone', 'job_title', 'company', 'bio'] as $optional) {
+                foreach (['second_last_name', 'alt_email', 'state', 'city', 'phone', 'job_title', 'company', 'bio'] as $optional) {
                     if (($clean[$optional] ?? null) === '') {
                         $clean[$optional] = null;
                     }

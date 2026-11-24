@@ -87,7 +87,6 @@ final class PrepareAuthorEdit
             $values[$prefix.'country'] = $participant->country;
             $values[$prefix.'second_last_name'] = (string) $participant->second_last_name;
             $values[$prefix.'alt_email'] = (string) $participant->alt_email;
-            $values[$prefix.'mobile'] = (string) $participant->mobile;
             $values[$prefix.'state'] = (string) $participant->state;
             $values[$prefix.'city'] = (string) $participant->city;
             $values[$prefix.'phone'] = (string) $participant->phone;

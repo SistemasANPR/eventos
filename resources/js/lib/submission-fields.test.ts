@@ -30,7 +30,6 @@ describe('fixed block fields', () => {
             'second_last_name',
             'email',
             'alt_email',
-            'mobile',
             'phone',
             'company',
             'job_title',
@@ -46,7 +45,5 @@ describe('fixed block fields', () => {
         expect(fields.filter((field) => field.required).map((field) => field.key)).toEqual(
             keys.filter((key) => !key.endsWith('.second_last_name') && !key.endsWith('.alt_email') && !key.endsWith('.photo')),
         );
-        // El celular: exactamente 14 dígitos y solo números.
-        expect(fields.find((field) => field.key.endsWith('.mobile'))?.config).toEqual({ minLength: 14, maxLength: 14, digitsOnly: true });
     });
 });

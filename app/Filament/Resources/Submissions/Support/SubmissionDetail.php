@@ -28,7 +28,7 @@ final class SubmissionDetail
     /**
      * @return array{
      *     answers: list<array{label: string, retired: bool, type: string, value: string|bool|list<string>|null, files: list<array{name: string, size: string, url: string|null, previewUrl: string|null}>, fileCount: int}>,
-     *     participants: list<array{photoUrl: ?string, fields: list<array{label: string, value: string}>, name: string, email: string, country: string, state: ?string, city: ?string, phone: ?string, mobile: ?string, altEmail: ?string, jobTitle: ?string, company: ?string, bio: ?string, primary: bool}>,
+     *     participants: list<array{photoUrl: ?string, fields: list<array{label: string, value: string}>, name: string, email: string, country: string, state: ?string, city: ?string, phone: ?string, altEmail: ?string, jobTitle: ?string, company: ?string, bio: ?string, primary: bool}>,
      *     canDownload: bool
      * }
      */
@@ -48,7 +48,6 @@ final class SubmissionDetail
                 'state' => $participant->state,
                 'city' => $participant->city,
                 'phone' => $participant->phone,
-                'mobile' => $participant->mobile,
                 'altEmail' => $participant->alt_email,
                 'jobTitle' => $participant->job_title,
                 'company' => $participant->company,
@@ -83,9 +82,9 @@ final class SubmissionDetail
     private static function participantFields(SubmissionParticipant $participant): array
     {
         $values = [
+            'second_last_name' => $participant->second_last_name,
             'email' => $participant->email,
             'alt_email' => $participant->alt_email,
-            'mobile' => $participant->mobile,
             'phone' => $participant->phone,
             'company' => $participant->company,
             'job_title' => $participant->job_title,

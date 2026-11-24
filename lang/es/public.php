@@ -70,7 +70,6 @@ return [
         'participant_second_last_name' => 'Apellido materno',
         'participant_email' => 'Correo electrónico',
         'participant_alt_email' => 'Correo electrónico alternativo',
-        'participant_mobile' => 'Celular',
         'participant_country' => 'País',
         'participant_state' => 'Estado o entidad',
         'participant_city' => 'Ciudad',

@@ -159,7 +159,7 @@ export function SubmissionBlock({
 }
 
 function isPhoneKey(key: string): boolean {
-    return key.endsWith('.phone') || key.endsWith('.mobile');
+    return key.endsWith('.phone');
 }
 
 /** Sugerencias del navegador solo para quien envía (el participante principal). */
@@ -168,7 +168,6 @@ function autoCompleteFor(key: string): string | undefined {
     if (key.endsWith('.last_name')) return 'family-name';
     if (key.endsWith('.email') || key.endsWith('.alt_email')) return 'email';
     if (key.endsWith('.country')) return 'country';
-    if (key.endsWith('.mobile')) return 'tel-national';
     if (key.endsWith('.phone')) return 'tel';
     if (key.endsWith('.job_title')) return 'organization-title';
     if (key.endsWith('.company')) return 'organization';

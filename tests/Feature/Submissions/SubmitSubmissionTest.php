@@ -101,7 +101,7 @@ function subInput(array $ctx, array $overrides = []): array
         'track_id' => $ctx['track']->id,
         'answers' => ['summary' => 'Un resumen', 'level' => 'Básico'],
         'participants' => [
-            ['first_name' => 'Ana', 'last_name' => 'Pérez', 'email' => 'Ana@Example.com ', 'country' => 'MX', 'mobile' => '52155123456789', 'state' => 'CDMX', 'city' => 'Ciudad de México', 'phone' => '+52 55 1234 5678', 'job_title' => 'Dra.', 'company' => 'ACME', 'bio' => 'Bio', 'is_primary' => true],
+            ['first_name' => 'Ana', 'last_name' => 'Pérez', 'email' => 'Ana@Example.com ', 'country' => 'MX', 'state' => 'CDMX', 'city' => 'Ciudad de México', 'phone' => '+52 55 1234 5678', 'job_title' => 'Dra.', 'company' => 'ACME', 'bio' => 'Bio', 'is_primary' => true],
         ],
         'consent' => true,
     ], $overrides);
@@ -122,7 +122,7 @@ function subSubmit(array $ctx, array $input): Submission
  */
 function subParticipant(string $email, array $overrides = []): array
 {
-    return array_replace(['first_name' => 'Persona', 'last_name' => $email, 'email' => $email, 'country' => 'CO', 'mobile' => '52155123456789', 'state' => 'CDMX', 'city' => 'Ciudad de México', 'phone' => '+52 55 1234 5678', 'job_title' => 'Dra.', 'company' => 'ACME', 'bio' => 'Semblanza profesional', 'is_primary' => false], $overrides);
+    return array_replace(['first_name' => 'Persona', 'last_name' => $email, 'email' => $email, 'country' => 'CO', 'state' => 'CDMX', 'city' => 'Ciudad de México', 'phone' => '+52 55 1234 5678', 'job_title' => 'Dra.', 'company' => 'ACME', 'bio' => 'Semblanza profesional', 'is_primary' => false], $overrides);
 }
 
 /**
@@ -221,7 +221,7 @@ it('CA-006-5: enforces participant count, required data, one primary and distinc
 })->with([
     'none' => [[], 'participants'],
     'four' => [[subParticipant('a@x.com', ['is_primary' => true]), subParticipant('b@x.com'), subParticipant('c@x.com'), subParticipant('d@x.com')], 'participants'],
-    'no name' => [[['first_name' => '', 'last_name' => 'Pérez', 'email' => 'a@x.com', 'country' => 'MX', 'mobile' => '52155123456789', 'state' => 'CDMX', 'city' => 'Ciudad de México', 'phone' => '+52 55 1234 5678', 'job_title' => 'Dra.', 'company' => 'ACME', 'bio' => 'Semblanza profesional', 'is_primary' => true]], 'participants.0.first_name'],
+    'no name' => [[['first_name' => '', 'last_name' => 'Pérez', 'email' => 'a@x.com', 'country' => 'MX', 'state' => 'CDMX', 'city' => 'Ciudad de México', 'phone' => '+52 55 1234 5678', 'job_title' => 'Dra.', 'company' => 'ACME', 'bio' => 'Semblanza profesional', 'is_primary' => true]], 'participants.0.first_name'],
     'bad email' => [[subParticipant('no-es-correo', ['is_primary' => true])], 'participants.0.email'],
     'bad country' => [[subParticipant('a@x.com', ['is_primary' => true, 'country' => 'ZZ'])], 'participants.0.country'],
     'no primary' => [[subParticipant('a@x.com')], 'participants'],
@@ -339,7 +339,7 @@ it('CA-006-10: reuses an existing contact without modifying it, and creates a ne
 
     $submission = subSubmit($ctx, subInput($ctx, [
         'participants' => [
-            ['first_name' => 'Ana', 'last_name' => 'Distinta', 'email' => 'ana@example.com', 'country' => 'MX', 'mobile' => '52155123456789', 'state' => 'CDMX', 'city' => 'Ciudad de México', 'phone' => '+52 55 1234 5678', 'job_title' => 'Dra.', 'company' => 'ACME', 'bio' => 'Semblanza profesional', 'is_primary' => true],
+            ['first_name' => 'Ana', 'last_name' => 'Distinta', 'email' => 'ana@example.com', 'country' => 'MX', 'state' => 'CDMX', 'city' => 'Ciudad de México', 'phone' => '+52 55 1234 5678', 'job_title' => 'Dra.', 'company' => 'ACME', 'bio' => 'Semblanza profesional', 'is_primary' => true],
             subParticipant('nueva@example.com'),
         ],
         'third_parties_authorized' => true,
@@ -556,7 +556,7 @@ it('CA-021-13: stores first and last name separately and computes full_name on t
     $ctx = subScenario();
 
     $submission = subSubmit($ctx, subInput($ctx, ['participants' => [
-        ['first_name' => ' Ana  ', 'last_name' => 'Pérez Gómez', 'full_name' => 'Falso Cliente', 'email' => 'ana@example.com', 'country' => 'MX', 'mobile' => '52155123456789', 'state' => 'CDMX', 'city' => 'Ciudad de México', 'phone' => '+52 55 1234 5678', 'job_title' => 'Dra.', 'company' => 'ACME', 'bio' => 'Semblanza profesional', 'is_primary' => true],
+        ['first_name' => ' Ana  ', 'last_name' => 'Pérez Gómez', 'full_name' => 'Falso Cliente', 'email' => 'ana@example.com', 'country' => 'MX', 'state' => 'CDMX', 'city' => 'Ciudad de México', 'phone' => '+52 55 1234 5678', 'job_title' => 'Dra.', 'company' => 'ACME', 'bio' => 'Semblanza profesional', 'is_primary' => true],
     ]]));
 
     $participant = $submission->participants()->sole();
@@ -588,7 +588,7 @@ it('CA-021-13: accepts names of 100 characters and keeps full_name within its co
     $ctx = subScenario();
 
     $submission = subSubmit($ctx, subInput($ctx, ['participants' => [
-        ['first_name' => str_repeat('ñ', 100), 'last_name' => str_repeat('á', 100), 'email' => 'a@x.com', 'country' => 'MX', 'mobile' => '52155123456789', 'state' => 'CDMX', 'city' => 'Ciudad de México', 'phone' => '+52 55 1234 5678', 'job_title' => 'Dra.', 'company' => 'ACME', 'bio' => 'Semblanza profesional', 'is_primary' => true],
+        ['first_name' => str_repeat('ñ', 100), 'last_name' => str_repeat('á', 100), 'email' => 'a@x.com', 'country' => 'MX', 'state' => 'CDMX', 'city' => 'Ciudad de México', 'phone' => '+52 55 1234 5678', 'job_title' => 'Dra.', 'company' => 'ACME', 'bio' => 'Semblanza profesional', 'is_primary' => true],
     ]]));
 
     expect(mb_strlen($submission->participants()->sole()->full_name))->toBe(201);
@@ -633,25 +633,10 @@ it('CA-026-10: rejects a submission language that is no longer one of the effect
         ->and($accepted->locale)->toBe('es');
 });
 
-it('the mobile phone accepts only numbers and exactly 14 digits', function (string $mobile, bool $accepted): void {
-    $ctx = subScenario();
-
-    $errors = subErrors($ctx, subInput($ctx, ['participants' => [subParticipant('a@x.com', ['is_primary' => true, 'mobile' => $mobile])]]));
-
-    expect(array_key_exists('participants.0.mobile', $errors))->toBe(! $accepted);
-})->with([
-    'fourteen digits' => ['52155123456789', true],
-    'thirteen digits' => ['5215512345678', false],
-    'fifteen digits' => ['521551234567890', false],
-    'with plus sign' => ['+5215512345678', false],
-    'with spaces' => ['52 155 123 456 7', false],
-    'letters' => ['5215512345678a', false],
-]);
-
 it('the second last name and the alternative email are optional, the rest of the participant data is required', function (): void {
     $ctx = subScenario();
 
-    foreach (['mobile', 'state', 'city', 'phone', 'company', 'job_title', 'bio'] as $required) {
+    foreach (['state', 'city', 'phone', 'company', 'job_title', 'bio'] as $required) {
         $errors = subErrors($ctx, subInput($ctx, ['participants' => [subParticipant('a@x.com', ['is_primary' => true, $required => ''])]]));
 
         expect(array_key_exists("participants.0.{$required}", $errors))->toBeTrue("{$required} debe ser obligatorio");
@@ -660,7 +645,7 @@ it('the second last name and the alternative email are optional, the rest of the
     expect(subErrors($ctx, subInput($ctx, ['participants' => [subParticipant('a@x.com', ['is_primary' => true, 'second_last_name' => '', 'alt_email' => ''])]])))->toBe([]);
 });
 
-it('stores the extra participant data and builds the full name with both last names', function (): void {
+it('stores the extra participant data; the maternal last name goes in its own column', function (): void {
     $ctx = subScenario();
 
     $submission = subSubmit($ctx, subInput($ctx, ['participants' => [subParticipant('a@x.com', [
@@ -673,10 +658,9 @@ it('stores the extra participant data and builds the full name with both last na
 
     $participant = $submission->participants()->sole();
 
-    expect($participant->full_name)->toBe('Ana Pérez Gómez')
+    expect($participant->full_name)->toBe('Ana Pérez')
         ->and($participant->second_last_name)->toBe('Gómez')
         ->and($participant->alt_email)->toBe('ana.alterno@example.com')
-        ->and($participant->mobile)->toBe('52155123456789')
         ->and($participant->state)->toBe('CDMX')
         ->and($participant->city)->toBe('Ciudad de México');
 });

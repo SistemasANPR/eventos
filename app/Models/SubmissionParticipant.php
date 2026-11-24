@@ -28,7 +28,6 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property string $country
  * @property string|null $second_last_name apellido materno
  * @property string|null $alt_email correo electrónico alternativo
- * @property string|null $mobile celular (14 dígitos)
  * @property string|null $state estado o entidad
  * @property string|null $city ciudad
  * @property string|null $photo_file_id fotografía (archivo JPG o PNG ligado a la propuesta)

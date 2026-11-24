@@ -14,6 +14,7 @@ use App\Models\User;
 use App\Support\Tenancy\CurrentOrganization;
 use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Spatie\Activitylog\Models\Activity;
 use Tests\Support\Memberships;
@@ -253,21 +254,21 @@ it('the detail shows every data of the participants with its label and the photo
         'original_name' => 'foto.png',
         'mime_type' => 'image/png',
     ]);
-    $submission->participants()->where('position', 1)->update([
+    DB::table('submission_participants')->where('submission_id', $submission->id)->where('position', 1)->update([
+        'second_last_name' => 'Gómez',
         'photo_file_id' => $photo->id,
         'state' => 'Jalisco',
         'city' => 'Guadalajara',
-        'mobile' => '52155123456789',
         'alt_email' => 'ana.alterno@example.test',
     ]);
 
     $this->actingAs($user)->get(detailUrl($organization, $event, $submission))
         ->assertOk()
+        ->assertSee('Apellido materno')
+        ->assertSee('Gómez')
         ->assertSee('Estado o entidad')
         ->assertSee('Jalisco')
         ->assertSee('Guadalajara')
-        ->assertSee('Celular')
-        ->assertSee('52155123456789')
         ->assertSee('Correo electrónico alternativo')
         ->assertSee('ana.alterno@example.test')
         ->assertSee('<img src="'.route('submission-files.preview', ['organization' => $organization->slug, 'file' => $photo->id]).'"', false);

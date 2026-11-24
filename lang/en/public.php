@@ -70,7 +70,6 @@ return [
         'participant_second_last_name' => 'Maternal last name',
         'participant_email' => 'Email address',
         'participant_alt_email' => 'Alternative email',
-        'participant_mobile' => 'Mobile phone',
         'participant_country' => 'Country',
         'participant_state' => 'State or region',
         'participant_city' => 'City',

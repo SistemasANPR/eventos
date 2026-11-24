@@ -110,7 +110,7 @@ function formBody(array $ctx, array $form, array $overrides = []): array
         'title' => 'Mi propuesta',
         'track_id' => $ctx['track']->id,
         'answers' => ['summary' => 'Un resumen'],
-        'participants' => [['first_name' => 'Ana', 'last_name' => 'Pérez', 'email' => 'ana@example.test', 'country' => 'MX', 'mobile' => '52155123456789', 'state' => 'CDMX', 'city' => 'Ciudad de México', 'phone' => '+52 55 1234 5678', 'job_title' => 'Dra.', 'company' => 'ACME', 'bio' => 'Semblanza profesional', 'is_primary' => true]],
+        'participants' => [['first_name' => 'Ana', 'last_name' => 'Pérez', 'email' => 'ana@example.test', 'country' => 'MX', 'state' => 'CDMX', 'city' => 'Ciudad de México', 'phone' => '+52 55 1234 5678', 'job_title' => 'Dra.', 'company' => 'ACME', 'bio' => 'Semblanza profesional', 'is_primary' => true]],
         'consent' => true,
         'privacy_notice_version_id' => $form['privacyNotice']['id'],
         'turnstile_token' => 'token-'.bin2hex(random_bytes(4)),
@@ -309,7 +309,7 @@ it('CA-006-24: a Turnstile token that was already used is rejected with 422', fu
     $this->post($ctx['url'].'/submit', formBody($ctx, $first, ['turnstile_token' => 'token-unico']))->assertRedirect();
 
     $second = openForm($this->get(...), $ctx);
-    $this->postJson($ctx['url'].'/submit', formBody($ctx, $second, ['title' => 'Otra', 'participants' => [['first_name' => 'Luis', 'last_name' => 'Gómez', 'email' => 'luis@example.test', 'country' => 'MX', 'mobile' => '52155123456789', 'state' => 'CDMX', 'city' => 'Ciudad de México', 'phone' => '+52 55 1234 5678', 'job_title' => 'Dra.', 'company' => 'ACME', 'bio' => 'Semblanza profesional', 'is_primary' => true]], 'turnstile_token' => 'token-unico']))
+    $this->postJson($ctx['url'].'/submit', formBody($ctx, $second, ['title' => 'Otra', 'participants' => [['first_name' => 'Luis', 'last_name' => 'Gómez', 'email' => 'luis@example.test', 'country' => 'MX', 'state' => 'CDMX', 'city' => 'Ciudad de México', 'phone' => '+52 55 1234 5678', 'job_title' => 'Dra.', 'company' => 'ACME', 'bio' => 'Semblanza profesional', 'is_primary' => true]], 'turnstile_token' => 'token-unico']))
         ->assertUnprocessable()
         ->assertJsonValidationErrors('turnstile_token');
 
@@ -333,7 +333,7 @@ it('CA-006-20: a blocked IP receives 429 with Retry-After and no proposal is cre
     $form = openForm($this->get(...), $ctx);
 
     $this->post($ctx['url'].'/submit', formBody($ctx, $form))->assertRedirect();
-    $this->postJson($ctx['url'].'/submit', formBody($ctx, $form, ['title' => 'Otra', 'participants' => [['first_name' => 'Luis', 'last_name' => 'Gómez', 'email' => 'luis@example.test', 'country' => 'MX', 'mobile' => '52155123456789', 'state' => 'CDMX', 'city' => 'Ciudad de México', 'phone' => '+52 55 1234 5678', 'job_title' => 'Dra.', 'company' => 'ACME', 'bio' => 'Semblanza profesional', 'is_primary' => true]]]))
+    $this->postJson($ctx['url'].'/submit', formBody($ctx, $form, ['title' => 'Otra', 'participants' => [['first_name' => 'Luis', 'last_name' => 'Gómez', 'email' => 'luis@example.test', 'country' => 'MX', 'state' => 'CDMX', 'city' => 'Ciudad de México', 'phone' => '+52 55 1234 5678', 'job_title' => 'Dra.', 'company' => 'ACME', 'bio' => 'Semblanza profesional', 'is_primary' => true]]]))
         ->assertStatus(429)
         ->assertHeader('Retry-After')
         ->assertJson(['code' => 'TOO_MANY_REQUESTS']);
@@ -352,7 +352,7 @@ it('CA-006-26: an email with 3 receipts in the last hour receives 429 and no pro
     // Otra IP, mismo correo (con otra capitalización).
     $other = openForm($this->get(...), $ctx);
     $this->withServerVariables(['REMOTE_ADDR' => '198.51.100.7'])
-        ->postJson($ctx['url'].'/submit', formBody($ctx, $other, ['title' => 'Otra', 'participants' => [['first_name' => 'Ana', 'last_name' => 'Pérez', 'email' => 'ANA@example.test', 'country' => 'MX', 'mobile' => '52155123456789', 'state' => 'CDMX', 'city' => 'Ciudad de México', 'phone' => '+52 55 1234 5678', 'job_title' => 'Dra.', 'company' => 'ACME', 'bio' => 'Semblanza profesional', 'is_primary' => true]]]))
+        ->postJson($ctx['url'].'/submit', formBody($ctx, $other, ['title' => 'Otra', 'participants' => [['first_name' => 'Ana', 'last_name' => 'Pérez', 'email' => 'ANA@example.test', 'country' => 'MX', 'state' => 'CDMX', 'city' => 'Ciudad de México', 'phone' => '+52 55 1234 5678', 'job_title' => 'Dra.', 'company' => 'ACME', 'bio' => 'Semblanza profesional', 'is_primary' => true]]]))
         ->assertStatus(429);
 
     expect(submissionCount())->toBe(1);
