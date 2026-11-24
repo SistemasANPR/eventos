@@ -44,6 +44,7 @@ use Spatie\Translatable\HasTranslations;
  * @property string $default_locale
  * @property string $currency
  * @property TimeFormat $time_format
+ * @property Carbon|null $review_period_closed_at instante UTC del cierre del periodo de evaluación; nulo si está abierto (plan 011)
  */
 #[Fillable([
     'name', 'description', 'slug', 'type', 'starts_at', 'ends_at', 'timezone',
@@ -60,12 +61,19 @@ class Event extends Model
     public array $translatable = ['name', 'description'];
 
     /** Mismo valor por defecto que la columna: un evento recién creado ya sabe su formato de hora (plan 023). */
-    protected $attributes = ['time_format' => '12h'];
+    protected $attributes = ['time_format' => '12h', 'review_period_closed_at' => null];
+
+    /** Periodo de evaluación abierto (plan 011): nadie lo ha cerrado. Cerrarlo y reabrirlo es de F6. */
+    public function reviewPeriodIsOpen(): bool
+    {
+        return $this->review_period_closed_at === null;
+    }
 
     /** @return array<string, string> */
     protected function casts(): array
     {
         return [
+            'review_period_closed_at' => 'datetime',
             'type' => EventType::class,
             'status' => EventStatus::class,
             'time_format' => TimeFormat::class,
