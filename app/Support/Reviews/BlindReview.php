@@ -25,6 +25,9 @@ use App\Models\SubmissionFile;
  */
 final class BlindReview
 {
+    /** Prefijo de la clave con que se guarda la fotografía de cada participante (`SubmitSubmission`). */
+    private const PARTICIPANT_PHOTO_PREFIX = 'participant_photo_';
+
     public static function appliesTo(Submission $submission): bool
     {
         $blind = Rubric::query()
@@ -57,9 +60,15 @@ final class BlindReview
         return $keys;
     }
 
-    /** Si el archivo es de un campo que identifica al autor y la propuesta se evalúa a ciegas. */
+    /**
+     * Si el archivo delata al autor y la propuesta se evalúa a ciegas: el de un campo marcado con
+     * `identifiesAuthor` o la fotografía de un participante (clave `participant_photo_{posición}`, que no es
+     * un campo del formulario y por eso no aparece entre los marcados).
+     */
     public static function hidesFile(Submission $submission, SubmissionFile $file): bool
     {
-        return self::appliesTo($submission) && in_array($file->form_field_key, self::identifyingFieldKeys($submission), true);
+        return self::appliesTo($submission)
+            && (in_array($file->form_field_key, self::identifyingFieldKeys($submission), true)
+                || str_starts_with((string) $file->form_field_key, self::PARTICIPANT_PHOTO_PREFIX));
     }
 }
