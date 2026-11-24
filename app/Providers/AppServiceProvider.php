@@ -21,7 +21,7 @@ use App\Support\Forms\IssuedUploadTokens;
 use App\Support\Forms\PendingUploadRepository;
 use App\Support\Forms\SessionIssuedUploadTokens;
 use App\Support\Forms\SubmissionAnswerCounter;
-use App\Support\Reviews\NoRecordedReviews;
+use App\Support\Reviews\RecordedReviews;
 use App\Support\Reviews\RubricUsageChecker;
 use App\Support\Tenancy\CurrentOrganization;
 use Filament\Auth\Http\Responses\Contracts\LoginResponse as LoginResponseContract;
@@ -51,8 +51,8 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(PendingUploadRepository::class, EloquentPendingUploads::class);
         $this->app->bind(TrackUsageChecker::class, SubmissionTrackUsage::class);
         $this->app->bind(SubmissionAnswerCounter::class, EloquentSubmissionAnswerCounter::class);
-        // Costura hacia las evaluaciones (plan 011, F4): hasta entonces ninguna rubrica tiene evaluaciones.
-        $this->app->bind(RubricUsageChecker::class, NoRecordedReviews::class);
+        // Costura hacia las evaluaciones (plan 011, DA-2): una rubrica con evaluaciones registradas no se edita.
+        $this->app->bind(RubricUsageChecker::class, RecordedReviews::class);
         // Acceso único (plan 017): cada persona llega a su portal, no al panel desde el que inició sesión.
         $this->app->bind(LoginResponseContract::class, LoginResponse::class);
     }
