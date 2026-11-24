@@ -4,6 +4,7 @@ import type { ReactNode } from 'react';
 import Show from '@/pages/Calls/Show';
 import { createTranslate } from '@/lib/translate';
 import type { PublicCall } from '@/types/call';
+import type { CallLandingData, CallRouteSlugs } from '@/types/call-landing';
 
 const translations = {
     layout: { skip_to_content: 'Saltar al contenido', footer: 'Plataforma' },
@@ -58,9 +59,17 @@ const call: PublicCall = {
 const organization = { name: 'Parques de México', slug: 'parques' };
 const event = { name: 'Congreso Parques' };
 
-function renderPage(overrides: Partial<PublicCall> = {}, privacyUrl: string | null = null, submitUrl: string | null = null) {
+function renderPage(
+    overrides: Partial<PublicCall> = {},
+    privacyUrl: string | null = null,
+    submitUrl: string | null = null,
+    slugs?: CallRouteSlugs,
+    landing?: CallLandingData,
+) {
     return render(
         <Show
+            slugs={slugs}
+            landing={landing}
             call={{ ...call, ...overrides }}
             event={event}
             organization={organization}
@@ -72,6 +81,25 @@ function renderPage(overrides: Partial<PublicCall> = {}, privacyUrl: string | nu
 }
 
 describe('Calls/Show page', () => {
+    it('uses the landing in Spanish when the server sends its data, and the usual page in other languages or without it', () => {
+        const slugs = { organization: 'parques', event: 'congreso', call: 'ponencias' };
+        const landing = { minParticipants: 1, maxParticipants: 5, formProposal: [], formParticipant: [], otherCalls: [] };
+        const { unmount } = renderPage({}, null, null, slugs, landing);
+
+        expect(screen.getByRole('heading', { level: 1, name: 'Convocatoria de ponencias' })).toBeInTheDocument();
+        expect(document.querySelector('.cl')).not.toBeNull();
+        unmount();
+
+        const english = renderPage({ locale: 'en' }, null, null, slugs, landing);
+
+        expect(document.querySelector('.cl')).toBeNull();
+        english.unmount();
+
+        renderPage();
+
+        expect(document.querySelector('.cl')).toBeNull();
+    });
+
     it('shows the title as the only h1, the event name and the description', () => {
         renderPage();
 
