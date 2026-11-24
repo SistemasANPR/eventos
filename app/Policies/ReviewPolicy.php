@@ -47,6 +47,17 @@ final class ReviewPolicy
             && $assignment->status !== ReviewAssignmentStatus::DeclinedConflict;
     }
 
+    /**
+     * Declarar conflicto de interés (plan 011, CA-011-17): solo el dueño de una asignación vigente que aún no
+     * se envió. Una evaluación ya enviada cuenta en los resultados: si el conflicto aparece después, el
+     * organizador cancela la asignación (DA-7) y la evaluación se conserva sin contar.
+     */
+    public function declareConflict(User $user, ReviewAssignment $assignment): bool
+    {
+        return $this->ownsActiveAssignment($user, $assignment)
+            && in_array($assignment->status, [ReviewAssignmentStatus::Pending, ReviewAssignmentStatus::InProgress], true);
+    }
+
     private function ownsActiveAssignment(User $user, ReviewAssignment $assignment): bool
     {
         if (! CurrentOrganization::has() || $assignment->organization_id !== CurrentOrganization::id()) {

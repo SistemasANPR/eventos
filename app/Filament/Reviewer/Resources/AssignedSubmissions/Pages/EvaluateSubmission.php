@@ -10,6 +10,7 @@ use App\Enums\ReviewAssignmentStatus;
 use App\Exceptions\Domain\NoPublishedRubric;
 use App\Exceptions\Domain\ReviewPeriodClosed;
 use App\Filament\Resources\Submissions\Support\SubmissionDetail;
+use App\Filament\Reviewer\Resources\AssignedSubmissions\Actions\DeclareConflictAction;
 use App\Filament\Reviewer\Resources\AssignedSubmissions\AssignedSubmissionResource;
 use App\Filament\Support\ActionErrors;
 use App\Models\Review;
@@ -66,10 +67,10 @@ class EvaluateSubmission extends EditRecord
         return __('reviewer.evaluate.breadcrumb');
     }
 
-    /** Sin acciones de borrado ni de vista del recurso base. */
+    /** Sin acciones de borrado ni de vista del recurso base; solo declarar conflicto (CA-011-17). */
     protected function getHeaderActions(): array
     {
-        return [];
+        return [DeclareConflictAction::make()];
     }
 
     /** Carga lo ya guardado (borrador o evaluación enviada) en los criterios de la rúbrica vigente. */

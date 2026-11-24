@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Filament\Reviewer\Resources\AssignedSubmissions\Tables;
 
 use App\Enums\ReviewAssignmentStatus;
+use App\Filament\Reviewer\Resources\AssignedSubmissions\Actions\DeclareConflictAction;
 use App\Filament\Reviewer\Resources\AssignedSubmissions\AssignedSubmissionResource;
 use App\Filament\Support\ActionErrors;
 use App\Models\CallForSubmissions;
@@ -56,7 +57,7 @@ final class AssignedSubmissionsTable
                     ->badge(),
             ])
             ->recordUrl(fn (ReviewAssignment $record): string => AssignedSubmissionResource::getUrl('evaluate', ['record' => $record]))
-            ->recordActions([self::reviewAction()])
+            ->recordActions([self::reviewAction(), DeclareConflictAction::make()])
             ->filters([
                 self::statusFilter(),
                 self::relationFilter('track', 'track_id', self::trackOptions(...)),

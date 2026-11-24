@@ -94,7 +94,8 @@ final class SubmissionsTable
     /**
      * Evaluadores asignados frente al mínimo de la rúbrica del tipo (plan 011, CA-011-6): una propuesta por
      * evaluar con menos evaluadores que el mínimo se marca como «cobertura incompleta». Solo aplica a las
-     * propuestas que aún se evalúan (`submitted` y `under_review`).
+     * propuestas que aún se evalúan (`submitted` y `under_review`). Debajo se avisa de los conflictos de interés
+     * declarados por los evaluadores (CA-011-17).
      */
     private static function reviewersColumn(): TextColumn
     {
@@ -109,7 +110,17 @@ final class SubmissionsTable
                 : null)
             ->badge()
             ->color(fn (Submission $record, $livewire): string => $incomplete($record, $livewire) ? 'danger' : 'success')
-            ->description(fn (Submission $record, $livewire): ?string => $incomplete($record, $livewire) ? __('review_assignments.columns.coverage_incomplete') : null);
+            ->description(function (Submission $record, $livewire) use ($incomplete): ?string {
+                // Los conflictos declarados (CA-011-17) se avisan junto a la cobertura: la propuesta puede
+                // necesitar otro evaluador.
+                $conflicts = (int) $record->getAttribute('declared_conflicts_count');
+                $notes = array_filter([
+                    $incomplete($record, $livewire) ? __('review_assignments.columns.coverage_incomplete') : null,
+                    $conflicts > 0 ? __('reviewer_integrity.organizer.conflicts', ['count' => $conflicts]) : null,
+                ]);
+
+                return $notes === [] ? null : implode(' · ', $notes);
+            });
     }
 
     /** @param  callable(Event): array<string, string>  $options */
