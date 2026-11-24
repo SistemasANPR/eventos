@@ -152,6 +152,22 @@ Decisiones de implementación (el agente de privacidad las toma dentro del alcan
 | `app:reapply-anonymizations {--organization=} {--from-file=} {--dry-run}` | Imprime por organización y el total («Personas reaplicadas: N de M con datos»); código de salida distinto de 0 si hay omitidas, con error, un archivo ilegible o una organización inexistente; `--dry-run` no se combina con `--from-file` |
 | `app:export-anonymization-log {path}` / `ExportAnonymizationLog` / `ImportAnonymizationLog` | Guarda y recarga las huellas de todas las organizaciones (JSON `{version: 1, entries[]}`), todo o nada, idempotente; el destino nunca puede estar dentro de `public/` y el archivo se crea con permisos `0600` |
 
+**F5 (retención programada y escaneo, construida el 2026-11-24).**
+
+| DA | Decisión |
+|---|---|
+| DA-15 | **Sin plazos por defecto.** `[PENDIENTE: plazos de retención por categoría y quién los aprueba]` sigue abierto: la configuración nace vacía, la tarea no actúa sobre una categoría sin plazo y una organización sin plazos no hace nada ni se audita (denegar por defecto). Los plazos los fija cada organización (`retention.manage`, solo `org_admin`). |
+| DA-16 | **Categorías y qué hace cada una** (`RetentionCategory`): `unaccepted_submissions` (rechazadas o retiradas desde hace más del plazo, contado desde la decisión o el retiro y, si no consta, desde el envío: se anonimiza a sus autores, se borran sus archivos, se invalidan los enlaces y se sustituyen los comentarios de la decisión; el contacto se anonimiza solo si ya no tiene otros datos vivos; se conserva el contenido de la propuesta); `reviews` (se sustituye el texto de los comentarios; se conservan las calificaciones); `mail_dispatches` (se rompe el vínculo con el destinatario); `audit_log` (se eliminan los registros de la organización más antiguos que el plazo); `backups` (solo declarativa: ningún trabajo borra respaldos, DA-5). Quedan fuera las propuestas aceptadas, los ponentes y los contactos sin propuestas (DT-53). |
+| DA-17 | **Reintentos.** Cada propuesta y cada bloque de evaluaciones van en su transacción; el disco se borra antes que la base; lo ya anonimizado no se vuelve a seleccionar. Un fallo de una propuesta se reporta, no detiene a las demás y se reintenta al día siguiente; el comando termina con error. |
+| DA-18 | **Escaneo de archivos (H-014-5): sin decisión.** Se escribió el ADR-0011 con las dos opciones y una recomendación; la decisión es de Antonio y no se implementó ningún escaneo. CA-014-32 queda pendiente de esa decisión (aplica solo a la opción A). |
+
+| Pieza | Contrato |
+|---|---|
+| `ApplyRetentionPolicy::handle(Organization $organization): RetentionReport` | Con `CurrentOrganization::run()`; `RetentionReport{counts por categoría con plazo, failed[]}`; no hace nada y no audita sin plazos; audita `retention_applied` con los totales; idempotente |
+| `retention:apply {--organization=}` | Programado a diario a las 04:00 (`withoutOverlapping`); imprime por organización; código de salida distinto de 0 si una categoría falla |
+| `SetRetentionPolicies::handle(User $actor, array $data): array` | `data`: categoría => días (1 a 36500) o vacío para quitar el plazo; solo las categorías presentes cambian; 403 sin `retention.manage`; `ValidationException`; audita `retention_policies_updated` |
+| Pantalla «Retención de datos» (`App\Filament\Pages\Privacy\RetentionSettings`) | Solo presentación; campos vacíos = sin plazo |
+
 ## 5. Permisos, aislamiento y datos personales
 
 | Pregunta | Respuesta |
@@ -233,6 +249,7 @@ Cada uno tiene al menos una prueba cuyo nombre lo cita (`CA-014-n: ...`) o decla
 - **CA-014-31:** *Dado* las opciones de DA-3, *cuando* se toma la decisión, *entonces* queda registrada en un ADR corto con fecha, dueño y el punto de deuda correspondiente cerrado o reprogramado.
   Manual: revisar el ADR y `docs/sprints/deuda-tecnica.md`.
 - **CA-014-32:** *Dado* que se elige escaneo asíncrono, *cuando* un archivo está pendiente o resulta infectado, *entonces* no se puede descargar y el organizador ve su estado.
+  Manual: solo aplica si Antonio elige la opción A del ADR-0011; mientras no haya decisión no existe un escaneo que probar (DA-18). Si se elige, este criterio pasa a tener prueba.
 
 ### H-014-6 · Retención y anonimización programadas
 

@@ -46,7 +46,7 @@ Mantener esta tabla al día: **todo dato personal nuevo se añade aquí en el mi
 - **Consentimiento registrado:** quién consintió, qué texto y versión, y cuándo. Revocable.
 - **Aviso de privacidad** enlazado en cada formulario público; el texto lo define la organización.
 - **Derechos de acceso, rectificación, cancelación y oposición:** debe existir una acción para **exportar** y para **eliminar o anonimizar** los datos de una persona dentro de una organización, con auditoría. El borrado respeta los datos que deben conservarse por obligación legal (facturación).
-- **Conservación:** cada categoría tiene un plazo; un trabajo programado anonimiza o elimina lo vencido. `[RELLENAR: plazos por categoría]`.
+- **Conservación:** cada categoría tiene un plazo; un trabajo programado anonimiza o elimina lo vencido. `[RELLENAR: plazos por categoría]`. La plataforma ya lo hace (plan 014, `retention:apply`, diario) para cuatro categorías: propuestas rechazadas o retiradas, comentarios de evaluaciones, envíos de correo y auditoría de la organización, más la declaración de la retención máxima de respaldos. **No hay plazos por defecto**: cada organización los fija en «Retención de datos» (`retention.manage`, solo `org_admin`) y una categoría sin plazo no se toca. Qué hace cada una, en `docs/plans/2026-11-09-014-feat-endurecimiento-y-privacidad.md` §4.3 (DA-16).
 - **Sin datos personales en logs, respuestas ni exportaciones sin permiso** (`docs/seguridad.md`). Los eventos de error no incluyen PII.
 - **Datos de prueba:** nunca datos reales en local ni en pruebas. Staging, solo anonimizado.
 - **Terceros (subencargados):** cada proveedor que recibe datos (correo, pagos, errores, almacenamiento) se lista abajo, con su país y su función.
