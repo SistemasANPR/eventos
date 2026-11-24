@@ -12,7 +12,10 @@ use App\Exceptions\Domain\FormVersionConflict;
 use App\Filament\Resources\Forms\FormDefinitionResource;
 use App\Filament\Support\ActionErrors;
 use App\Models\CallForSubmissions;
+use App\Models\Event;
 use App\Models\FormDefinition;
+use App\Support\Forms\FormSettings;
+use App\Support\Forms\ProposalFields;
 use Filament\Actions\Action;
 use Filament\Forms\Components\Select;
 use Filament\Notifications\Notification;
@@ -30,6 +33,9 @@ class EditFormDefinition extends EditRecord
     protected function getHeaderActions(): array
     {
         return [
+            // Guardar y cancelar arriba: el formulario es largo y así no hay que bajar hasta el final.
+            $this->getSaveFormAction()->formId('form'),
+            $this->getCancelFormAction()->formId('form'),
             Action::make('preview')
                 ->label(__('forms.preview.action'))
                 ->icon('heroicon-o-eye')
@@ -40,6 +46,39 @@ class EditFormDefinition extends EditRecord
                 ])),
             $this->publishAction(),
         ];
+    }
+
+    /** Los botones de guardar y cancelar van en la cabecera, no al final del formulario. */
+    protected function getFormActions(): array
+    {
+        return [];
+    }
+
+    /**
+     * Un formulario anterior a los ajustes (nulo) se abre con lo que siempre ha hecho: todo visible, los mismos
+     * obligatorios de siempre y los participantes primero.
+     *
+     * @param  array<string, mixed>  $data
+     * @return array<string, mixed>
+     */
+    protected function mutateFormDataBeforeFill(array $data): array
+    {
+        $settings = is_array($data['settings'] ?? null) ? $data['settings'] : null;
+        $data['settings'] = [
+            ...($settings ?? []),
+            'participants_position' => FormSettings::position($settings),
+            'participant_fields' => FormSettings::participantFields($settings),
+        ];
+
+        // Un formulario anterior no trae el título ni el tema de la propuesta: se muestran al principio de los campos
+        // y quedan guardados al guardar. Mientras no se guarde, el formulario público conserva su bloque fijo.
+        $event = Event::query()->find($data['event_id'] ?? null);
+
+        if ($event instanceof Event && is_array($data['fields'] ?? null)) {
+            $data['fields'] = ProposalFields::withDefaults(array_values($data['fields']), $event);
+        }
+
+        return $data;
     }
 
     /** @param  array<string, mixed>  $data */

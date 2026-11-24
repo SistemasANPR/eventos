@@ -28,6 +28,9 @@ final class FormDefinitionRules
 
     public const MAX_OPTIONS = 50;
 
+    /** Tope del límite de personas por propuesta que se puede fijar en un formulario. */
+    public const MAX_PARTICIPANTS = 20;
+
     /** Extensiones que un campo `file` puede aceptar (CA-005-4). */
     public const FILE_EXTENSIONS = ['pdf', 'pptx', 'jpg', 'png'];
 
@@ -92,10 +95,24 @@ final class FormDefinitionRules
 
         return [
             'name' => ['required', 'string', 'max:150'],
+            'max_participants' => ['nullable', 'integer', 'min:1', 'max:'.self::MAX_PARTICIPANTS],
+            // Ajustes del formulario (ver `FormSettings`): preguntas de los participantes, su posición y dos títulos.
+            'settings' => ['nullable', 'array'],
+            'settings.participants_position' => ['nullable', Rule::in([FormSettings::POSITION_TOP, FormSettings::POSITION_BOTTOM])],
+            'settings.title' => ['nullable', $locales],
+            'settings.title.*' => ['nullable', 'string', 'max:120'],
+            'settings.extra_section_title' => ['nullable', $locales],
+            'settings.extra_section_title.*' => ['nullable', 'string', 'max:120'],
+            'settings.participant_fields' => ['nullable', 'array'],
+            'settings.participant_fields.*' => ['array'],
+            'settings.participant_fields.*.enabled' => ['nullable', 'boolean'],
+            'settings.participant_fields.*.required' => ['nullable', 'boolean'],
             'fields' => ['present', 'array', 'max:'.self::MAX_FIELDS],
             'fields.*' => ['array'],
             'fields.*.key' => ['nullable', 'string', 'max:64'],
             'fields.*.type' => ['required', Rule::enum(FieldType::class)],
+            // Función del campo: título o tema de la propuesta (ver `ProposalFields`).
+            'fields.*.role' => ['nullable', Rule::in(ProposalFields::ROLES)],
             'fields.*.required' => ['sometimes', 'boolean'],
             'fields.*.identifiesAuthor' => ['sometimes', self::strictBoolean()],
             'fields.*.label' => ['required', $locales],
@@ -130,6 +147,7 @@ final class FormDefinitionRules
             }
 
             $seenKeys = [];
+            $seenRoles = [];
 
             // Se conservan las claves del arreglo: el repetidor de Filament las usa como identificador
             // de cada fila y los errores solo se pintan junto a su campo si la ruta coincide.
@@ -143,6 +161,7 @@ final class FormDefinitionRules
                 self::checkIdentifiesAuthor($validator, $path, $field);
                 self::checkConfig($validator, $path, $field, $event);
                 self::checkKey($validator, $path, $field, $seenKeys);
+                self::checkRole($validator, $path, $field, $seenRoles);
             }
         });
     }
@@ -191,7 +210,8 @@ final class FormDefinitionRules
             self::checkRange($validator, $path, $config, 'min', 'max');
         }
 
-        if ($type?->hasOptions()) {
+        // Las opciones del tema son los ejes del evento: no se escriben aquí.
+        if ($type?->hasOptions() && ($field['role'] ?? null) !== ProposalFields::ROLE_TRACK) {
             self::checkOptions($validator, $path, $config, $event, $type === FieldType::MultipleChoice);
         }
     }
@@ -264,6 +284,33 @@ final class FormDefinitionRules
         }
 
         $seenKeys[$key] = true;
+    }
+
+    /**
+     * El título es un texto corto y el tema una selección única; cada función se usa una sola vez.
+     *
+     * @param  array<string, mixed>  $field
+     * @param  array<string, true>  $seenRoles
+     */
+    private static function checkRole(FormValidator $validator, string $path, array $field, array &$seenRoles): void
+    {
+        $role = ProposalFields::roleOf($field);
+
+        if ($role === null) {
+            return;
+        }
+
+        $expected = $role === ProposalFields::ROLE_TITLE ? FieldType::ShortText : FieldType::SingleChoice;
+
+        if (self::typeOf($field) !== $expected) {
+            $validator->errors()->add($path.'.type', __('forms.role_type'));
+        }
+
+        if (isset($seenRoles[$role])) {
+            $validator->errors()->add($path.'.role', __('forms.role_repeated'));
+        }
+
+        $seenRoles[$role] = true;
     }
 
     /** @param  array<string, mixed>  $field */

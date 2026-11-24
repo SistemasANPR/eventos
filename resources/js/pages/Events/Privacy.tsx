@@ -37,9 +37,7 @@ export default function Privacy({ event, organization, notice, eventUrl }: Priva
                         <span>{t('privacy.version', { version: String(notice.version) })}</span>
                         <span>{t('privacy.published_on', { date: formatPublishedAt(notice.publishedAt, event.locale) })}</span>
                     </p>
-                    {isInBaseLanguage && (
-                        <p className="text-sm text-text-muted">{t('privacy.shown_in_base_language')}</p>
-                    )}
+                    {isInBaseLanguage && <p className="text-sm text-text-muted">{t('privacy.shown_in_base_language')}</p>}
                 </header>
 
                 <div lang={notice.locale} className="max-w-prose">

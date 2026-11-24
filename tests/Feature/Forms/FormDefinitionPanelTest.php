@@ -92,8 +92,10 @@ it('CA-005-7: in the panel editing a form keeps the key of every field and the v
     $form = storedForm($organization, $created->id);
 
     expect($form->name)->toBe('Renombrado')
-        ->and(array_column($form->fields, 'key'))->toBe($keys)
-        ->and(array_column($form->fields[1]['config']['options'], 'value'))->toBe($values);
+        // Un formulario anterior recibe al principio el título y el tema; sus campos conservan clave y opciones.
+        ->and(array_column(array_slice($form->fields, 0, 2), 'role'))->toBe(['title', 'track'])
+        ->and(array_column(array_slice($form->fields, 2), 'key'))->toBe($keys)
+        ->and(array_column($form->fields[3]['config']['options'], 'value'))->toBe($values);
 });
 
 it('CA-005-3: in the panel a field without a label in the base language shows the error and saves nothing', function (): void {

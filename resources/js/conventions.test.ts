@@ -35,7 +35,8 @@ describe('frontend conventions', () => {
     });
 
     it('does not use framework color classes outside the tokens (bg-gray-900, text-red-500...)', () => {
-        const palette = /\b(?:bg|text|border|ring|outline|fill|stroke)-(?:slate|gray|zinc|neutral|stone|red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose)-\d{2,3}\b/;
+        const palette =
+            /\b(?:bg|text|border|ring|outline|fill|stroke)-(?:slate|gray|zinc|neutral|stone|red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose)-\d{2,3}\b/;
         const offenders = sources.filter(({ text }) => palette.test(text));
 
         expect(offenders.map(({ file }) => file)).toEqual([]);

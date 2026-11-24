@@ -71,10 +71,13 @@ it('CA-005-12: the preview data has the active fields in order, the asked langua
     $fields[0]['position'] = 2;
     $form->forceFill(['fields' => $fields]);
 
-    $english = app(FormPreviewProps::class)->handle($form, $event, 'en');
-    $unknown = app(FormPreviewProps::class)->handle($form, $event, 'fr');
+    [$english, $unknown] = CurrentOrganization::run($organization, fn (): array => [
+        app(FormPreviewProps::class)->handle($form, $event, 'en'),
+        app(FormPreviewProps::class)->handle($form, $event, 'fr'),
+    ]);
 
-    expect(array_column($english['fields'], 'key'))->toBe([$fields[2]['key'], $fields[0]['key']])
+    // Un formulario anterior recibe al principio el título y el tema de la propuesta.
+    expect(array_column($english['fields'], 'key'))->toBe(['s.title', 's.track_id', $fields[2]['key'], $fields[0]['key']])
         ->and($english['locale'])->toBe('en')
         ->and($english['defaultLocale'])->toBe('es')
         ->and($english['translations']['forms']['renderer']['submit'])->toBe('Submit proposal')

@@ -90,12 +90,7 @@ export function FormRenderer({
     ));
 
     return (
-        <form
-            aria-label={t('forms.renderer.form_label')}
-            noValidate
-            onSubmit={handleSubmit}
-            className={cn('space-y-6', className)}
-        >
+        <form aria-label={t('forms.renderer.form_label')} noValidate onSubmit={handleSubmit} className={cn('space-y-6', className)}>
             {leading}
             {fieldsTitle !== undefined && visibleFields.length > 0 ? (
                 <section aria-labelledby={`${idPrefix}-fields`} className={cn(SECTION_CARD, 'space-y-6')}>

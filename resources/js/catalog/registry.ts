@@ -42,7 +42,8 @@ export const registry: CatalogEntry[] = [
         path: 'atoms/HexagonPattern',
         level: 'atom',
         category: 'Decoration',
-        useWhen: 'Adorno de hexágonos (motivo de la marca) en cabeceras, pies y portadas de color; siempre oculto a los lectores de pantalla',
+        useWhen:
+            'Adorno de hexágonos (motivo de la marca) en cabeceras, pies y portadas de color; siempre oculto a los lectores de pantalla',
         avoidFor: 'Transmitir información o servir de icono con significado (usar un icono con texto)',
         preview: 'none',
     },
@@ -51,7 +52,8 @@ export const registry: CatalogEntry[] = [
         path: 'molecules/PageBanner',
         level: 'molecule',
         category: 'Layout',
-        useWhen: 'El encabezado de color (violeta con hexágonos) de una portada o página de convocatoria: logotipo, título grande y contenido bajo el título',
+        useWhen:
+            'El encabezado de color (violeta con hexágonos) de una portada o página de convocatoria: logotipo, título grande y contenido bajo el título',
         avoidFor: 'Páginas de lectura sin identidad de marca (aviso de privacidad, acceso del autor)',
         preview: 'none',
     },
@@ -69,7 +71,8 @@ export const registry: CatalogEntry[] = [
         path: 'atoms/EventLogo',
         level: 'atom',
         category: 'Data display',
-        useWhen: 'El logotipo del evento en la cabecera de sus páginas públicas, con el nombre del evento como texto alternativo; no dibuja nada sin logotipo',
+        useWhen:
+            'El logotipo del evento en la cabecera de sus páginas públicas, con el nombre del evento como texto alternativo; no dibuja nada sin logotipo',
         avoidFor: 'Fotografías o imágenes de contenido (galerías y bloques de la landing) y el nombre de la organización',
         preview: 'none',
     },
@@ -114,7 +117,8 @@ export const registry: CatalogEntry[] = [
         path: 'molecules/AcceptanceField',
         level: 'molecule',
         category: 'Forms',
-        useWhen: 'Una casilla de aceptación controlada con su texto (puede incluir un enlace) y su error asociado: consentimiento y declaraciones',
+        useWhen:
+            'Una casilla de aceptación controlada con su texto (puede incluir un enlace) y su error asociado: consentimiento y declaraciones',
         avoidFor: 'Casillas definidas por el organizador (las dibuja FormFieldInput) o grupos de opciones',
         preview: 'none',
     },
@@ -123,7 +127,8 @@ export const registry: CatalogEntry[] = [
         path: 'organisms/SubmissionBlock',
         level: 'organism',
         category: 'Forms',
-        useWhen: 'El bloque fijo del envío de una propuesta: título, eje y lista de participantes con mínimo y máximo, dentro de FormRenderer',
+        useWhen:
+            'El bloque fijo del envío de una propuesta: título, eje y lista de participantes con mínimo y máximo, dentro de FormRenderer',
         avoidFor: 'Cualquier otro formulario; los campos que define el organizador van en FormRenderer',
         preview: 'none',
     },
@@ -132,7 +137,8 @@ export const registry: CatalogEntry[] = [
         path: 'organisms/SubmissionForm',
         level: 'organism',
         category: 'Forms',
-        useWhen: 'El formulario público completo de envío de una propuesta: bloque fijo, campos, consentimiento, Turnstile, subida de archivos y errores que conservan lo escrito',
+        useWhen:
+            'El formulario público completo de envío de una propuesta: bloque fijo, campos, consentimiento, Turnstile, subida de archivos y errores que conservan lo escrito',
         avoidFor: 'Vistas previas del panel (usar FormRenderer en modo preview) o formularios sin definición',
         preview: 'none',
     },

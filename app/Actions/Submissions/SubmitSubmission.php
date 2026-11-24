@@ -68,7 +68,7 @@ final class SubmitSubmission
     ];
 
     /** `full_name` no es del contrato: lo calcula el servidor a partir de nombre y apellido. */
-    private const PARTICIPANT_KEYS = ['first_name', 'last_name', 'email', 'country', 'job_title', 'company', 'bio', 'is_primary'];
+    private const PARTICIPANT_KEYS = ['first_name', 'last_name', 'email', 'country', 'second_last_name', 'alt_email', 'state', 'city', 'phone', 'job_title', 'company', 'bio', 'photo_file_id', 'is_primary'];
 
     public function __construct(
         private readonly LoadPublishedForm $publishedForm,
@@ -218,6 +218,7 @@ final class SubmitSubmission
         }
 
         $this->attachUploads($current, $submission, $form, $answers, $uploadToken);
+        $this->attachParticipantPhotos($current, $submission, $participants, $uploadToken);
 
         // Sin datos personales: solo identificadores y conteos.
         activity()
@@ -247,7 +248,7 @@ final class SubmitSubmission
         $errors = [];
         $answers = [];
 
-        $fixed = Validator::make($data, StoreSubmissionRequest::fieldRules($call->min_participants, $call->max_participants, Event::query()->findOrFail($call->event_id)->effectiveLocalesForCall($call)));
+        $fixed = Validator::make($data, StoreSubmissionRequest::fieldRules($call->min_participants, $call->max_participants, Event::query()->findOrFail($call->event_id)->effectiveLocalesForCall($call), $form->settings));
         $fixed->after(static fn ($validator) => StoreSubmissionRequest::crossFieldChecks($validator));
 
         if ($fixed->fails()) {
@@ -309,6 +310,11 @@ final class SubmitSubmission
             'full_name' => self::fullName($participant),
             'email' => $participant['email'],
             'country' => $participant['country'],
+            'second_last_name' => $participant['second_last_name'] ?? null,
+            'alt_email' => $participant['alt_email'] ?? null,
+            'state' => $participant['state'] ?? null,
+            'city' => $participant['city'] ?? null,
+            'phone' => $participant['phone'] ?? null,
             'job_title' => $participant['job_title'] ?? null,
             'company' => $participant['company'] ?? null,
             'bio' => $participant['bio'] ?? null,
@@ -376,6 +382,30 @@ final class SubmitSubmission
     }
 
     /**
+     * Liga la fotografía de cada participante (clave `participant_photo_{posición}`) y la anota en su ficha.
+     * Cualquier fallo revierte todo el envío, igual que los archivos del formulario.
+     *
+     * @param  list<mixed>  $participants
+     */
+    private function attachParticipantPhotos(CallForSubmissions $call, Submission $submission, array $participants, string $uploadToken): void
+    {
+        foreach ($participants as $position => $participant) {
+            $fileId = is_array($participant) ? ($participant['photo_file_id'] ?? null) : null;
+
+            if (! is_string($fileId) || $fileId === '') {
+                continue;
+            }
+
+            $this->attachFiles->handle($call, $submission->id, $uploadToken, 'participant_photo_'.$position, [$fileId]);
+
+            DB::table('submission_participants')
+                ->where('submission_id', $submission->id)
+                ->where('position', $position + 1)
+                ->update(['photo_file_id' => $fileId]);
+        }
+    }
+
+    /**
      * Solo las claves del contrato, con texto recortado y sin caracteres de control; el correo en
      * minúsculas. Lo que no es texto se deja tal cual para que la validación lo rechace.
      *
@@ -404,7 +434,7 @@ final class SubmitSubmission
                     $clean['email'] = mb_strtolower($clean['email']);
                 }
 
-                foreach (['job_title', 'company', 'bio'] as $optional) {
+                foreach (['second_last_name', 'alt_email', 'state', 'city', 'phone', 'job_title', 'company', 'bio'] as $optional) {
                     if (($clean[$optional] ?? null) === '') {
                         $clean[$optional] = null;
                     }

@@ -15,7 +15,14 @@ vi.mock('@/components/infrastructure/TurnstileWidget', () => ({
 }));
 
 const t = createTranslate({
-    forms: { renderer: { required: 'obligatorio', select_country: 'Selecciona un país', form_label: 'Formulario de propuesta', submit: 'Enviar propuesta' } },
+    forms: {
+        renderer: {
+            required: 'obligatorio',
+            select_country: 'Selecciona un país',
+            form_label: 'Formulario de propuesta',
+            submit: 'Enviar propuesta',
+        },
+    },
     submit: {
         send_action: 'Enviar propuesta',
         sending: 'Enviando…',
@@ -27,7 +34,12 @@ const t = createTranslate({
         participant_country: 'País',
         participant_job_title: 'Cargo',
         participant_company: 'Empresa',
-        participant_bio: 'Biografía',
+        participant_bio: 'Semblanza profesional',
+        participant_phone: 'Teléfono con código de país',
+        participants_extra_question: '¿La propuesta incluye a otras personas participantes?',
+        participants_extra_0: 'No, la participación es individual.',
+        participants_extra_1: 'Sí, incluye a una persona adicional.',
+        participants_extra_2: 'Sí, incluye a dos personas adicionales.',
         participant_heading: 'Participante :number',
         participant_add: 'Agregar participante',
         participant_remove: 'Quitar participante :number',
@@ -59,6 +71,10 @@ const summary: FormField = {
 
 const form: PublicSubmissionForm = {
     version: 3,
+    participantFields: {},
+    participantsPosition: 'top',
+    title: null,
+    extraSectionTitle: null,
     fields: [summary],
     defaultLocale: 'es',
     translations: {},
@@ -128,21 +144,37 @@ describe('SubmissionForm', () => {
         expect(screen.queryByLabelText(/autorización/)).not.toBeInTheDocument();
     });
 
-    it('CA-006-5: adds and removes participants within the minimum and maximum of the call and asks for the third-party declaration', () => {
+    it('CA-006-5: the question about other people adds and removes participants within the limits of the call and asks for the third-party declaration', () => {
         render(ui());
 
-        fireEvent.click(screen.getByRole('button', { name: 'Agregar participante' }));
-        fireEvent.click(screen.getByRole('button', { name: 'Agregar participante' }));
+        expect(screen.getAllByRole('group', { name: /Participante \d/ })).toHaveLength(1);
+        expect(screen.getByRole('radio', { name: 'No, la participación es individual.' })).toBeChecked();
+
+        fireEvent.click(screen.getByRole('radio', { name: 'Sí, incluye a dos personas adicionales.' }));
 
         expect(screen.getAllByRole('group', { name: /Participante \d/ })).toHaveLength(3);
-        expect(screen.queryByRole('button', { name: 'Agregar participante' })).not.toBeInTheDocument();
         expect(screen.getByLabelText(/autorización/)).toBeInTheDocument();
 
-        fireEvent.click(screen.getByRole('button', { name: 'Quitar participante 3' }));
+        fireEvent.click(screen.getByRole('radio', { name: 'Sí, incluye a una persona adicional.' }));
 
         expect(screen.getAllByRole('group', { name: /Participante \d/ })).toHaveLength(2);
-        // El primero es el principal y no se puede quitar.
-        expect(screen.queryByRole('button', { name: 'Quitar participante 1' })).not.toBeInTheDocument();
+
+        fireEvent.click(screen.getByRole('radio', { name: 'No, la participación es individual.' }));
+
+        expect(screen.getAllByRole('group', { name: /Participante \d/ })).toHaveLength(1);
+        expect(screen.queryByLabelText(/autorización/)).not.toBeInTheDocument();
+    });
+
+    it('uses the own title of the questions section and puts the participants after the questions when the form says so', () => {
+        render(ui({ form: { ...form, extraSectionTitle: 'Datos del proyecto', participantsPosition: 'bottom' } }));
+
+        expect(screen.getByRole('heading', { name: 'Datos del proyecto' })).toBeInTheDocument();
+
+        const question = screen.getByLabelText(/Resumen/);
+        const participants = screen.getByRole('group', { name: /Participante \d/ });
+
+        // El resumen (pregunta del formulario) va antes que el bloque de participantes.
+        expect(question.compareDocumentPosition(participants) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     });
 
     it('sends the payload with the issued credentials, the form version, the consent and the Turnstile token', async () => {
@@ -205,7 +237,9 @@ describe('SubmissionForm', () => {
         expect(document.getElementById(email.getAttribute('aria-describedby') ?? '')).toHaveTextContent('Correo no válido.');
         const summaryField = screen.getByLabelText(/Resumen/);
         expect(summaryField).toHaveAttribute('aria-invalid', 'true');
-        expect(document.getElementById(summaryField.getAttribute('aria-describedby') ?? '')).toHaveTextContent('El resumen es obligatorio.');
+        expect(document.getElementById(summaryField.getAttribute('aria-describedby') ?? '')).toHaveTextContent(
+            'El resumen es obligatorio.',
+        );
         expect(screen.getByLabelText(/He leído y acepto/)).toHaveAttribute('aria-invalid', 'true');
 
         // El foco va al primer error en el orden del formulario.

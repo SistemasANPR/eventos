@@ -40,6 +40,18 @@ return [
         'no' => 'No',
         'no_answers' => 'Esta propuesta no tiene respuestas.',
         'no_participants' => 'Esta propuesta no tiene participantes.',
+        'participant' => [
+            'second_last_name' => 'Apellido materno',
+            'email' => 'Correo electrónico',
+            'alt_email' => 'Correo electrónico alternativo',
+            'phone' => 'Teléfono con código de país',
+            'company' => 'Institución, organización o empresa',
+            'job_title' => 'Cargo o condición académica',
+            'country' => 'País',
+            'state' => 'Estado o entidad',
+            'city' => 'Ciudad',
+            'bio' => 'Semblanza profesional',
+        ],
         'files_attached' => '{0} Sin archivos adjuntos|{1} :count archivo adjunto|[2,*] :count archivos adjuntos',
     ],
 

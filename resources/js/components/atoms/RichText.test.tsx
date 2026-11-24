@@ -57,18 +57,25 @@ describe('RichText', () => {
         expect(container).toHaveTextContent('Titulotras');
     });
 
-    it.each(['javascript:alert(1)', ' JaVaScRiPt:alert(1)', 'data:text/html,<b>x</b>', 'vbscript:msgbox(1)', '/relativa', '//evil.test', 'mailto:a@b.test'])(
-        'shows the text without a link when the href is %s',
-        (href) => {
-            const container = renderHtml(`<p><a href="${href}">enlace</a></p>`);
+    it.each([
+        'javascript:alert(1)',
+        ' JaVaScRiPt:alert(1)',
+        'data:text/html,<b>x</b>',
+        'vbscript:msgbox(1)',
+        '/relativa',
+        '//evil.test',
+        'mailto:a@b.test',
+    ])('shows the text without a link when the href is %s', (href) => {
+        const container = renderHtml(`<p><a href="${href}">enlace</a></p>`);
 
-            expect(container.querySelector('a')).toBeNull();
-            expect(container.querySelector('p')).toHaveTextContent('enlace');
-        },
-    );
+        expect(container.querySelector('a')).toBeNull();
+        expect(container.querySelector('p')).toHaveTextContent('enlace');
+    });
 
     it('keeps http and https links with a safe rel and without target', () => {
-        const container = renderHtml('<p><a href="https://example.test/a?b=1" target="_blank" onclick="x()">uno</a> <a href="http://example.test">dos</a></p>');
+        const container = renderHtml(
+            '<p><a href="https://example.test/a?b=1" target="_blank" onclick="x()">uno</a> <a href="http://example.test">dos</a></p>',
+        );
 
         const links = container.querySelectorAll('a');
 
@@ -104,7 +111,9 @@ describe('RichText', () => {
                 '<p><a href="https://ok.test" onmouseover="x()">bien</a></p>',
         );
 
-        expect(container.querySelector('script, svg, math, img, form, input, button, object, embed, template, noscript, iframe')).toBeNull();
+        expect(
+            container.querySelector('script, svg, math, img, form, input, button, object, embed, template, noscript, iframe'),
+        ).toBeNull();
         expect(container.querySelectorAll('[onclick],[onerror],[onmouseover],[style]')).toHaveLength(0);
         expect(container.querySelectorAll('a')).toHaveLength(1);
         expect(container).not.toHaveTextContent('alert');

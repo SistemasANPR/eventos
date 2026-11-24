@@ -27,7 +27,12 @@ const translations = {
             turnstile_missing: 'La verificación no está disponible.',
             back_to_event: 'Volver al evento',
         },
-        confirm: { title: 'Abrir mi propuesta', body: 'Confirma para abrir «:event» (:minutes min).', action: 'Abrir mi propuesta', opening: 'Abriendo…' },
+        confirm: {
+            title: 'Abrir mi propuesta',
+            body: 'Confirma para abrir «:event» (:minutes min).',
+            action: 'Abrir mi propuesta',
+            opening: 'Abriendo…',
+        },
         invalid: { title: 'El enlace no es válido', body: 'Pide uno nuevo.', request_link: 'Pedir un enlace nuevo' },
         show: {
             title: 'Mi propuesta',
@@ -119,7 +124,15 @@ const submission: AuthorSubmission = {
     ],
     participants: [
         { fullName: 'Ana Pérez', email: 'ana@example.test', country: 'MX', jobTitle: 'Dra.', company: null, bio: null, isPrimary: true },
-        { fullName: 'Luis Gómez', email: 'luis@example.test', country: 'CO', jobTitle: null, company: null, bio: 'Biografía', isPrimary: false },
+        {
+            fullName: 'Luis Gómez',
+            email: 'luis@example.test',
+            country: 'CO',
+            jobTitle: null,
+            company: null,
+            bio: 'Biografía',
+            isPrimary: false,
+        },
     ],
 };
 
@@ -191,16 +204,34 @@ describe('Author/ConfirmAccess page', () => {
 
 describe('Author/AccessInvalid page', () => {
     it('shows one generic message and a link to request a new one', () => {
-        render(<AccessInvalid event={{ name: 'Congreso Parques' }} organization={requestProps.organization} requestLinkUrl="/parques/events/congreso/my-submission/request-link" />);
+        render(
+            <AccessInvalid
+                event={{ name: 'Congreso Parques' }}
+                organization={requestProps.organization}
+                requestLinkUrl="/parques/events/congreso/my-submission/request-link"
+            />,
+        );
 
         expect(screen.getByRole('alert')).toHaveTextContent('Pide uno nuevo.');
-        expect(screen.getByRole('link', { name: 'Pedir un enlace nuevo' })).toHaveAttribute('href', '/parques/events/congreso/my-submission/request-link');
+        expect(screen.getByRole('link', { name: 'Pedir un enlace nuevo' })).toHaveAttribute(
+            'href',
+            '/parques/events/congreso/my-submission/request-link',
+        );
     });
 });
 
 describe('Author/Show page', () => {
     const withdrawUrl = '/parques/events/congreso/my-submission/withdraw';
-    const props = { event: { name: 'Congreso Parques' }, organization: requestProps.organization, submission, sessionMinutes: 60, eventUrl: '/parques/events/congreso?lang=es', withdrawUrl, editUrl: '/parques/events/congreso/my-submission/edit', wasUpdated: false };
+    const props = {
+        event: { name: 'Congreso Parques' },
+        organization: requestProps.organization,
+        submission,
+        sessionMinutes: 60,
+        eventUrl: '/parques/events/congreso?lang=es',
+        withdrawUrl,
+        editUrl: '/parques/events/congreso/my-submission/edit',
+        wasUpdated: false,
+    };
 
     beforeEach(() => {
         routerPost.mockClear();
@@ -233,7 +264,10 @@ describe('Author/Show page', () => {
 
     it('links to the edit page only when the server says the proposal can be edited', () => {
         const { rerender } = render(<Show {...props} />);
-        expect(screen.getByRole('link', { name: 'Editar mi propuesta' })).toHaveAttribute('href', '/parques/events/congreso/my-submission/edit');
+        expect(screen.getByRole('link', { name: 'Editar mi propuesta' })).toHaveAttribute(
+            'href',
+            '/parques/events/congreso/my-submission/edit',
+        );
 
         rerender(<Show {...props} editUrl={null} />);
         expect(screen.queryByRole('link', { name: 'Editar mi propuesta' })).toBeNull();

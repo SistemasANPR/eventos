@@ -1,5 +1,6 @@
 import { activeFields } from '@/lib/form-text';
 import { FIXED_PREFIX } from '@/lib/submission-errors';
+import { participantPhotoKey } from '@/lib/submission-fields';
 import type { FormField } from '@/types/form';
 import type { AnswerValue, ParticipantPayload, SubmissionPayload } from '@/types/submission';
 
@@ -20,6 +21,11 @@ export function readSubmission(data: FormData, fields: readonly FormField[], par
     const files: Record<string, File[]> = {};
 
     for (const field of activeFields(fields)) {
+        // El título y el tema de la propuesta llegan con nombre fijo (`s.title`, `s.track_id`) y no son respuestas.
+        if (field.key.startsWith(FIXED_PREFIX)) {
+            continue;
+        }
+
         if (field.type === 'file') {
             const chosen = data.getAll(field.key).filter((entry): entry is File => entry instanceof File && entry.size > 0);
             if (chosen.length > 0) {
@@ -50,11 +56,17 @@ export function readSubmission(data: FormData, fields: readonly FormField[], par
             is_primary: index === 0,
         };
 
-        for (const optional of ['job_title', 'company', 'bio'] as const) {
+        for (const optional of ['second_last_name', 'alt_email', 'state', 'city', 'phone', 'job_title', 'company', 'bio'] as const) {
             const value = read(optional);
             if (value !== '') {
                 participant[optional] = value;
             }
+        }
+
+        // La fotografía (si la hay) se sube aparte; su identificador se agrega al participante tras la subida.
+        const photo = data.get(`${FIXED_PREFIX}participants.${index}.photo`);
+        if (photo instanceof File && photo.size > 0) {
+            files[participantPhotoKey(index)] = [photo];
         }
 
         return participant;

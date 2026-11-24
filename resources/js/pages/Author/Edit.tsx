@@ -40,6 +40,10 @@ export default function Edit({ event, organization, reference, participants, edi
     const [openedFormVersion] = useState(edit.formVersion);
     const [isProcessing, setIsProcessing] = useState(false);
 
+    // Si el formulario trae su propia pregunta de título o de tema, el bloque fijo no la repite.
+    const hasTitleField = edit.fields.some((field) => field.key === 's.title');
+    const hasTrackField = edit.fields.some((field) => field.key === 's.track_id');
+
     const mapped = mapServerErrors(errors);
     const editError = errors.edit;
     const hasFieldErrors = Object.keys(mapped.fields).length > 0;
@@ -58,13 +62,35 @@ export default function Edit({ event, organization, reference, participants, edi
 
     const leading = (
         <>
-            <section aria-labelledby="edit-details" className="space-y-4">
-                <h2 id="edit-details" className="text-2xl font-semibold text-text">
-                    {t('submit.section_details')}
-                </h2>
-                <FormFieldInput field={titleField(locale, t)} locale={locale} defaultLocale={edit.defaultLocale} idPrefix="edit" t={t} error={mapped.fields['s.title']} initialValue={edit.initialValues['s.title']} />
-                <FormFieldInput field={trackField(edit.tracks, locale, t)} locale={locale} defaultLocale={edit.defaultLocale} idPrefix="edit" t={t} error={mapped.fields['s.track_id']} initialValue={edit.initialValues['s.track_id']} />
-            </section>
+            {hasTitleField && hasTrackField ? null : (
+                <section aria-labelledby="edit-details" className="space-y-4">
+                    <h2 id="edit-details" className="text-2xl font-semibold text-text">
+                        {t('submit.section_details')}
+                    </h2>
+                    {hasTitleField ? null : (
+                        <FormFieldInput
+                            field={titleField(locale, t)}
+                            locale={locale}
+                            defaultLocale={edit.defaultLocale}
+                            idPrefix="edit"
+                            t={t}
+                            error={mapped.fields['s.title']}
+                            initialValue={edit.initialValues['s.title']}
+                        />
+                    )}
+                    {hasTrackField ? null : (
+                        <FormFieldInput
+                            field={trackField(edit.tracks, locale, t)}
+                            locale={locale}
+                            defaultLocale={edit.defaultLocale}
+                            idPrefix="edit"
+                            t={t}
+                            error={mapped.fields['s.track_id']}
+                            initialValue={edit.initialValues['s.track_id']}
+                        />
+                    )}
+                </section>
+            )}
             <section aria-labelledby="edit-participants" className="space-y-4">
                 <h2 id="edit-participants" className="text-2xl font-semibold text-text">
                     {t('submit.section_participants')}
@@ -78,7 +104,7 @@ export default function Edit({ event, organization, reference, participants, edi
                         <p className="text-base text-text-muted">
                             {participant.email} · {t('author.edit.email_locked')}
                         </p>
-                        {participantFields(index, locale, t)
+                        {participantFields(index, locale, t, edit.participantFields)
                             .filter((field) => !field.key.endsWith('.email'))
                             .map((field) => (
                                 <FormFieldInput
@@ -95,7 +121,7 @@ export default function Edit({ event, organization, reference, participants, edi
                     </fieldset>
                 ))}
             </section>
-            <h2 className="text-2xl font-semibold text-text">{t('submit.section_questions')}</h2>
+            <h2 className="text-2xl font-semibold text-text">{edit.extraSectionTitle ?? t('submit.section_questions')}</h2>
         </>
     );
 
@@ -119,7 +145,11 @@ export default function Edit({ event, organization, reference, participants, edi
                 </header>
 
                 {editError !== undefined && (
-                    <section role="alert" aria-labelledby="edit-error-title" className="flex flex-col gap-2 rounded-lg border border-border bg-error-bg p-4">
+                    <section
+                        role="alert"
+                        aria-labelledby="edit-error-title"
+                        className="flex flex-col gap-2 rounded-lg border border-border bg-error-bg p-4"
+                    >
                         <h2 id="edit-error-title" className="text-lg font-semibold text-error">
                             {t('author.edit.error_title')}
                         </h2>

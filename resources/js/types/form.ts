@@ -2,15 +2,7 @@ import type { Translations } from '@/types/inertia';
 
 /** Tipos de campo que el servidor acepta (`App\Enums\FieldType`). */
 export type FieldType =
-    | 'short_text'
-    | 'long_text'
-    | 'number'
-    | 'single_choice'
-    | 'multiple_choice'
-    | 'checkbox'
-    | 'date'
-    | 'country'
-    | 'file';
+    'short_text' | 'long_text' | 'number' | 'single_choice' | 'multiple_choice' | 'checkbox' | 'date' | 'country' | 'file';
 
 /** Texto por idioma. PHP serializa un arreglo vacío como `[]`, de ahí la unión. */
 export type LocalizedText = Record<string, string> | readonly string[];
