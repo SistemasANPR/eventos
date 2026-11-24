@@ -33,6 +33,9 @@ final class RolePermissions
         'activities.manage',
         'review_assignments.manage',
         'reviewers.invite',
+        'reviews.view_results',
+        'reviews.view_progress',
+        'reviews.close_period',
     ];
 
     private const ADMIN_ONLY = [

@@ -6,9 +6,11 @@ namespace App\Policies;
 
 use App\Enums\EventAssignmentRole;
 use App\Enums\ReviewAssignmentStatus;
+use App\Models\Event;
 use App\Models\EventAssignment;
 use App\Models\ReviewAssignment;
 use App\Models\User;
+use App\Support\Auth\ChecksOrganizationPermissions;
 use App\Support\Tenancy\CurrentOrganization;
 
 /**
@@ -25,6 +27,29 @@ use App\Support\Tenancy\CurrentOrganization;
  */
 final class ReviewPolicy
 {
+    use ChecksOrganizationPermissions;
+
+    /**
+     * Resultados del evento (plan 011, F6, CA-011-24): promedios, discrepancias y comentarios de los
+     * evaluadores. Se llama como `Gate::allows('viewResults', [Review::class, $event])`; sin evento (`[Review::class]`) solo comprueba el permiso, para el menú.
+     */
+    public function viewResults(User $user, ?Event $event = null): bool
+    {
+        return $this->allows($user, ['reviews.view_results'], $event?->organization_id);
+    }
+
+    /** Avance por evaluador (CA-011-59): estados y fechas, nunca calificaciones ni comentarios. */
+    public function viewProgress(User $user, ?Event $event = null): bool
+    {
+        return $this->allows($user, ['reviews.view_progress'], $event?->organization_id);
+    }
+
+    /** Cerrar y reabrir el periodo de evaluación del evento (CA-011-26 y 27). */
+    public function closePeriod(User $user, ?Event $event = null): bool
+    {
+        return $this->allows($user, ['reviews.close_period'], $event?->organization_id);
+    }
+
     /** Abrir el panel y la lista: membresía activa y asignación de evaluador en algún evento de la organización. */
     public function viewAnyAssignments(User $user): bool
     {
