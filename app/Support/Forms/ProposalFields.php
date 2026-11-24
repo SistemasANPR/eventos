@@ -65,8 +65,8 @@ final class ProposalFields
         };
 
         return [
-            ['key' => null, 'role' => self::ROLE_TITLE, 'type' => 'short_text', 'required' => true, 'identifiesAuthor' => false, 'label' => $texts('field_title'), 'help' => [], 'config' => ['maxLength' => 200]],
-            ['key' => null, 'role' => self::ROLE_TRACK, 'type' => 'single_choice', 'required' => true, 'identifiesAuthor' => false, 'label' => $texts('field_track'), 'help' => [], 'config' => ['options' => []]],
+            ['key' => null, 'role' => self::ROLE_TITLE, 'type' => 'short_text', 'required' => true, 'position' => 0, 'identifiesAuthor' => false, 'label' => $texts('field_title'), 'help' => [], 'config' => ['maxLength' => 200], 'retiredAt' => null],
+            ['key' => null, 'role' => self::ROLE_TRACK, 'type' => 'single_choice', 'required' => true, 'position' => 0, 'identifiesAuthor' => false, 'label' => $texts('field_track'), 'help' => [], 'config' => ['options' => []], 'retiredAt' => null],
         ];
     }
 

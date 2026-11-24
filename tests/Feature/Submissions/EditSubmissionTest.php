@@ -160,7 +160,7 @@ it('CA-006-41: the edit page offers the current values without the file fields, 
     $edit = (array) $props['edit'];
     expect($edit['version'])->toBe(1)
         ->and($edit['formVersion'])->toBe(3)
-        ->and(array_column((array) $edit['fields'], 'key'))->toBe(['summary', 'level'])
+        ->and(array_column((array) $edit['fields'], 'key'))->toBe(['s.title', 's.track_id', 'summary', 'level'])
         ->and($edit['initialValues'])->toMatchArray(['s.title' => 'Parques vivos', 's.track_id' => $ctx['track']->id, 'summary' => 'Un resumen', 's.participants.0.first_name' => 'Ana'])
         ->and(array_column((array) $props['participants'], 'email'))->toBe(['ana@example.test']);
 });

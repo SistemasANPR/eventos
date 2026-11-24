@@ -57,6 +57,8 @@ final class FormPreviewProps
             $form->fields,
             static fn (array $field): bool => ($field['retiredAt'] ?? null) === null,
         ));
+        // Un formulario anterior, sin título ni tema entre sus campos, los recibe al principio: el bloque fijo ya no existe.
+        $fields = ProposalFields::withDefaults($fields, $event);
         usort($fields, static fn (array $a, array $b): int => $a['position'] <=> $b['position']);
 
         return [
