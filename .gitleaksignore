@@ -5,3 +5,11 @@ b75fc4014b79b62c7c6557f098d4d2ebb1820e6c:tests/Feature/Submissions/SubmissionFil
 
 # Clave ficticia de Resend en la prueba de app:mail-check, no es una credencial.
 4b16994e15b884d6a1841d9c3edb6e1eba019e31:tests/Feature/Notifications/MailCheckCommandTest.php:generic-api-key:25
+
+# Mas datos ficticios de pruebas: tokens de subida de ejemplo y claves de idempotencia de ejemplo, no credenciales.
+6c6693abc3bb913fa8834df938ca39e8feca0671:tests/Feature/Submissions/SubmitSubmissionTest.php:generic-api-key:686
+615a19522143bb8eae7147969bbd109a979dc109:resources/js/components/organisms/SubmissionForm.test.tsx:generic-api-key:64
+615a19522143bb8eae7147969bbd109a979dc109:resources/js/components/organisms/SubmissionForm.test.tsx:generic-api-key:155
+615a19522143bb8eae7147969bbd109a979dc109:resources/js/pages/Calls/Submit.test.tsx:generic-api-key:71
+0692dc31ab940a7401a88a40ac989b52452aa9e0:tests/Feature/Submissions/SubmissionFileUploadTest.php:generic-api-key:28
+0692dc31ab940a7401a88a40ac989b52452aa9e0:tests/Feature/Submissions/SubmissionFileUploadTest.php:generic-api-key:392
