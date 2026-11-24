@@ -114,6 +114,31 @@ Decisiones de F1 que otros planes deben conocer:
 4. `PLATFORM_PANEL_ENABLED` puede activarse en staging y producción **solo cuando** `TWO_FACTOR_REQUIRED` esté encendido y las cuentas de plataforma ya tengan su 2FA (`docs/operacion.md`, `docs/seguridad.md` §2).
 5. Reversa: `php artisan migrate:rollback --step=2` quita las columnas (se pierden los secretos: todos tendrían que reconfigurarla) y la matriz vuelve a sembrarse sin el permiso; la forma rápida de «apagar» la exigencia sin migrar es `TWO_FACTOR_REQUIRED=false` (reabre el acceso con solo contraseña: decisión de Antonio y queda registrada).
 
+### 4.3 Contrato de privacidad (F4 construida el 2026-11-24)
+
+Decisiones de implementación (el agente de privacidad las toma dentro del alcance aprobado; Gabriel o Antonio las confirman o las cambian):
+
+| DA | Decisión |
+|---|---|
+| DA-6 | **Quién es «una persona».** Se localiza por el correo normalizado (minúsculas, sin espacios) y por su vínculo con el contacto, SIEMPRE dentro de la organización en contexto: en `contacts`, `submission_participants`, `speakers` (con borrados lógicos), la membresía (`users`) y los envíos de correo por la huella `HMAC(app.key)` del correo. La misma persona en otra organización no se toca (CA-014-23). Sin datos en la organización: 404 (`PersonDataNotFound`); ya anonimizada (huella en `anonymization_log`): éxito sin cambios (`already_anonymized`). |
+| DA-7 | **Qué se exporta.** Sus datos y los que ella aportó, en un JSON; nunca secretos, hashes, rutas de disco, datos de coautores ni el motivo interno de una decisión (no se le envía al autor). Los comentarios que los evaluadores escribieron sobre sus propuestas se incluyen **sin la identidad del evaluador** (a confirmar por el responsable: es el criterio más protector del evaluador que permite el derecho de acceso). |
+| DA-8 | **Cuenta de acceso.** Si pertenece solo a esta organización, se anonimiza entera; si pertenece también a otra, se conserva la cuenta, se desactiva su membresía aquí y se anonimiza lo suyo en esta organización (`account_kept_other_organizations`). Se rechaza todo, sin cambios, para un usuario de plataforma, para la propia cuenta de quien lo pide y para el último administrador activo (`LastOrganizationAdmin`). |
+| DA-9 | **Archivos.** Se borran los de las propuestas donde la persona es participante **principal** (quien las subió) y la fotografía de sus fichas de ponente; el disco se borra ANTES que la base (si falla, la base no cambia y se repite). Las versiones del bucket son deuda (DT-50). |
+| DA-10 | **Texto libre.** Se le quita el nombre completo y el correo (título y respuestas de sus propuestas, comentarios de evaluación sobre ella, auditoría); el comentario de la decisión y el motivo interno se sustituyen enteros. Límite: DT-53. |
+| DA-11 | **Motivo.** Lista cerrada (`PersonDataRequestReason`): un texto libre acabaría en la auditoría con datos personales. La confirmación de la anonimización es volver a escribir el correo. |
+| DA-12 | **Exportación.** JSON en el disco privado (`organizations/{id}/exports/person-{uuid}.json`, que la tarea `submission-exports:purge` ya borra a las 24 horas) y enlace firmado de 10 minutos que solo sirve a quien lo pidió, igual que la de propuestas (plan 009). Ruta nueva `GET admin/{organization:slug}/person-data-exports/{export}` (descarga del panel, no una ruta JSON pública: sin entrada en `docs/api/endpoints.md`). |
+
+| Pieza | Contrato |
+|---|---|
+| `ExportPersonData::handle(User $actor, array $data): PersonDataExport` | `data`: `email`, `reason`. 403 sin `personal_data.manage`; `ValidationException` (correo o motivo); `PersonDataNotFound` (404). Escribe el archivo, audita `person_data_exported` (quién, motivo, totales) y devuelve `{id, url, expiresAt, counts}` |
+| `DownloadPersonDataExport::handle(User $actor, string $exportId): array` | 403 sin permiso; 404 si la exportación no es de `$actor`, de otra organización o tiene más de 24 horas |
+| `AnonymizePerson::handle(User $actor, array $data): AnonymizationResult` | `data`: `email`, `reason`, `confirmation` (el correo otra vez). 403 → validación → 404. Errores: `PersonCannotBeAnonymized` (`own_account`, `platform_account`), `LastOrganizationAdmin`, `PersonFileDeletionFailed`, `AnonymizationSaltMissing`. Devuelve `{counts, retained, notes}` y audita `person_anonymized` (sin datos personales) |
+| `ErasePersonRecords::handle(PersonRecords, ?User, ?Closure): AnonymizationResult` | Motor compartido con la reaplicación tras restaurar (F3); no autoriza ni audita |
+| `PersonalDataInventory` + `PersonalDataInventoryTest` | CA-014-26: modelos cubiertos o exentos, columnas clasificadas y columnas `replaced` que de verdad cambian |
+| Pantalla «Datos de una persona» (`App\Filament\Pages\Privacy\PersonalData`) | Solo presentación; requiere `personal_data.manage` |
+| Variable `ANONYMIZATION_SALT` | Sal de la huella (`config/privacy.php`); sin ella no se anonimiza. En `.env.example` solo con valor ficticio |
+| Permiso `retention.manage` | Solo `org_admin`; migración de datos `2026_11_27_300200` |
+
 ## 5. Permisos, aislamiento y datos personales
 
 | Pregunta | Respuesta |
@@ -179,6 +204,7 @@ Cada uno tiene al menos una prueba cuyo nombre lo cita (`CA-014-n: ...`) o decla
 - **CA-014-20:** *Dado* un `Contact` con propuestas, evaluaciones y envíos de correo, *cuando* un usuario con `personal_data.manage` de su organización exporta sus datos, *entonces* se genera un archivo con solo sus datos, en disco privado, con enlace temporal, y queda auditado.
 - **CA-014-21:** *Dado* un `Contact`, *cuando* se anonimiza, *entonces* nombre, correo, teléfono, biografía y comentarios personales se sustituyen por valores no identificables, se conservan los agregados y se registra `anonymized_at`.
 - **CA-014-22:** *Dado* una persona con datos de facturación sujetos a plazo fiscal, *cuando* se anonimiza, *entonces* esos datos se conservan y el resultado lo informa.
+  Nota F4: R1 no guarda datos de facturación (el módulo de pagos es R3, ADR-0007). La prueba cubre el contrato: el resultado trae `retained` (vacío hoy). Al construir los pagos, sus datos fiscales se añaden a `retained` y se prueba con datos reales.
 - **CA-014-23:** *Dado* un administrador de la organización A, *cuando* intenta exportar o anonimizar a un `Contact` de B, *entonces* la respuesta es 404.
 - **CA-014-24:** *Dado* una anonimización pedida sin confirmación explícita, *cuando* se envía, *entonces* se rechaza y no cambia ningún dato.
 - **CA-014-25:** *Dado* un contacto anonimizado, *cuando* un autor intenta usar su enlace de acceso, *entonces* se rechaza con un mensaje genérico.

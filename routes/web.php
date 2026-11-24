@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Http\Controllers\Internal\ShowComponentCatalogController;
+use App\Http\Controllers\Panel\PersonDataExportDownloadController;
 use App\Http\Controllers\Panel\ShowEventLogoEditorController;
 use App\Http\Controllers\Panel\ShowLandingEditorImageController;
 use App\Http\Controllers\Panel\SubmissionExportDownloadController;
@@ -108,6 +109,12 @@ Route::middleware(['auth', SetOrganizationFromRoute::class])
 Route::middleware(['auth', 'signed', SetOrganizationFromRoute::class])
     ->get('admin/{organization:slug}/submission-exports/{export}', SubmissionExportDownloadController::class)
     ->name('submission-exports.download');
+
+// Descarga del archivo de una exportación de datos de una persona (plan 014, H-014-4, CA-014-20). Igual que la
+// de propuestas: `auth`, URL firmada de 10 minutos con el identificador de quien la pidió y organización de la ruta.
+Route::middleware(['auth', 'signed', SetOrganizationFromRoute::class])
+    ->get('admin/{organization:slug}/person-data-exports/{export}', PersonDataExportDownloadController::class)
+    ->name('person-data-exports.download');
 
 // Rutas del autor de una propuesta (plan 006).
 require __DIR__.'/author.php';
