@@ -83,7 +83,10 @@ class SubmissionResource extends Resource
             ->with(['event', 'call', 'submissionType', 'track', 'activity'])
             // Evaluadores que cuentan para la cobertura (plan 011, CA-011-6): sin canceladas ni en conflicto.
             ->withCount(['reviewAssignments as active_reviewers_count' => fn (Builder $assignments) => $assignments
-                ->whereIn('status', ReviewAssignmentStatus::coverageValues())]);
+                ->whereIn('status', ReviewAssignmentStatus::coverageValues())])
+            // Conflictos de interés declarados por los evaluadores (plan 011, CA-011-17): el aviso de la lista.
+            ->withCount(['reviewAssignments as declared_conflicts_count' => fn (Builder $assignments) => $assignments
+                ->where('status', ReviewAssignmentStatus::DeclinedConflict)]);
     }
 
     /**

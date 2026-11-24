@@ -14,8 +14,10 @@ use Illuminate\Database\Eloquent\Builder;
 /**
  * Única consulta de las propuestas asignadas a un evaluador (plan 011, H-011-3, CA-011-11 y 12). Todo lo
  * que el panel del evaluador lee de sus asignaciones (el tablero, la lista y el detalle) sale de aquí, de
- * modo que una regla de acceso o de ocultamiento se aplica en UN solo lugar: la de la revisión ciega
- * (CA-011-18, 19 y 54) se añade aquí en F5, en el servidor, y no en cada pantalla.
+ * modo que una regla de acceso o de ocultamiento se aplica en UN solo lugar. La revisión ciega (CA-011-18,
+ * 19 y 54) vive en el servidor, no en cada pantalla: esta consulta no une ni carga a los participantes, así
+ * que el tablero y la lista no llevan datos de autor; el detalle los pide a `SubmissionDetail::forReviewer`,
+ * que consulta `BlindReview`, y la descarga la gobierna `SubmissionFilePolicy` con la misma regla.
  *
  * Una asignación entra solo si es del propio evaluador, no está cancelada (CA-011-53), su propuesta sigue
  * existiendo y el evaluador conserva su asignación de evento de rol `reviewer` en el evento de la propuesta
