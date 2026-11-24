@@ -398,7 +398,7 @@ final class SubmitSubmission
 
             $this->attachFiles->handle($call, $submission->id, $uploadToken, 'participant_photo_'.$position, [$fileId]);
 
-            DB::table('submission_participants')
+            SubmissionParticipant::query()
                 ->where('submission_id', $submission->id)
                 ->where('position', $position + 1)
                 ->update(['photo_file_id' => $fileId]);
