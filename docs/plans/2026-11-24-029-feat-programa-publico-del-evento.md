@@ -4,7 +4,7 @@
 > `composer check:criteria` lee el **Estado** y los criterios de este archivo: no cambiar el formato de esas líneas.
 
 - **Fecha:** 2026-11-24
-- **Estado:** Borrador
+- **Estado:** Aprobado (2026-11-24: Antonio cierra DA-1 a DA-13 con la recomendación del plan; el portugués se omite; las actividades sin programar se ocultan)
 - **Esfuerzo:** L
 - **Deuda relacionada:** ninguna abierta. Este plan propone dos puntos nuevos (§10) y toca la decisión diferida de SSR (RC-5; `docs/plan-de-desarrollo.md`, ADR-0004 DA-1).
 
@@ -46,7 +46,7 @@ Medido el 2026-11-24 sobre `staging` (`eb0eb0b`):
 
 ## 3. Decisiones
 
-Todas son **recomendaciones de este plan, abiertas hasta que se apruebe el plan** (se cierran con la fecha y la opción elegida, como en los planes anteriores).
+**Cerradas el 2026-11-24** por Antonio: DA-1 a DA-13 se aprueban tal como se recomiendan. Decisiones explícitas: (1) SSR queda fuera de este plan, en ADR aparte (DA-9); (2) el portugués se omite: el producto ofrece solo es y en (DA-10); (3) las actividades sin programar se ocultan hasta tener fecha (DA-3, opción a).
 
 ### DA-1 · Página propia o bloque de landing — se recomienda **páginas propias**
 
@@ -86,7 +86,7 @@ Hay un conflicto documentado: ADR-0004 DA-1 y E-19 piden SSR; el plan 022 DA-9 y
 
 ### DA-10 · Idiomas — se recomienda **interfaz en el idioma pedido; contenido tal como se guardó; respaldo al idioma por defecto**
 
-El idioma se resuelve con `PublicEventData::resolveLocale` (igual que las demás páginas públicas) y sigue el selector `LocaleSwitcher`. Cambia la **interfaz** (títulos, etiquetas, estados); los textos de ponentes y actividades no se traducen porque hoy no son traducibles (§2). Una clave que falte en el idioma pedido cae al idioma base de la aplicación (`app.fallback_locale`). Los textos nuevos se agregan en `lang/es/public.php` y `lang/en/public.php`; **no existe `pt`**, así que un evento en portugués muestra la interfaz en el respaldo hasta que alguien cree `lang/pt` (fuera de este plan; se anota como deuda, §10). La prueba verifica esa conducta de respaldo, no la presencia de `pt`.
+El idioma se resuelve con `PublicEventData::resolveLocale` (igual que las demás páginas públicas) y sigue el selector `LocaleSwitcher`. Cambia la **interfaz** (títulos, etiquetas, estados); los textos de ponentes y actividades no se traducen porque hoy no son traducibles (§2). Una clave que falte en el idioma pedido cae al idioma base de la aplicación (`app.fallback_locale`). Los textos nuevos se agregan en `lang/es/public.php` y `lang/en/public.php`; **el portugués se omite** (decisión del 2026-11-24): el producto ofrece solo es y en, no se crea `lang/pt` y un idioma no ofrecido cae al idioma por defecto del evento. La prueba verifica esa conducta de respaldo.
 
 ### DA-11 · Orden — se recomienda **determinista y estable**
 
@@ -176,7 +176,7 @@ Cada fase deja el repo en verde y termina en su propio commit. Orden fijo: la vi
 
 | Fase | Qué se hace | Criterio de terminado | Esfuerzo |
 |---|---|---|---|
-| F0 | Aprobar este plan y cerrar DA-1 a DA-13. Revisar el catálogo de componentes (`design.md` §1.4), confirmar los idiomas que puede ofrecer un evento (`es`, `en`, `pt`) frente a los directorios de `lang/`, y añadir al glosario «Programa público» (vista pública de las actividades visibles; no es `Schedule`) | Plan en `Aprobado`; decisiones registradas en §3 y en el commit; glosario al día; `composer check` en verde | S |
+| F0 | Aprobar este plan y cerrar DA-1 a DA-13. Revisar el catálogo de componentes (`design.md` §1.4), confirmar que los idiomas que puede ofrecer un evento (`es`, `en`) coinciden con los directorios de `lang/`, y añadir al glosario «Programa público» (vista pública de las actividades visibles; no es `Schedule`) | Plan en `Aprobado`; decisiones registradas en §3 y en el commit; glosario al día; `composer check` en verde | S |
 | F1 | **Prueba primero.** Scopes `visibleToPublic`, Actions de consulta y constructores `PublicActivityData` y `PublicSpeakerData`; pruebas de visibilidad, aislamiento, falla sin contexto, lista cerrada de campos, orden y N+1. Verificar índices con `EXPLAIN` | CA-029-1 a 11 y 24 verdes en `tests/Feature/Public/` y `tests/Unit/`; `composer check` en verde con su salida; sin migraciones | M |
 | F2 | Rutas, controladores y página **Programa** (días, tarjetas, filtro de categoría, hora con formato del evento, estados vacío y 404), helpers `formatLocalTime` y `formatLocalDate`, textos es/en | CA-029-1, 12 a 15, 17, 19 verdes; `npm run typecheck`, `lint`, `test` y `build` en verde; capturas a 375 y 1280 px sin errores en consola | L |
 | F3 | Páginas **Ponentes**, **ficha de ponente** y **detalle de actividad**; paginación; redes y biografía saneadas | CA-029-8 a 11, 16 verdes; verificación en navegador a 375 y 1280 px | M |
@@ -241,7 +241,7 @@ Cada uno tiene al menos una prueba cuyo nombre lo cita (`CA-029-n: ...`) o decla
 | Contenido enriquecido con HTML peligroso | Re-saneado al salir y componente `RichText` (CA-029-16) |
 | Rastreo masivo de las páginas públicas (sin límite nuevo) | Consultas acotadas e indexadas, sin escritura; se revisa un límite por IP con el resto del sitio público (§10) |
 | Que se cuele E-20 (salas, choques) | Fuera de alcance (§1); cualquier campo de sala o bloque va a otro plan |
-| Idioma `pt` sin archivos de traducción | Respaldo explícito (DA-10, CA-029-15); deuda anotada |
+| Un evento pide un idioma que el producto no ofrece (p. ej. `pt`) | Se omite el portugués (DA-10); respaldo al idioma por defecto (CA-029-15) |
 
 ## 9. Registro de avance
 
@@ -254,7 +254,7 @@ Cada uno tiene al menos una prueba cuyo nombre lo cita (`CA-029-n: ...`) o decla
 ## 10. Deuda que deja (a registrar en F5)
 
 - Endurecer `ShowSpeakerPhotoController` y `ShowActivityMediaController` para comprobar también `hidden_by_reversal_at` (y «programada» en actividades), con su prueba. Prioridad P3, esfuerzo S.
-- Crear `lang/pt` (público y panel) o decidir formalmente que el producto ofrece solo es y en. Prioridad P3, esfuerzo M. Requiere decisión de producto.
+- Reconciliar AGENTS.md, que menciona `pt` en `lang/`, con la decisión del 2026-11-24 de ofrecer solo es y en. Prioridad P3, esfuerzo S.
 - Activar SSR de Inertia (ADR-0004 DA-1 contra RC-5): ADR y plan de despliegue antes de R3. Prioridad P2, esfuerzo L.
 - Límite de peticiones por IP del sitio público de solo lectura, junto con el de las demás páginas públicas. Prioridad P3, esfuerzo S.
 - Bloques de landing `program` y `speakers` (DA-1) y E-20 (agenda con salas y choques): planes propios.
