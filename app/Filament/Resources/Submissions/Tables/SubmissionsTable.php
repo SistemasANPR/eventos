@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Filament\Resources\Submissions\Tables;
 
 use App\Enums\SubmissionStatus;
+use App\Filament\Resources\Submissions\Actions\BulkDecisionActions;
 use App\Filament\Resources\Submissions\Actions\ReviewAssignmentActions;
 use App\Filament\Resources\Submissions\SubmissionResource;
 use App\Filament\Resources\Submissions\Support\SubmissionActivityLink;
@@ -19,6 +20,7 @@ use Carbon\CarbonImmutable;
 use Carbon\Exceptions\InvalidFormatException;
 use Filament\Actions\BulkActionGroup;
 use Filament\Forms\Components\DatePicker;
+use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\Filter;
 use Filament\Tables\Filters\SelectFilter;
@@ -83,7 +85,12 @@ final class SubmissionsTable
                 self::showAcceptedFilter(),
                 self::dateRangeFilter(),
             ])
-            ->toolbarActions([BulkActionGroup::make([ReviewAssignmentActions::bulkAssign()])])
+            ->toolbarActions([BulkActionGroup::make([
+                ReviewAssignmentActions::bulkAssign(),
+                BulkDecisionActions::bulk('accept', SubmissionStatus::Accepted, Heroicon::OutlinedCheckCircle, 'success'),
+                BulkDecisionActions::bulk('waitlist', SubmissionStatus::Waitlisted, Heroicon::OutlinedClock, 'warning'),
+                BulkDecisionActions::bulk('reject', SubmissionStatus::Rejected, Heroicon::OutlinedXCircle, 'danger'),
+            ])])
             ->paginated([10, 25, 50, self::MAX_PER_PAGE])
             ->defaultPaginationPageOption(25)
             // Sin esto Filament acepta cualquier tamaño que llegue del cliente (CA-009-3).

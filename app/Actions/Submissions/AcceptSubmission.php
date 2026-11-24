@@ -21,8 +21,8 @@ use Illuminate\Validation\ValidationException;
 /**
  * Acepta una propuesta (plan 012, H-012-1 y H-012-5, CA-012-1, 2, 5, 6 y 27 a 29), desde `under_review`,
  * `submitted` (eventos sin comité) o `waitlisted`. En la MISMA transacción la pasa al programa del evento
- * (`PromoteSubmissionToProgram`, plan 021): si eso falla, no queda aceptada. No envía correo: el resultado
- * se avisa al publicar los resultados (F3). `$submission->status` debe ser el que vio quien decide.
+ * (`PromoteSubmissionToProgram`, plan 021): si eso falla, no queda aceptada. El correo no sale al decidir:
+ * se avisa al publicar los resultados, salvo que la convocatoria ya los haya publicado (F3). `$submission->status` debe ser el que vio quien decide.
  *
  * @throws AuthorizationException si quien decide no tiene `submissions.decide` en la organización de la propuesta
  * @throws ValidationException si el comentario para el autor pasa de la longitud máxima
@@ -36,6 +36,7 @@ final class AcceptSubmission
     public function __construct(
         private readonly ChangeSubmissionStatus $change,
         private readonly PromoteSubmissionToProgram $promote,
+        private readonly PublishSubmissionResult $publishResult,
     ) {}
 
     public function handle(User $actor, Submission $submission, ?string $authorComment = null): Submission
@@ -46,12 +47,17 @@ final class AcceptSubmission
         return CurrentOrganization::run($organization, function () use ($actor, $submission, $comment): Submission {
             $this->authorizeActor($actor, 'decide', $submission);
 
-            return DB::transaction(function () use ($actor, $submission, $comment): Submission {
+            $accepted = DB::transaction(function () use ($actor, $submission, $comment): Submission {
                 $this->change->handle($actor, $submission, SubmissionStatus::Accepted, $comment);
                 $this->promote->handle($actor, $submission);
 
                 return Submission::query()->findOrFail($submission->id);
             });
+
+            // Si la convocatoria ya publicó sus resultados, el aviso sale al decidir (CA-012-21).
+            $this->publishResult->afterDecision($accepted);
+
+            return Submission::query()->findOrFail($submission->id);
         });
     }
 }

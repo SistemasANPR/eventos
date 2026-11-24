@@ -32,6 +32,7 @@ use Spatie\Translatable\HasTranslations;
  * @property Carbon $opens_at
  * @property Carbon $closes_at
  * @property Carbon|null $results_at
+ * @property Carbon|null $results_published_at cuándo se publicaron los resultados (plan 012, DA-2); nulo = aún internos
  * @property CallStatus $status
  * @property int $min_participants mínimo de participantes por propuesta (plan 006; por defecto 1)
  * @property int $max_participants máximo de participantes por propuesta (plan 006; por defecto 5)
@@ -64,6 +65,7 @@ class CallForSubmissions extends Model
             'opens_at' => 'datetime',
             'closes_at' => 'datetime',
             'results_at' => 'datetime',
+            'results_published_at' => 'datetime',
             'min_participants' => 'integer',
             'max_participants' => 'integer',
             'show_back_link' => 'boolean',

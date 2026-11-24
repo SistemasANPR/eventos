@@ -65,6 +65,48 @@ Confirmamos que retiraste tu propuesta «{{ submission_title }}». Ya no partici
 
 Si necesitas volver a consultarla, pide un nuevo enlace de acceso: [{{ request_link_url }}]({{ request_link_url }})',
         ],
+        'accepted' => [
+            'subject' => 'Tu propuesta fue aceptada en {{ event_name }}',
+            'body' => 'Hola {{ author_name }},
+
+Tenemos buenas noticias: tu propuesta «{{ submission_title }}» fue aceptada en {{ event_name }}.
+
+{{ author_comment }}
+
+Para consultar tu propuesta, pide un enlace de acceso de un solo uso: [{{ request_link_url }}]({{ request_link_url }})',
+        ],
+        'rejected' => [
+            'subject' => 'Resultado de tu propuesta en {{ event_name }}',
+            'body' => 'Hola {{ author_name }},
+
+Gracias por participar. Lamentamos informarte que tu propuesta «{{ submission_title }}» no fue seleccionada en {{ event_name }}.
+
+{{ author_comment }}
+
+Para consultar tu propuesta, pide un enlace de acceso de un solo uso: [{{ request_link_url }}]({{ request_link_url }})',
+        ],
+        'waitlisted' => [
+            'subject' => 'Tu propuesta está en lista de espera en {{ event_name }}',
+            'body' => 'Hola {{ author_name }},
+
+Tu propuesta «{{ submission_title }}» quedó en lista de espera en {{ event_name }}. Si se libera un lugar, te avisaremos.
+
+{{ author_comment }}
+
+Para consultar tu propuesta, pide un enlace de acceso de un solo uso: [{{ request_link_url }}]({{ request_link_url }})',
+        ],
+    ],
+    'call' => [
+        'closing_reminder' => [
+            'subject' => 'La convocatoria de {{ event_name }} cierra el {{ closing_date }}',
+            'body' => 'Hola {{ author_name }},
+
+Te recordamos que la convocatoria de propuestas de {{ event_name }} cierra el {{ closing_date }}.
+
+{{ edit_hint }}
+
+Para consultar tu propuesta, pide un enlace de acceso de un solo uso: [{{ request_link_url }}]({{ request_link_url }})',
+        ],
     ],
     'reviewer' => [
         'assignment' => [
