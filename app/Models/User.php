@@ -28,6 +28,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use SensitiveParameter;
+use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 use Spatie\Permission\Traits\HasRoles;
 
@@ -202,8 +203,10 @@ class User extends Authenticatable implements FilamentUser, HasAppAuthentication
     /**
      * Organizaciones activas en las que la persona usa el panel: en el de evaluadores, donde tiene el rol
      * `reviewer`; en el de organizadores, todas salvo aquellas donde su único rol es `reviewer` (el rol
-     * `reviewer` no tiene ningún permiso de organizador, plan 011 DA-1, CA-011-16). En cualquier otro panel,
-     * todas las de membresía activa. Los roles se consultan sin filtrar por la organización en contexto.
+     * `reviewer` no tiene ningún permiso de organizador, plan 011 DA-1, CA-011-16). Quien además tiene
+     * permisos asignados directamente en la organización conserva el panel de organizadores: por defecto
+     * nadie los tiene, y entrar sin ellos no le serviría de nada. En cualquier otro panel, todas las de
+     * membresía activa. Los roles se consultan sin filtrar por la organización en contexto.
      *
      * @return Collection<int, Organization>
      */
@@ -214,9 +217,21 @@ class User extends Authenticatable implements FilamentUser, HasAppAuthentication
         return match ($panelId) {
             'reviewer' => $organizations->filter(fn (Organization $organization): bool => $this->hasRoleIn($organization, ['reviewer']))->values(),
             'admin' => $organizations->reject(fn (Organization $organization): bool => $this->hasRoleIn($organization, ['reviewer'])
-                && ! $this->hasRoleIn($organization, ['org_admin', 'organizer']))->values(),
+                && ! $this->hasRoleIn($organization, ['org_admin', 'organizer'])
+                && ! $this->hasDirectPermissionsIn($organization))->values(),
             default => $organizations,
         };
+    }
+
+    /** Permisos asignados directamente a la persona (no por un rol) en la organización. */
+    private function hasDirectPermissionsIn(Organization $organization): bool
+    {
+        $teamColumn = config('permission.table_names.model_has_permissions').'.'.config('permission.column_names.team_foreign_key');
+
+        // Como en `hasRoleIn`, sin depender de la organización en contexto: se filtra la columna de equipo del pivote.
+        return Permission::query()
+            ->whereHas('users', fn (Builder $assignees) => $assignees->whereKey($this->getKey())->where($teamColumn, $organization->id))
+            ->exists();
     }
 
     /** @param  list<string>  $roles */

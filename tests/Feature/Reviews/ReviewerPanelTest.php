@@ -32,6 +32,7 @@ use Illuminate\Support\Facades\Storage;
 use Livewire\Features\SupportTesting\Testable;
 use Livewire\Livewire;
 use Spatie\Activitylog\Models\Activity;
+use Spatie\Permission\Models\Permission;
 use Tests\Support\Memberships;
 use Tests\Support\TwoFactor;
 
@@ -164,6 +165,20 @@ it('CA-011-16: the reviewer panel is the portal of a reviewer and an organizer w
     CurrentOrganization::run($organization, fn () => $admin->assignRole('reviewer'));
     $this->actingAs($admin->fresh())->get("/reviewer/{$organization->slug}")->assertOk();
     $this->actingAs($admin->fresh())->get("/admin/{$organization->slug}")->assertOk();
+});
+
+it('CA-011-16: a reviewer with permissions granted directly keeps the organizers panel, and only then', function (): void {
+    $scenario = rpScenario();
+    $organization = $scenario['organization'];
+    $reviewer = $scenario['reviewer'];
+
+    expect($reviewer->canAccessPanelId('admin'))->toBeFalse();
+
+    Permission::findOrCreate('forms.view', 'web');
+    CurrentOrganization::run($organization, fn () => $reviewer->givePermissionTo('forms.view'));
+
+    expect($reviewer->fresh()?->canAccessPanelId('admin'))->toBeTrue()
+        ->and($reviewer->fresh()?->canAccessPanelId('reviewer'))->toBeTrue();
 });
 
 it('CA-011-16: a reviewer is sent to their own panel after signing in and a reviewer-only user has no other portal', function (): void {
