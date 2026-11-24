@@ -159,6 +159,8 @@ function eventSectionLabels(): array
         __('program.activities.navigation'),
         // Plan 011, F3b: quien asigna ve la sección «Evaluadores» (organizador y administrador).
         __('review_assignments.reviewers.navigation'),
+        // Plan 011, F4b: quien gestiona rúbricas ve la sección «Rúbricas» (organizador y administrador).
+        __('rubrics.navigation'),
     ];
 }
 

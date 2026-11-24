@@ -8,6 +8,7 @@ use App\Filament\Resources\Forms\FormDefinitionResource;
 use App\Filament\Resources\Submissions\SubmissionResource;
 use App\Models\EventActivity;
 use App\Models\ReviewAssignment;
+use App\Models\Rubric;
 use App\Models\Speaker;
 use Closure;
 use Filament\Navigation\NavigationItem;
@@ -38,6 +39,8 @@ final class EventSectionsNavigation
             // que por eso mantiene activa su sección en el menú.
             // Las reglas de alcance se alcanzan desde un botón de «Evaluadores», que por eso mantiene activa su sección.
             self::section($parentKey, __('review_assignments.reviewers.navigation'), Heroicon::OutlinedUserGroup, 6, 'reviewers', ['reviewers', 'assignment-rules'], fn (): bool => Gate::allows('viewAny', ReviewAssignment::class)),
+            // Crear y editar una rúbrica son páginas de su recurso anidado: la sección sigue activa en ellas.
+            self::section($parentKey, __('rubrics.navigation'), Heroicon::OutlinedScale, 7, 'rubrics', ['rubrics', 'rubrics.*'], fn (): bool => Gate::allows('viewAny', Rubric::class)),
             self::section($parentKey, __('program.speakers.navigation'), Heroicon::OutlinedMicrophone, 4, 'speakers', ['speakers', 'speaker-categories'], fn (): bool => Gate::allows('viewAny', Speaker::class)),
             self::section($parentKey, __('program.activities.navigation'), Heroicon::OutlinedCalendarDays, 5, 'activities', ['activities', 'activity-categories'], fn (): bool => Gate::allows('viewAny', EventActivity::class)),
         ];
