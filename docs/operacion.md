@@ -39,7 +39,7 @@ Todo el desarrollo ocurre en `staging`; `main` solo recibe lo ya probado (ADR-00
    **En Railway el despliegue no ejecuta `migrate`:** tras desplegar una versión con migraciones nuevas quedan pendientes hasta que una persona las aplica. Pasos, en este orden:
    1. Ver cuáles faltan: `railway ssh --service eventos -- php artisan migrate:status` (las filas `Pending`). Es solo lectura.
    2. Revisar que sean aditivas (`create table`, columnas nuevas con valor por defecto); una destructiva sigue «expandir y contraer» y lleva su plan de reversa.
-   3. Aplicarlas: `railway ssh --service eventos -- php artisan migrate --force`. Es idempotente: reintentarla no repite las ya aplicadas.
+   3. Aplicarlas: `railway ssh --service eventos -- php artisan migrate --force` (con RLS activa, §10: `php artisan migrate --database=pgsql_migrator --force`, porque el rol de aplicación no es propietario). Es idempotente: reintentarla no repite las ya aplicadas.
    4. Comprobar que `migrate:status` ya no muestra `Pending`.
    Hacerlo en cuanto termine el despliegue: mientras tanto, las pantallas que usan las tablas nuevas fallan con «tabla inexistente».
 5. Después del despliegue: comprobar `/up`, reiniciar los workers y revisar errores durante 15 minutos.
@@ -56,6 +56,7 @@ Solo nombres; nunca valores en el repositorio. Toda variable nueva se añade a `
 | `APP_KEY`, `APP_URL`, `APP_ENV` | Aplicación | Sí |
 | `TRUSTED_PROXIES` | Lista separada por comas de IPs o CIDR de los balanceadores en los que se confía para leer `X-Forwarded-For/Host/Port/Proto`. Vacía (por defecto) = no se confía en ninguno. `*` confía en cualquier origen: solo con intención explícita | Sí, detrás de un balanceador |
 | `DB_*` | PostgreSQL | Sí |
+| `DB_MIGRATOR_USERNAME`, `DB_MIGRATOR_PASSWORD`, `DB_MIGRATOR_URL` | Rol de migraciones y administración (propietario de las tablas; RLS no le aplica), conexión `pgsql_migrator` (plan 014, H-014-2). Con RLS activa, `DB_USERNAME`/`DB_PASSWORD` son los del rol de aplicación. Vacías: usa las de `DB_*`. Ver §10 | Con RLS activa |
 | `REDIS_*` | Colas y caché | Sí |
 | `FILESYSTEM_DISK` y credenciales del bucket | Archivos | Sí |
 | `PRIVATE_UPLOADS_DISK` | Disco privado de los archivos de propuestas (por defecto `local`). En staging y producción apunta a un bucket S3 compatible **privado**; nunca a `public` | Sí |
@@ -121,3 +122,67 @@ Anotar aquí, al ocurrir o al ensayar, cómo se resuelve:
 - Sitio caído · Cola atrasada o worker caído · Webhook de pagos que falla · Correo que no llega · Restauración de la base · Sospecha de fuga entre organizaciones · Secreto expuesto.
 
 [RELLENAR: un enlace o un párrafo por caso.]
+
+## 10. RLS: aislamiento entre organizaciones en la base de datos (plan 014, H-014-2)
+
+Segunda barrera tras el scope de Eloquent y las Policies (ADR-0003 DA-2, `docs/seguridad.md` §3). Las migraciones **definen** las políticas; su **efecto** depende del rol con el que se conecta la aplicación. Activarla en staging y producción es una acción humana, reversible y sin pérdida de datos.
+
+### 10.1 Cómo funciona
+
+- Toda tabla con `organization_id` lleva RLS habilitado y dos políticas (`tenant_isolation`, para todas las órdenes, y `platform_read`, solo `SELECT`). La excepción es la **lista cerrada** `RowLevelSecurity::PLATFORM_TABLES` (`organization_user`, `roles`, `model_has_roles`, `model_has_permissions`, `activity_log`), con su justificación en el código.
+- Las políticas comparan `organization_id` con la variable de sesión `app.organization_id`. `DatabaseTenantContext` la sincroniza con `CurrentOrganization` **antes de cada consulta**: petición HTTP (Filament, Livewire), job, comando y consola quedan cubiertos sin hacer nada más porque todos fijan el contexto con `CurrentOrganization`. Sin contexto, la base no devuelve filas y rechaza las escrituras.
+- Al olvidar el contexto, la siguiente consulta limpia la variable aunque la conexión se reutilice (workers de cola, procesos largos); una conexión nueva o reconectada la recibe antes de su primera consulta; un `ROLLBACK` invalida lo aplicado. Desviación del plan, registrada: se usa `set_config(..., false)` de sesión y no `SET LOCAL` dentro de una transacción por `run()`, porque el middleware de tenant de Filament no puede envolver la petición (Livewire) y abrir una transacción por petición cambiaría la semántica de `afterCommit` y de los reintentos.
+- `OrganizationScopeBypass` (usuario de plataforma, con auditoría) abre además la lectura de plataforma en la base (`app.platform_access`) hasta que termina la petición; esa política es solo de lectura.
+- RLS está habilitado **sin `FORCE`**: el propietario de las tablas (rol de migraciones) no depende de ella; el rol de la aplicación (no propietario, sin `BYPASSRLS`) queda sujeto.
+
+### 10.2 Roles y variables
+
+| Rol | Para qué | Variables |
+|---|---|---|
+| Propietario / migraciones | Es dueño de las tablas; ejecuta `migrate` y las tareas de administración. RLS no le aplica | `DB_MIGRATOR_USERNAME`, `DB_MIGRATOR_PASSWORD` (conexión `pgsql_migrator`) |
+| Aplicación | Web, workers, planificador y comandos. Solo `SELECT/INSERT/UPDATE/DELETE`; sin `SUPERUSER`, sin `BYPASSRLS`, sin ser propietario | `DB_USERNAME`, `DB_PASSWORD` (conexión `pgsql`) |
+
+En local y CI hay un solo usuario con privilegios amplios (ignora RLS): las políticas existen pero no tienen efecto; las pruebas de RLS cambian la sesión a un rol de prueba (`tests/Support/AppDatabaseRole.php`). Las variables nuevas son `DB_MIGRATOR_USERNAME`, `DB_MIGRATOR_PASSWORD` y, si hiciera falta, `DB_MIGRATOR_URL`; sin ellas la conexión `pgsql_migrator` usa las de `pgsql`. La aplicación necesita conexiones directas o un pooler en **modo sesión**: un pooler por transacción compartiría la variable entre clientes.
+
+### 10.3 Activación en staging (una persona, en este orden)
+
+1. **Aplicar la migración** `2026_11_27_200000_enable_row_level_security` con el rol de migraciones: `php artisan migrate --database=pgsql_migrator --force` (a partir de aquí **todo** `migrate` se ejecuta así: con el rol de aplicación fallaría por falta de permisos, que es lo esperado). Con el rol actual (propietario) las políticas existen pero no tienen efecto: este es el paso «permisivo». Comprobar: `php artisan app:rls-status` debe decir que **no** hay tablas sin política.
+2. **Crear el rol de aplicación** (como administrador de la base, una vez por entorno; el rol actual de la aplicación pasa a ser el de migraciones):
+   ```sql
+   CREATE ROLE eventos_app LOGIN PASSWORD '<secreto>' NOSUPERUSER NOBYPASSRLS NOCREATEDB NOCREATEROLE;
+   GRANT CONNECT ON DATABASE <base> TO eventos_app;
+   GRANT USAGE ON SCHEMA public TO eventos_app;
+   GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO eventos_app;
+   GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO eventos_app;
+   ALTER DEFAULT PRIVILEGES FOR ROLE <propietario> IN SCHEMA public GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO eventos_app;
+   ALTER DEFAULT PRIVILEGES FOR ROLE <propietario> IN SCHEMA public GRANT USAGE, SELECT ON SEQUENCES TO eventos_app;
+   ```
+   Si las tablas las creó el mismo usuario con el que hoy se conecta la aplicación, ese usuario **es** el propietario: no hace falta reasignar nada.
+3. **Variables:** `DB_MIGRATOR_USERNAME` y `DB_MIGRATOR_PASSWORD` con el propietario actual; `DB_USERNAME` y `DB_PASSWORD` con `eventos_app`. Reiniciar web, workers y planificador (todos usan el rol de aplicación).
+4. **Comprobar el efecto:** `php artisan app:rls-status --require-effective` debe terminar bien («RLS tiene efecto para este rol: SÍ»).
+5. **Recorrido de humo** (en staging, con datos de dos organizaciones): inicio de sesión y cambio de organización; listas y fichas de eventos, propuestas, evaluaciones y equipo; formulario público y envío de una propuesta con archivo; enlace de acceso del autor; panel de plataforma (lista de organizaciones con sus conteos y la ficha de eventos); un job en cola (correo); `php artisan files:purge-orphans`; `php artisan app:create-organization` de prueba. Vigilar el registro de errores: una escritura rechazada aparece como `new row violates row-level security policy` y una lectura sin contexto como pantallas o listas vacías inesperadas. Cualquiera de las dos es un defecto de contexto: **se corrige en el código, no se afloja la política**.
+6. Mantener staging así al menos una semana de uso real antes de producción.
+
+### 10.4 Activación en producción
+
+Mismos pasos 1 a 5 con aprobación manual y en horario de poco uso. **Debe estar activa antes de que entre una segunda organización real** (plan 014 §1) y, como objetivo, el 18-dic-2026 (RC-1). Antes de empezar: respaldo reciente (§5) y la reversa de §10.5 a la mano.
+
+### 10.5 Reversa (sin pérdida de datos)
+
+- **Inmediata (segundos):** volver `DB_USERNAME` y `DB_PASSWORD` al rol propietario y reiniciar. Las políticas dejan de aplicarse; no cambia ningún dato.
+- **Completa:** `php artisan migrate:rollback --database=pgsql_migrator --path=database/migrations/2026_11_27_200000_enable_row_level_security.php` (quita políticas, deshabilita RLS y borra las dos funciones de apoyo; si otras migraciones del plan protegieron tablas con `RowLevelSecurity::enable()`, se revierten antes). Si no se puede por el orden de lotes, como propietario:
+  ```sql
+  DO $$ DECLARE t text; BEGIN
+    FOR t IN SELECT tablename FROM pg_policies WHERE schemaname = 'public' AND policyname IN ('tenant_isolation', 'platform_read') GROUP BY tablename LOOP
+      EXECUTE format('DROP POLICY IF EXISTS platform_read ON %I', t);
+      EXECUTE format('DROP POLICY IF EXISTS tenant_isolation ON %I', t);
+      EXECUTE format('ALTER TABLE %I DISABLE ROW LEVEL SECURITY', t);
+    END LOOP;
+  END $$;
+  ```
+
+### 10.6 Tablas nuevas y mantenimiento
+
+- Una tabla nueva con `organization_id` añade `RowLevelSecurity::enable('tabla');` en su migración, después de crearla (junto al trigger de inmutabilidad, `docs/database-design.md` §3). La guardiana `RowLevelSecurityGuardianTest` falla si falta. **Ojo en entornos ya migrados:** la migración de RLS solo cubre las tablas que existían cuando se aplicó; una tabla de una migración con fecha anterior que se integre después necesita su propia migración «de puesta al día» (`RowLevelSecurity::enableMissing()`, idempotente). Tras cada despliegue con migraciones, `php artisan app:rls-status` debe terminar bien (falla si hay tablas sin política).
+- Verificación previa a un cambio grande: `RLS_TEST_MODE=1 php artisan test tests/Feature` ejecuta la suite con el rol de aplicación para toda consulta hecha con una organización en contexto y revela flujos que RLS bloquearía.
+- Límites conocidos y deuda: DT-46 a DT-49 en `docs/sprints/deuda-tecnica.md`.
