@@ -390,7 +390,8 @@ it('CA-011-44: one email per reviewer and operation with the count and the dashb
     expect($mails)->toHaveCount(1)
         ->and($mails[0]->recipient->email)->toBe($reviewerA->email)
         ->and($mails[0]->variables['assigned_count'])->toBe('12')
-        ->and($mails[0]->variables['dashboard_url'])->toContain($organization->slug)
+        // El enlace apunta al tablero del panel del evaluador (plan 011, F4), no al de organizadores.
+        ->and($mails[0]->variables['dashboard_url'])->toEndWith('/reviewer/'.$organization->slug)
         ->and($mails[0]->variables['reviewer_name'])->toBe($reviewerA->name);
 
     // Repetir la operación no asigna nada nuevo, así que no hay otro correo; una segunda evaluadora recibe el suyo.

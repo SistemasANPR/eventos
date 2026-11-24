@@ -79,6 +79,12 @@ Route::middleware(['auth', SetOrganizationFromRoute::class])
     ->get('admin/{organization:slug}/submission-files/{file}', SubmissionFileDownloadController::class)
     ->name('submission-files.download');
 
+// Descarga del evaluador (plan 011, H-011-3): el mismo controlador y la misma Action; la Policy de
+// `SubmissionFilePolicy` deja pasar a quien tiene la propuesta asignada, con nombre neutro en pantalla.
+Route::middleware(['auth', SetOrganizationFromRoute::class])
+    ->get('reviewer/{organization:slug}/submission-files/{file}', SubmissionFileDownloadController::class)
+    ->name('reviewer-submission-files.download');
+
 // Vista previa de la imagen de una propuesta dentro del detalle del panel (misma autorización que la descarga).
 Route::middleware(['auth', SetOrganizationFromRoute::class])
     ->get('admin/{organization:slug}/submission-files/{file}/preview', SubmissionFilePreviewController::class)

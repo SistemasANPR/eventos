@@ -31,6 +31,7 @@ class Organization extends Model implements HasName
     public const RESERVED_SLUGS = [
         'admin', 'up', 'login', 'register', 'api',
         'livewire', 'horizon', 'filament', 'storage', 'build', 'logout', 'password', 'platform',
+        'reviewer',
     ];
 
     /** Nombre que Filament muestra en el selector de organización. */

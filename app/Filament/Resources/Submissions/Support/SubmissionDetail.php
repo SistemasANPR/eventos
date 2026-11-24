@@ -11,6 +11,7 @@ use App\Models\Organization;
 use App\Models\Submission;
 use App\Models\SubmissionFile;
 use App\Models\User;
+use App\Support\Files\SubmissionFileData;
 use Illuminate\Support\Number;
 
 /**
@@ -33,11 +34,38 @@ final class SubmissionDetail
      */
     public static function for(Submission $submission, User $viewer, Organization $organization): array
     {
-        $canDownload = $viewer->checkPermissionTo('files.download');
+        return self::build($submission, $organization, $viewer->checkPermissionTo('files.download'), false);
+    }
+
+    /**
+     * El mismo detalle para el evaluador asignado (plan 011, H-011-3): sus archivos se descargan por la ruta
+     * del panel del evaluador y con nombre neutro `archivo-{n}.{ext}`, nunca con el original, que puede
+     * delatar al autor (plan 007, CA-007-23). El llamador ya comprobó que la propuesta es suya.
+     *
+     * @return array{
+     *     answers: list<array{label: string, retired: bool, type: string, value: string|bool|list<string>|null, files: list<array{name: string, size: string, url: string|null, previewUrl: string|null}>, fileCount: int}>,
+     *     participants: list<array{name: string, email: string, country: string, jobTitle: ?string, company: ?string, bio: ?string, primary: bool}>,
+     *     canDownload: bool
+     * }
+     */
+    public static function forReviewer(Submission $submission, Organization $organization): array
+    {
+        return self::build($submission, $organization, true, true);
+    }
+
+    /**
+     * @return array{
+     *     answers: list<array{label: string, retired: bool, type: string, value: string|bool|list<string>|null, files: list<array{name: string, size: string, url: string|null, previewUrl: string|null}>, fileCount: int}>,
+     *     participants: list<array{name: string, email: string, country: string, jobTitle: ?string, company: ?string, bio: ?string, primary: bool}>,
+     *     canDownload: bool
+     * }
+     */
+    private static function build(Submission $submission, Organization $organization, bool $canDownload, bool $forReviewer): array
+    {
         $filesByField = self::filesByField($submission);
 
         return [
-            'answers' => self::answers($submission, $filesByField, $canDownload, $organization),
+            'answers' => self::answers($submission, $filesByField, $canDownload, $organization, $forReviewer),
             'participants' => $submission->participants->map(static fn ($participant): array => [
                 'name' => $participant->full_name,
                 'email' => $participant->email,
@@ -68,8 +96,10 @@ final class SubmissionDetail
      * @param  array<string, list<SubmissionFile>>  $filesByField
      * @return list<array{label: string, retired: bool, type: string, value: string|bool|list<string>|null, files: list<array{name: string, size: string, url: string|null, previewUrl: string|null}>, fileCount: int}>
      */
-    private static function answers(Submission $submission, array $filesByField, bool $canDownload, Organization $organization): array
+    private static function answers(Submission $submission, array $filesByField, bool $canDownload, Organization $organization, bool $forReviewer): array
     {
+        // Posición de cada archivo en la propuesta, para su nombre neutro (solo el evaluador).
+        $positions = $forReviewer ? array_flip(array_map(static fn (SubmissionFile $file): string => $file->id, array_merge(...array_values($filesByField)))) : null;
         $fallback = $submission->locale;
         $locale = app()->getLocale();
         $fields = is_array($submission->form_snapshot['fields'] ?? null) ? $submission->form_snapshot['fields'] : [];
@@ -97,7 +127,7 @@ final class SubmissionDetail
                 'retired' => false,
                 'type' => $type->value,
                 'value' => $type === FieldType::File ? null : self::value($type, $field, $submission->answers[$key] ?? null, $locale, $fallback),
-                'files' => self::files($files, $canDownload, $organization),
+                'files' => self::files($files, $canDownload, $organization, $positions),
                 'fileCount' => count($files),
             ];
         }
@@ -123,20 +153,23 @@ final class SubmissionDetail
 
     /**
      * @param  list<SubmissionFile>  $files
+     * @param  array<string, int>|null  $positions  posición de cada archivo en la propuesta (id => índice) si el detalle es del evaluador
      * @return list<array{name: string, size: string, url: string|null, previewUrl: string|null}>
      */
-    private static function files(array $files, bool $canDownload, Organization $organization): array
+    private static function files(array $files, bool $canDownload, Organization $organization, ?array $positions): array
     {
         if (! $canDownload) {
             return [];
         }
 
         return array_map(static fn (SubmissionFile $file): array => [
-            'name' => $file->original_name,
+            'name' => $positions === null
+                ? $file->original_name
+                : SubmissionFileData::forReviewer($file, ($positions[$file->id] ?? 0) + 1)['name'],
             'size' => Number::fileSize($file->size_bytes),
-            'url' => route('submission-files.download', ['organization' => $organization->slug, 'file' => $file->id]),
-            // Las imágenes (JPG, PNG) también se muestran dentro de la página.
-            'previewUrl' => in_array($file->mime_type, DownloadSubmissionFile::IMAGE_TYPES, true)
+            'url' => route($positions === null ? 'submission-files.download' : 'reviewer-submission-files.download', ['organization' => $organization->slug, 'file' => $file->id]),
+            // Las imágenes (JPG, PNG) también se muestran dentro de la página; el evaluador las descarga.
+            'previewUrl' => $positions === null && in_array($file->mime_type, DownloadSubmissionFile::IMAGE_TYPES, true)
                 ? route('submission-files.preview', ['organization' => $organization->slug, 'file' => $file->id])
                 : null,
         ], $files);
