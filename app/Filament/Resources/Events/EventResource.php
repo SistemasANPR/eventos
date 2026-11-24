@@ -13,6 +13,7 @@ use App\Filament\Resources\Events\Pages\ManageEventActivityCategories;
 use App\Filament\Resources\Events\Pages\ManageEventAssignmentRules;
 use App\Filament\Resources\Events\Pages\ManageEventFormDefinitions;
 use App\Filament\Resources\Events\Pages\ManageEventReviewers;
+use App\Filament\Resources\Events\Pages\ManageEventRubrics;
 use App\Filament\Resources\Events\Pages\ManageEventSpeakerCategories;
 use App\Filament\Resources\Events\Pages\ManageEventSpeakers;
 use App\Filament\Resources\Events\Pages\ManageEventSubmissions;
@@ -103,6 +104,8 @@ class EventResource extends Resource
             // Evaluadores del evento y sus reglas permanentes de alcance (plan 011, F3b).
             'reviewers' => ManageEventReviewers::route('/{record}/reviewers'),
             'assignment-rules' => ManageEventAssignmentRules::route('/{record}/assignment-rules'),
+            // Rúbricas de evaluación del evento (plan 011, F4b); nombre = ruta del recurso anidado `RubricResource`.
+            'rubrics' => ManageEventRubrics::route('/{record}/rubrics'),
             // Ponentes del evento (plan 021, F2).
             'speakers' => ManageEventSpeakers::route('/{record}/speakers'),
             // Actividades del programa (plan 021, F3).

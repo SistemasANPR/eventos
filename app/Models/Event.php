@@ -116,6 +116,12 @@ class Event extends Model
         return $this->hasMany(SubmissionType::class);
     }
 
+    /** @return HasMany<Rubric, $this> rúbricas de evaluación del evento (plan 011) */
+    public function rubrics(): HasMany
+    {
+        return $this->hasMany(Rubric::class);
+    }
+
     /** @return HasMany<Track, $this> */
     public function tracks(): HasMany
     {
