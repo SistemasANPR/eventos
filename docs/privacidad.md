@@ -93,4 +93,4 @@ Mantener esta tabla al día: **todo dato personal nuevo se añade aquí en el mi
 - Los datos de facturación se conservan por plazo fiscal; mientras no exista el módulo de pagos no hay ninguno, y el resultado de la anonimización informa `retained` (vacío hoy).
 - Si el bucket tiene el versionado activado, las versiones anteriores de un archivo no las borra la aplicación: hace falta una regla de ciclo de vida que las expire.
 - Una sesión de autor ya abierta sobre su propuesta sigue siendo válida hasta que caduca.
-- Los respaldos anteriores conservan el dato: ver la reaplicación tras restaurar en `docs/operacion.md` §5.
+- Los respaldos anteriores conservan el dato: se vuelve a anonimizar con `app:reapply-anonymizations` (procedimiento en `docs/operacion.md` §5.1). El registro de anonimizaciones (`anonymization_log`) está en la misma base que se restaura: hay que guardarlo antes con `app:export-anonymization-log` y cargarlo después con `--from-file`.

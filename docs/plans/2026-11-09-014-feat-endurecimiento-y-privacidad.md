@@ -139,6 +139,19 @@ Decisiones de implementación (el agente de privacidad las toma dentro del alcan
 | Variable `ANONYMIZATION_SALT` | Sal de la huella (`config/privacy.php`); sin ella no se anonimiza. En `.env.example` solo con valor ficticio |
 | Permiso `retention.manage` | Solo `org_admin`; migración de datos `2026_11_27_300200` |
 
+**F3 (reaplicación tras restaurar, construida el 2026-11-24).** El ensayo real de restauración en `staging` lo hace una persona (lista de verificación en `docs/operacion.md` §5.2); lo construido es el comando, el procedimiento y los runbooks de §9 de ese documento.
+
+| DA | Decisión |
+|---|---|
+| DA-13 | **El registro viaja con la restauración.** `anonymization_log` está en la misma base que se restaura, así que un respaldo anterior a una anonimización también lo trae incompleto. Por eso, antes de restaurar se guarda con `app:export-anonymization-log` y después se carga con `app:reapply-anonymizations --from-file` (solo huellas no reversibles, fechas e identificadores de organización; sin correos). Requiere que `ANONYMIZATION_SALT` sea la misma antes y después. |
+| DA-14 | **Qué se reaplica.** Para cada organización, los contactos, participantes, ponentes y miembros aún sin anonimizar cuya huella (HMAC con la sal y la organización) está en el registro, con el mismo motor que la anonimización a petición. Los casos que esa rechaza (último administrador, cuenta de plataforma) no se fuerzan: se informan como omitidos y el comando termina con error, para que no se abra el servicio con datos que deberían estar anonimizados. |
+
+| Pieza | Contrato |
+|---|---|
+| `ReapplyAnonymizations::handle(Organization $organization, bool $simulate = false): ReapplyReport` | Por organización con `CurrentOrganization::run()`; `ReapplyReport{registered, found, reapplied, skipped[motivo => n], failed}`; idempotente; audita `anonymizations_reapplied` con los totales (sin datos personales) salvo en simulación |
+| `app:reapply-anonymizations {--organization=} {--from-file=} {--dry-run}` | Imprime por organización y el total («Personas reaplicadas: N de M con datos»); código de salida distinto de 0 si hay omitidas, con error, un archivo ilegible o una organización inexistente; `--dry-run` no se combina con `--from-file` |
+| `app:export-anonymization-log {path}` / `ExportAnonymizationLog` / `ImportAnonymizationLog` | Guarda y recarga las huellas de todas las organizaciones (JSON `{version: 1, entries[]}`), todo o nada, idempotente; el destino nunca puede estar dentro de `public/` y el archivo se crea con permisos `0600` |
+
 ## 5. Permisos, aislamiento y datos personales
 
 | Pregunta | Respuesta |
@@ -197,6 +210,7 @@ Cada uno tiene al menos una prueba cuyo nombre lo cita (`CA-014-n: ...`) o decla
 - **CA-014-17:** *Dado* los casos listados en `docs/operacion.md` §9, *cuando* se revisa el documento, *entonces* cada caso (sitio caído, cola atrasada, correo que no llega, restauración, sospecha de fuga entre organizaciones, secreto expuesto) tiene su guía con pasos.
   Manual: leer cada guía con alguien que no la escribió y ejecutarla en `staging`.
 - **CA-014-18:** *Dado* un respaldo restaurado, *cuando* se revisan los datos, *entonces* no se usan datos reales sin anonimizar en un entorno que no sea producción.
+  Manual: en cada ensayo de restauración, comprobar con la lista de `docs/operacion.md` §5.2 que `staging` queda anonimizado antes de usarse (hoy sin procedimiento automático: DT-52).
 - **CA-014-19:** *Dado* un respaldo anterior a una anonimización, *cuando* se restaura y se ejecuta `app:reapply-anonymizations`, *entonces* las personas registradas en `anonymization_log` quedan anonimizadas de nuevo en los datos restaurados y el comando informa el total.
 
 ### H-014-4 · Exportar y anonimizar
