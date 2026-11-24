@@ -110,6 +110,7 @@ Una asignación `pending` se elimina. Si el evaluador ya empezó o envió, pasa 
 | F3a | Asignación individual, en lote y por eje o convocatoria como expansión única (sin regla guardada), informe de omitidas, paso a `under_review`, quitar y cancelar, correo resumen (H-011-2; CA-011-5 a 10, 38 a 41, 44 a 47); depende de H-012-1 | M |
 | F3b | Regla de alcance guardada por eje y convocatoria (`review_assignment_scopes`) con job idempotente, vista por evaluador e invitación desde la pantalla (H-011-2, H-011-8; CA-011-42, 43, 48, 49) | M |
 | F4 | Panel del evaluador con su tablero (resumen, lista, filtros, estados vacío y cerrado) y `SubmitReview` transaccional (H-011-3; CA-011-50 a 54) | M |
+| F4b | Pantalla de rúbricas (interfaz de H-011-1; cubre CA-011-1 a 4 y 21 por la interfaz). Desviación: el plan 011 listaba `RubricResource` en el contrato pero ninguna fase lo construyó; sin ella no se puede publicar una rúbrica desde el panel | M |
 | F5 | Conflicto de interés y modo ciego (H-011-4) | M |
 | F6 | Resultados, avance por evaluador y cierre del periodo (H-011-5, H-011-6; CA-011-25 y 55 a 60) | M |
 
