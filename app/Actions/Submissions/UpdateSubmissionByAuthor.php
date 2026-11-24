@@ -150,7 +150,7 @@ final class UpdateSubmissionByAuthor
      */
     private function validated(CallForSubmissions $call, FormDefinition $form, array $data, int $participantCount): array
     {
-        $base = StoreSubmissionRequest::fieldRules($call->min_participants, $call->max_participants, $call->locales);
+        $base = StoreSubmissionRequest::fieldRules($call->min_participants, $call->max_participants, $call->locales, $form->settings);
         $rules = Arr::only($base, ['form_version', 'title', 'track_id', 'answers', 'participants.*'])
             + Arr::only($base, array_map(static fn (string $key): string => 'participants.*.'.$key, self::PARTICIPANT_KEYS))
             + ['participants' => ['required', 'array', 'size:'.$participantCount]];

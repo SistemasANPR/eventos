@@ -4,7 +4,7 @@
 
     {{-- La clave cambia con el límite: Livewire crea un elemento nuevo y React se monta de nuevo. --}}
     <div
-        wire:key="participants-preview-{{ $props['maxParticipants'] }}"
+        wire:key="participants-preview-{{ md5(json_encode($props['participantFields']).$props['maxParticipants']) }}"
         wire:ignore
         data-participants-preview
         data-props="{{ json_encode($props, JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE) }}"

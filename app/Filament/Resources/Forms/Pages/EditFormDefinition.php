@@ -13,6 +13,7 @@ use App\Filament\Resources\Forms\FormDefinitionResource;
 use App\Filament\Support\ActionErrors;
 use App\Models\CallForSubmissions;
 use App\Models\FormDefinition;
+use App\Support\Forms\FormSettings;
 use Filament\Actions\Action;
 use Filament\Forms\Components\Select;
 use Filament\Notifications\Notification;
@@ -49,6 +50,25 @@ class EditFormDefinition extends EditRecord
     protected function getFormActions(): array
     {
         return [];
+    }
+
+    /**
+     * Un formulario anterior a los ajustes (nulo) se abre con lo que siempre ha hecho: todo visible, los mismos
+     * obligatorios de siempre y los participantes primero.
+     *
+     * @param  array<string, mixed>  $data
+     * @return array<string, mixed>
+     */
+    protected function mutateFormDataBeforeFill(array $data): array
+    {
+        $settings = is_array($data['settings'] ?? null) ? $data['settings'] : null;
+        $data['settings'] = [
+            ...($settings ?? []),
+            'participants_position' => FormSettings::position($settings),
+            'participant_fields' => FormSettings::participantFields($settings),
+        ];
+
+        return $data;
     }
 
     /** @param  array<string, mixed>  $data */

@@ -5,7 +5,7 @@ import { PARTICIPANT_CARD, SECTION_CARD, SECTION_HEADING } from '@/lib/classes';
 import { participantFields, titleField, trackField } from '@/lib/submission-fields';
 import type { Translate } from '@/lib/translate';
 import { cn } from '@/lib/utils';
-import type { SubmissionTrack } from '@/types/submission';
+import type { ParticipantFieldConfig, SubmissionTrack } from '@/types/submission';
 
 /** Máximo de personas adicionales que ofrece la pregunta «¿incluye a otras personas participantes?». */
 const MAX_EXTRA_PEOPLE = 2;
@@ -29,6 +29,10 @@ interface SubmissionBlockProps {
     className?: string;
     /** `false` oculta la tarjeta de título y eje y deja solo la de participantes (vista previa del editor de formularios). */
     showDetails?: boolean;
+    /** `false` oculta la tarjeta de participantes (se dibuja aparte, p. ej. al final del formulario). */
+    showParticipants?: boolean;
+    /** Qué preguntas de los participantes pide el formulario; sin él, todas con los obligatorios de siempre. */
+    participantConfig?: ParticipantFieldConfig;
 }
 
 /**
@@ -54,6 +58,8 @@ export function SubmissionBlock({
     idPrefix = 'submit',
     className,
     showDetails = true,
+    showParticipants = true,
+    participantConfig,
 }: SubmissionBlockProps) {
     const [announcement, setAnnouncement] = useState('');
     const count = participantIds.length;
@@ -85,7 +91,7 @@ export function SubmissionBlock({
                 {t('submit.participant_heading', { number: String(index + 1) })}
                 {index === 0 ? ` ${t('submit.participant_primary')}` : ''}
             </legend>
-            {participantFields(index, locale, t).map((field) => (
+            {participantFields(index, locale, t, participantConfig).map((field) => (
                 <FormFieldInput
                     key={field.key}
                     {...shared}
@@ -112,48 +118,50 @@ export function SubmissionBlock({
                 </section>
             ) : null}
 
-            <section aria-labelledby={`${idPrefix}-participants`} className={cn(SECTION_CARD, 'space-y-4')}>
-                <h2 id={`${idPrefix}-participants`} className={SECTION_HEADING}>
-                    {t('submit.section_participants')}
-                </h2>
-                <p className="text-sm text-text-muted">
-                    {t('submit.participants_hint', { min: String(minParticipants), max: String(maxParticipants) })}
-                </p>
-                {participantsError !== undefined ? (
-                    <p role="alert" data-invalid="true" tabIndex={-1} className="text-sm font-medium text-error">
-                        {participantsError}
+            {showParticipants ? (
+                <section aria-labelledby={`${idPrefix}-participants`} className={cn(SECTION_CARD, 'space-y-4')}>
+                    <h2 id={`${idPrefix}-participants`} className={SECTION_HEADING}>
+                        {t('submit.section_participants')}
+                    </h2>
+                    <p className="text-sm text-text-muted">
+                        {t('submit.participants_hint', { min: String(minParticipants), max: String(maxParticipants) })}
                     </p>
-                ) : null}
+                    {participantsError !== undefined ? (
+                        <p role="alert" data-invalid="true" tabIndex={-1} className="text-sm font-medium text-error">
+                            {participantsError}
+                        </p>
+                    ) : null}
 
-                {participantIds.slice(0, 1).map((id) => renderParticipant(id, 0))}
+                    {participantIds.slice(0, 1).map((id) => renderParticipant(id, 0))}
 
-                {extraChoices.length > 1 ? (
-                    <fieldset className="space-y-2">
-                        <legend className="text-base font-medium text-text">{t('submit.participants_extra_question')}</legend>
-                        {extraChoices.map((extra) => (
-                            <div key={extra} className="flex min-h-11 items-center gap-3">
-                                <input
-                                    id={`${idPrefix}-extra-${extra}`}
-                                    type="radio"
-                                    name={`${idPrefix}-extra-people`}
-                                    checked={count - 1 === extra}
-                                    onChange={() => chooseExtra(extra)}
-                                    className="size-5 accent-primary"
-                                />
-                                <label htmlFor={`${idPrefix}-extra-${extra}`} className="text-base text-text">
-                                    {t(`submit.participants_extra_${extra}`)}
-                                </label>
-                            </div>
-                        ))}
-                    </fieldset>
-                ) : null}
+                    {extraChoices.length > 1 ? (
+                        <fieldset className="space-y-2">
+                            <legend className="text-base font-medium text-text">{t('submit.participants_extra_question')}</legend>
+                            {extraChoices.map((extra) => (
+                                <div key={extra} className="flex min-h-11 items-center gap-3">
+                                    <input
+                                        id={`${idPrefix}-extra-${extra}`}
+                                        type="radio"
+                                        name={`${idPrefix}-extra-people`}
+                                        checked={count - 1 === extra}
+                                        onChange={() => chooseExtra(extra)}
+                                        className="size-5 accent-primary"
+                                    />
+                                    <label htmlFor={`${idPrefix}-extra-${extra}`} className="text-base text-text">
+                                        {t(`submit.participants_extra_${extra}`)}
+                                    </label>
+                                </div>
+                            ))}
+                        </fieldset>
+                    ) : null}
 
-                {participantIds.slice(1).map((id, offset) => renderParticipant(id, offset + 1))}
+                    {participantIds.slice(1).map((id, offset) => renderParticipant(id, offset + 1))}
 
-                <p role="status" className="sr-only">
-                    {announcement}
-                </p>
-            </section>
+                    <p role="status" className="sr-only">
+                        {announcement}
+                    </p>
+                </section>
+            ) : null}
         </div>
     );
 }

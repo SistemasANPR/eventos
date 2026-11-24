@@ -11,6 +11,7 @@ use App\Models\FormDefinition;
 use App\Models\PrivacyNotice;
 use App\Models\Track;
 use App\Support\Forms\FormPreviewProps;
+use App\Support\Forms\FormSettings;
 
 /**
  * Datos del formulario público de una convocatoria ABIERTA (plan 006, H-006-7). Devuelve `null`
@@ -55,10 +56,26 @@ final class PrepareSubmissionForm
             'uploadToken' => $session['upload_token'],
             'uploadUrl' => $uploadUrl,
             'turnstileSiteKey' => VerifyTurnstile::siteKey(),
+            ...$this->settings($form, $event, $locale),
             'minParticipants' => $call->min_participants,
             'maxParticipants' => $call->max_participants,
             'tracks' => $this->tracks($event, $locale),
             'privacyNotice' => ['id' => $notice->id, 'version' => $notice->version, 'url' => $privacyUrl],
+        ];
+    }
+
+    /**
+     * Ajustes del formulario que ve quien envía: preguntas de participantes, su posición y los dos títulos.
+     *
+     * @return array{participantFields: array<string, array{enabled: bool, required: bool}>, participantsPosition: string, title: ?string, extraSectionTitle: ?string}
+     */
+    private function settings(FormDefinition $form, Event $event, string $locale): array
+    {
+        return [
+            'participantFields' => FormSettings::participantFields($form->settings),
+            'participantsPosition' => FormSettings::position($form->settings),
+            'title' => FormSettings::text($form->settings, 'title', $locale, $event->default_locale),
+            'extraSectionTitle' => FormSettings::text($form->settings, 'extra_section_title', $locale, $event->default_locale),
         ];
     }
 

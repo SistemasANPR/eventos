@@ -706,3 +706,21 @@ it('refuses the photo of another participant slot or of another session', functi
         'tok-0123456789abcdef0123456789abcdef',
     ))->toThrow(ValidationException::class);
 });
+
+it('the form decides which participant questions are asked: a turned-off one is refused and an optional one may be empty', function (): void {
+    $ctx = subScenario();
+    $ctx['form']->forceFill(['settings' => ['participant_fields' => [
+        'company' => ['enabled' => false],
+        'bio' => ['enabled' => true, 'required' => false],
+        'state' => ['enabled' => true, 'required' => false],
+    ]]])->save();
+    $ctx['call']->refresh();
+
+    // Apagada: se rechaza aunque la mande el cliente.
+    $refused = subErrors($ctx, subInput($ctx, ['participants' => [subParticipant('a@x.com', ['is_primary' => true, 'company' => 'ACME'])]]));
+    expect(array_key_exists('participants.0.company', $refused))->toBeTrue();
+
+    // Opcionales vacías y la apagada sin mandar: se acepta.
+    $ok = subInput($ctx, ['participants' => [subParticipant('b@x.com', ['is_primary' => true, 'company' => null, 'bio' => '', 'state' => ''])]]);
+    expect(subErrors($ctx, $ok))->toBe([]);
+});

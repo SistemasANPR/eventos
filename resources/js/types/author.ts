@@ -1,6 +1,6 @@
 import type { FormField } from '@/types/form';
 import type { Translations } from '@/types/inertia';
-import type { AnswerValue, SubmissionTrack } from '@/types/submission';
+import type { AnswerValue, ParticipantFieldConfig, SubmissionTrack } from '@/types/submission';
 import type { PublicOrganization } from '@/types/event';
 
 /** Estado de una propuesta: coincide con `App\Enums\SubmissionStatus`. */
@@ -70,6 +70,8 @@ export interface AuthorEditData {
     defaultLocale: string;
     /** Textos de `forms.renderer` en el idioma de la propuesta. */
     translations: Translations;
+    participantFields: ParticipantFieldConfig;
+    extraSectionTitle: string | null;
     tracks: SubmissionTrack[];
     /** Valores actuales por nombre de control (`s.title`, `s.participants.0.first_name`, clave de respuesta). */
     initialValues: Record<string, AnswerValue>;

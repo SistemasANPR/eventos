@@ -66,6 +66,10 @@ const call: PublicCall = {
 
 const form: PublicSubmissionForm = {
     version: 1,
+    participantFields: {},
+    participantsPosition: 'top',
+    title: null,
+    extraSectionTitle: null,
     fields: [],
     defaultLocale: 'es',
     translations: {

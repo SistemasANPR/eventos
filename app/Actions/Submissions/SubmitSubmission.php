@@ -243,7 +243,7 @@ final class SubmitSubmission
         $errors = [];
         $answers = [];
 
-        $fixed = Validator::make($data, StoreSubmissionRequest::fieldRules($call->min_participants, $call->max_participants, Event::query()->findOrFail($call->event_id)->effectiveLocalesForCall($call)));
+        $fixed = Validator::make($data, StoreSubmissionRequest::fieldRules($call->min_participants, $call->max_participants, Event::query()->findOrFail($call->event_id)->effectiveLocalesForCall($call), $form->settings));
         $fixed->after(static fn ($validator) => StoreSubmissionRequest::crossFieldChecks($validator));
 
         if ($fixed->fails()) {

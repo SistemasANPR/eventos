@@ -1,6 +1,9 @@
 import type { FormField } from '@/types/form';
 import type { Translations } from '@/types/inertia';
 
+/** Qué preguntas de los participantes se muestran y cuáles son obligatorias, por nombre de pregunta. */
+export type ParticipantFieldConfig = Record<string, { enabled: boolean; required: boolean }>;
+
 /** Eje elegible en el formulario público. */
 export interface SubmissionTrack {
     id: string;
@@ -22,6 +25,14 @@ export interface PublicSubmissionForm {
     turnstileSiteKey: string;
     minParticipants: number;
     maxParticipants: number;
+    /** Preguntas de los participantes que el formulario pide. */
+    participantFields: ParticipantFieldConfig;
+    /** Dónde va el bloque de participantes respecto de las demás preguntas. */
+    participantsPosition: 'top' | 'bottom';
+    /** Título propio de la página de envío; `null` usa el de siempre. */
+    title: string | null;
+    /** Título propio del apartado de preguntas; `null` usa «Información adicional». */
+    extraSectionTitle: string | null;
     tracks: SubmissionTrack[];
     privacyNotice: { id: string; version: number; url: string };
 }

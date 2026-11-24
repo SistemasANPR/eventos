@@ -11,6 +11,7 @@ use App\Models\Event;
 use App\Models\FormDefinition;
 use App\Support\Calls\ResolveCallState;
 use App\Support\Forms\Countries;
+use App\Support\Forms\FormSettings;
 use Closure;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -58,7 +59,7 @@ final class StoreSubmissionRequest extends FormRequest
         $call = $this->route('call');
         $event = $this->route('event');
         $fixed = $call instanceof CallForSubmissions && $event instanceof Event
-            ? self::fieldRules($call->min_participants, $call->max_participants, $event->effectiveLocalesForCall($call))
+            ? self::fieldRules($call->min_participants, $call->max_participants, $event->effectiveLocalesForCall($call), $call->formDefinition?->settings)
             : self::fieldRules();
 
         return $fixed + [
@@ -128,9 +129,10 @@ final class StoreSubmissionRequest extends FormRequest
 
     /**
      * @param  list<string>  $locales  idiomas de la convocatoria
+     * @param  array<string, mixed>|null  $formSettings  ajustes del formulario vigente (qué preguntas de participantes se piden)
      * @return array<string, list<mixed>>
      */
-    public static function fieldRules(int $minParticipants = 1, int $maxParticipants = 5, array $locales = ['es', 'en', 'pt']): array
+    public static function fieldRules(int $minParticipants = 1, int $maxParticipants = 5, array $locales = ['es', 'en', 'pt'], ?array $formSettings = null): array
     {
         return [
             'idempotency_key' => ['required', 'string', 'min:16', 'max:100'],
@@ -146,16 +148,8 @@ final class StoreSubmissionRequest extends FormRequest
             'participants.*.last_name' => ['required', 'string', 'max:100', 'regex:/^[^\p{Cc}]+$/u'],
             'participants.*.email' => ['required', 'string', 'email:rfc', 'max:254', 'distinct:ignore_case'],
             'participants.*.country' => ['required', 'string', Rule::in(Countries::CODES)],
-            'participants.*.second_last_name' => ['nullable', 'string', 'max:100', 'regex:/^[^\p{Cc}]+$/u'],
-            'participants.*.alt_email' => ['nullable', 'string', 'email:rfc', 'max:254'],
-            'participants.*.state' => ['required', 'string', 'max:120'],
-            'participants.*.city' => ['required', 'string', 'max:120'],
-            'participants.*.job_title' => ['required', 'string', 'max:120'],
-            'participants.*.company' => ['required', 'string', 'max:160'],
-            'participants.*.phone' => ['required', 'string', 'regex:'.self::PHONE_PATTERN],
-            'participants.*.bio' => ['required', 'string', 'max:2000'],
-            'participants.*.photo_file_id' => ['nullable', 'uuid'],
             'participants.*.is_primary' => ['nullable', 'boolean'],
+            ...FormSettings::participantRules($formSettings),
             'consent' => ['accepted'],
             'privacy_notice_version_id' => ['nullable', 'uuid'],
             'third_parties_authorized' => ['nullable', 'boolean'],

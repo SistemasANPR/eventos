@@ -46,4 +46,23 @@ describe('fixed block fields', () => {
             keys.filter((key) => !key.endsWith('.second_last_name') && !key.endsWith('.alt_email') && !key.endsWith('.photo')),
         );
     });
+
+    it('shows only the participant questions the form asks for, with the required flag the form sets', () => {
+        const fields = participantFields(0, 'es', t, {
+            company: { enabled: false, required: false },
+            bio: { enabled: true, required: false },
+            alt_email: { enabled: true, required: true },
+            // Las preguntas fijas no se pueden apagar ni volver opcionales.
+            first_name: { enabled: false, required: false },
+            email: { enabled: true, required: false },
+        });
+        const keys = fields.map((field) => field.key);
+
+        expect(keys).not.toContain('s.participants.0.company');
+        expect(keys).toContain('s.participants.0.first_name');
+        expect(fields.find((field) => field.key.endsWith('.bio'))?.required).toBe(false);
+        expect(fields.find((field) => field.key.endsWith('.alt_email'))?.required).toBe(true);
+        expect(fields.find((field) => field.key.endsWith('.first_name'))?.required).toBe(true);
+        expect(fields.find((field) => field.key.endsWith('.email'))?.required).toBe(true);
+    });
 });

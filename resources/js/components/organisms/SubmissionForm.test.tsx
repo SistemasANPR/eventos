@@ -71,6 +71,10 @@ const summary: FormField = {
 
 const form: PublicSubmissionForm = {
     version: 3,
+    participantFields: {},
+    participantsPosition: 'top',
+    title: null,
+    extraSectionTitle: null,
     fields: [summary],
     defaultLocale: 'es',
     translations: {},
@@ -159,6 +163,18 @@ describe('SubmissionForm', () => {
 
         expect(screen.getAllByRole('group', { name: /Participante \d/ })).toHaveLength(1);
         expect(screen.queryByLabelText(/autorización/)).not.toBeInTheDocument();
+    });
+
+    it('uses the own title of the questions section and puts the participants after the questions when the form says so', () => {
+        render(ui({ form: { ...form, extraSectionTitle: 'Datos del proyecto', participantsPosition: 'bottom' } }));
+
+        expect(screen.getByRole('heading', { name: 'Datos del proyecto' })).toBeInTheDocument();
+
+        const question = screen.getByLabelText(/Resumen/);
+        const participants = screen.getByRole('group', { name: /Participante \d/ });
+
+        // El resumen (pregunta del formulario) va antes que el bloque de participantes.
+        expect(question.compareDocumentPosition(participants) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     });
 
     it('sends the payload with the issued credentials, the form version, the consent and the Turnstile token', async () => {

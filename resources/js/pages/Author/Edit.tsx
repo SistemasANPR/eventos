@@ -94,7 +94,7 @@ export default function Edit({ event, organization, reference, participants, edi
                         <p className="text-base text-text-muted">
                             {participant.email} · {t('author.edit.email_locked')}
                         </p>
-                        {participantFields(index, locale, t)
+                        {participantFields(index, locale, t, edit.participantFields)
                             .filter((field) => !field.key.endsWith('.email'))
                             .map((field) => (
                                 <FormFieldInput
@@ -111,7 +111,7 @@ export default function Edit({ event, organization, reference, participants, edi
                     </fieldset>
                 ))}
             </section>
-            <h2 className="text-2xl font-semibold text-text">{t('submit.section_questions')}</h2>
+            <h2 className="text-2xl font-semibold text-text">{edit.extraSectionTitle ?? t('submit.section_questions')}</h2>
         </>
     );
 

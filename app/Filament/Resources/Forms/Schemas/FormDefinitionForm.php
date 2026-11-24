@@ -13,6 +13,7 @@ use App\Models\Event;
 use App\Models\FormDefinition;
 use App\Support\Forms\FormDefinitionRules;
 use App\Support\Forms\FormPreviewProps;
+use App\Support\Forms\FormSettings;
 use Filament\Actions\Action;
 use Filament\Forms\Components\CheckboxList;
 use Filament\Forms\Components\Hidden;
@@ -22,6 +23,7 @@ use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Notifications\Notification;
+use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Group;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Utilities\Get;
@@ -62,6 +64,34 @@ final class FormDefinitionForm
                         // Versión que se está editando: el servidor la compara para no pisar el cambio de otra persona.
                         Hidden::make('version'),
                     ]),
+                Section::make(__('forms.sections.texts'))
+                    ->description(__('forms.settings.texts_help'))
+                    ->schema(fn ($livewire): array => LocalizedFields::for(
+                        LocalizedFields::eventOf($livewire),
+                        static fn (string $locale): array => [
+                            TextInput::make("settings.title.{$locale}")
+                                ->label(__("forms.settings.title_{$locale}"))
+                                ->placeholder(__('forms.settings.title_default'))
+                                ->maxLength(120),
+                            TextInput::make("settings.extra_section_title.{$locale}")
+                                ->label(__("forms.settings.extra_title_{$locale}"))
+                                ->placeholder(__('forms.settings.extra_title_default'))
+                                ->maxLength(120),
+                        ],
+                    )),
+                Section::make(__('forms.sections.participants'))
+                    ->description(__('forms.settings.participants_help'))
+                    ->schema([
+                        Select::make('settings.participants_position')
+                            ->label(__('forms.settings.position'))
+                            ->options([
+                                FormSettings::POSITION_TOP => __('forms.settings.position_top'),
+                                FormSettings::POSITION_BOTTOM => __('forms.settings.position_bottom'),
+                            ])
+                            ->default(FormSettings::POSITION_TOP)
+                            ->selectablePlaceholder(false),
+                        ...self::participantQuestions(),
+                    ]),
                 Section::make(__('forms.sections.live_preview'))
                     ->schema([
                         View::make('filament.forms.live-preview')
@@ -69,6 +99,7 @@ final class FormDefinitionForm
                                 'props' => app(FormPreviewProps::class)->participants(
                                     LocalizedFields::eventOf($livewire),
                                     $get('max_participants'),
+                                    $get('settings'),
                                 ),
                             ]),
                     ]),
@@ -89,6 +120,39 @@ final class FormDefinitionForm
                         ->schema(fn ($livewire): array => self::fieldInputs(LocalizedFields::eventOf($livewire))),
                 ]),
         ]);
+    }
+
+    /**
+     * Una fila por pregunta configurable del participante: mostrarla y, si se muestra, si es obligatoria. Las
+     * preguntas fijas (nombre, apellido paterno, correo y país) no se pueden apagar y no aparecen aquí.
+     *
+     * @return list<Grid>
+     */
+    private static function participantQuestions(): array
+    {
+        $defaults = FormSettings::participantFields(null);
+        $rows = [];
+
+        foreach (FormSettings::PARTICIPANT_FIELDS as $key) {
+            if (in_array($key, FormSettings::LOCKED, true)) {
+                continue;
+            }
+
+            $rows[] = Grid::make(2)->schema([
+                Toggle::make("settings.participant_fields.{$key}.enabled")
+                    ->label(__("forms.settings.question.{$key}"))
+                    ->helperText(__('forms.settings.show'))
+                    ->default($defaults[$key]['enabled'])
+                    ->live(),
+                Toggle::make("settings.participant_fields.{$key}.required")
+                    ->label(__('forms.settings.required'))
+                    ->default($defaults[$key]['required'])
+                    ->disabled(fn (Get $get): bool => $get("settings.participant_fields.{$key}.enabled") !== true)
+                    ->live(),
+            ]);
+        }
+
+        return $rows;
     }
 
     /** Retira el campo: deja de ofrecerse en nuevos envíos y conserva sus datos (CA-005-21). */

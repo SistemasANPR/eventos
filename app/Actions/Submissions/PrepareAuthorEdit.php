@@ -15,6 +15,7 @@ use App\Models\Submission;
 use App\Models\Track;
 use App\Support\Calls\ResolveCallState;
 use App\Support\Forms\FormPreviewProps;
+use App\Support\Forms\FormSettings;
 
 /**
  * Datos de la pantalla «editar mi propuesta» (plan 006, H-006-4): el formulario VIGENTE sin campos de archivo
@@ -54,6 +55,8 @@ final class PrepareAuthorEdit
             'fields' => $editable,
             'defaultLocale' => $renderer['defaultLocale'],
             'translations' => $renderer['translations'],
+            'participantFields' => FormSettings::participantFields($form->settings),
+            'extraSectionTitle' => FormSettings::text($form->settings, 'extra_section_title', $locale, $event->default_locale),
             'tracks' => $event->tracks()->active()->orderBy('position')->get()
                 ->map(fn (Track $track): array => ['id' => $track->id, 'name' => $track->label($locale)])->values()->all(),
             'initialValues' => $this->initialValues($submission, $editable),

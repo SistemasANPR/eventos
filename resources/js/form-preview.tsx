@@ -8,6 +8,7 @@ import { SubmissionBlock } from '@/components/organisms/SubmissionBlock';
 import { createTranslate } from '@/lib/translate';
 import type { FormPreviewProps } from '@/types/form';
 import type { Translations } from '@/types/inertia';
+import type { ParticipantFieldConfig } from '@/types/submission';
 
 declare global {
     interface Window {
@@ -77,6 +78,7 @@ interface ParticipantsPreviewProps {
     locale: string;
     defaultLocale: string;
     maxParticipants: number;
+    participantFields: ParticipantFieldConfig;
     translations: Translations;
 }
 
@@ -96,6 +98,7 @@ function ParticipantsPreview({ props }: { props: ParticipantsPreviewProps }) {
         >
             <SubmissionBlock
                 showDetails={false}
+                participantConfig={props.participantFields}
                 locale={props.locale}
                 defaultLocale={props.defaultLocale}
                 t={t}

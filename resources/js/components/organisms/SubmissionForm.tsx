@@ -214,25 +214,30 @@ export function SubmissionForm({ form, locale, t, errors, failure, isProcessing,
 
     const submitLabel = isUploading ? t('submit.uploading') : isProcessing ? t('submit.sending') : t('submit.send_action');
 
-    const leading = (
-        <>
-            <SubmissionBlock
-                locale={locale}
-                defaultLocale={form.defaultLocale}
-                t={t}
-                tracks={form.tracks}
-                minParticipants={form.minParticipants}
-                maxParticipants={form.maxParticipants}
-                participantIds={participantIds}
-                onAddParticipant={handleAddParticipant}
-                onRemoveParticipant={handleRemoveParticipant}
-                errors={fieldErrors}
-                participantsError={mapped.participants}
-            />
-        </>
+    const isParticipantsLast = form.participantsPosition === 'bottom';
+    const block = (parts: { showDetails: boolean; showParticipants: boolean }) => (
+        <SubmissionBlock
+            locale={locale}
+            defaultLocale={form.defaultLocale}
+            t={t}
+            tracks={form.tracks}
+            minParticipants={form.minParticipants}
+            maxParticipants={form.maxParticipants}
+            participantIds={participantIds}
+            onAddParticipant={handleAddParticipant}
+            onRemoveParticipant={handleRemoveParticipant}
+            errors={fieldErrors}
+            participantsError={mapped.participants}
+            participantConfig={form.participantFields}
+            showDetails={parts.showDetails}
+            showParticipants={parts.showParticipants}
+        />
     );
 
-    const trailing = (
+    // El formulario decide si los participantes van antes o después de las demás preguntas.
+    const leading = block({ showDetails: true, showParticipants: !isParticipantsLast });
+
+    const consentSection = (
         <section aria-labelledby="submit-consent-heading" className={cn(SECTION_CARD, 'space-y-4')}>
             <h2 id="submit-consent-heading" className={SECTION_HEADING}>
                 {t('submit.section_consent')}
@@ -281,6 +286,13 @@ export function SubmissionForm({ form, locale, t, errors, failure, isProcessing,
         </section>
     );
 
+    const trailing = (
+        <div className="space-y-8">
+            {isParticipantsLast ? block({ showDetails: false, showParticipants: true }) : null}
+            {consentSection}
+        </div>
+    );
+
     return (
         <div ref={container} className="space-y-6">
             <div ref={alert} tabIndex={-1} role="alert" aria-live="assertive" className={cn(!hasAlert && 'hidden')}>
@@ -311,7 +323,7 @@ export function SubmissionForm({ form, locale, t, errors, failure, isProcessing,
                 errors={fieldErrors}
                 onSubmit={handleSubmit}
                 leading={leading}
-                fieldsTitle={t('submit.section_questions')}
+                fieldsTitle={form.extraSectionTitle ?? t('submit.section_questions')}
                 trailing={trailing}
                 isSubmitting={isProcessing || isUploading}
                 isSubmitDisabled={isClosed}

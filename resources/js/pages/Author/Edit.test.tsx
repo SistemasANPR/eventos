@@ -60,6 +60,8 @@ vi.mock('@inertiajs/react', () => ({
 const edit: AuthorEditData = {
     version: 4,
     formVersion: 7,
+    participantFields: {},
+    extraSectionTitle: null,
     fields: [
         {
             key: 'summary',

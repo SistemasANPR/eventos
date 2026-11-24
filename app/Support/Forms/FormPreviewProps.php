@@ -24,9 +24,9 @@ final class FormPreviewProps
      * con el límite de personas que se está editando (aunque no esté guardado). Un valor ausente o fuera de
      * rango se muestra como el de por defecto; el servidor valida de verdad al guardar.
      *
-     * @return array{locale: string, defaultLocale: string, maxParticipants: int, translations: array<string, mixed>}
+     * @return array{locale: string, defaultLocale: string, maxParticipants: int, participantFields: array<string, array{enabled: bool, required: bool}>, translations: array<string, mixed>}
      */
-    public function participants(Event $event, mixed $maxParticipants): array
+    public function participants(Event $event, mixed $maxParticipants, mixed $settings = null): array
     {
         $max = is_numeric($maxParticipants) ? (int) $maxParticipants : self::DEFAULT_MAX_PARTICIPANTS;
 
@@ -38,6 +38,7 @@ final class FormPreviewProps
             'locale' => $event->default_locale,
             'defaultLocale' => $event->default_locale,
             'maxParticipants' => $max,
+            'participantFields' => FormSettings::participantFields(is_array($settings) ? $settings : null),
             'translations' => [
                 'submit' => trans('public.submit', [], $event->default_locale),
                 'forms' => ['renderer' => trans('forms.renderer', [], $event->default_locale)],

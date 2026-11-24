@@ -16,6 +16,7 @@ use App\Support\Forms\ApplyParticipantLimit;
 use App\Support\Forms\FormChangeRules;
 use App\Support\Forms\FormDefinitionRules;
 use App\Support\Forms\FormFieldsNormalizer;
+use App\Support\Forms\FormSettings;
 use App\Support\Forms\LockedFormDefinition;
 use App\Support\Tenancy\CurrentOrganization;
 use Illuminate\Auth\Access\AuthorizationException;
@@ -79,12 +80,14 @@ final class UpdateFormDefinition
 
                 $maxParticipants = array_key_exists('max_participants', $validated) ? $validated['max_participants'] : $current->max_participants;
                 $limitChanged = $maxParticipants !== $current->max_participants;
+                $settings = array_key_exists('settings', $validated) ? FormSettings::normalize((array) $validated['settings']) : $current->settings;
+                $settingsChanged = self::canonical($settings) !== self::canonical($current->settings);
 
-                if ($name === $current->name && ! $limitChanged && self::canonical($fields) === self::canonical($current->fields)) {
+                if ($name === $current->name && ! $limitChanged && ! $settingsChanged && self::canonical($fields) === self::canonical($current->fields)) {
                     return $current;
                 }
 
-                $current->forceFill(['name' => $name, 'fields' => $fields, 'max_participants' => $maxParticipants, 'version' => $current->version + 1])->save();
+                $current->forceFill(['name' => $name, 'fields' => $fields, 'max_participants' => $maxParticipants, 'settings' => $settings, 'version' => $current->version + 1])->save();
 
                 if ($limitChanged) {
                     (new ApplyParticipantLimit)->toCallsOf($current);

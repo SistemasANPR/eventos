@@ -96,6 +96,17 @@ final class FormDefinitionRules
         return [
             'name' => ['required', 'string', 'max:150'],
             'max_participants' => ['nullable', 'integer', 'min:1', 'max:'.self::MAX_PARTICIPANTS],
+            // Ajustes del formulario (ver `FormSettings`): preguntas de los participantes, su posición y dos títulos.
+            'settings' => ['nullable', 'array'],
+            'settings.participants_position' => ['nullable', Rule::in([FormSettings::POSITION_TOP, FormSettings::POSITION_BOTTOM])],
+            'settings.title' => ['nullable', $locales],
+            'settings.title.*' => ['nullable', 'string', 'max:120'],
+            'settings.extra_section_title' => ['nullable', $locales],
+            'settings.extra_section_title.*' => ['nullable', 'string', 'max:120'],
+            'settings.participant_fields' => ['nullable', 'array'],
+            'settings.participant_fields.*' => ['array'],
+            'settings.participant_fields.*.enabled' => ['nullable', 'boolean'],
+            'settings.participant_fields.*.required' => ['nullable', 'boolean'],
             'fields' => ['present', 'array', 'max:'.self::MAX_FIELDS],
             'fields.*' => ['array'],
             'fields.*.key' => ['nullable', 'string', 'max:64'],
