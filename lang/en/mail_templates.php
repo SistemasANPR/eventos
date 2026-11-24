@@ -71,5 +71,9 @@ If you need to look at it again, request a new access link: [{{ request_link_url
             'subject' => 'You have submissions to review in {{ event_name }}',
             'body' => "Hi {{ reviewer_name }},\n\nYou were assigned {{ assigned_count }} submission(s) to review in {{ event_name }}.\n\nOpen your dashboard to see them: [{{ dashboard_url }}]({{ dashboard_url }})",
         ],
+        'invitation' => [
+            'subject' => '{{ organization_name }} invited you to review submissions',
+            'body' => "Hi {{ reviewer_name }},\n\n{{ organization_name }} invited you to review submissions of {{ event_name }}.\n\nUse this link to open your panel. If you do not have a password yet, you can set it there (the link expires in {{ expires_in_minutes }} minutes):\n\n[{{ access_url }}]({{ access_url }})\n\nIf you were not expecting this invitation, ignore this email.",
+        ],
     ],
 ];

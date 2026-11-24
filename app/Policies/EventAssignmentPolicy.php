@@ -33,6 +33,12 @@ final class EventAssignmentPolicy
         return $this->allows($user, ['event_assignments.manage'], $event->organization_id);
     }
 
+    /** Invitar a un evaluador al evento (plan 011, H-011-8): lo decide `reviewers.invite`, no `event_assignments.manage`. */
+    public function inviteReviewer(User $user, Event $event): bool
+    {
+        return $this->allows($user, ['reviewers.invite'], $event->organization_id);
+    }
+
     public function update(User $user, EventAssignment $assignment): bool
     {
         return $this->allows($user, ['event_assignments.manage'], $assignment->organization_id);

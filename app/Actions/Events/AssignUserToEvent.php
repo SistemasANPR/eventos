@@ -46,31 +46,44 @@ final class AssignUserToEvent
                 throw ValidationException::withMessages(['user_id' => __('events.assignment_user_not_member')]);
             }
 
-            return DB::transaction(function () use ($actor, $event, $assignee, $role): EventAssignment {
-                $exists = EventAssignment::query()
-                    ->where('event_id', $event->id)->where('user_id', $assignee->id)->where('role', $role)
-                    ->lockForUpdate()->exists();
-                if ($exists) {
-                    throw ValidationException::withMessages(['role' => __('events.assignment_already_exists')]);
-                }
+            return $this->record($actor, $event, $assignee, $role);
+        });
+    }
 
-                $assignment = new EventAssignment;
-                $assignment->forceFill(['event_id' => $event->id, 'user_id' => $assignee->id, 'role' => $role])->save();
+    /**
+     * Crea la asignación y la audita, SIN autorizar con `event_assignments.manage`: quien la llama ya autorizó
+     * por su propio permiso (`InviteReviewer` autoriza con `reviewers.invite`, plan 011, H-011-8) y debe
+     * haber comprobado que el usuario es integrante activo. Debe ejecutarse en la organización DEL EVENTO.
+     * Nunca se invoca desde una ruta.
+     *
+     * @throws ValidationException si la asignación ya existe
+     */
+    public function record(User $actor, Event $event, User $assignee, EventAssignmentRole $role): EventAssignment
+    {
+        return DB::transaction(function () use ($actor, $event, $assignee, $role): EventAssignment {
+            $exists = EventAssignment::query()
+                ->where('event_id', $event->id)->where('user_id', $assignee->id)->where('role', $role)
+                ->lockForUpdate()->exists();
+            if ($exists) {
+                throw ValidationException::withMessages(['role' => __('events.assignment_already_exists')]);
+            }
 
-                activity()
-                    ->causedBy($actor)
-                    ->performedOn($assignment)
-                    ->event('event_assignment_created')
-                    ->withProperties([
-                        'organization_id' => $event->organization_id,
-                        'event_id' => $event->id,
-                        'user_id' => $assignee->id,
-                        'new' => ['role' => $role->value],
-                    ])
-                    ->log('event_assignment_created');
+            $assignment = new EventAssignment;
+            $assignment->forceFill(['event_id' => $event->id, 'user_id' => $assignee->id, 'role' => $role])->save();
 
-                return $assignment;
-            });
+            activity()
+                ->causedBy($actor)
+                ->performedOn($assignment)
+                ->event('event_assignment_created')
+                ->withProperties([
+                    'organization_id' => $event->organization_id,
+                    'event_id' => $event->id,
+                    'user_id' => $assignee->id,
+                    'new' => ['role' => $role->value],
+                ])
+                ->log('event_assignment_created');
+
+            return $assignment;
         });
     }
 }

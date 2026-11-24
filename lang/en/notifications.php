@@ -93,5 +93,11 @@ return [
             'trigger' => 'A team member assigns submissions to a reviewer.',
             'recipient' => 'The assigned reviewer.',
         ],
+        'invitation' => [
+            'name' => 'Reviewer invitation',
+            'description' => 'Invites a person to review submissions of an event. For a new account the link lets them set their password and expires like any other password link.',
+            'trigger' => 'A team member invites a reviewer to an event.',
+            'recipient' => 'The person invited as a reviewer.',
+        ],
     ],
 ];

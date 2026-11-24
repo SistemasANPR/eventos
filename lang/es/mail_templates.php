@@ -71,5 +71,9 @@ Si necesitas volver a consultarla, pide un nuevo enlace de acceso: [{{ request_l
             'subject' => 'Tienes propuestas por evaluar en {{ event_name }}',
             'body' => "Hola {{ reviewer_name }},\n\nTe asignaron {{ assigned_count }} propuesta(s) para evaluar en {{ event_name }}.\n\nEntra a tu tablero para verlas: [{{ dashboard_url }}]({{ dashboard_url }})",
         ],
+        'invitation' => [
+            'subject' => '{{ organization_name }} te invitó a evaluar propuestas',
+            'body' => "Hola {{ reviewer_name }},\n\n{{ organization_name }} te invitó a evaluar propuestas de {{ event_name }}.\n\nUsa este enlace para entrar a tu panel. Si aún no tienes contraseña, ahí podrás establecerla (el enlace caduca en {{ expires_in_minutes }} minutos):\n\n[{{ access_url }}]({{ access_url }})\n\nSi no esperabas esta invitación, ignora este correo.",
+        ],
     ],
 ];

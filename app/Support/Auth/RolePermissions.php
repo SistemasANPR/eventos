@@ -32,6 +32,7 @@ final class RolePermissions
         'speakers.manage',
         'activities.manage',
         'review_assignments.manage',
+        'reviewers.invite',
     ];
 
     private const ADMIN_ONLY = [
