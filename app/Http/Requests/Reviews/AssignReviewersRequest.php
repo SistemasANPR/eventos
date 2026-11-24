@@ -43,6 +43,8 @@ final class AssignReviewersRequest extends FormRequest
             'submission_ids.*' => ['required', 'uuid', 'distinct'],
             'track_id' => ['required_if:scope,'.ReviewAssignmentScope::Track->value, 'uuid'],
             'call_id' => ['required_if:scope,'.ReviewAssignmentScope::Call->value, 'uuid'],
+            // Solo por eje o convocatoria: guarda además la regla permanente de alcance (F3b, DA-6).
+            'save_rule' => ['sometimes', 'boolean'],
         ];
     }
 }

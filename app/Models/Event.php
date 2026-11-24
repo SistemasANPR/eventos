@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Enums\EventAssignmentRole;
 use App\Enums\EventStatus;
 use App\Enums\EventType;
 use App\Enums\TimeFormat;
@@ -153,6 +154,26 @@ class Event extends Model
     public function formDefinitions(): HasMany
     {
         return $this->hasMany(FormDefinition::class);
+    }
+
+    /**
+     * Asignaciones de evento de rol evaluador (plan 011): la lista de evaluadores del evento.
+     *
+     * @return HasMany<EventAssignment, $this>
+     */
+    public function reviewerAssignments(): HasMany
+    {
+        return $this->hasMany(EventAssignment::class)->where('role', EventAssignmentRole::Reviewer);
+    }
+
+    /**
+     * Reglas permanentes de alcance de la asignación de evaluadores (plan 011, F3b).
+     *
+     * @return HasMany<ReviewScopeRule, $this>
+     */
+    public function reviewScopeRules(): HasMany
+    {
+        return $this->hasMany(ReviewScopeRule::class);
     }
 
     /** @return HasMany<Submission, $this> */

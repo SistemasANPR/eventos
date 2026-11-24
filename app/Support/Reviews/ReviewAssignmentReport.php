@@ -17,12 +17,14 @@ final readonly class ReviewAssignmentReport
      * @param  list<array{submission_id: string, reviewer_id: string}>  $assigned  asignaciones nuevas
      * @param  list<SkippedAssignment>  $skipped
      * @param  list<string>  $notificationFailures  ids de evaluadores cuyo aviso no se pudo encolar; su asignación sí persiste
+     * @param  int  $rulesCreated  reglas permanentes de alcance nuevas que guardó la operación (F3b)
      */
     public function __construct(
         public string $operationId,
         public array $assigned,
         public array $skipped,
         public array $notificationFailures = [],
+        public int $rulesCreated = 0,
     ) {}
 
     public function assignedCount(): int
@@ -56,6 +58,11 @@ final readonly class ReviewAssignmentReport
     /** @param  list<string>  $reviewerIds */
     public function withNotificationFailures(array $reviewerIds): self
     {
-        return new self($this->operationId, $this->assigned, $this->skipped, $reviewerIds);
+        return new self($this->operationId, $this->assigned, $this->skipped, $reviewerIds, $this->rulesCreated);
+    }
+
+    public function withRulesCreated(int $rulesCreated): self
+    {
+        return new self($this->operationId, $this->assigned, $this->skipped, $this->notificationFailures, $rulesCreated);
     }
 }

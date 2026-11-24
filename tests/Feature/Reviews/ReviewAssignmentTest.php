@@ -16,6 +16,7 @@ use App\Models\Event;
 use App\Models\EventAssignment;
 use App\Models\Organization;
 use App\Models\ReviewAssignment;
+use App\Models\ReviewScopeRule;
 use App\Models\Rubric;
 use App\Models\Submission;
 use App\Models\SubmissionParticipant;
@@ -32,7 +33,6 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Queue;
-use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 use Mockery\MockInterface;
 use Spatie\Activitylog\Models\Activity;
@@ -330,7 +330,8 @@ it('CA-011-38: assigning a call gives every eligible submission of the call to e
             ->and(ReviewAssignment::query()->pluck('source')->unique()->all())->toBe([ReviewAssignmentSource::Manual])
             ->and($report->skippedCount())->toBe(0);
     });
-    expect(Schema::hasTable('review_assignment_scopes'))->toBeFalse();
+    // Sin `save_rule` la expansión es única: no se guarda ninguna regla permanente (F3b: ReviewScopeRuleTest).
+    expect(ReviewScopeRule::query()->withoutGlobalScopes()->count())->toBe(0);
 });
 
 it('CA-011-39: assigning selected submissions touches only those, as manual', function (): void {

@@ -25,6 +25,12 @@ enum ReviewAssignmentSkipReason: string
     /** La asignación se canceló antes y conserva una evaluación: reactivarla es decisión de F4 (DT-20). */
     case PreviouslyCancelled = 'previously_cancelled';
 
+    /**
+     * El evaluador de una regla de alcance ya no es integrante activo o perdió su asignación de evento
+     * (F3b): se omite su regla y se informa; la regla se conserva para que alguien la revise o la quite.
+     */
+    case ReviewerUnavailable = 'reviewer_unavailable';
+
     public function label(): string
     {
         return __("review_assignments.skip_reasons.{$this->value}");
