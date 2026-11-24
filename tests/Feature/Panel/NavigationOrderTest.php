@@ -161,6 +161,9 @@ function eventSectionLabels(): array
         __('review_assignments.reviewers.navigation'),
         // Plan 011, F4b: quien gestiona rúbricas ve la sección «Rúbricas» (organizador y administrador).
         __('rubrics.navigation'),
+        // Plan 011, F6: resultados y avance por evaluador, con sus permisos propios.
+        __('review_results.results.navigation'),
+        __('review_results.progress.navigation'),
     ];
 }
 

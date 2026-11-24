@@ -32,6 +32,7 @@ function expectedMatrix(): array
         'submissions.view', 'submissions.export', 'files.download', 'mail-templates.view',
         'speakers.manage', 'activities.manage', 'submissions.decide',
         'review_assignments.manage', 'reviewers.invite',
+        'reviews.view_results', 'reviews.view_progress', 'reviews.close_period',
     ];
 
     return [

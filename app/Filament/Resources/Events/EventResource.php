@@ -18,6 +18,9 @@ use App\Filament\Resources\Events\Pages\ManageEventSpeakerCategories;
 use App\Filament\Resources\Events\Pages\ManageEventSpeakers;
 use App\Filament\Resources\Events\Pages\ManageEventSubmissions;
 use App\Filament\Resources\Events\Pages\ViewEvent;
+use App\Filament\Resources\Events\Pages\ViewEventReviewerProgress;
+use App\Filament\Resources\Events\Pages\ViewEventReviewerProgressDetail;
+use App\Filament\Resources\Events\Pages\ViewEventReviewResults;
 use App\Filament\Resources\Events\RelationManagers\CallsRelationManager;
 use App\Filament\Resources\Events\RelationManagers\PrivacyNoticesRelationManager;
 use App\Filament\Resources\Events\RelationManagers\SubmissionTypesRelationManager;
@@ -106,6 +109,10 @@ class EventResource extends Resource
             'assignment-rules' => ManageEventAssignmentRules::route('/{record}/assignment-rules'),
             // Rúbricas de evaluación del evento (plan 011, F4b); nombre = ruta del recurso anidado `RubricResource`.
             'rubrics' => ManageEventRubrics::route('/{record}/rubrics'),
+            // Resultados, avance por evaluador (con su detalle) y cierre del periodo de evaluación (plan 011, F6).
+            'review-results' => ViewEventReviewResults::route('/{record}/review-results'),
+            'review-progress' => ViewEventReviewerProgress::route('/{record}/review-progress'),
+            'review-progress-detail' => ViewEventReviewerProgressDetail::route('/{record}/review-progress/{reviewer}'),
             // Ponentes del evento (plan 021, F2).
             'speakers' => ManageEventSpeakers::route('/{record}/speakers'),
             // Actividades del programa (plan 021, F3).

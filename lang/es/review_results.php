@@ -1,0 +1,106 @@
+<?php
+
+declare(strict_types=1);
+
+/** Resultados, avance por evaluador y cierre del periodo de evaluación (plan 011, F6). */
+return [
+    'invalid_filter' => 'El filtro elegido no corresponde a este evento.',
+
+    'results' => [
+        'navigation' => 'Resultados',
+        'title' => 'Resultados de la evaluación: :name',
+        'description' => 'Promedio ponderado, desviación y discrepancias por propuesta. Solo cuentan las evaluaciones enviadas y vigentes; las canceladas, las de conflicto declarado y los borradores no entran.',
+        'filters' => [
+            'track' => 'Eje',
+            'call' => 'Convocatoria',
+            'all_tracks' => 'Todos los ejes',
+            'all_calls' => 'Todas las convocatorias',
+            'discrepancies' => 'Solo con discrepancias',
+        ],
+        'columns' => [
+            'rank' => 'Posición',
+            'title' => 'Propuesta',
+            'status' => 'Estado',
+            'evaluations' => 'Evaluaciones',
+            'average' => 'Promedio ponderado',
+            'percentage' => 'Porcentaje',
+            'deviation' => 'Desviación',
+        ],
+        'incomplete' => 'Incompleta',
+        'incomplete_hint' => 'Tiene menos evaluaciones que el mínimo (:min): no cuenta como definitiva en el ranking.',
+        'no_rank' => '—',
+        'no_score' => 'Sin evaluaciones',
+        'evaluations_count' => ':count de :min',
+        'detail' => 'Ver evaluaciones',
+        'by_reviewer' => 'Evaluaciones por evaluador',
+        'reviewer_average' => 'Promedio :average (rúbrica v:version)',
+        'comments' => 'Comentarios',
+        'no_comments' => 'Sin comentarios.',
+        'discrepancies_heading' => 'Discrepancias',
+        'discrepancy_item' => ':label: diferencia de :spread (umbral :threshold)',
+        'discrepancy_score' => ':name: :value',
+        'empty_heading' => 'Aún no hay propuestas para mostrar',
+        'empty_description' => 'Aparecerán aquí las propuestas del evento que tengan evaluadores asignados.',
+        'empty_discrepancies_heading' => 'No hay propuestas con discrepancias',
+        'empty_discrepancies_description' => 'Ninguna propuesta tiene criterios en los que dos evaluadores difieran más que el umbral de su rúbrica.',
+        'per_page' => 'Por página',
+        'filter_reset_notice' => 'El filtro elegido no corresponde a este evento y se quitó.',
+    ],
+
+    'progress' => [
+        'navigation' => 'Avance',
+        'title' => 'Avance de los evaluadores: :name',
+        'description' => 'Cuántas evaluaciones ha enviado cada evaluador. Aquí no se ven calificaciones ni comentarios.',
+        'overall' => 'Avance global del evento',
+        'filters' => [
+            'reviewer' => 'Evaluador',
+            'all_reviewers' => 'Todos los evaluadores',
+            'sort' => 'Orden por porcentaje',
+            'sort_asc' => 'Menor avance primero',
+            'sort_desc' => 'Mayor avance primero',
+            'threshold' => 'Resaltar por debajo de (%)',
+        ],
+        'columns' => [
+            'reviewer' => 'Evaluador',
+            'progress' => 'Avance',
+            'pending' => 'Pendientes',
+            'in_progress' => 'En progreso',
+            'submitted' => 'Enviadas',
+            'declined_conflict' => 'Con conflicto',
+        ],
+        'below_threshold' => 'Por debajo del umbral',
+        'detail' => 'Ver detalle',
+        'empty_heading' => 'Este evento aún no tiene evaluadores',
+        'empty_description' => 'Invita evaluadores desde la sección «Evaluadores» para ver su avance.',
+        'period' => 'Periodo de evaluación',
+        'period_open' => 'Abierto',
+        'period_closed' => 'Cerrado',
+        'period_closed_at' => 'Cerrado el :date',
+    ],
+
+    'detail' => [
+        'title' => 'Avance de :reviewer',
+        'back' => 'Volver al avance',
+        'columns' => [
+            'submission' => 'Propuesta',
+            'status' => 'Estado de la asignación',
+            'last_activity' => 'Última actividad',
+        ],
+        'no_activity' => 'Sin actividad',
+        'empty_heading' => 'Sin asignaciones',
+        'empty_description' => 'Este evaluador no tiene propuestas asignadas en el evento.',
+        'no_scores_note' => 'Las calificaciones y los comentarios solo se ven en «Resultados».',
+    ],
+
+    'period' => [
+        'close' => 'Cerrar periodo',
+        'close_heading' => 'Cerrar el periodo de evaluación',
+        'close_description' => 'Los evaluadores ya no podrán crear ni cambiar evaluaciones. Puedes reabrirlo después.',
+        'closed' => 'Periodo de evaluación cerrado.',
+        'reopen' => 'Reabrir periodo',
+        'reopen_heading' => 'Reabrir el periodo de evaluación',
+        'reopen_description' => 'Los evaluadores volverán a poder calificar y reevaluar.',
+        'reopened' => 'Periodo de evaluación reabierto.',
+        'reason' => 'Motivo (opcional)',
+    ],
+];

@@ -46,6 +46,17 @@ final class ReviewerSummary
     }
 
     /**
+     * El avance PROPIO del evaluador (CA-011-60), con el mismo cálculo que ve el organizador (`ReviewerProgress`).
+     * Sale de sus asignaciones, así que nunca incluye a otros evaluadores.
+     */
+    public static function progress(User $reviewer): ReviewerProgress
+    {
+        $counts = self::counts($reviewer);
+
+        return new ReviewerProgress($counts['pending'], $counts['in_progress'], $counts['submitted'], $counts['declined_conflict']);
+    }
+
+    /**
      * Eventos en los que la persona es evaluadora y si su periodo de evaluación está abierto.
      *
      * @return list<array{id: string, name: string, open: bool}>

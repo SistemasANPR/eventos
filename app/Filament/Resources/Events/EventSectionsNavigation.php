@@ -7,6 +7,7 @@ namespace App\Filament\Resources\Events;
 use App\Filament\Resources\Forms\FormDefinitionResource;
 use App\Filament\Resources\Submissions\SubmissionResource;
 use App\Models\EventActivity;
+use App\Models\Review;
 use App\Models\ReviewAssignment;
 use App\Models\Rubric;
 use App\Models\Speaker;
@@ -41,6 +42,9 @@ final class EventSectionsNavigation
             self::section($parentKey, __('review_assignments.reviewers.navigation'), Heroicon::OutlinedUserGroup, 6, 'reviewers', ['reviewers', 'assignment-rules'], fn (): bool => Gate::allows('viewAny', ReviewAssignment::class)),
             // Crear y editar una rúbrica son páginas de su recurso anidado: la sección sigue activa en ellas.
             self::section($parentKey, __('rubrics.navigation'), Heroicon::OutlinedScale, 7, 'rubrics', ['rubrics', 'rubrics.*'], fn (): bool => Gate::allows('viewAny', Rubric::class)),
+            // Resultados y avance por evaluador (plan 011, F6): cada uno con su propio permiso.
+            self::section($parentKey, __('review_results.results.navigation'), Heroicon::OutlinedChartBar, 8, 'review-results', ['review-results'], fn (): bool => Gate::allows('viewResults', [Review::class])),
+            self::section($parentKey, __('review_results.progress.navigation'), Heroicon::OutlinedChartPie, 9, 'review-progress', ['review-progress', 'review-progress-detail'], fn (): bool => Gate::allows('viewProgress', [Review::class])),
             self::section($parentKey, __('program.speakers.navigation'), Heroicon::OutlinedMicrophone, 4, 'speakers', ['speakers', 'speaker-categories'], fn (): bool => Gate::allows('viewAny', Speaker::class)),
             self::section($parentKey, __('program.activities.navigation'), Heroicon::OutlinedCalendarDays, 5, 'activities', ['activities', 'activity-categories'], fn (): bool => Gate::allows('viewAny', EventActivity::class)),
         ];
