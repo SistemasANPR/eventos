@@ -102,6 +102,7 @@ class ManageEventSubmissions extends ManageRelatedRecords
     {
         return [
             ReviewAssignmentActions::assignByScope(),
+            ReviewAssignmentActions::invite(),
             Action::make('summary')
                 ->label(__('submission_panel.summary.action'))
                 ->icon(Heroicon::OutlinedChartBar)

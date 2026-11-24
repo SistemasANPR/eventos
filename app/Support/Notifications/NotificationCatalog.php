@@ -51,6 +51,7 @@ final class NotificationCatalog
             new NotificationDescriptor('submission.withdrawn', ['author_name', 'submission_title', 'event_name', 'panel_url'], critical: false),
             new NotificationDescriptor('submission.withdrawn_author', ['author_name', 'submission_title', 'event_name', 'request_link_url'], critical: false),
             new NotificationDescriptor('reviewer.assignment', ['reviewer_name', 'event_name', 'assigned_count', 'dashboard_url'], critical: true),
+            new NotificationDescriptor('reviewer.invitation', ['reviewer_name', 'organization_name', 'event_name', 'access_url', 'expires_in_minutes'], critical: true),
         ];
 
         $indexed = [];

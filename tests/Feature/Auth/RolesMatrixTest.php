@@ -31,7 +31,7 @@ function expectedMatrix(): array
         'events.manage', 'calls.manage', 'calls.view', 'tracks.manage', 'rubrics.manage', 'forms.manage',
         'submissions.view', 'submissions.export', 'files.download', 'mail-templates.view',
         'speakers.manage', 'activities.manage', 'submissions.decide',
-        'review_assignments.manage',
+        'review_assignments.manage', 'reviewers.invite',
     ];
 
     return [

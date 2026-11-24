@@ -24,6 +24,7 @@ const R0_NOTIFICATION_KEYS = [
     'submission.withdrawn',
     'submission.withdrawn_author',
     'reviewer.assignment',
+    'reviewer.invitation',
 ];
 
 const CRITICAL_NOTIFICATION_KEYS = [
@@ -36,6 +37,7 @@ const CRITICAL_NOTIFICATION_KEYS = [
     'submission.received',
     'submission.access_link',
     'reviewer.assignment',
+    'reviewer.invitation',
 ];
 
 it('CA-008-1: the catalog holds every R0 key with all its metadata', function () {

@@ -14,6 +14,7 @@ use App\Exceptions\Domain\CallNotReady;
 use App\Exceptions\Domain\FormOutdated;
 use App\Exceptions\Domain\IdempotencyPayloadMismatch;
 use App\Http\Requests\Submissions\StoreSubmissionRequest;
+use App\Jobs\SyncScopedAssignmentsJob;
 use App\Models\CallForSubmissions;
 use App\Models\Contact;
 use App\Models\Event;
@@ -88,6 +89,10 @@ final class SubmitSubmission
         // una repetición con la misma clave devuelve la misma propuesta sin repetir efectos (CA-006-14).
         if ($outcome->created) {
             $this->notifyReceived->handle($outcome->submission);
+
+            // Las reglas permanentes de alcance del plan 011 asignan la propuesta nueva a sus evaluadores,
+            // sin correo (DA-8). Es un trabajo aparte: un fallo no deshace el envío ya confirmado.
+            SyncScopedAssignmentsJob::dispatch($outcome->submission->organization_id, $outcome->submission->id);
         }
 
         return $outcome;

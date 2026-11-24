@@ -157,6 +157,8 @@ function eventSectionLabels(): array
         __('submission_panel.navigation'),
         __('program.speakers.navigation'),
         __('program.activities.navigation'),
+        // Plan 011, F3b: quien asigna ve la sección «Evaluadores» (organizador y administrador).
+        __('review_assignments.reviewers.navigation'),
     ];
 }
 

@@ -6,27 +6,35 @@ use App\Actions\Submissions\IssueFormSession;
 use App\Actions\Submissions\SubmitSubmission;
 use App\Enums\CallStatus;
 use App\Enums\FormDefinitionStatus;
+use App\Enums\ReviewAssignmentSource;
 use App\Enums\SubmissionOrigin;
 use App\Enums\SubmissionStatus;
 use App\Exceptions\Domain\CallNotOpen;
 use App\Exceptions\Domain\CallNotReady;
 use App\Exceptions\Domain\FormOutdated;
 use App\Exceptions\Domain\IdempotencyPayloadMismatch;
+use App\Jobs\SyncScopedAssignmentsJob;
 use App\Models\CallForSubmissions;
 use App\Models\Contact;
 use App\Models\Event;
+use App\Models\EventAssignment;
 use App\Models\FormDefinition;
+use App\Models\MailDispatch;
 use App\Models\Organization;
 use App\Models\PrivacyNotice;
+use App\Models\ReviewAssignment;
+use App\Models\ReviewScopeRule;
 use App\Models\Submission;
 use App\Models\SubmissionParticipant;
 use App\Models\Track;
+use App\Models\User;
 use App\Support\Tenancy\CurrentOrganization;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event as EventBus;
+use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Tests\Support\FakeSubmissionForm;
@@ -629,4 +637,35 @@ it('CA-026-10: rejects a submission language that is no longer one of the effect
 
     expect(array_keys($errors))->toBe(['locale'])
         ->and($accepted->locale)->toBe('es');
+});
+
+it('CA-011-42: a proposal sent inside a saved scope is assigned by the rule, without mail', function (): void {
+    config(['queue.default' => 'sync']);
+    $ctx = subScenario();
+    $reviewer = User::factory()->create();
+    $reviewer->organizations()->attach($ctx['org']->id, ['status' => 'active']);
+    EventAssignment::factory()->create(['organization_id' => $ctx['org']->id, 'event_id' => $ctx['event']->id, 'user_id' => $reviewer->id]);
+    ReviewScopeRule::factory()->create([
+        'organization_id' => $ctx['org']->id, 'event_id' => $ctx['event']->id, 'reviewer_id' => $reviewer->id, 'track_id' => $ctx['track']->id,
+    ]);
+
+    $submission = subSubmit($ctx, subInput($ctx));
+
+    $assignment = ReviewAssignment::query()->where('submission_id', $submission->id)->sole();
+    expect($assignment->reviewer_id)->toBe($reviewer->id)
+        ->and($assignment->source)->toBe(ReviewAssignmentSource::Scope)
+        ->and($assignment->assigned_by)->toBeNull()
+        ->and($submission->fresh()->status)->toBe(SubmissionStatus::UnderReview)
+        ->and(MailDispatch::query()->where('notification_key', 'reviewer.assignment')->count())->toBe(0);
+});
+
+it('CA-011-42: a repeated submission with the same key does not queue the scope sync again', function (): void {
+    $ctx = subScenario();
+    $input = subInput($ctx);
+    Queue::fake();
+
+    subSubmit($ctx, $input);
+    subSubmit($ctx, $input);
+
+    Queue::assertPushed(SyncScopedAssignmentsJob::class, 1);
 });

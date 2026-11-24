@@ -93,5 +93,11 @@ return [
             'trigger' => 'Un integrante del equipo asigna propuestas a un evaluador.',
             'recipient' => 'El evaluador asignado.',
         ],
+        'invitation' => [
+            'name' => 'Invitación al evaluador',
+            'description' => 'Invita a una persona a evaluar propuestas de un evento. Si es una cuenta nueva, el enlace permite establecer su contraseña y caduca en el plazo de los demás enlaces de contraseña.',
+            'trigger' => 'Un integrante del equipo invita a un evaluador a un evento.',
+            'recipient' => 'La persona invitada como evaluadora.',
+        ],
     ],
 ];
