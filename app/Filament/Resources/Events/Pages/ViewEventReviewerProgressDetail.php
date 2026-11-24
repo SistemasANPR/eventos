@@ -9,6 +9,7 @@ use App\Filament\Resources\Events\EventResource;
 use App\Filament\Support\ActionErrors;
 use App\Models\Event;
 use App\Models\Review;
+use App\Support\Events\EventTime;
 use App\Support\Reviews\ReviewerProgressDetailReport;
 use Filament\Actions\Action;
 use Filament\Resources\Pages\ViewRecord;
@@ -72,7 +73,7 @@ class ViewEventReviewerProgressDetail extends ViewRecord
             View::make('filament.reviews.progress-detail')->viewData(fn (): array => [
                 'report' => $this->report(),
                 'pageSizes' => [25, 50, 100],
-                'timezone' => $this->event()->timezone,
+                'time' => EventTime::for($this->event()),
             ]),
         ]);
     }

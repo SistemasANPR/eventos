@@ -14,6 +14,7 @@ use App\Models\CallForSubmissions;
 use App\Models\Event;
 use App\Models\Review;
 use App\Models\Track;
+use App\Support\Events\EventTime;
 use App\Support\Reviews\ReviewerProgressReport;
 use BackedEnum;
 use Filament\Actions\Action;
@@ -185,7 +186,7 @@ class ViewEventReviewerProgress extends ViewRecord
             'periodOpen' => $event->reviewPeriodIsOpen(),
             'closedAt' => $event->review_period_closed_at === null
                 ? null
-                : $event->review_period_closed_at->copy()->timezone($event->timezone)->locale($locale)->isoFormat('LLL'),
+                : EventTime::for($event)->dateTime($event->review_period_closed_at, __('submission_panel.long_date_format'), ' '),
             'allReviewers' => $this->allReviewers($event),
             'tracks' => Track::query()->where('event_id', $event->id)->orderBy('position')->get()
                 ->mapWithKeys(static fn (Track $track): array => [$track->id => $track->label($locale)])->all(),

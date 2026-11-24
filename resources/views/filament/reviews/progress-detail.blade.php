@@ -5,9 +5,8 @@
      *
      * @var \App\Support\Reviews\ReviewerProgressDetailReport $report
      * @var list<int> $pageSizes
-     * @var string $timezone
+     * @var \App\Support\Events\EventTime $time
      */
-    $locale = app()->getLocale();
 @endphp
 
 <div class="fi-review-progress-detail" style="display: grid; gap: 1.25rem;">
@@ -41,7 +40,7 @@
                                 <x-filament::badge :color="$assignment->status->getColor()">{{ $assignment->status->getLabel() }}</x-filament::badge>
                             </td>
                             <td style="padding: 0.5rem;">
-                                {{ $assignment->lastActivityAt === null ? __('review_results.detail.no_activity') : $assignment->lastActivityAt->copy()->timezone($timezone)->locale($locale)->isoFormat('LLL') }}
+                                {{ $assignment->lastActivityAt === null ? __('review_results.detail.no_activity') : $time->dateTime($assignment->lastActivityAt, __('submission_panel.long_date_format'), ' ') }}
                             </td>
                         </tr>
                     @endforeach
