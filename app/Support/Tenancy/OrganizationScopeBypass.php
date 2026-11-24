@@ -40,6 +40,12 @@ final class OrganizationScopeBypass
             ->withProperties(['model' => $query->getModel()::class, 'panel' => Filament::getCurrentPanel()?->getId()])
             ->log('organization_scope_bypassed');
 
+        // Segunda barrera (plan 014): con RLS activa, saltar el scope no basta para leer otras
+        // organizaciones; el mismo camino autorizado y auditado abre la lectura de plataforma en la base
+        // y la cierra al terminar la petición (el trabajador de colas la cierra entre jobs).
+        PlatformAccess::enable();
+        app()->terminating(static fn () => PlatformAccess::disable());
+
         $query->withoutGlobalScope(OrganizationScope::class);
     }
 }

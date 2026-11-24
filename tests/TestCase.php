@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace Tests;
 
+use App\Support\Tenancy\PlatformAccess;
 use Illuminate\Foundation\Testing\TestCase as BaseTestCase;
+use Tests\Support\RlsTestMode;
 
 abstract class TestCase extends BaseTestCase
 {
@@ -18,6 +20,13 @@ abstract class TestCase extends BaseTestCase
         parent::setUp();
 
         $this->withoutVite();
+
+        // Estado de proceso: la marca de lectura de plataforma de una prueba no pasa a la siguiente.
+        PlatformAccess::disable();
+
+        if (RlsTestMode::enabled()) {
+            RlsTestMode::install();
+        }
 
         // El mailer «smtp» entrega a Mailpit (MAIL_HOST). `MAIL_MAILER=array` de phpunit.xml solo cambia
         // el mailer por defecto, y el adaptador SMTP usa este por su nombre: sin esto, las pruebas que
