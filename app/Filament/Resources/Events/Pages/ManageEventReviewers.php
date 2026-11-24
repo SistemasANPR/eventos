@@ -10,6 +10,7 @@ use App\Filament\Resources\Events\EventResource;
 use App\Filament\Resources\Submissions\Actions\ReviewAssignmentActions;
 use App\Models\Event;
 use App\Models\ReviewAssignment;
+use App\Support\Reviews\ReviewerProgress;
 use App\Support\Reviews\ScopeCoverage;
 use App\Support\Reviews\ScopeCoverageRow;
 use BackedEnum;
@@ -40,6 +41,9 @@ class ManageEventReviewers extends ManageRelatedRecords
 
     protected static string $relationship = 'reviewerAssignments';
 
+    /** @var array<string, ReviewerProgress>|null avance por evaluador, calculado una vez por petición */
+    private ?array $progressByReviewer = null;
+
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedUserGroup;
 
     public static function getNavigationLabel(): string
@@ -69,10 +73,7 @@ class ManageEventReviewers extends ManageRelatedRecords
         return $table
             ->modifyQueryUsing(fn (Builder $query): Builder => $query
                 ->with('user')
-                ->addSelect([
-                    'assigned_count' => $this->assignmentsCount(),
-                    'submitted_count' => $this->assignmentsCount()->where('status', ReviewAssignmentStatus::Submitted),
-                ]))
+                ->addSelect(['assigned_count' => $this->assignmentsCount()]))
             ->heading(__('review_assignments.reviewers.heading'))
             ->description(fn (): Htmlable => $this->coverageNote())
             ->columns([
@@ -123,15 +124,12 @@ class ManageEventReviewers extends ManageRelatedRecords
             ->whereIn('review_assignments.status', ReviewAssignmentStatus::coverageValues());
     }
 
+    /** El avance sale de `ReviewerProgress`, el mismo cálculo de la página de avance (CA-011-25 y 56). */
     private function progress(Model $record): string
     {
-        $assigned = (int) $record->getAttribute('assigned_count');
+        $this->progressByReviewer ??= ReviewerProgress::forEvent($this->event());
 
-        if ($assigned === 0) {
-            return __('review_assignments.reviewers.no_assignments');
-        }
-
-        return __('review_assignments.reviewers.progress', ['done' => (int) $record->getAttribute('submitted_count'), 'total' => $assigned]);
+        return ($this->progressByReviewer[(string) $record->getAttribute('user_id')] ?? new ReviewerProgress)->label();
     }
 
     /** Los ejes y convocatorias con cobertura incompleta, o la nota de que no hay ninguno. Cada nombre se escapa. */

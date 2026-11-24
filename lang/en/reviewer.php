@@ -21,6 +21,7 @@ return [
             'submitted' => 'Submitted',
             'declined_conflict' => 'With conflict',
         ],
+        'my_progress' => 'My progress',
         'periods' => 'Review period',
         'period_open' => 'Open',
         'period_closed' => 'Closed',

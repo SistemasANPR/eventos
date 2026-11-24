@@ -21,6 +21,7 @@ return [
             'submitted' => 'Enviadas',
             'declined_conflict' => 'Con conflicto',
         ],
+        'my_progress' => 'Mi avance',
         'periods' => 'Periodo de evaluación',
         'period_open' => 'Abierto',
         'period_closed' => 'Cerrado',

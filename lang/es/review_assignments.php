@@ -91,7 +91,7 @@ return [
             'progress' => 'Avance',
         ],
         'no_assignments' => 'Sin propuestas asignadas',
-        'progress' => ':done de :total evaluadas',
+        'progress' => ':percent % · :done de :total',
         'coverage_ok' => 'Todas las propuestas por evaluar tienen al menos el mínimo de evaluadores.',
         'coverage_item' => ':scope «:name»: :incomplete de :total propuestas por evaluar con menos evaluadores que el mínimo.',
         'empty_heading' => 'Este evento aún no tiene evaluadores',

@@ -99,7 +99,7 @@ it('CA-011-48: the by-reviewer view shows each reviewer with the submissions ass
         ->assertSee($busy->name)
         ->assertSee($idle->name)
         // 2 activas (la cancelada no cuenta), 1 enviada.
-        ->assertSee(__('review_assignments.reviewers.progress', ['done' => 1, 'total' => 2]))
+        ->assertSee(__('review_assignments.reviewers.progress', ['percent' => 50, 'done' => 1, 'total' => 2]))
         ->assertSee(__('review_assignments.reviewers.no_assignments'));
 });
 

@@ -52,6 +52,7 @@ class ReviewerDashboard extends Dashboard
 
         return [
             'counts' => ReviewerSummary::counts($user),
+            'progress' => ReviewerSummary::progress($user),
             'periods' => $periods,
             'closedPeriods' => array_values(array_filter($periods, static fn (array $period): bool => ! $period['open'])),
             'listUrl' => AssignedSubmissionResource::getUrl('index'),

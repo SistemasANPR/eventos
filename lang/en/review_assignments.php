@@ -91,7 +91,7 @@ return [
             'progress' => 'Progress',
         ],
         'no_assignments' => 'No submissions assigned',
-        'progress' => ':done of :total reviewed',
+        'progress' => ':percent % · :done of :total',
         'coverage_ok' => 'Every submission to review has at least the minimum number of reviewers.',
         'coverage_item' => ':scope «:name»: :incomplete of :total submissions to review have fewer reviewers than the minimum.',
         'empty_heading' => 'This event has no reviewers yet',

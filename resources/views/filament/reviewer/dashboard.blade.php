@@ -4,6 +4,7 @@
      * (escapados con `{{ }}`); ningún dato de autores.
      *
      * @var array{assigned: int, pending: int, in_progress: int, submitted: int, declined_conflict: int} $counts
+     * @var \App\Support\Reviews\ReviewerProgress $progress
      * @var list<array{id: string, name: string, open: bool}> $periods
      * @var list<array{id: string, name: string, open: bool}> $closedPeriods
      * @var string $listUrl
@@ -41,6 +42,12 @@
             @endforeach
         </dl>
     </section>
+
+    @if ($progress->hasAssignments())
+        <x-filament::section :heading="__('reviewer.dashboard.my_progress')">
+            <p data-my-progress style="margin: 0; font-size: 1.25rem; font-weight: 600;">{{ $progress->label() }}</p>
+        </x-filament::section>
+    @endif
 
     <x-filament::section :heading="__('reviewer.dashboard.periods')">
         @forelse ($periods as $period)
