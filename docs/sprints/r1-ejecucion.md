@@ -80,3 +80,33 @@ Un integrador (persona o sesión distinta de los agentes) revisa el diff complet
 | Conflictos en catálogo de permisos y correos | Dueño único por oleada (§4) |
 | Fechas: receso de fin de año | Si no cabe, se recorta el modo ciego (H-011-4) antes que cualquier Policy, como dice el plan 011 §1 |
 | Volumen de propuestas 2027 desconocido | Medirlo al cierre; decide si hace falta asignación automática balanceada (R2) |
+
+## 7. Avance (2026-11-24)
+
+Todo está fusionado en `staging` (sin push) y verificado sobre el resultado integrado con la suite completa: 2624 pruebas en verde y 11 fallos ajenos conocidos (9 de exportación CA-009-11 a 19 por falta de `maatwebsite/excel` en el `vendor/` del entorno, y 2 de `PrivacyNoticePanelTest` CA-003-11 y CA-003-14, que fallan igual sin estos cambios). Ninguna fase se verificó en navegador a ~375 y ~1280 px.
+
+| Oleada | Carril | Trabajo | Fusión en `staging` |
+|---|---|---|---|
+| 1 | A | Plan 012 F0 y F1: transiciones, decisiones y reversa, `MarkSubmissionUnderReview` | `5448396` |
+| 1 | B | Plan 014 F1: 2FA obligatoria | `616b47e` |
+| 2 | C | Plan 011 F3a: asignación individual y en lote | `eb0eb0b` |
+| 3 | D | Plan 011 F3b: reglas de alcance, vista por evaluador, invitar evaluadores | `bbde3da` |
+| 3 | E | Plan 011 F4: panel `Reviewer`, tablero y `SubmitReview` | `4fda7bb` |
+| 4 | G | Plan 011 F4b: pantalla de rúbricas (hueco detectado: el contrato listaba `RubricResource` y ninguna fase lo construía) | `f203c68` |
+| 4 | H | Plan 011 F5: conflicto de interés y revisión ciega (cierra DT-29) | `9dd8bd9` |
+| 4 | I | Plan 011 F6: resultados, avance por evaluador, cierre del periodo | `f431e1b` |
+
+**Plan 011 (evaluación por comité): construido de F0 a F6.** Lo que falta no es código sino verificación y decisiones.
+
+### Pendiente de R1
+- **Plan 012 F2 y F3** (decisión masiva, publicar resultados, correos de resultado y recordatorio): requiere aprobar esas fases (hoy solo F0 y F1). Debe consumir `ComputeSubmissionResults` del plan 011 y excluir las asignaciones con conflicto declarado (DT-37).
+- **Plan 014 F2 a F5** (RLS, restauración y runbooks, exportar y anonimizar, retención): en Borrador salvo F0 y F1.
+- **Plan 013** (correos avanzados) y **plan 010** (producción y respaldos, sin avance registrado): fuera del camino crítico, pero 014 F3 depende de los respaldos del 010.
+- **Acciones humanas**, que ningún agente hace: aplicar las migraciones a la base local y a `staging` (2FA fuerza a todos los usuarios a configurarla: dejar antes al menos 2 `org_admin` por organización y 2 usuarios de plataforma); verificar en navegador cada pantalla nueva; activar `TWO_FACTOR_REQUIRED` en `staging` con una cuenta de prueba antes de invitar evaluadores externos.
+- **Decisiones abiertas**: permisos de resultados y cierre (hoy `org_admin` y `organizer`; el plan 011 §5 los reserva al administrador y al coordinador de evento, DT-41); dirección de la escala de la rúbrica (DT-38); metadatos de PDF y PPTX en modo ciego (DT-34).
+
+### Aprendizajes del proceso
+- Un worktree y una base de pruebas por agente evitó los interbloqueos de la base compartida. Hay que ejecutar la suite en un worktree limpio: en el árbol principal `storage/framework/testing/disks/local` pertenece a otro usuario y las pruebas con `Storage::fake` fallan.
+- `git stash` es global entre worktrees: dos agentes aplicaron por error el stash de otro. Está prohibido en los encargos.
+- Los conflictos al integrar fueron siempre en documentos (Estado del plan, §9, tabla de deuda) y en el orden numérico del menú del evento; la propiedad de archivos por carril los redujo, no los eliminó.
+- El integrador verifica el candidato integrado en un worktree desechable y repite la fusión real sobre `staging` comprobando que el árbol resultante es idéntico al verificado.
