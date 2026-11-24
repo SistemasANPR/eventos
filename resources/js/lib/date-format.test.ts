@@ -1,4 +1,20 @@
-import { formatEventDates, formatEventInstant, formatPublishedAt } from '@/lib/date-format';
+import { formatEventDates, formatEventInstant, formatLocalDate, formatLocalTime, formatPublishedAt, formatTimeZoneOffset } from '@/lib/date-format';
+
+/** Ejecuta `check` con la zona horaria del navegador (proceso de Node) cambiada y la restaura al terminar. */
+function inBrowserZone(zone: string, check: () => void): void {
+    const original = process.env.TZ;
+    process.env.TZ = zone;
+
+    try {
+        check();
+    } finally {
+        if (original === undefined) {
+            delete process.env.TZ;
+        } else {
+            process.env.TZ = original;
+        }
+    }
+}
 
 const STARTS_AT = '2027-03-10T15:00:00Z';
 const ENDS_AT = '2027-03-12T23:00:00Z';
@@ -61,5 +77,63 @@ describe('formatPublishedAt', () => {
 
     it('formats in the language of the page', () => {
         expect(formatPublishedAt('2026-11-10T15:00:00Z', 'en')).toContain('November 10, 2026');
+    });
+});
+
+describe('formatLocalTime', () => {
+    it('CA-029-12: shows 23:30 in 12 hours as 11:30 p. m. in Spanish', () => {
+        expect(formatLocalTime('23:30', 'es', '12h')).toMatch(/^11:30\s?p\.?\s?m\.?$/i);
+    });
+
+    it('CA-029-12: shows 23:30 in 24 hours without a day period', () => {
+        expect(formatLocalTime('23:30', 'es', '24h')).toBe('23:30');
+    });
+
+    it('CA-029-12: follows the language of the page in 12 hours', () => {
+        expect(formatLocalTime('09:05', 'en', '12h')).toMatch(/^9:05\s?AM$/);
+    });
+
+    it('CA-029-12: never writes midnight as 24:00', () => {
+        expect(formatLocalTime('00:15', 'en', '24h')).not.toMatch(/^24/);
+    });
+
+    it.each(['America/Mexico_City', 'Asia/Tokyo', 'Pacific/Kiritimati', 'UTC'])(
+        'CA-029-12: does not shift the local time of the event for a browser in %s',
+        (zone) => {
+            inBrowserZone(zone, () => {
+                expect(formatLocalTime('23:30', 'es', '24h')).toBe('23:30');
+                expect(formatLocalTime('00:00', 'es', '24h')).toBe('00:00');
+            });
+        },
+    );
+});
+
+describe('formatLocalDate', () => {
+    it('CA-029-12: writes the local day of the event without shifting it', () => {
+        expect(formatLocalDate('2026-11-20', 'es')).toContain('20 de noviembre de 2026');
+        expect(formatLocalDate('2026-11-20', 'en')).toContain('November 20, 2026');
+    });
+
+    it.each(['Pacific/Honolulu', 'Pacific/Kiritimati'])('CA-029-12: keeps the day for a browser in %s', (zone) => {
+        inBrowserZone(zone, () => {
+            expect(formatLocalDate('2026-11-20', 'en')).toContain('November 20');
+        });
+    });
+
+    it('offers a short form for navigation', () => {
+        const text = formatLocalDate('2026-11-20', 'es', 'short');
+
+        expect(text).toContain('20');
+        expect(text).not.toContain('2026');
+    });
+});
+
+describe('formatTimeZoneOffset', () => {
+    it('names the zone of the event with its offset from UTC', () => {
+        expect(formatTimeZoneOffset('America/Mexico_City', 'es', '2027-03-10T15:00:00Z')).toBe('America/Mexico_City (GMT-6)');
+    });
+
+    it('follows the daylight saving time of the given instant', () => {
+        expect(formatTimeZoneOffset('America/New_York', 'en', '2027-07-10T15:00:00Z')).toBe('America/New_York (GMT-4)');
     });
 });
