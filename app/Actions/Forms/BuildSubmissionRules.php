@@ -7,6 +7,7 @@ namespace App\Actions\Forms;
 use App\Enums\FieldType;
 use App\Support\Forms\Countries;
 use App\Support\Forms\PendingUploadRepository;
+use App\Support\Forms\ProposalFields;
 use Closure;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
@@ -92,7 +93,8 @@ final class BuildSubmissionRules
     {
         return array_values(array_filter(
             $fields,
-            static fn (array $field): bool => ($field['retiredAt'] ?? null) === null,
+            // El título y el tema van en columnas propias de la propuesta, no en `answers`.
+            static fn (array $field): bool => ($field['retiredAt'] ?? null) === null && ! ProposalFields::isRoleField($field),
         ));
     }
 

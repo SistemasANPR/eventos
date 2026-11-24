@@ -17,6 +17,21 @@ class CreateFormDefinition extends CreateRecord
 {
     protected static string $resource = FormDefinitionResource::class;
 
+    /** Crear y cancelar arriba: el formulario es largo y así no hay que bajar hasta el final. */
+    protected function getHeaderActions(): array
+    {
+        return [
+            $this->getCreateFormAction()->formId('form'),
+            $this->getCancelFormAction()->formId('form'),
+        ];
+    }
+
+    /** Los botones van en la cabecera, no al final del formulario. */
+    protected function getFormActions(): array
+    {
+        return [];
+    }
+
     /** @param  array<string, mixed>  $data */
     protected function handleRecordCreation(array $data): Model
     {

@@ -47,7 +47,12 @@ export function LandingHeroBlock({ block, isMainHeading }: LandingHeroBlockProps
             {block.imageUrl !== null && (
                 <img src={block.imageUrl} alt={block.imageAlt ?? ''} className="h-48 w-full object-cover sm:h-80" />
             )}
-            <div className={cn('relative flex flex-col gap-5 overflow-hidden p-6 sm:p-12', isCentered ? 'items-center text-center' : 'items-start')}>
+            <div
+                className={cn(
+                    'relative flex flex-col gap-5 overflow-hidden p-6 sm:p-12',
+                    isCentered ? 'items-center text-center' : 'items-start',
+                )}
+            >
                 <HexagonPattern className={cn('absolute -right-10 -top-10 h-48 w-48 sm:h-72 sm:w-72', tone.hexagons)} />
                 <Heading id={headingId} className={cn('relative', tone.title)}>
                     {block.title}

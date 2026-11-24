@@ -137,6 +137,13 @@ final class PersonDataEraser
                 'last_name' => DB::raw('CASE WHEN last_name IS NULL THEN NULL ELSE '."'".self::LAST_NAME."'".' END'),
                 'email' => DB::raw("'anonymized-' || id::text || '@".self::EMAIL_DOMAIN."'"),
                 'country' => self::COUNTRY,
+                // Datos de contacto y fotografía del participante (el archivo se borra con los de la propuesta).
+                'second_last_name' => null,
+                'alt_email' => null,
+                'phone' => null,
+                'state' => null,
+                'city' => null,
+                'photo_file_id' => null,
                 'job_title' => null,
                 'company' => null,
                 'bio' => null,

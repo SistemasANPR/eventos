@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 use App\Enums\CallStatus;
 use App\Enums\EventStatus;
+use App\Enums\FormDefinitionStatus;
 use App\Models\CallForSubmissions;
 use App\Models\Event;
+use App\Models\FormDefinition;
 use App\Models\Organization;
 use App\Models\PrivacyNotice;
 use App\Models\SubmissionType;
@@ -241,19 +243,83 @@ it('the public call shows the back link and no custom link by default', function
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
             ->where('call.showBackLink', true)
-            ->where('call.extraLink', null));
+            ->where('call.extraLinks', []));
 });
 
 it('the public call carries the switch of the back link and the custom link of the organizer', function (): void {
     $call = publicCall(attributes: [
         'show_back_link' => false,
-        'extra_link_label' => 'Sitio del congreso',
-        'extra_link_url' => 'https://example.test/congreso',
+        'extra_links' => [
+            ['label' => 'Sitio del congreso', 'url' => 'https://example.test/congreso'],
+            ['label' => 'Programa', 'url' => 'https://example.test/programa'],
+        ],
     ]);
 
     $this->get(callUrl($call))
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
             ->where('call.showBackLink', false)
-            ->where('call.extraLink', ['label' => 'Sitio del congreso', 'url' => 'https://example.test/congreso']));
+            ->where('call.extraLinks', [
+                ['label' => 'Sitio del congreso', 'url' => 'https://example.test/congreso'],
+                ['label' => 'Programa', 'url' => 'https://example.test/programa'],
+            ]));
+});
+
+it('the landing carries the people limit, what the published form asks and the other calls of the event', function (): void {
+    $call = publicCall(attributes: ['min_participants' => 1, 'max_participants' => 3]);
+    $other = CallForSubmissions::factory()->published()->create([
+        'organization_id' => $call->organization_id,
+        'event_id' => $call->event_id,
+        'submission_type_id' => $call->submission_type_id,
+        'slug' => 'posters',
+        'title' => ['es' => 'Pósters', 'en' => 'Posters'],
+        'description' => ['es' => 'Comparte tu investigación'],
+        'locales' => ['es', 'en'],
+    ]);
+    CallForSubmissions::factory()->create([
+        'organization_id' => $call->organization_id,
+        'event_id' => $call->event_id,
+        'submission_type_id' => $call->submission_type_id,
+        'slug' => 'borrador',
+        'title' => ['es' => 'Borrador oculto'],
+    ]);
+    $form = FormDefinition::factory()->create([
+        'organization_id' => $call->organization_id,
+        'event_id' => $call->event_id,
+        'status' => FormDefinitionStatus::Published,
+        'fields' => [
+            ['key' => 'f_a', 'type' => 'short_text', 'role' => 'title', 'required' => true, 'position' => 1, 'label' => ['es' => 'Título de la propuesta'], 'config' => [], 'retiredAt' => null],
+            ['key' => 'f_b', 'type' => 'long_text', 'required' => false, 'position' => 2, 'label' => ['es' => 'Resumen'], 'config' => [], 'retiredAt' => null],
+            ['key' => 'f_c', 'type' => 'long_text', 'required' => true, 'position' => 3, 'label' => ['es' => 'Retirado'], 'config' => [], 'retiredAt' => '2027-01-01T00:00:00Z'],
+        ],
+    ]);
+    $call->forceFill(['form_definition_id' => $form->id])->save();
+
+    $this->get(callUrl($call).'?lang=es')
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('landing.minParticipants', 1)
+            ->where('landing.maxParticipants', 3)
+            ->where('landing.formProposal', [['name' => 'Título de la propuesta', 'isRequired' => true], ['name' => 'Resumen', 'isRequired' => false]])
+            ->where('landing.formParticipant.0', ['name' => 'Nombre(s)', 'isRequired' => true])
+            ->where('landing.otherCalls', [[
+                'slug' => 'posters',
+                'title' => 'Pósters',
+                'description' => 'Comparte tu investigación',
+                'url' => '/'.Organization::query()->whereKey($call->organization_id)->value('slug').'/events/congreso/call/posters?lang=es',
+            ]])
+            ->where('slugs.call', 'ponencias'));
+
+    expect($other->slug)->toBe('posters');
+});
+
+it('the landing of a call without a published form carries no form fields and no other calls when it is alone', function (): void {
+    $call = publicCall();
+
+    $this->get(callUrl($call))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('landing.formProposal', [])
+            ->where('landing.formParticipant', [])
+            ->where('landing.otherCalls', []));
 });

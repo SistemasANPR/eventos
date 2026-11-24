@@ -90,10 +90,7 @@ describe('EventHero', () => {
     it('links to the privacy notice only when the event has a published one', () => {
         render(<EventHero event={event} privacyUrl="/parques/events/congreso/privacy" />);
 
-        expect(screen.getByRole('link', { name: 'Aviso de privacidad' })).toHaveAttribute(
-            'href',
-            '/parques/events/congreso/privacy',
-        );
+        expect(screen.getByRole('link', { name: 'Aviso de privacidad' })).toHaveAttribute('href', '/parques/events/congreso/privacy');
     });
 
     it('does not show the privacy link when there is no published notice', () => {

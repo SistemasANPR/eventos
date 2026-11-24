@@ -5,6 +5,8 @@ import { CallStateBadge } from '@/components/molecules/CallStateBadge';
 import { EventFact } from '@/components/molecules/EventFact';
 import { LocaleSwitcher } from '@/components/molecules/LocaleSwitcher';
 import { PageBanner } from '@/components/molecules/PageBanner';
+import { CallLanding } from '@/components/organisms/CallLanding';
+import type { CallLandingData, CallRouteSlugs } from '@/types/call-landing';
 import { useTranslation } from '@/hooks/useTranslation';
 import { PublicLayout } from '@/layouts/PublicLayout';
 import { BUTTON_PRIMARY, CALL_COLUMN, FACTS_PANEL, FOCUS_RING_ON_DARK } from '@/lib/classes';
@@ -23,6 +25,10 @@ interface ShowProps {
     privacyUrl: string | null;
     /** URL del formulario de envío; solo existe con la convocatoria abierta. */
     submitUrl?: string | null;
+    /** Rutas (organización, evento, convocatoria): permiten encontrar el texto propio de una convocatoria, si lo tiene. */
+    slugs?: CallRouteSlugs;
+    /** Datos con los que se arma la landing (formulario, límite de personas, otras convocatorias). */
+    landing?: CallLandingData;
 }
 
 /**
@@ -31,8 +37,24 @@ interface ShowProps {
  * botón grande que lleva al formulario de envío (`submitUrl`, plan 006). Muestra apertura, cierre y resultados en fichas; la categoría, la zona horaria y los ejes se
  * ocultan (los ejes siguen en el formulario de envío).
  */
-export default function Show({ call, event, organization, eventUrl, privacyUrl, submitUrl = null }: ShowProps) {
+export default function Show({ call, event, organization, eventUrl, privacyUrl, submitUrl = null, slugs, landing }: ShowProps) {
     const { t } = useTranslation();
+
+    // Toda convocatoria (en español) usa la landing, armada con sus datos; en otros idiomas, la presentación de siempre.
+    if (landing !== undefined && slugs !== undefined && call.locale === 'es') {
+        return (
+            <CallLanding
+                call={call}
+                event={event}
+                data={landing}
+                organization={organization}
+                slugs={slugs}
+                eventUrl={eventUrl}
+                privacyUrl={privacyUrl}
+                submitUrl={submitUrl}
+            />
+        );
+    }
 
     const showBackLink = call.showBackLink !== false;
     const formatDate = (instant: string): string => formatEventInstant(instant, call.timezone, call.locale, call.timeFormat);
@@ -88,11 +110,11 @@ export default function Show({ call, event, organization, eventUrl, privacyUrl, 
                         </TextLink>
                     )}
                     {privacyUrl !== null && <TextLink href={privacyUrl}>{t('event.privacy_link')}</TextLink>}
-                    {call.extraLink != null && (
-                        <TextLink href={call.extraLink.url} rel="noopener noreferrer nofollow">
-                            {call.extraLink.label}
+                    {(call.extraLinks ?? []).map((link, index) => (
+                        <TextLink key={`${index}-${link.url}`} href={link.url} rel="noopener noreferrer nofollow">
+                            {link.label}
                         </TextLink>
-                    )}
+                    ))}
                     <LocaleSwitcher locales={call.locales} currentLocale={call.locale} />
                 </div>
             </article>

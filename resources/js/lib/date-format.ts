@@ -41,6 +41,39 @@ export function formatEventInstant(instant: string, timeZone: string, locale: st
 }
 
 /**
+ * Hora local de una actividad (`HH:MM`, sin zona) en el formato del evento (plan 029, DA-5). Los valores
+ * ya son la hora del evento: se construye un instante «de reloj» en UTC y se formatea con `timeZone: 'UTC'`,
+ * así la zona del navegador del visitante no los desplaza.
+ */
+export function formatLocalTime(hhmm: string, locale: string, timeFormat: TimeFormat): string {
+    const [hours = 0, minutes = 0] = hhmm.split(':').map(Number);
+
+    return new Intl.DateTimeFormat(locale, { ...hourOptions(timeFormat), minute: '2-digit', timeZone: 'UTC' }).format(
+        new Date(Date.UTC(2000, 0, 1, hours, minutes)),
+    );
+}
+
+/**
+ * Día local de una actividad (`AAAA-MM-DD`, sin zona) en el idioma de la página, fijado en UTC por el mismo
+ * motivo que `formatLocalTime`. `long` para encabezados; `short` para la navegación entre días.
+ */
+export function formatLocalDate(date: string, locale: string, style: 'long' | 'short' = 'long'): string {
+    const options: Intl.DateTimeFormatOptions =
+        style === 'long' ? { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' } : { weekday: 'short', month: 'short', day: 'numeric' };
+
+    return new Intl.DateTimeFormat(locale, { ...options, timeZone: 'UTC' }).format(new Date(`${date}T00:00:00Z`));
+}
+
+/** Zona del evento con su desfase de UTC en el instante dado («America/Mexico_City (GMT-6)»), para mostrarla una sola vez. */
+export function formatTimeZoneOffset(timeZone: string, locale: string, instant: string): string {
+    const offset = new Intl.DateTimeFormat(locale, { timeZone, timeZoneName: 'shortOffset' })
+        .formatToParts(new Date(instant))
+        .find((part) => part.type === 'timeZoneName')?.value;
+
+    return offset === undefined ? timeZone : `${timeZone} (${offset})`;
+}
+
+/**
  * Instante de publicación de un documento, en UTC y en el idioma de la página.
  * Se usa UTC porque la zona horaria del evento no se conoce en esas páginas.
  */

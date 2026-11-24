@@ -288,28 +288,45 @@ it('an admin turns off the back link and adds a custom link from the edit form',
     callManager($event)->callAction(TestAction::make('editCall')->table($call), [
         ...panelCallData($event),
         'show_back_link' => false,
-        'extra_link_label' => 'Sitio del congreso',
-        'extra_link_url' => 'https://example.test/congreso',
+        'extra_links' => [
+            ['label' => 'Sitio del congreso', 'url' => 'https://example.test/congreso'],
+            ['label' => 'Programa', 'url' => 'https://example.test/programa'],
+            ['label' => '', 'url' => ''],
+        ],
     ])->assertHasNoActionErrors();
 
     $call = $call->fresh();
 
+    // Varios enlaces, en su orden; la fila vacía se descarta.
     expect($call->show_back_link)->toBeFalse()
-        ->and($call->extra_link_label)->toBe('Sitio del congreso')
-        ->and($call->extra_link_url)->toBe('https://example.test/congreso');
+        ->and($call->extra_links)->toBe([
+            ['label' => 'Sitio del congreso', 'url' => 'https://example.test/congreso'],
+            ['label' => 'Programa', 'url' => 'https://example.test/programa'],
+        ]);
 });
 
-it('the custom link needs both text and an https address', function (array $link): void {
+it('a call accepts at most 10 custom links', function (int $count, bool $accepted): void {
+    [$organization, $event, $admin] = callPanelScenario();
+    $call = app(CreateCallForSubmissions::class)->handle($admin, $event, panelCallData($event));
+    CurrentOrganization::set($organization);
+    $links = array_map(fn (int $n): array => ['label' => "Enlace {$n}", 'url' => "https://example.test/{$n}"], range(1, $count));
+
+    callManager($event)->callAction(TestAction::make('editCall')->table($call), [...panelCallData($event), 'extra_links' => $links]);
+
+    expect(count($call->fresh()->extra_links ?? []))->toBe($accepted ? $count : 0);
+})->with([[10, true], [11, false]]);
+
+it('every custom link needs both text and an https address', function (array $link): void {
     [$organization, $event, $admin] = callPanelScenario();
     $call = app(CreateCallForSubmissions::class)->handle($admin, $event, panelCallData($event));
     CurrentOrganization::set($organization);
 
-    callManager($event)->callAction(TestAction::make('editCall')->table($call), [...panelCallData($event), ...$link]);
+    callManager($event)->callAction(TestAction::make('editCall')->table($call), [...panelCallData($event), 'extra_links' => [$link]]);
 
-    expect($call->fresh()->extra_link_url)->toBeNull();
+    expect($call->fresh()->extra_links)->toBeNull();
 })->with([
-    'text without address' => [['extra_link_label' => 'Sitio']],
-    'address without text' => [['extra_link_url' => 'https://example.test']],
-    'insecure address' => [['extra_link_label' => 'Sitio', 'extra_link_url' => 'http://example.test']],
-    'script address' => [['extra_link_label' => 'Sitio', 'extra_link_url' => 'javascript:alert(1)']],
+    'text without address' => [['label' => 'Sitio', 'url' => '']],
+    'address without text' => [['label' => '', 'url' => 'https://example.test']],
+    'insecure address' => [['label' => 'Sitio', 'url' => 'http://example.test']],
+    'script address' => [['label' => 'Sitio', 'url' => 'javascript:alert(1)']],
 ]);

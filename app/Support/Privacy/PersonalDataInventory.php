@@ -67,7 +67,7 @@ final class PersonalDataInventory
             'retained' => ['id', 'organization_id', 'created_at', 'updated_at'],
         ],
         SubmissionParticipant::class => [
-            'replaced' => ['full_name', 'first_name', 'last_name', 'email', 'country', 'job_title', 'company', 'bio', 'anonymized_at'],
+            'replaced' => ['full_name', 'first_name', 'last_name', 'second_last_name', 'email', 'alt_email', 'phone', 'country', 'state', 'city', 'photo_file_id', 'job_title', 'company', 'bio', 'anonymized_at'],
             'retained' => ['id', 'organization_id', 'submission_id', 'contact_id', 'position', 'is_primary', 'created_at', 'updated_at'],
         ],
         Speaker::class => [

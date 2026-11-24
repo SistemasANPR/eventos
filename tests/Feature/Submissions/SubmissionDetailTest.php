@@ -14,6 +14,7 @@ use App\Models\User;
 use App\Support\Tenancy\CurrentOrganization;
 use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Spatie\Activitylog\Models\Activity;
 use Tests\Support\Memberships;
@@ -241,4 +242,34 @@ it('the detail shows no preview for a file that is not an image', function (): v
     $this->actingAs($user)->get(detailUrl($organization, $event, $submission))
         ->assertOk()
         ->assertDontSee('/preview', false);
+});
+
+it('the detail shows every data of the participants with its label and the photo of the participant', function (): void {
+    [$organization, $event, $user] = formScenario(OrganizationRole::Organizer);
+    $submission = detailedSubmission($organization, $event);
+    $photo = SubmissionFile::factory()->attachedTo($submission->id)->create([
+        'organization_id' => $organization->id,
+        'call_id' => $submission->call_for_submissions_id,
+        'form_field_key' => 'participant_photo_0',
+        'original_name' => 'foto.png',
+        'mime_type' => 'image/png',
+    ]);
+    DB::table('submission_participants')->where('submission_id', $submission->id)->where('position', 1)->update([
+        'second_last_name' => 'Gómez',
+        'photo_file_id' => $photo->id,
+        'state' => 'Jalisco',
+        'city' => 'Guadalajara',
+        'alt_email' => 'ana.alterno@example.test',
+    ]);
+
+    $this->actingAs($user)->get(detailUrl($organization, $event, $submission))
+        ->assertOk()
+        ->assertSee('Apellido materno')
+        ->assertSee('Gómez')
+        ->assertSee('Estado o entidad')
+        ->assertSee('Jalisco')
+        ->assertSee('Guadalajara')
+        ->assertSee('Correo electrónico alternativo')
+        ->assertSee('ana.alterno@example.test')
+        ->assertSee('<img src="'.route('submission-files.preview', ['organization' => $organization->slug, 'file' => $photo->id]).'"', false);
 });

@@ -78,13 +78,13 @@ export default function Submit({ call, event, organization, callUrl, submitUrl, 
 
     return (
         <PublicLayout organizationName={organization.name} isWide>
-            <Head title={`${t('submit.title')} · ${call.title} · ${organization.name}`}>
+            <Head title={`${form?.title ?? t('submit.title')} · ${call.title} · ${organization.name}`}>
                 <meta name="robots" content="noindex" />
             </Head>
             <article aria-labelledby="submit-title" className={CALL_COLUMN}>
                 <PageBanner
                     eyebrow={`${event.name} · ${call.title}`}
-                    title={t('submit.title')}
+                    title={form?.title ?? t('submit.title')}
                     titleId="submit-title"
                     logoUrl={event.logoUrl}
                     logoName={event.name}

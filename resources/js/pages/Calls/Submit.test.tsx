@@ -66,9 +66,15 @@ const call: PublicCall = {
 
 const form: PublicSubmissionForm = {
     version: 1,
+    participantFields: {},
+    participantsPosition: 'top',
+    title: null,
+    extraSectionTitle: null,
     fields: [],
     defaultLocale: 'es',
-    translations: { forms: { renderer: { submit: 'Enviar propuesta', form_label: 'Formulario', required: 'obligatorio', select_country: 'País' } } },
+    translations: {
+        forms: { renderer: { submit: 'Enviar propuesta', form_label: 'Formulario', required: 'obligatorio', select_country: 'País' } },
+    },
     idempotencyKey: 'clave-de-idempotencia-1',
     uploadToken: 'token',
     uploadUrl: '/files',
@@ -105,7 +111,10 @@ describe('Calls/Submit page', () => {
         expect(screen.getByTestId('submit-unavailable')).toHaveTextContent('Cerrada');
         expect(screen.getByText('La convocatoria ya no recibe propuestas.')).toBeInTheDocument();
         expect(screen.queryByRole('form')).not.toBeInTheDocument();
-        expect(screen.getByRole('link', { name: 'Volver a la convocatoria' })).toHaveAttribute('href', '/parques/events/congreso/call/ponencias');
+        expect(screen.getByRole('link', { name: 'Volver a la convocatoria' })).toHaveAttribute(
+            'href',
+            '/parques/events/congreso/call/ponencias',
+        );
     });
 
     it('CA-006-55: shows the not-ready notice when the call is open but has no form or notice', () => {
@@ -122,7 +131,11 @@ describe('Calls/Submit page', () => {
         fireEvent.click(screen.getByRole('button', { name: 'Enviar propuesta' }));
 
         await waitFor(() => expect(post).toHaveBeenCalledTimes(1));
-        const [url, payload, options] = post.mock.calls[0] as [string, { title: string; turnstile_token: string }, { preserveState: boolean; onHttpException: (response: unknown) => boolean }];
+        const [url, payload, options] = post.mock.calls[0] as [
+            string,
+            { title: string; turnstile_token: string },
+            { preserveState: boolean; onHttpException: (response: unknown) => boolean },
+        ];
         expect(url).toBe('/parques/events/congreso/call/ponencias/submit');
         expect(payload.title).toBe('Parques vivos');
         expect(payload.turnstile_token).toBe('tok');

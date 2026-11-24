@@ -13,6 +13,11 @@ final class PublishedFormFileFields implements FileFieldRegistry
 {
     public function exists(CallForSubmissions $call, string $fieldKey): bool
     {
+        // La fotografía de cada participante no es un campo del formulario: es una clave fija por posición.
+        if (preg_match('/^participant_photo_\d{1,2}$/', $fieldKey) === 1) {
+            return true;
+        }
+
         $form = $call->formDefinition;
 
         if ($form === null || $form->status !== FormDefinitionStatus::Published) {

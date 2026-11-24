@@ -38,9 +38,7 @@ export default function ConfirmAccess({ event, organization, consumeUrl, expires
                 <h1 id="confirm-title" className={PAGE_TITLE}>
                     {title}
                 </h1>
-                <p className="text-lg text-text">
-                    {t('author.confirm.body', { event: event.name, minutes: String(expiresInMinutes) })}
-                </p>
+                <p className="text-lg text-text">{t('author.confirm.body', { event: event.name, minutes: String(expiresInMinutes) })}</p>
                 <form onSubmit={handleSubmit}>
                     <button type="submit" disabled={form.processing} className={BUTTON_PRIMARY}>
                         {form.processing ? t('author.confirm.opening') : t('author.confirm.action')}

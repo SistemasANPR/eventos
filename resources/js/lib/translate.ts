@@ -19,9 +19,6 @@ export function createTranslate(translations: Translations): Translate {
             return key;
         }
 
-        return Object.entries(replacements).reduce(
-            (text, [name, value]) => text.replaceAll(`:${name}`, value),
-            node,
-        );
+        return Object.entries(replacements).reduce((text, [name, value]) => text.replaceAll(`:${name}`, value), node);
     };
 }

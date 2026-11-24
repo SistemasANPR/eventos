@@ -27,7 +27,7 @@ vi.mock('@inertiajs/react', () => ({
 }));
 
 const event: PrivacyPageEvent = { name: 'Congreso Parques', locale: 'es', locales: ['es', 'en'] };
-const eventUrl = "/parques/events/congreso?lang=es";
+const eventUrl = '/parques/events/congreso?lang=es';
 const organization = { name: 'Parques de México', slug: 'parques' };
 const notice: PrivacyNotice = {
     version: 3,
@@ -87,7 +87,9 @@ describe('Events/Privacy page', () => {
     });
 
     it('marks the text with its real language', () => {
-        const { container } = render(<Privacy event={{ ...event, locale: 'en' }} organization={organization} notice={notice} eventUrl={eventUrl} />);
+        const { container } = render(
+            <Privacy event={{ ...event, locale: 'en' }} organization={organization} notice={notice} eventUrl={eventUrl} />,
+        );
 
         expect(container.querySelector('main [lang="es"]')).not.toBeNull();
     });

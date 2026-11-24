@@ -12,6 +12,7 @@ use App\Models\User;
 use App\Support\Auth\AuthorizesInOrganization;
 use App\Support\Forms\FormDefinitionRules;
 use App\Support\Forms\FormFieldsNormalizer;
+use App\Support\Forms\FormSettings;
 use App\Support\Tenancy\CurrentOrganization;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\DB;
@@ -51,11 +52,16 @@ final class CreateFormDefinition
 
             $fields = $this->normalizer->normalize($validated['fields']);
 
-            return DB::transaction(function () use ($actor, $event, $name, $fields): FormDefinition {
+            $maxParticipants = $validated['max_participants'] ?? null;
+            $settings = FormSettings::normalize((array) ($validated['settings'] ?? []));
+
+            return DB::transaction(function () use ($actor, $event, $name, $fields, $maxParticipants, $settings): FormDefinition {
                 $form = new FormDefinition;
                 $form->event_id = $event->id;
                 $form->forceFill([
                     'name' => $name,
+                    'max_participants' => $maxParticipants,
+                    'settings' => $settings,
                     'status' => FormDefinitionStatus::Draft,
                     'fields' => $fields,
                     'version' => 1,

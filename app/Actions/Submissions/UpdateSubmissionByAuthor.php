@@ -53,7 +53,7 @@ final class UpdateSubmissionByAuthor
 {
     private const KEYS = ['version', 'form_version', 'title', 'track_id', 'answers', 'participants'];
 
-    private const PARTICIPANT_KEYS = ['first_name', 'last_name', 'country', 'job_title', 'company', 'bio'];
+    private const PARTICIPANT_KEYS = ['first_name', 'last_name', 'country', 'second_last_name', 'alt_email', 'state', 'city', 'phone', 'job_title', 'company', 'bio'];
 
     public function __construct(
         private readonly LoadPublishedForm $publishedForm,
@@ -150,7 +150,7 @@ final class UpdateSubmissionByAuthor
      */
     private function validated(CallForSubmissions $call, FormDefinition $form, array $data, int $participantCount): array
     {
-        $base = StoreSubmissionRequest::fieldRules($call->min_participants, $call->max_participants, $call->locales);
+        $base = StoreSubmissionRequest::fieldRules($call->min_participants, $call->max_participants, $call->locales, $form->settings);
         $rules = Arr::only($base, ['form_version', 'title', 'track_id', 'answers', 'participants.*'])
             + Arr::only($base, array_map(static fn (string $key): string => 'participants.*.'.$key, self::PARTICIPANT_KEYS))
             + ['participants' => ['required', 'array', 'size:'.$participantCount]];
@@ -223,6 +223,11 @@ final class UpdateSubmissionByAuthor
                 'last_name' => $values['last_name'],
                 'full_name' => $values['first_name'].' '.$values['last_name'],
                 'country' => $values['country'],
+                'second_last_name' => $values['second_last_name'] ?? null,
+                'alt_email' => $values['alt_email'] ?? null,
+                'state' => $values['state'] ?? null,
+                'city' => $values['city'] ?? null,
+                'phone' => $values['phone'] ?? null,
                 'job_title' => $values['job_title'] ?? null,
                 'company' => $values['company'] ?? null,
                 'bio' => $values['bio'] ?? null,
@@ -285,7 +290,7 @@ final class UpdateSubmissionByAuthor
 
                 $clean = array_map(self::clean(...), array_intersect_key($participant, array_flip(self::PARTICIPANT_KEYS)));
 
-                foreach (['job_title', 'company', 'bio'] as $optional) {
+                foreach (['second_last_name', 'alt_email', 'state', 'city', 'phone', 'job_title', 'company', 'bio'] as $optional) {
                     if (($clean[$optional] ?? null) === '') {
                         $clean[$optional] = null;
                     }

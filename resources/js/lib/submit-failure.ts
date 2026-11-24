@@ -13,7 +13,11 @@ const SERVER_CODES: readonly SubmitFailureCode[] = [
  * Interpreta una respuesta HTTP de error del envío (`{code, message}` más `Retry-After`). Lo que
  * no reconoce es un fallo genérico: la página siempre muestra algo y conserva lo escrito.
  */
-export function toSubmitFailure(response: { status: number; headers: Record<string, string>; data: string | Record<string, unknown> }): SubmitFailure {
+export function toSubmitFailure(response: {
+    status: number;
+    headers: Record<string, string>;
+    data: string | Record<string, unknown>;
+}): SubmitFailure {
     const body = typeof response.data === 'object' ? response.data : {};
     const known = SERVER_CODES.find((code) => code === body.code);
     const retryAfter = Number(response.headers['retry-after']);

@@ -11,6 +11,7 @@ use App\Models\Event;
 use App\Models\FormDefinition;
 use App\Support\Calls\ResolveCallState;
 use App\Support\Forms\Countries;
+use App\Support\Forms\FormSettings;
 use Closure;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -30,6 +31,9 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 final class StoreSubmissionRequest extends FormRequest
 {
     public const TITLE_MAX = 200;
+
+    /** Teléfono: dígitos, `+`, paréntesis, guiones, puntos y espacios; de 7 a 30 caracteres. */
+    public const PHONE_PATTERN = '/^[0-9+().\s-]{7,30}$/';
 
     /**
      * Formulario público: no hay usuario que autorizar; la protección es el límite de peticiones y el
@@ -55,7 +59,7 @@ final class StoreSubmissionRequest extends FormRequest
         $call = $this->route('call');
         $event = $this->route('event');
         $fixed = $call instanceof CallForSubmissions && $event instanceof Event
-            ? self::fieldRules($call->min_participants, $call->max_participants, $event->effectiveLocalesForCall($call))
+            ? self::fieldRules($call->min_participants, $call->max_participants, $event->effectiveLocalesForCall($call), $call->formDefinition?->settings)
             : self::fieldRules();
 
         return $fixed + [
@@ -125,9 +129,10 @@ final class StoreSubmissionRequest extends FormRequest
 
     /**
      * @param  list<string>  $locales  idiomas de la convocatoria
+     * @param  array<string, mixed>|null  $formSettings  ajustes del formulario vigente (qué preguntas de participantes se piden)
      * @return array<string, list<mixed>>
      */
-    public static function fieldRules(int $minParticipants = 1, int $maxParticipants = 5, array $locales = ['es', 'en', 'pt']): array
+    public static function fieldRules(int $minParticipants = 1, int $maxParticipants = 5, array $locales = ['es', 'en', 'pt'], ?array $formSettings = null): array
     {
         return [
             'idempotency_key' => ['required', 'string', 'min:16', 'max:100'],
@@ -143,10 +148,8 @@ final class StoreSubmissionRequest extends FormRequest
             'participants.*.last_name' => ['required', 'string', 'max:100', 'regex:/^[^\p{Cc}]+$/u'],
             'participants.*.email' => ['required', 'string', 'email:rfc', 'max:254', 'distinct:ignore_case'],
             'participants.*.country' => ['required', 'string', Rule::in(Countries::CODES)],
-            'participants.*.job_title' => ['nullable', 'string', 'max:120'],
-            'participants.*.company' => ['nullable', 'string', 'max:160'],
-            'participants.*.bio' => ['nullable', 'string', 'max:2000'],
             'participants.*.is_primary' => ['nullable', 'boolean'],
+            ...FormSettings::participantRules($formSettings),
             'consent' => ['accepted'],
             'privacy_notice_version_id' => ['nullable', 'uuid'],
             'third_parties_authorized' => ['nullable', 'boolean'],

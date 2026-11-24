@@ -33,6 +33,6 @@ export interface PublicCall {
     tracks: PublicTrack[];
     /** Si se ofrece el enlace «Volver al evento»; ausente se entiende que sí. */
     showBackLink?: boolean;
-    /** Enlace propio del pie (texto y dirección https), o `null`. */
-    extraLink?: { label: string; url: string } | null;
+    /** Enlaces propios del pie (hasta 10; texto y dirección https). */
+    extraLinks?: { label: string; url: string }[];
 }

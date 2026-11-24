@@ -319,3 +319,33 @@ it('CA-011-18: in blind mode the reviewer cannot download a file of an identifyi
 
     expect(blCaptureDisposition($asOpenReviewer, blFilePath($open['organization']->slug, $open['identifying']))['status'])->toBe(302);
 });
+
+it('CA-011-18: in blind mode the reviewer cannot download the photo of a participant, by either route, while a plain file still opens', function (): void {
+    $scenario = blScenario(true);
+    Storage::fake(config('filesystems.private_uploads_disk'));
+    $slug = $scenario['organization']->slug;
+    $photo = CurrentOrganization::run($scenario['organization'], fn (): SubmissionFile => SubmissionFile::factory()->attachedTo($scenario['submission']->id)->create([
+        'organization_id' => $scenario['organization']->id,
+        'call_id' => $scenario['submission']->call_for_submissions_id,
+        'form_field_key' => 'participant_photo_0',
+        'mime_type' => 'image/png',
+        'original_name' => 'zxqautor-foto.png',
+    ]));
+    $asReviewer = fn (string $path): TestResponse => $this->actingAs($scenario['reviewer'])->get($path);
+
+    expect(blCaptureDisposition($asReviewer, blFilePath($slug, $photo))['status'])->toBe(403)
+        ->and(blCaptureDisposition($asReviewer, blFilePath($slug, $photo, 'admin'))['status'])->toBe(403)
+        ->and(blCaptureDisposition($asReviewer, blFilePath($slug, $scenario['plain']))['status'])->toBe(302);
+
+    // Sin modo ciego la foto sí se entrega: es el ocultamiento, no la ruta, lo que la niega.
+    $open = blScenario(false);
+    $openPhoto = CurrentOrganization::run($open['organization'], fn (): SubmissionFile => SubmissionFile::factory()->attachedTo($open['submission']->id)->create([
+        'organization_id' => $open['organization']->id,
+        'call_id' => $open['submission']->call_for_submissions_id,
+        'form_field_key' => 'participant_photo_0',
+        'mime_type' => 'image/png',
+    ]));
+    $asOpenReviewer = fn (string $path): TestResponse => $this->actingAs($open['reviewer'])->get($path);
+
+    expect(blCaptureDisposition($asOpenReviewer, blFilePath($open['organization']->slug, $openPhoto))['status'])->toBe(302);
+});

@@ -153,7 +153,10 @@ function WithdrawSection({ withdrawUrl }: { withdrawUrl: string }) {
     };
 
     return (
-        <section aria-labelledby="withdraw-title" className="flex max-w-prose flex-col gap-3 rounded-lg border border-border bg-surface p-4">
+        <section
+            aria-labelledby="withdraw-title"
+            className="flex max-w-prose flex-col gap-3 rounded-lg border border-border bg-surface p-4"
+        >
             <h2 id="withdraw-title" className="text-xl font-semibold text-text">
                 {t('author.show.withdraw.action')}
             </h2>
@@ -233,7 +236,9 @@ function ParticipantItem({ participant }: { participant: AuthorParticipant }) {
                     .filter((part): part is string => part !== null && part !== '')
                     .join(' · ')}
             </p>
-            {participant.bio !== null && <p className="max-w-prose whitespace-pre-line break-words text-base text-text">{participant.bio}</p>}
+            {participant.bio !== null && (
+                <p className="max-w-prose whitespace-pre-line break-words text-base text-text">{participant.bio}</p>
+            )}
         </li>
     );
 }

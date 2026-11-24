@@ -15,6 +15,7 @@ use App\Models\Submission;
 use App\Models\Track;
 use App\Support\Calls\ResolveCallState;
 use App\Support\Forms\FormPreviewProps;
+use App\Support\Forms\FormSettings;
 
 /**
  * Datos de la pantalla «editar mi propuesta» (plan 006, H-006-4): el formulario VIGENTE sin campos de archivo
@@ -54,6 +55,8 @@ final class PrepareAuthorEdit
             'fields' => $editable,
             'defaultLocale' => $renderer['defaultLocale'],
             'translations' => $renderer['translations'],
+            'participantFields' => FormSettings::participantFields($form->settings),
+            'extraSectionTitle' => FormSettings::text($form->settings, 'extra_section_title', $locale, $event->default_locale),
             'tracks' => $event->tracks()->active()->orderBy('position')->get()
                 ->map(fn (Track $track): array => ['id' => $track->id, 'name' => $track->label($locale)])->values()->all(),
             'initialValues' => $this->initialValues($submission, $editable),
@@ -85,6 +88,11 @@ final class PrepareAuthorEdit
             $values[$prefix.'first_name'] = $participant->first_name ?? $participant->full_name;
             $values[$prefix.'last_name'] = $participant->last_name ?? '';
             $values[$prefix.'country'] = $participant->country;
+            $values[$prefix.'second_last_name'] = (string) $participant->second_last_name;
+            $values[$prefix.'alt_email'] = (string) $participant->alt_email;
+            $values[$prefix.'state'] = (string) $participant->state;
+            $values[$prefix.'city'] = (string) $participant->city;
+            $values[$prefix.'phone'] = (string) $participant->phone;
             $values[$prefix.'job_title'] = (string) $participant->job_title;
             $values[$prefix.'company'] = (string) $participant->company;
             $values[$prefix.'bio'] = (string) $participant->bio;

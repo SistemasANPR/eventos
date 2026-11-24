@@ -11,6 +11,7 @@ use App\Models\FormDefinition;
 use App\Models\Organization;
 use App\Models\User;
 use App\Support\Auth\AuthorizesInOrganization;
+use App\Support\Forms\ApplyParticipantLimit;
 use App\Support\Forms\FormDefinitionRules;
 use App\Support\Forms\LockedFormDefinition;
 use App\Support\Tenancy\CurrentOrganization;
@@ -69,6 +70,7 @@ final class PublishFormDefinition
                     'published_at' => $current->published_at ?? now(),
                 ])->save();
                 $ownCall->forceFill(['form_definition_id' => $current->id])->save();
+                (new ApplyParticipantLimit)->toCall($current, $ownCall);
 
                 if (! $wasPublished || $previousFormId !== $current->id) {
                     activity()

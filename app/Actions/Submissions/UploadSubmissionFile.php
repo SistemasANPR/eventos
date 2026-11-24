@@ -68,6 +68,11 @@ final class UploadSubmissionFile
             }
 
             $inspected = $this->uploads->inspect($file);
+
+            // Una fotografía de participante solo puede ser una imagen (JPG o PNG).
+            if (str_starts_with($fieldKey, 'participant_photo_') && ! in_array($inspected->extension, ['jpg', 'png'], true)) {
+                throw ValidationException::withMessages(['file' => __('files.type_not_allowed', ['types' => 'JPG, PNG'])]);
+            }
             $id = (string) Str::uuid();
             $path = $this->uploads->store($inspected, $call->event_id, $id);
 

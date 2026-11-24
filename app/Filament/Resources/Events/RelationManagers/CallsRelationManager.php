@@ -19,6 +19,7 @@ use App\Filament\Resources\Events\EventResource;
 use App\Filament\Support\ActionErrors;
 use App\Filament\Support\LocalizedFields;
 use App\Filament\Support\SubmissionTypeFields;
+use App\Http\Requests\Calls\StoreCallForSubmissionsRequest;
 use App\Models\CallForSubmissions;
 use App\Models\Event;
 use App\Models\FormDefinition;
@@ -32,6 +33,7 @@ use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;
 use Filament\Forms\Components\CheckboxList;
 use Filament\Forms\Components\DateTimePicker;
+use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
@@ -271,8 +273,7 @@ class CallsRelationManager extends RelationManager
                 'closes_at' => $this->localTime($record->closes_at, 'Y-m-d H:i'),
                 'results_at' => $record->results_at === null ? null : $this->localTime($record->results_at, 'Y-m-d H:i'),
                 'show_back_link' => $record->show_back_link,
-                'extra_link_label' => $record->extra_link_label,
-                'extra_link_url' => $record->extra_link_url,
+                'extra_links' => $record->extra_links ?? [],
             ])
             ->visible(fn (CallForSubmissions $record): bool => Gate::allows('update', $record))
             ->action(fn (CallForSubmissions $record, array $data) => $this->run(
@@ -426,15 +427,24 @@ class CallsRelationManager extends RelationManager
                 ->label(__('calls.fields.show_back_link'))
                 ->helperText(__('calls.fields.show_back_link_help'))
                 ->default(true),
-            TextInput::make('extra_link_label')
-                ->label(__('calls.fields.extra_link_label'))
-                ->helperText(__('calls.fields.extra_link_help'))
-                ->maxLength(100),
-            TextInput::make('extra_link_url')
-                ->label(__('calls.fields.extra_link_url'))
-                ->placeholder('https://')
-                ->url()
-                ->maxLength(2048),
+            Repeater::make('extra_links')
+                ->label(__('calls.fields.extra_links'))
+                ->helperText(__('calls.fields.extra_links_help'))
+                ->addActionLabel(__('calls.fields.extra_links_add'))
+                ->maxItems(StoreCallForSubmissionsRequest::MAX_EXTRA_LINKS)
+                ->defaultItems(0)
+                ->collapsible()
+                ->itemLabel(fn (array $state): ?string => is_string($state['label'] ?? null) && $state['label'] !== '' ? $state['label'] : null)
+                ->schema([
+                    TextInput::make('label')
+                        ->label(__('calls.fields.extra_link_label'))
+                        ->maxLength(100),
+                    TextInput::make('url')
+                        ->label(__('calls.fields.extra_link_url'))
+                        ->placeholder('https://')
+                        ->url()
+                        ->maxLength(2048),
+                ]),
         ];
     }
 

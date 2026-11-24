@@ -29,6 +29,8 @@ use Illuminate\Support\Carbon;
  * @property FormDefinitionStatus $status
  * @property list<array<string, mixed>> $fields
  * @property int $version
+ * @property array<string, mixed>|null $settings ajustes que no son preguntas (ver `FormSettings`); nulo = todo como siempre
+ * @property int|null $max_participants límite de personas por propuesta; nulo = manda el de la convocatoria
  * @property Carbon|null $published_at
  */
 class FormDefinition extends Model
@@ -48,6 +50,8 @@ class FormDefinition extends Model
             'status' => FormDefinitionStatus::class,
             'fields' => 'array',
             'version' => 'integer',
+            'max_participants' => 'integer',
+            'settings' => 'array',
             'published_at' => 'datetime',
         ];
     }

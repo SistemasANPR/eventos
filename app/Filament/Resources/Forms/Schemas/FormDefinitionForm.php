@@ -12,6 +12,9 @@ use App\Filament\Support\LocalizedFields;
 use App\Models\Event;
 use App\Models\FormDefinition;
 use App\Support\Forms\FormDefinitionRules;
+use App\Support\Forms\FormPreviewProps;
+use App\Support\Forms\FormSettings;
+use App\Support\Forms\ProposalFields;
 use Filament\Actions\Action;
 use Filament\Forms\Components\CheckboxList;
 use Filament\Forms\Components\Hidden;
@@ -21,8 +24,11 @@ use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Notifications\Notification;
+use Filament\Schemas\Components\Grid;
+use Filament\Schemas\Components\Group;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Utilities\Get;
+use Filament\Schemas\Components\View;
 use Filament\Schemas\Schema;
 use Illuminate\Validation\ValidationException;
 
@@ -37,16 +43,68 @@ final class FormDefinitionForm
     public static function configure(Schema $schema): Schema
     {
         return $schema->components([
-            Section::make(__('forms.sections.general'))
-                ->schema([
-                    // El evento sale de la ruta (recurso anidado, plan 020) y no cambia nunca.
-                    TextInput::make('name')
-                        ->label(__('forms.fields.name'))
-                        ->required()
-                        ->maxLength(150),
-                    // Versión que se está editando: el servidor la compara para no pisar el cambio de otra persona.
-                    Hidden::make('version'),
-                ]),
+            // Columna izquierda: datos del formulario y, debajo, cómo se ve lo que se está editando.
+            Group::make([
+                Section::make(__('forms.sections.general'))
+                    ->schema([
+                        // El evento sale de la ruta (recurso anidado, plan 020) y no cambia nunca.
+                        TextInput::make('name')
+                            ->label(__('forms.fields.name'))
+                            ->required()
+                            ->maxLength(150),
+                        TextInput::make('max_participants')
+                            ->label(__('forms.fields.max_participants'))
+                            ->helperText(__('forms.fields.max_participants_help'))
+                            ->numeric()
+                            ->integer()
+                            ->minValue(1)
+                            ->maxValue(FormDefinitionRules::MAX_PARTICIPANTS)
+                            ->placeholder('5')
+                            // Al salir del campo se refresca «Así se ve» con el nuevo límite.
+                            ->live(onBlur: true),
+                        // Versión que se está editando: el servidor la compara para no pisar el cambio de otra persona.
+                        Hidden::make('version'),
+                    ]),
+                Section::make(__('forms.sections.texts'))
+                    ->description(__('forms.settings.texts_help'))
+                    ->schema(fn ($livewire): array => LocalizedFields::for(
+                        LocalizedFields::eventOf($livewire),
+                        static fn (string $locale): array => [
+                            TextInput::make("settings.title.{$locale}")
+                                ->label(__("forms.settings.title_{$locale}"))
+                                ->placeholder(__('forms.settings.title_default'))
+                                ->maxLength(120),
+                            TextInput::make("settings.extra_section_title.{$locale}")
+                                ->label(__("forms.settings.extra_title_{$locale}"))
+                                ->placeholder(__('forms.settings.extra_title_default'))
+                                ->maxLength(120),
+                        ],
+                    )),
+                Section::make(__('forms.sections.participants'))
+                    ->description(__('forms.settings.participants_help'))
+                    ->schema([
+                        Select::make('settings.participants_position')
+                            ->label(__('forms.settings.position'))
+                            ->options([
+                                FormSettings::POSITION_TOP => __('forms.settings.position_top'),
+                                FormSettings::POSITION_BOTTOM => __('forms.settings.position_bottom'),
+                            ])
+                            ->default(FormSettings::POSITION_TOP)
+                            ->selectablePlaceholder(false),
+                        ...self::participantQuestions(),
+                    ]),
+                Section::make(__('forms.sections.live_preview'))
+                    ->schema([
+                        View::make('filament.forms.live-preview')
+                            ->viewData(fn (Get $get, $livewire): array => [
+                                'props' => app(FormPreviewProps::class)->participants(
+                                    LocalizedFields::eventOf($livewire),
+                                    $get('max_participants'),
+                                    $get('settings'),
+                                ),
+                            ]),
+                    ]),
+            ]),
             Section::make(__('forms.sections.fields'))
                 ->description(__('forms.fields.fields_help'))
                 ->schema([
@@ -55,6 +113,8 @@ final class FormDefinitionForm
                         ->hiddenLabel()
                         ->addActionLabel(__('forms.fields.add_field'))
                         ->maxItems(FormDefinitionRules::MAX_FIELDS)
+                        // Un formulario nuevo ya trae el título y el tema de la propuesta.
+                        ->default(fn ($livewire): array => ProposalFields::defaults(LocalizedFields::eventOf($livewire)))
                         ->collapsible()
                         // Orden con flechas además de arrastrar: se puede reordenar con teclado (CA-005-11).
                         ->reorderableWithButtons()
@@ -63,6 +123,39 @@ final class FormDefinitionForm
                         ->schema(fn ($livewire): array => self::fieldInputs(LocalizedFields::eventOf($livewire))),
                 ]),
         ]);
+    }
+
+    /**
+     * Una fila por pregunta configurable del participante: mostrarla y, si se muestra, si es obligatoria. Las
+     * preguntas fijas (nombre, apellido paterno, correo y país) no se pueden apagar y no aparecen aquí.
+     *
+     * @return list<Grid>
+     */
+    private static function participantQuestions(): array
+    {
+        $defaults = FormSettings::participantFields(null);
+        $rows = [];
+
+        foreach (FormSettings::PARTICIPANT_FIELDS as $key) {
+            if (in_array($key, FormSettings::LOCKED, true)) {
+                continue;
+            }
+
+            $rows[] = Grid::make(2)->schema([
+                Toggle::make("settings.participant_fields.{$key}.enabled")
+                    ->label(__("forms.settings.question.{$key}"))
+                    ->helperText(__('forms.settings.show'))
+                    ->default($defaults[$key]['enabled'])
+                    ->live(),
+                Toggle::make("settings.participant_fields.{$key}.required")
+                    ->label(__('forms.settings.required'))
+                    ->default($defaults[$key]['required'])
+                    ->disabled(fn (Get $get): bool => $get("settings.participant_fields.{$key}.enabled") !== true)
+                    ->live(),
+            ]);
+        }
+
+        return $rows;
     }
 
     /** Retira el campo: deja de ofrecerse en nuevos envíos y conserva sus datos (CA-005-21). */
@@ -104,13 +197,21 @@ final class FormDefinitionForm
     {
         return [
             Hidden::make('key'),
+            // Función del campo (título o tema de la propuesta): ver `ProposalFields`.
+            Hidden::make('role'),
             Select::make('type')
                 ->label(__('forms.fields.type'))
                 ->options(self::typeOptions())
                 ->required()
-                ->live(),
+                ->live()
+                // El título y el tema tienen un tipo fijo; sigue enviándose aunque el control esté apagado.
+                ->disabled(fn (Get $get): bool => filled($get('role')))
+                ->dehydrated()
+                ->helperText(fn (Get $get): ?string => self::roleHelp($get('role'))),
             Toggle::make('required')
-                ->label(__('forms.fields.required')),
+                ->label(__('forms.fields.required'))
+                ->disabled(fn (Get $get): bool => filled($get('role')))
+                ->dehydrated(),
             Toggle::make('identifiesAuthor')
                 ->label(__('forms.fields.identifies_author'))
                 ->helperText(__('forms.fields.identifies_author_help'))
@@ -166,7 +267,8 @@ final class FormDefinitionForm
                     Hidden::make('value'),
                     ...self::optionLabels($event),
                 ])
-                ->visible(fn (Get $get): bool => self::hasOptions($get('type'))),
+                // Las opciones del tema son los ejes del evento: no se escriben aquí.
+                ->visible(fn (Get $get): bool => self::hasOptions($get('type')) && $get('role') !== ProposalFields::ROLE_TRACK),
             TextInput::make('config.maxSelections')
                 ->label(__('forms.fields.max_selections'))
                 ->numeric()->minValue(1)
@@ -215,6 +317,11 @@ final class FormDefinitionForm
         $title .= ($state['retiredAt'] ?? null) !== null ? ' · '.__('forms.actions.retired_label') : '';
 
         return $type === null ? $title : $title.' · '.__("forms.types.{$type->value}");
+    }
+
+    private static function roleHelp(mixed $role): ?string
+    {
+        return is_string($role) && in_array($role, ProposalFields::ROLES, true) ? __("forms.fields.role_{$role}_help") : null;
     }
 
     private static function isText(mixed $type): bool

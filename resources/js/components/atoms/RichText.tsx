@@ -120,12 +120,7 @@ function renderLink(element: Element, key: string, children: ReactNode[]): React
     }
 
     return (
-        <a
-            key={key}
-            href={href}
-            rel={LINK_REL}
-            className={cn('text-primary underline underline-offset-4 break-words', FOCUS_RING)}
-        >
+        <a key={key} href={href} rel={LINK_REL} className={cn('text-primary underline underline-offset-4 break-words', FOCUS_RING)}>
             {children}
         </a>
     );

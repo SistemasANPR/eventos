@@ -68,7 +68,11 @@ export default function RequestLink({
                 </header>
 
                 {linkRequested && (
-                    <section role="status" aria-labelledby="request-sent-title" className="rounded-lg border border-border bg-success-bg p-4">
+                    <section
+                        role="status"
+                        aria-labelledby="request-sent-title"
+                        className="rounded-lg border border-border bg-success-bg p-4"
+                    >
                         <h2 id="request-sent-title" className="text-lg font-semibold text-success">
                             {t('author.request.sent_title')}
                         </h2>
@@ -79,7 +83,11 @@ export default function RequestLink({
                 )}
 
                 {tooManyRequests && (
-                    <section role="alert" aria-labelledby="request-limit-title" className="rounded-lg border border-border bg-warning-bg p-4">
+                    <section
+                        role="alert"
+                        aria-labelledby="request-limit-title"
+                        className="rounded-lg border border-border bg-warning-bg p-4"
+                    >
                         <h2 id="request-limit-title" className="text-lg font-semibold text-warning">
                             {t('author.request.too_many_title')}
                         </h2>
