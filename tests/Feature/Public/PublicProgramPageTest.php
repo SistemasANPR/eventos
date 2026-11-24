@@ -28,13 +28,13 @@ afterEach(function (): void {
  * elegido, la paginación y el 404 uniforme.
  */
 
-function programUrl(Event $event, string $query = ''): string
+function programPageUrl(Event $event, string $query = ''): string
 {
     return "/{$event->organization->slug}/events/{$event->slug}/program".$query;
 }
 
 /** @param  array<string, mixed>  $attributes */
-function programEvent(array $attributes = []): Event
+function programPageEvent(array $attributes = []): Event
 {
     $organization = Organization::factory()->create();
 
@@ -48,13 +48,13 @@ function programEvent(array $attributes = []): Event
 }
 
 it('CA-029-1: answers 200 with the days in ascending order and only the activities of the first day', function (): void {
-    $event = programEvent();
+    $event = programPageEvent();
     ppActivity($event, ['title' => 'Cierre', 'starts_on' => '2027-03-12', 'ends_on' => '2027-03-12']);
     ppActivity($event, ['title' => 'Tarde', 'starts_on' => '2027-03-10', 'ends_on' => '2027-03-10', 'starts_at' => '15:00:00', 'ends_at' => '16:00:00']);
     ppActivity($event, ['title' => 'Apertura', 'starts_on' => '2027-03-10', 'ends_on' => '2027-03-10', 'starts_at' => '09:00:00', 'ends_at' => '10:00:00']);
 
     // Las peticiones de prueba traen `Accept-Language: en-us`: el visitante declara el suyo.
-    $this->get(programUrl($event), ['Accept-Language' => 'es-MX,es;q=0.9'])
+    $this->get(programPageUrl($event), ['Accept-Language' => 'es-MX,es;q=0.9'])
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
             ->component('Events/Program')
@@ -73,11 +73,11 @@ it('CA-029-1: answers 200 with the days in ascending order and only the activiti
 });
 
 it('CA-029-1: sends the public props of section 4.3 with relative urls and the event navigation', function (): void {
-    $event = programEvent();
+    $event = programPageEvent();
     $slug = $event->organization->slug;
     ppActivity($event, ['title' => 'Apertura']);
 
-    $this->get(programUrl($event))
+    $this->get(programPageUrl($event))
         ->assertInertia(fn (Assert $page) => $page
             ->where('nav.programUrl', "/{$slug}/events/{$event->slug}/program")
             ->where('nav.eventUrl', "/{$slug}/events/{$event->slug}")
@@ -88,26 +88,26 @@ it('CA-029-1: sends the public props of section 4.3 with relative urls and the e
 });
 
 it('CA-029-1: sends only the categories used by the shown day', function (): void {
-    $event = programEvent();
+    $event = programPageEvent();
     $used = ppCategory($event, 'Talleres', 1);
     ppCategory($event, 'Sin uso', 2);
     ppTag(ppActivity($event, ['title' => 'Uno']), $used);
 
-    $this->get(programUrl($event))
+    $this->get(programPageUrl($event))
         ->assertInertia(fn (Assert $page) => $page
             ->has('categories', 1)
             ->where('categories.0.name', 'Talleres'));
 });
 
 it('CA-029-1: paginates a day of more than one page with relative links that keep the day and the language', function (): void {
-    $event = programEvent();
+    $event = programPageEvent();
     $base = "/{$event->organization->slug}/events/{$event->slug}/program";
 
     foreach (range(0, 48) as $minute) {
         ppActivity($event, ['title' => sprintf('Actividad %02d', $minute), 'starts_at' => sprintf('09:%02d:00', $minute), 'ends_at' => sprintf('10:%02d:00', $minute)]);
     }
 
-    $this->get(programUrl($event, '?lang=en'))
+    $this->get(programPageUrl($event, '?lang=en'))
         ->assertInertia(fn (Assert $page) => $page
             ->has('activities.data', 48)
             ->where('activities.currentPage', 1)
@@ -115,7 +115,7 @@ it('CA-029-1: paginates a day of more than one page with relative links that kee
             ->where('activities.prevUrl', null)
             ->where('activities.nextUrl', "{$base}?lang=en&day=2027-03-10&page=2"));
 
-    $this->get(programUrl($event, '?day=2027-03-10&page=2'))
+    $this->get(programPageUrl($event, '?day=2027-03-10&page=2'))
         ->assertInertia(fn (Assert $page) => $page
             ->has('activities.data', 1)
             ->where('activities.currentPage', 2)
@@ -124,11 +124,11 @@ it('CA-029-1: paginates a day of more than one page with relative links that kee
 });
 
 it('CA-029-14: shows the requested day when it has activities', function (): void {
-    $event = programEvent();
+    $event = programPageEvent();
     ppActivity($event, ['title' => 'Uno', 'starts_on' => '2027-03-10', 'ends_on' => '2027-03-10']);
     ppActivity($event, ['title' => 'Dos', 'starts_on' => '2027-03-11', 'ends_on' => '2027-03-11']);
 
-    $this->get(programUrl($event, '?day=2027-03-11'))
+    $this->get(programPageUrl($event, '?day=2027-03-11'))
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
             ->where('day', '2027-03-11')
@@ -136,11 +136,11 @@ it('CA-029-14: shows the requested day when it has activities', function (): voi
 });
 
 it('CA-029-14: falls back to the first day without error for a day with no activities or a value that is not a date', function (string $query): void {
-    $event = programEvent();
+    $event = programPageEvent();
     ppActivity($event, ['title' => 'Uno', 'starts_on' => '2027-03-10', 'ends_on' => '2027-03-10']);
     ppActivity($event, ['title' => 'Dos', 'starts_on' => '2027-03-12', 'ends_on' => '2027-03-12']);
 
-    $this->get(programUrl($event, $query))
+    $this->get(programPageUrl($event, $query))
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
             ->where('day', '2027-03-10')
@@ -153,10 +153,10 @@ it('CA-029-14: falls back to the first day without error for a day with no activ
 ]);
 
 it('CA-029-14: an invalid page number is read as the first page without error', function (string $query): void {
-    $event = programEvent();
+    $event = programPageEvent();
     ppActivity($event, ['title' => 'Uno']);
 
-    $this->get(programUrl($event, $query))
+    $this->get(programPageUrl($event, $query))
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
             ->where('activities.currentPage', 1)
@@ -169,10 +169,10 @@ it('CA-029-14: an invalid page number is read as the first page without error', 
 ]);
 
 it('CA-029-12: sends the local date and time of the event without converting them', function (): void {
-    $event = programEvent(['timezone' => 'America/Mexico_City', 'time_format' => '12h']);
+    $event = programPageEvent(['timezone' => 'America/Mexico_City', 'time_format' => '12h']);
     ppActivity($event, ['title' => 'Noche', 'starts_on' => '2026-11-20', 'ends_on' => '2026-11-20', 'starts_at' => '23:30:00', 'ends_at' => '23:59:00']);
 
-    $this->get(programUrl($event))
+    $this->get(programPageUrl($event))
         ->assertInertia(fn (Assert $page) => $page
             ->where('day', '2026-11-20')
             ->where('activities.data.0.date', '2026-11-20')
@@ -182,19 +182,19 @@ it('CA-029-12: sends the local date and time of the event without converting the
 });
 
 it('CA-029-12: tells the client the time format of the event', function (): void {
-    $event = programEvent(['time_format' => '24h']);
+    $event = programPageEvent(['time_format' => '24h']);
     ppActivity($event);
 
-    $this->get(programUrl($event))
+    $this->get(programPageUrl($event))
         ->assertInertia(fn (Assert $page) => $page->where('event.timeFormat', '24h'));
 });
 
 it('CA-029-13: an activity that crosses midnight appears only under its start day and carries its end date', function (): void {
-    $event = programEvent();
+    $event = programPageEvent();
     ppActivity($event, ['title' => 'Noche', 'starts_on' => '2026-11-20', 'ends_on' => '2026-11-21', 'starts_at' => '22:00:00', 'ends_at' => '02:00:00']);
     ppActivity($event, ['title' => 'Siguiente', 'starts_on' => '2026-11-21', 'ends_on' => '2026-11-21']);
 
-    $this->get(programUrl($event, '?day=2026-11-20'))
+    $this->get(programPageUrl($event, '?day=2026-11-20'))
         ->assertInertia(fn (Assert $page) => $page
             ->where('days', ['2026-11-20', '2026-11-21'])
             ->has('activities.data', 1)
@@ -203,17 +203,17 @@ it('CA-029-13: an activity that crosses midnight appears only under its start da
             ->where('activities.data.0.endDate', '2026-11-21')
             ->where('activities.data.0.endTime', '02:00'));
 
-    $this->get(programUrl($event, '?day=2026-11-21'))
+    $this->get(programPageUrl($event, '?day=2026-11-21'))
         ->assertInertia(fn (Assert $page) => $page
             ->has('activities.data', 1)
             ->where('activities.data.0.title', 'Siguiente'));
 });
 
 it('CA-029-15: the interface follows ?lang=, falls back to the default language when it is not offered and follows Accept-Language', function (): void {
-    $event = programEvent();
+    $event = programPageEvent();
     ppActivity($event, ['title' => 'Texto tal como se guardo']);
 
-    $this->get(programUrl($event, '?lang=en'))
+    $this->get(programPageUrl($event, '?lang=en'))
         ->assertInertia(fn (Assert $page) => $page
             ->where('event.locale', 'en')
             ->where('event.name', 'Parks Congress')
@@ -222,35 +222,35 @@ it('CA-029-15: the interface follows ?lang=, falls back to the default language 
             ->where('activities.data.0.title', 'Texto tal como se guardo'));
 
     // Un idioma no ofrecido se ignora; sin otra preferencia que el evento ofrezca, gana el idioma por defecto del evento.
-    $this->get(programUrl($event, '?lang=pt'), ['Accept-Language' => 'fr'])
+    $this->get(programPageUrl($event, '?lang=pt'), ['Accept-Language' => 'fr'])
         ->assertInertia(fn (Assert $page) => $page
             ->where('event.locale', 'es')
             ->where('locale', 'es')
             ->where('translations.program.title', 'Programa'));
 
-    $this->get(programUrl($event), ['Accept-Language' => 'en-US,en;q=0.9'])
+    $this->get(programPageUrl($event), ['Accept-Language' => 'en-US,en;q=0.9'])
         ->assertInertia(fn (Assert $page) => $page->where('event.locale', 'en'));
 
-    $this->get(programUrl($event), ['Accept-Language' => 'fr'])
+    $this->get(programPageUrl($event), ['Accept-Language' => 'fr'])
         ->assertInertia(fn (Assert $page) => $page->where('event.locale', 'es'));
 });
 
 it('CA-029-15: keeps the language asked for in the links of the page', function (): void {
-    $event = programEvent();
+    $event = programPageEvent();
     ppActivity($event);
 
-    $this->get(programUrl($event, '?lang=en'))
+    $this->get(programPageUrl($event, '?lang=en'))
         ->assertInertia(fn (Assert $page) => $page
             ->where('nav.programUrl', "/{$event->organization->slug}/events/{$event->slug}/program?lang=en")
             ->where('nav.eventUrl', "/{$event->organization->slug}/events/{$event->slug}?lang=en"));
 });
 
 it('CA-029-17: a published event with nothing visible answers 200 with empty days and no activities', function (): void {
-    $event = programEvent();
+    $event = programPageEvent();
     ppActivity($event, ['is_published' => false]);
     ppActivity($event, ['starts_on' => null, 'ends_on' => null, 'starts_at' => null, 'ends_at' => null]);
 
-    $this->get(programUrl($event))
+    $this->get(programPageUrl($event))
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
             ->component('Events/Program')
@@ -261,25 +261,25 @@ it('CA-029-17: a published event with nothing visible answers 200 with empty day
 });
 
 it('CA-029-4: answers 404 for a draft, archived, nonexistent or other-organization event and for an unknown or suspended organization', function (): void {
-    $draft = programEvent(['status' => EventStatus::Draft]);
-    $archived = programEvent(['status' => EventStatus::Archived]);
-    $own = programEvent();
-    $other = programEvent();
+    $draft = programPageEvent(['status' => EventStatus::Draft]);
+    $archived = programPageEvent(['status' => EventStatus::Archived]);
+    $own = programPageEvent();
+    $other = programPageEvent();
     $suspended = Organization::factory()->create(['status' => OrganizationStatus::Suspended]);
     $suspendedEvent = Event::factory()->published()->create(['organization_id' => $suspended->id]);
 
-    $this->get(programUrl($draft))->assertNotFound();
-    $this->get(programUrl($archived))->assertNotFound();
+    $this->get(programPageUrl($draft))->assertNotFound();
+    $this->get(programPageUrl($archived))->assertNotFound();
     $this->get("/{$own->organization->slug}/events/no-existe/program")->assertNotFound();
     $this->get("/{$own->organization->slug}/events/{$other->slug}/program")->assertNotFound();
     $this->get("/no-existe/events/{$own->slug}/program")->assertNotFound();
-    $this->get(programUrl($suspendedEvent))->assertNotFound();
+    $this->get(programPageUrl($suspendedEvent))->assertNotFound();
 });
 
 it('CA-029-4: the 404 of a draft event is the same response as the one of an unknown event', function (): void {
-    $draft = programEvent(['status' => EventStatus::Draft]);
+    $draft = programPageEvent(['status' => EventStatus::Draft]);
 
-    $known = $this->get(programUrl($draft));
+    $known = $this->get(programPageUrl($draft));
     $unknown = $this->get("/{$draft->organization->slug}/events/no-existe/program");
 
     expect($known->getStatusCode())->toBe($unknown->getStatusCode())
@@ -287,12 +287,12 @@ it('CA-029-4: the 404 of a draft event is the same response as the one of an unk
 });
 
 it('CA-029-1: never shows activities of another organization with the same event slug', function (): void {
-    $mine = programEvent(['slug' => 'congreso']);
-    $other = programEvent(['slug' => 'congreso']);
+    $mine = programPageEvent(['slug' => 'congreso']);
+    $other = programPageEvent(['slug' => 'congreso']);
     ppActivity($mine, ['title' => 'Mi actividad']);
     ppActivity($other, ['title' => 'Ajena']);
 
-    $this->get(programUrl($mine))
+    $this->get(programPageUrl($mine))
         ->assertInertia(fn (Assert $page) => $page
             ->has('activities.data', 1)
             ->where('activities.data.0.title', 'Mi actividad'));
