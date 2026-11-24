@@ -4,7 +4,7 @@
 > `composer check:criteria` lee el **Estado** y los criterios de este archivo: no cambiar el formato de esas líneas.
 
 - **Fecha:** 2026-11-09
-- **Estado:** Aprobado (Antonio, 2026-11-23: especificacion y propuesta de datos de 2FA; alcance autorizado F0 y F1 (H-014-1); F2 a F5 en espera)
+- **Estado:** Aprobado (Antonio, 2026-11-23: especificacion y propuesta de datos de 2FA; F0 y F1 construidas. Antonio, 2026-11-24: alcance ampliado a F2 a F5 en lo que es codigo y documentacion: RLS con su contrato de contexto, runbooks y reaplicacion de anonimizaciones, exportar y anonimizar, retencion programada y un ADR de escaneo con las dos opciones medidas sin decidir. Quedan para una persona: la restauracion real en staging, los plazos de retencion y de respaldos, la decision del escaneo y activar RLS en staging y produccion)
 - **Esfuerzo:** L
 - **Deuda relacionada:** cierra RC-1 (RLS, P1), RC-2 (2FA, P1) y RC-3 (escaneo de archivos, P2) de `docs/plan-de-desarrollo.md` §3.4; estos puntos se registran en `docs/sprints/deuda-tecnica.md` al aprobar el ADR de recortes de seguridad
 
