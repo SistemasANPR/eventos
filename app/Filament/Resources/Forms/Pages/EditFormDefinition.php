@@ -12,8 +12,10 @@ use App\Exceptions\Domain\FormVersionConflict;
 use App\Filament\Resources\Forms\FormDefinitionResource;
 use App\Filament\Support\ActionErrors;
 use App\Models\CallForSubmissions;
+use App\Models\Event;
 use App\Models\FormDefinition;
 use App\Support\Forms\FormSettings;
+use App\Support\Forms\ProposalFields;
 use Filament\Actions\Action;
 use Filament\Forms\Components\Select;
 use Filament\Notifications\Notification;
@@ -67,6 +69,14 @@ class EditFormDefinition extends EditRecord
             'participants_position' => FormSettings::position($settings),
             'participant_fields' => FormSettings::participantFields($settings),
         ];
+
+        // Un formulario anterior no trae el título ni el tema de la propuesta: se muestran al principio de los campos
+        // y quedan guardados al guardar. Mientras no se guarde, el formulario público conserva su bloque fijo.
+        $event = Event::query()->find($data['event_id'] ?? null);
+
+        if ($event instanceof Event && is_array($data['fields'] ?? null)) {
+            $data['fields'] = ProposalFields::withDefaults(array_values($data['fields']), $event);
+        }
 
         return $data;
     }

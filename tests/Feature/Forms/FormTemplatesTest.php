@@ -73,7 +73,7 @@ it('CA-005-35: editing the copy does not change the template, and two copies do 
 
     expect(FormTemplates::definition(FormTemplates::SESSION))->toBe($before)
         ->and(array_intersect(array_column($first->fields, 'key'), array_column($second->fields, 'key')))->toBe([])
-        ->and(formInOrganization($organization, $second->id)->fields[0]['label']['es'])->toBe('Título');
+        ->and(formInOrganization($organization, $second->id)->fields[0]['label']['es'])->toBe('Título de la propuesta');
 });
 
 it('CA-005-35: an event whose base language is Portuguese gets the Portuguese name', function (): void {

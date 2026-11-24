@@ -14,6 +14,7 @@ use App\Models\FormDefinition;
 use App\Support\Forms\FormDefinitionRules;
 use App\Support\Forms\FormPreviewProps;
 use App\Support\Forms\FormSettings;
+use App\Support\Forms\ProposalFields;
 use Filament\Actions\Action;
 use Filament\Forms\Components\CheckboxList;
 use Filament\Forms\Components\Hidden;
@@ -112,6 +113,8 @@ final class FormDefinitionForm
                         ->hiddenLabel()
                         ->addActionLabel(__('forms.fields.add_field'))
                         ->maxItems(FormDefinitionRules::MAX_FIELDS)
+                        // Un formulario nuevo ya trae el título y el tema de la propuesta.
+                        ->default(fn ($livewire): array => ProposalFields::defaults(LocalizedFields::eventOf($livewire)))
                         ->collapsible()
                         // Orden con flechas además de arrastrar: se puede reordenar con teclado (CA-005-11).
                         ->reorderableWithButtons()
@@ -194,13 +197,21 @@ final class FormDefinitionForm
     {
         return [
             Hidden::make('key'),
+            // Función del campo (título o tema de la propuesta): ver `ProposalFields`.
+            Hidden::make('role'),
             Select::make('type')
                 ->label(__('forms.fields.type'))
                 ->options(self::typeOptions())
                 ->required()
-                ->live(),
+                ->live()
+                // El título y el tema tienen un tipo fijo; sigue enviándose aunque el control esté apagado.
+                ->disabled(fn (Get $get): bool => filled($get('role')))
+                ->dehydrated()
+                ->helperText(fn (Get $get): ?string => self::roleHelp($get('role'))),
             Toggle::make('required')
-                ->label(__('forms.fields.required')),
+                ->label(__('forms.fields.required'))
+                ->disabled(fn (Get $get): bool => filled($get('role')))
+                ->dehydrated(),
             Toggle::make('identifiesAuthor')
                 ->label(__('forms.fields.identifies_author'))
                 ->helperText(__('forms.fields.identifies_author_help'))
@@ -256,7 +267,8 @@ final class FormDefinitionForm
                     Hidden::make('value'),
                     ...self::optionLabels($event),
                 ])
-                ->visible(fn (Get $get): bool => self::hasOptions($get('type'))),
+                // Las opciones del tema son los ejes del evento: no se escriben aquí.
+                ->visible(fn (Get $get): bool => self::hasOptions($get('type')) && $get('role') !== ProposalFields::ROLE_TRACK),
             TextInput::make('config.maxSelections')
                 ->label(__('forms.fields.max_selections'))
                 ->numeric()->minValue(1)
@@ -305,6 +317,11 @@ final class FormDefinitionForm
         $title .= ($state['retiredAt'] ?? null) !== null ? ' · '.__('forms.actions.retired_label') : '';
 
         return $type === null ? $title : $title.' · '.__("forms.types.{$type->value}");
+    }
+
+    private static function roleHelp(mixed $role): ?string
+    {
+        return is_string($role) && in_array($role, ProposalFields::ROLES, true) ? __("forms.fields.role_{$role}_help") : null;
     }
 
     private static function isText(mixed $type): bool

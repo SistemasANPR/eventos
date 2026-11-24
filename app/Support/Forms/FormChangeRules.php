@@ -53,7 +53,8 @@ final class FormChangeRules
         foreach ($newFields as $field) {
             $isNew = ! is_string($field['key'] ?? null) || ! isset($stored[$field['key']]);
 
-            if ($isNew && ($field['required'] ?? false) === true) {
+            // El título y el tema ya existían como bloque fijo: añadirlos como campos no pide nada nuevo a las propuestas recibidas.
+            if ($isNew && ($field['required'] ?? false) === true && ! ProposalFields::isRoleField($field)) {
                 throw FormChangeNotAllowed::requiredFieldAdded((string) ($field['label'][array_key_first($field['label'])] ?? ''));
             }
         }

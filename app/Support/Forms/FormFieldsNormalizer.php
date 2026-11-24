@@ -54,10 +54,13 @@ final class FormFieldsNormalizer
                 $key = $this->generate('f_', $takenKeys);
             }
 
-            $normalized[] = [
+            $role = ProposalFields::roleOf($field);
+
+            $entry = [
                 'key' => $key,
                 'type' => $type->value,
-                'required' => ($field['required'] ?? false) === true || ($field['required'] ?? false) === 1,
+                // El título y el tema siempre son obligatorios: la propuesta no existe sin ellos.
+                'required' => $role !== null || ($field['required'] ?? false) === true || ($field['required'] ?? false) === 1,
                 'position' => $index + 1,
                 'identifiesAuthor' => ($field['identifiesAuthor'] ?? false) === true,
                 'label' => $this->kept($this->texts($field['label']), $existing['label'] ?? [], $event),
@@ -65,6 +68,13 @@ final class FormFieldsNormalizer
                 'config' => $this->config($type, $field['config'] ?? [], $existing['config']['options'] ?? [], $event),
                 'retiredAt' => $existing['retiredAt'] ?? null,
             ];
+
+            // Solo se guarda cuando la hay: los formularios anteriores quedan iguales.
+            if ($role !== null) {
+                $entry['role'] = $role;
+            }
+
+            $normalized[] = $entry;
         }
 
         if (strlen((string) json_encode($normalized, JSON_UNESCAPED_UNICODE)) > self::MAX_DEFINITION_BYTES) {
@@ -92,8 +102,7 @@ final class FormFieldsNormalizer
                 'min' => $this->number($config['min'] ?? null),
                 'max' => $this->number($config['max'] ?? null),
             ]),
-            FieldType::SingleChoice => ['options' => $this->options($config['options'] ?? [], $storedOptions, $event)],
-            FieldType::MultipleChoice => $this->present([
+            FieldType::SingleChoice => ['options' => $this->options($config['options'] ?? [], $storedOptions, $event)],            FieldType::MultipleChoice => $this->present([
                 'options' => $this->options($config['options'] ?? [], $storedOptions, $event),
                 'maxSelections' => $this->number($config['maxSelections'] ?? null),
             ]),

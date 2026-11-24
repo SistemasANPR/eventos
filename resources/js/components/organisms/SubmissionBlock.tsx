@@ -29,6 +29,10 @@ interface SubmissionBlockProps {
     className?: string;
     /** `false` oculta la tarjeta de título y eje y deja solo la de participantes (vista previa del editor de formularios). */
     showDetails?: boolean;
+    /** `false` cuando el formulario ya trae su propia pregunta de título (campo del formulario): no se repite aquí. */
+    showTitle?: boolean;
+    /** `false` cuando el formulario ya trae su propia pregunta de tema (campo del formulario): no se repite aquí. */
+    showTrack?: boolean;
     /** `false` oculta la tarjeta de participantes (se dibuja aparte, p. ej. al final del formulario). */
     showParticipants?: boolean;
     /** Qué preguntas de los participantes pide el formulario; sin él, todas con los obligatorios de siempre. */
@@ -58,6 +62,8 @@ export function SubmissionBlock({
     idPrefix = 'submit',
     className,
     showDetails = true,
+    showTitle = true,
+    showTrack = true,
     showParticipants = true,
     participantConfig,
 }: SubmissionBlockProps) {
@@ -108,13 +114,13 @@ export function SubmissionBlock({
 
     return (
         <div className={cn('space-y-8', className)}>
-            {showDetails ? (
+            {showDetails && (showTitle || showTrack) ? (
                 <section aria-labelledby={`${idPrefix}-details`} className={cn(SECTION_CARD, 'space-y-6')}>
                     <h2 id={`${idPrefix}-details`} className={SECTION_HEADING}>
                         {t('submit.section_details')}
                     </h2>
-                    <FormFieldInput {...shared} field={titleField(locale, t)} error={errors['s.title']} />
-                    <FormFieldInput {...shared} field={trackField(tracks, locale, t)} error={errors['s.track_id']} />
+                    {showTitle ? <FormFieldInput {...shared} field={titleField(locale, t)} error={errors['s.title']} /> : null}
+                    {showTrack ? <FormFieldInput {...shared} field={trackField(tracks, locale, t)} error={errors['s.track_id']} /> : null}
                 </section>
             ) : null}
 

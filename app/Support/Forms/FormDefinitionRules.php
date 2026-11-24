@@ -111,6 +111,8 @@ final class FormDefinitionRules
             'fields.*' => ['array'],
             'fields.*.key' => ['nullable', 'string', 'max:64'],
             'fields.*.type' => ['required', Rule::enum(FieldType::class)],
+            // Función del campo: título o tema de la propuesta (ver `ProposalFields`).
+            'fields.*.role' => ['nullable', Rule::in(ProposalFields::ROLES)],
             'fields.*.required' => ['sometimes', 'boolean'],
             'fields.*.identifiesAuthor' => ['sometimes', self::strictBoolean()],
             'fields.*.label' => ['required', $locales],
@@ -145,6 +147,7 @@ final class FormDefinitionRules
             }
 
             $seenKeys = [];
+            $seenRoles = [];
 
             // Se conservan las claves del arreglo: el repetidor de Filament las usa como identificador
             // de cada fila y los errores solo se pintan junto a su campo si la ruta coincide.
@@ -158,6 +161,7 @@ final class FormDefinitionRules
                 self::checkIdentifiesAuthor($validator, $path, $field);
                 self::checkConfig($validator, $path, $field, $event);
                 self::checkKey($validator, $path, $field, $seenKeys);
+                self::checkRole($validator, $path, $field, $seenRoles);
             }
         });
     }
@@ -206,7 +210,8 @@ final class FormDefinitionRules
             self::checkRange($validator, $path, $config, 'min', 'max');
         }
 
-        if ($type?->hasOptions()) {
+        // Las opciones del tema son los ejes del evento: no se escriben aquí.
+        if ($type?->hasOptions() && ($field['role'] ?? null) !== ProposalFields::ROLE_TRACK) {
             self::checkOptions($validator, $path, $config, $event, $type === FieldType::MultipleChoice);
         }
     }
@@ -279,6 +284,33 @@ final class FormDefinitionRules
         }
 
         $seenKeys[$key] = true;
+    }
+
+    /**
+     * El título es un texto corto y el tema una selección única; cada función se usa una sola vez.
+     *
+     * @param  array<string, mixed>  $field
+     * @param  array<string, true>  $seenRoles
+     */
+    private static function checkRole(FormValidator $validator, string $path, array $field, array &$seenRoles): void
+    {
+        $role = ProposalFields::roleOf($field);
+
+        if ($role === null) {
+            return;
+        }
+
+        $expected = $role === ProposalFields::ROLE_TITLE ? FieldType::ShortText : FieldType::SingleChoice;
+
+        if (self::typeOf($field) !== $expected) {
+            $validator->errors()->add($path.'.type', __('forms.role_type'));
+        }
+
+        if (isset($seenRoles[$role])) {
+            $validator->errors()->add($path.'.role', __('forms.role_repeated'));
+        }
+
+        $seenRoles[$role] = true;
     }
 
     /** @param  array<string, mixed>  $field */

@@ -21,6 +21,11 @@ export function readSubmission(data: FormData, fields: readonly FormField[], par
     const files: Record<string, File[]> = {};
 
     for (const field of activeFields(fields)) {
+        // El título y el tema de la propuesta llegan con nombre fijo (`s.title`, `s.track_id`) y no son respuestas.
+        if (field.key.startsWith(FIXED_PREFIX)) {
+            continue;
+        }
+
         if (field.type === 'file') {
             const chosen = data.getAll(field.key).filter((entry): entry is File => entry instanceof File && entry.size > 0);
             if (chosen.length > 0) {

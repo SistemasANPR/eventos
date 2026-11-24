@@ -60,7 +60,8 @@ final class FormPreviewProps
         usort($fields, static fn (array $a, array $b): int => $a['position'] <=> $b['position']);
 
         return [
-            'fields' => $fields,
+            // El título y el tema de la propuesta se envían con su nombre fijo (`s.title`, `s.track_id`).
+            'fields' => ProposalFields::forRenderer($fields, $event, $locale),
             'locale' => $locale,
             'defaultLocale' => $event->default_locale,
             'translations' => ['forms' => ['renderer' => trans('forms.renderer', [], $locale)]],

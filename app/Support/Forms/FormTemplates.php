@@ -76,7 +76,7 @@ final class FormTemplates
             self::SESSION => [
                 'name' => ['es' => 'Formulario de sesión', 'en' => 'Session form', 'pt' => 'Formulário de sessão'],
                 'fields' => [
-                    self::title(),
+                    ...self::proposal(),
                     self::longText('Descripción', 'Description', 'Descrição', 2000),
                     self::longText('Objetivos', 'Objectives', 'Objetivos', 1500),
                     self::longText('Justificación', 'Rationale', 'Justificativa', 1500),
@@ -88,7 +88,7 @@ final class FormTemplates
             self::PANEL => [
                 'name' => ['es' => 'Formulario de panel', 'en' => 'Panel form', 'pt' => 'Formulário de painel'],
                 'fields' => [
-                    self::title(),
+                    ...self::proposal(),
                     self::longText('Descripción', 'Description', 'Descrição', 2000),
                     self::longText('Objetivos', 'Objectives', 'Objetivos', 1500),
                     [
@@ -110,7 +110,7 @@ final class FormTemplates
             self::POSTER => [
                 'name' => ['es' => 'Formulario de póster', 'en' => 'Poster form', 'pt' => 'Formulário de pôster'],
                 'fields' => [
-                    self::title(),
+                    ...self::proposal(),
                     self::longText('Resumen', 'Abstract', 'Resumo', 1500),
                     self::keywords(),
                     [
@@ -150,14 +150,29 @@ final class FormTemplates
         ];
     }
 
-    /** @return array<string, mixed> */
-    private static function title(): array
+    /**
+     * Título y tema de la propuesta: van al principio de todas las plantillas y se editan como cualquier campo.
+     * El tema ofrece los ejes del evento, así que no lleva opciones propias.
+     *
+     * @return list<array<string, mixed>>
+     */
+    private static function proposal(): array
     {
         return [
-            'type' => 'short_text',
-            'required' => true,
-            'label' => ['es' => 'Título', 'en' => 'Title', 'pt' => 'Título'],
-            'config' => ['maxLength' => 200],
+            [
+                'type' => 'short_text',
+                'role' => ProposalFields::ROLE_TITLE,
+                'required' => true,
+                'label' => ['es' => 'Título de la propuesta', 'en' => 'Proposal title', 'pt' => 'Título da proposta'],
+                'config' => ['maxLength' => 200],
+            ],
+            [
+                'type' => 'single_choice',
+                'role' => ProposalFields::ROLE_TRACK,
+                'required' => true,
+                'label' => ['es' => 'Tema', 'en' => 'Track', 'pt' => 'Tema'],
+                'config' => ['options' => []],
+            ],
         ];
     }
 

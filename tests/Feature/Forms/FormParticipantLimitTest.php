@@ -2,11 +2,14 @@
 
 declare(strict_types=1);
 
+use App\Actions\Forms\BuildSubmissionRules;
 use App\Actions\Forms\CreateFormDefinition;
 use App\Actions\Forms\PublishFormDefinition;
 use App\Actions\Forms\UpdateFormDefinition;
 use App\Models\CallForSubmissions;
+use App\Support\Forms\FormPreviewProps;
 use App\Support\Forms\FormSettings;
+use App\Support\Forms\ProposalFields;
 use App\Support\Tenancy\CurrentOrganization;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Validation\ValidationException;
@@ -123,4 +126,21 @@ it('the participant rules follow the form: off is refused, required is required,
     expect($rules['participants.*.company'])->toBe(['prohibited'])
         ->and($rules['participants.*.bio'])->toContain('nullable')
         ->and($rules['participants.*.state'])->toContain('required');
+});
+
+it('the proposal title and track are fields of the form, always required, with the track options left to the event', function (): void {
+    [$organization, $event, $admin] = formScenario();
+    CurrentOrganization::set($organization);
+    $form = app(CreateFormDefinition::class)->handle($admin, $event, ['name' => 'Formulario', 'fields' => ProposalFields::defaults($event)]);
+
+    expect(array_column($form->fields, 'role'))->toBe(['title', 'track'])
+        ->and(array_column($form->fields, 'required'))->toBe([true, true])
+        ->and($form->fields[1]['config'])->toBe(['options' => []]);
+
+    $renderer = app(FormPreviewProps::class)->handle($form, $event, $event->default_locale);
+
+    expect(array_column($renderer['fields'], 'key'))->toBe(['s.title', 's.track_id']);
+
+    // Sus valores no son respuestas: el servidor no los pide en `answers`.
+    expect(app(BuildSubmissionRules::class)->handle($form->fields, '', $form->organization_id))->toBe([]);
 });

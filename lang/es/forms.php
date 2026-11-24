@@ -73,6 +73,8 @@ return [
         'fields_help' => 'Cada campo recibe una clave interna que no cambia al editarlo. Con propuestas recibidas, un campo no se elimina ni cambia de tipo.',
         'add_field' => 'Añadir campo',
         'untitled' => 'Campo sin título',
+        'role_title_help' => 'Es el título de la propuesta: siempre es un texto corto y obligatorio. Puedes cambiar su texto.',
+        'role_track_help' => 'Es el tema de la propuesta: las opciones son los ejes del evento y siempre es obligatorio. Puedes cambiar su texto.',
         'type' => 'Tipo de campo',
         'required' => 'Obligatorio',
         'identifies_author' => 'Puede delatar a quien envía',
@@ -108,6 +110,8 @@ return [
     'options_repeated' => 'Las opciones no pueden repetirse.',
     'max_selections_exceeds_options' => 'El máximo de selecciones no puede superar el número de opciones.',
     'key_repeated' => 'Dos campos no pueden usar la misma clave.',
+    'role_type' => 'El título debe ser un texto corto y el tema una selección única.',
+    'role_repeated' => 'El título y el tema de la propuesta solo pueden estar una vez en el formulario.',
     'definition_too_large' => 'El formulario es demasiado grande. Reduce campos, opciones o textos.',
     'preview' => [
         'action' => 'Vista previa',

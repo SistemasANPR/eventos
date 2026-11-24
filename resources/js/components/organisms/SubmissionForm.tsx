@@ -215,6 +215,9 @@ export function SubmissionForm({ form, locale, t, errors, failure, isProcessing,
     const submitLabel = isUploading ? t('submit.uploading') : isProcessing ? t('submit.sending') : t('submit.send_action');
 
     const isParticipantsLast = form.participantsPosition === 'bottom';
+    // Si el formulario trae su propia pregunta de título o de tema, el bloque fijo «Datos de la propuesta» no la repite.
+    const hasTitleField = form.fields.some((field) => field.key === `${FIXED_PREFIX}title`);
+    const hasTrackField = form.fields.some((field) => field.key === `${FIXED_PREFIX}track_id`);
     const block = (parts: { showDetails: boolean; showParticipants: boolean }) => (
         <SubmissionBlock
             locale={locale}
@@ -230,6 +233,8 @@ export function SubmissionForm({ form, locale, t, errors, failure, isProcessing,
             participantsError={mapped.participants}
             participantConfig={form.participantFields}
             showDetails={parts.showDetails}
+            showTitle={!hasTitleField}
+            showTrack={!hasTrackField}
             showParticipants={parts.showParticipants}
         />
     );

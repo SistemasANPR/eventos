@@ -73,6 +73,8 @@ return [
         'fields_help' => 'Each field gets an internal key that does not change when you edit it. Once proposals have been received, a field cannot be deleted or change its type.',
         'add_field' => 'Add field',
         'untitled' => 'Untitled field',
+        'role_title_help' => 'This is the proposal title: always a short text and required. You can change its wording.',
+        'role_track_help' => 'This is the proposal track: the options are the event tracks and it is always required. You can change its wording.',
         'type' => 'Field type',
         'required' => 'Required',
         'identifies_author' => 'Can identify the author',
@@ -108,6 +110,8 @@ return [
     'options_repeated' => 'Options cannot be repeated.',
     'max_selections_exceeds_options' => 'The maximum number of selections cannot exceed the number of options.',
     'key_repeated' => 'Two fields cannot use the same key.',
+    'role_type' => 'The title must be a short text and the track a single choice.',
+    'role_repeated' => 'The proposal title and track can only appear once in the form.',
     'definition_too_large' => 'The form is too large. Reduce fields, options or texts.',
     'preview' => [
         'action' => 'Preview',
