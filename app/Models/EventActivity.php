@@ -6,6 +6,8 @@ namespace App\Models;
 
 use App\Models\Concerns\BelongsToOrganization;
 use Database\Factories\EventActivityFactory;
+use Illuminate\Database\Eloquent\Attributes\Scope;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -44,6 +46,11 @@ class EventActivity extends Model
     /** @use HasFactory<EventActivityFactory> */
     use HasFactory, HasUuids, SoftDeletes;
 
+    /** Tamaño de página del programa público y su tope (plan 029, DA-4; AGENTS.md: máximo 100). */
+    public const PUBLIC_PER_PAGE = 48;
+
+    public const PUBLIC_MAX_PER_PAGE = 100;
+
     /** @var list<string> */
     protected $guarded = ['*'];
 
@@ -56,6 +63,21 @@ class EventActivity extends Model
             'is_published' => 'boolean',
             'hidden_by_reversal_at' => 'datetime',
         ];
+    }
+
+    /**
+     * Lo que el público puede ver (plan 029, DA-3): publicada, no oculta por una reversa y programada
+     * (con fecha). El borrado lógico ya lo excluye el scope de `SoftDeletes`. Comprueba la reversa
+     * aunque hoy implique «no publicada» (defensa en profundidad).
+     *
+     * @param  Builder<EventActivity>  $query
+     */
+    #[Scope]
+    protected function visibleToPublic(Builder $query): void
+    {
+        $query->where($this->qualifyColumn('is_published'), true)
+            ->whereNull($this->qualifyColumn('hidden_by_reversal_at'))
+            ->whereNotNull($this->qualifyColumn('starts_on'));
     }
 
     /** Con fecha y hora; si no, está «sin programar» (DA-4). */
