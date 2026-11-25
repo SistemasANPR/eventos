@@ -67,7 +67,7 @@ h3,
     background-color: #011a5e;
     background-image:
         radial-gradient(60rem 30rem at 15% -10%, rgb(1 39 135 / 0.35), transparent 60%),
-        linear-gradient(160deg, #012787 0%, #011a5e 55%, #08155d 100%);
+        linear-gradient(160deg, #012787 0%, #011a5e 55%, #01134a 100%);
     background-attachment: fixed;
 }
 
@@ -135,7 +135,8 @@ h3,
 .fi-simple-layout:has(.eventos-auth-brand) {
     display: grid;
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-    min-height: 100vh;
+    grid-template-rows: minmax(100vh, auto);
+    align-items: stretch;
     background: #ffffff;
 }
 
@@ -249,16 +250,16 @@ h3,
 }
 
 .eventos-auth-brand-circle-ring {
-    inset-inline-end: -9rem;
-    inset-block-end: -11rem;
-    width: 26rem;
-    height: 26rem;
+    inset-inline-end: -3.5rem;
+    inset-block-end: -3.5rem;
+    width: 28rem;
+    height: 28rem;
     border: 3rem solid rgb(210 221 10 / 0.18);
 }
 
 .eventos-auth-brand-circle-dot {
-    inset-inline-end: 6rem;
-    inset-block-end: 6rem;
+    inset-inline-end: 7.5rem;
+    inset-block-end: 8.75rem;
     width: 7.5rem;
     height: 7.5rem;
     background-color: rgb(218 231 224 / 0.12);
@@ -297,11 +298,18 @@ h3,
     letter-spacing: -0.01em;
 }
 
+/* Enlaces del formulario en el azul de marca (el tono 500 de Filament queda claro sobre blanco). */
+.fi-simple-layout:has(.eventos-auth-brand) .fi-simple-main .fi-link {
+    color: var(--eventos-navy);
+    text-decoration: underline;
+}
+
 /* En pantallas menores a 1024 px el panel de marca es una cabecera compacta sobre el formulario. */
 @media (max-width: 1023px) {
     .fi-simple-layout:has(.eventos-auth-brand) {
         grid-template-columns: minmax(0, 1fr);
         grid-template-rows: auto 1fr;
+        min-height: 100vh;
     }
 
     .eventos-auth-brand {
@@ -342,7 +350,7 @@ h3,
     --eventos-text: #243342;
     --eventos-muted: #4b5a68;
     --eventos-field-border: #84909c;
-    --eventos-status-draft: #8e9aa6;
+    --eventos-status-draft: #aab4be;
     --eventos-status-published: #2e7d32;
     --eventos-status-archived: #92400e;
 

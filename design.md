@@ -160,7 +160,7 @@ Dirección visual: **Institucional** (variación A de la guía de marca). El mar
 |---|---|---|---|---|---|---|---|---|---|---|
 | Azul ANPR | `#EEF1FA` | `#DDE4F6` | `#B9C7F0` | `#8DA3DE` | `#4F6FC0` | `#1F46A3` | **`#012787`** (marca) | `#011A5E` | `#01134A` | `#010C33` |
 | Lima | `#F8FAE0` | `#F0F5B0` | `#E6EE5C` | **`#D2DD0A`** (marca) | `#B5BF09` | `#939B08` | `#747B06` | `#5A6005` | `#434704` | `#2D3003` |
-| Neutro frío | `#FAFBFC` | `#F4F6F8` | `#E3E8EC` | `#C5CED6` | `#8E9AA6` | `#5B6975` | `#4B5A68` | `#364452` | `#243342` | `#16202B` |
+| Neutro frío | `#FAFBFC` | `#F4F6F8` | `#E3E8EC` | `#C5CED6` | `#AAB4BE` | `#84909C` | `#4B5A68` | `#364452` | `#243342` | `#16202B` |
 
 Verde-azulado de apoyo: `#156A62` (texto e iconos). El `#3D9E94` del logotipo es **solo decorativo**: no lleva texto.
 
