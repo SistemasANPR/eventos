@@ -70,23 +70,23 @@
  * La prueba tokens.test.ts exige contraste AA (4,5:1) en cada par texto/fondo.
  */
 @theme {
-    --color-bg: #f8fafe;
+    --color-bg: #f4f6f8;
     --color-surface: #ffffff;
     --color-surface-raised: #ffffff;
-    --color-border: #e2e6ef;
+    --color-border: #e3e8ec;
     /* Borde de campos de formulario: 3:1 como mínimo (WCAG 1.4.11). */
-    --color-border-input: #777a82;
+    --color-border-input: #84909c;
     --color-text: #243342;
-    --color-text-muted: #585b62;
+    --color-text-muted: #4b5a68;
 
     /* Marino: acción principal, navegación, enlaces y títulos. */
-    --color-primary: #152b83;
-    --color-primary-hover: #0d1e70;
+    --color-primary: #012787;
+    --color-primary-hover: #011a5e;
     --color-primary-contrast: #ffffff;
 
     /* Lima: destacados y la acción principal sobre fondo marino. Nunca texto sobre blanco. */
-    --color-accent: #bfcc36;
-    --color-accent-contrast: #152b83;
+    --color-accent: #d2dd0a;
+    --color-accent-contrast: #012787;
 
     /* Verde-azulado: etiquetas, iconos e información de apoyo. */
     --color-support: #156a62;
