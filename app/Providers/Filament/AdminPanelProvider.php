@@ -114,6 +114,8 @@ class AdminPanelProvider extends PanelProvider
      * «Datos de la organización» como primera entrada del grupo «Organización» (sort 9, antes de Equipo,
      * que lleva 10): la pantalla ya existía, pero solo se alcanzaba desde el selector de organización.
      * Se ofrece a quien puede editarla (`EditOrganizationProfile::canView`); la Policy la niega en el servidor.
+     * Solo existe en este panel: el de plataforma no tiene la ruta del perfil de organización, y un usuario
+     * de plataforma que además es miembro de una organización llegaba a pedir una URL inexistente (500).
      */
     private static function organizationProfileItem(): NavigationItem
     {
@@ -121,8 +123,10 @@ class AdminPanelProvider extends PanelProvider
             ->group(fn (): string => __('navigation.groups.organization'))
             ->icon(Heroicon::OutlinedBuildingOffice2)
             ->sort(9)
-            ->visible(fn (): bool => ($tenant = Filament::getTenant()) instanceof Organization && EditOrganizationProfile::canView($tenant))
-            ->url(fn (): string => EditOrganizationProfile::getUrl(tenant: Filament::getTenant()))
+            ->visible(fn (): bool => Filament::getCurrentPanel()?->getId() === 'admin'
+                && ($tenant = Filament::getTenant()) instanceof Organization
+                && EditOrganizationProfile::canView($tenant))
+            ->url(fn (): string => EditOrganizationProfile::getUrl(panel: 'admin', tenant: Filament::getTenant()))
             ->activeWhen(fn (): bool => original_request()->routeIs('filament.admin.tenant.profile'));
     }
 
