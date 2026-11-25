@@ -69,14 +69,15 @@ it('CA-015-9: every hex color of the theme belongs to the design.md tokens', fun
 it('CA-015-10: the new text and background pairs reach AA and are the ones the theme uses', function (): void {
     // [texto, fondo, mínimo]: 4,5 para texto; 3 para bordes de campo y glifos.
     $pairs = [
-        'sidebar item' => ['#cfdbf6', '#152b83', 4.5],
-        'sidebar active item' => ['#ffffff', '#0d1e70', 4.5],
-        'page heading' => ['#152b83', '#f8fafe', 4.5],
-        'page subheading' => ['#585b62', '#f8fafe', 4.5],
-        'table header' => ['#585b62', '#f1f3f8', 4.5],
-        'table row hover' => ['#243342', '#f4f7fe', 4.5],
-        'lime action' => ['#152b83', '#bfcc36', 4.5],
-        'field border' => ['#777a82', '#ffffff', 3.0],
+        'sidebar item' => ['#ffffff', '#012787', 4.5],
+        'sidebar group label' => ['#b9c7f0', '#012787', 4.5],
+        'sidebar active item' => ['#012787', '#d2dd0a', 4.5],
+        'page heading' => ['#012787', '#f4f6f8', 4.5],
+        'page subheading' => ['#4b5a68', '#f4f6f8', 4.5],
+        'table header' => ['#4b5a68', '#f4f6f8', 4.5],
+        'table row hover' => ['#243342', '#eef1fa', 4.5],
+        'lime action' => ['#012787', '#d2dd0a', 4.5],
+        'field border' => ['#84909c', '#ffffff', 3.0],
     ];
     $css = styleCss();
 
@@ -156,6 +157,6 @@ it('CA-015-14: the organization name of the selector is legible on the navy side
 
     expect($css)->toContain('.fi-tenant-menu-trigger-tenant-name')
         ->and($css)->toContain('.fi-tenant-menu-trigger-current-tenant-label')
-        ->and(styleContrast('#ffffff', '#152b83'))->toBeGreaterThanOrEqual(4.5)
-        ->and(styleContrast('#cfdbf6', '#152b83'))->toBeGreaterThanOrEqual(4.5);
+        ->and(styleContrast('#ffffff', '#012787'))->toBeGreaterThanOrEqual(4.5)
+        ->and(styleContrast('#b9c7f0', '#012787'))->toBeGreaterThanOrEqual(4.5);
 });

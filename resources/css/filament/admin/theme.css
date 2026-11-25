@@ -64,16 +64,16 @@ h3,
  * detalle lima de `.fi-simple-header .fi-logo`.
  */
 .fi-simple-layout {
-    background-color: #0d1e70;
+    background-color: #011a5e;
     background-image:
-        radial-gradient(60rem 30rem at 15% -10%, rgb(87 114 186 / 0.35), transparent 60%),
-        linear-gradient(160deg, #152b83 0%, #0d1e70 55%, #08155d 100%);
+        radial-gradient(60rem 30rem at 15% -10%, rgb(1 39 135 / 0.35), transparent 60%),
+        linear-gradient(160deg, #012787 0%, #011a5e 55%, #01134a 100%);
     background-attachment: fixed;
 }
 
 .fi-simple-layout .fi-simple-main {
     background-color: #ffffff;
-    box-shadow: 0 24px 48px -12px rgb(8 21 93 / 0.55);
+    box-shadow: 0 24px 48px -12px rgb(1 19 74 / 0.55);
     border-radius: 1rem;
 }
 
@@ -94,7 +94,7 @@ h3,
     font-size: 1.75rem;
     font-weight: 800;
     letter-spacing: -0.01em;
-    color: #152b83;
+    color: #012787;
 }
 
 .fi-simple-header .fi-logo::after {
@@ -103,11 +103,11 @@ h3,
     width: 2.5rem;
     height: 0.25rem;
     border-radius: 9999px;
-    background-color: #bfcc36;
+    background-color: #d2dd0a;
 }
 
 .fi-simple-header-heading {
-    color: #152b83;
+    color: #012787;
     font-size: 1.25rem;
 }
 
@@ -116,13 +116,220 @@ h3,
 .fi-simple-main button:focus-visible,
 .fi-simple-main input:focus-visible,
 .fi-simple-main [tabindex]:focus-visible {
-    outline: 2px solid #152b83;
+    outline: 2px solid #012787;
     outline-offset: 2px;
 }
 
 /* Subtitulo en `text-muted` (6,8:1): el gris por defecto de Filament no llega a AA. */
 .fi-simple-header-subheading {
-    color: #585b62;
+    color: #4b5a68;
+}
+
+
+/*
+ * Acceso en dos columnas (identidad ANPR): panel de marca a la izquierda y formulario a la derecha.
+ * Solo aplica a las pantallas que reciben el panel de marca (`filament.auth.brand-panel`); el resto
+ * de pantallas simples conserva la tarjeta de arriba. Lima y verde claro son decorativos o van
+ * sobre fondo azul; el texto sobre blanco es siempre azul o gris de la guía.
+ */
+.fi-simple-layout:has(.eventos-auth-brand) {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-rows: minmax(100vh, auto);
+    align-items: stretch;
+    background: #ffffff;
+}
+
+.eventos-auth-brand {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 2.5rem;
+    overflow: hidden;
+    padding: 3.5rem 4rem;
+    background-color: var(--eventos-navy);
+    color: #ffffff;
+}
+
+.eventos-auth-brand > * {
+    position: relative;
+    z-index: 1;
+}
+
+.eventos-auth-brand-logo {
+    display: flex;
+    align-items: center;
+    gap: 0.875rem;
+    font-family: 'Montserrat', system-ui, -apple-system, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+    font-size: 1rem;
+    font-weight: 700;
+    line-height: 1.25;
+    max-width: 18rem;
+}
+
+.eventos-auth-brand-mark {
+    display: grid;
+    place-items: center;
+    flex: none;
+    width: 3rem;
+    height: 3rem;
+    border-radius: 0.75rem;
+    background-color: var(--eventos-lime);
+    color: var(--eventos-navy);
+    font-size: 1.125rem;
+    font-weight: 800;
+}
+
+.eventos-auth-brand-kicker {
+    margin: 0 0 0.75rem;
+    font-size: 0.8125rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    color: var(--eventos-lime);
+}
+
+.eventos-auth-brand-title {
+    margin: 0;
+    font-family: 'Montserrat', system-ui, -apple-system, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+    font-size: 4.5rem;
+    font-weight: 800;
+    line-height: 1;
+    letter-spacing: -0.02em;
+}
+
+.eventos-auth-brand-title::after {
+    content: '';
+    display: block;
+    width: 4.5rem;
+    height: 0.3125rem;
+    margin-top: 1.5rem;
+    border-radius: 9999px;
+    background-color: var(--eventos-lime);
+}
+
+.eventos-auth-brand-tagline {
+    max-width: 30rem;
+    margin: 1.5rem 0 0;
+    font-size: 1.25rem;
+    line-height: 1.6;
+    color: var(--eventos-mist);
+}
+
+.eventos-auth-brand-modules {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.eventos-auth-brand-modules li {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0.875rem;
+    border: 1px solid rgb(218 231 224 / 0.35);
+    border-radius: 9999px;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.eventos-auth-brand-icon {
+    width: 1.125rem;
+    height: 1.125rem;
+}
+
+/* Círculos decorativos: detrás del texto, recortados por el borde del panel. */
+.eventos-auth-brand-circle {
+    position: absolute;
+    z-index: 0;
+    border-radius: 9999px;
+    pointer-events: none;
+}
+
+.eventos-auth-brand-circle-ring {
+    inset-inline-end: -3.5rem;
+    inset-block-end: -3.5rem;
+    width: 28rem;
+    height: 28rem;
+    border: 3rem solid rgb(210 221 10 / 0.18);
+}
+
+.eventos-auth-brand-circle-dot {
+    inset-inline-end: 7.5rem;
+    inset-block-end: 8.75rem;
+    width: 7.5rem;
+    height: 7.5rem;
+    background-color: rgb(218 231 224 / 0.12);
+}
+
+/* Columna del formulario: sin tarjeta, título a la izquierda y el logotipo vive en el panel. */
+.fi-simple-layout:has(.eventos-auth-brand) .fi-simple-main-ctn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 3rem 2rem;
+}
+
+.fi-simple-layout:has(.eventos-auth-brand) .fi-simple-main {
+    width: 100%;
+    max-width: 26.25rem;
+    margin: 0;
+    padding: 0;
+    background-color: transparent;
+    box-shadow: none;
+    border-radius: 0;
+}
+
+.fi-simple-layout:has(.eventos-auth-brand) .fi-simple-header {
+    align-items: flex-start;
+    text-align: start;
+}
+
+.fi-simple-layout:has(.eventos-auth-brand) .fi-simple-header .fi-logo {
+    display: none;
+}
+
+.fi-simple-layout:has(.eventos-auth-brand) .fi-simple-header-heading {
+    font-size: 2rem;
+    font-weight: 800;
+    letter-spacing: -0.01em;
+}
+
+/* Enlaces del formulario en el azul de marca (el tono 500 de Filament queda claro sobre blanco). */
+.fi-simple-layout:has(.eventos-auth-brand) .fi-simple-main .fi-link {
+    color: var(--eventos-navy);
+    text-decoration: underline;
+}
+
+/* En pantallas menores a 1024 px el panel de marca es una cabecera compacta sobre el formulario. */
+@media (max-width: 1023px) {
+    .fi-simple-layout:has(.eventos-auth-brand) {
+        grid-template-columns: minmax(0, 1fr);
+        grid-template-rows: auto 1fr;
+        min-height: 100vh;
+    }
+
+    .eventos-auth-brand {
+        padding: 1.5rem 1.5rem;
+    }
+
+    .eventos-auth-brand-body,
+    .eventos-auth-brand-modules,
+    .eventos-auth-brand-circle {
+        display: none;
+    }
+
+    .fi-simple-layout:has(.eventos-auth-brand) .fi-simple-main-ctn {
+        align-items: flex-start;
+        padding: 2rem 1.5rem 3rem;
+    }
+
+    .fi-simple-layout:has(.eventos-auth-brand) .fi-simple-header-heading {
+        font-size: 1.5rem;
+    }
 }
 
 /*
@@ -131,24 +338,25 @@ h3,
  * que los contrastes cumplan AA y que las clases de Filament que se tocan existan.
  */
 :root {
-    --eventos-navy: #152b83;
-    --eventos-navy-deep: #0d1e70;
-    --eventos-navy-50: #f4f7fe;
-    --eventos-navy-200: #cfdbf6;
-    --eventos-lime: #bfcc36;
-    --eventos-bg: #f8fafe;
-    --eventos-border: #e2e6ef;
-    --eventos-surface-muted: #f1f3f8;
+    --eventos-navy: #012787;
+    --eventos-navy-deep: #011a5e;
+    --eventos-navy-50: #eef1fa;
+    --eventos-navy-200: #b9c7f0;
+    --eventos-lime: #d2dd0a;
+    --eventos-mist: #dae7e0;
+    --eventos-bg: #f4f6f8;
+    --eventos-border: #e3e8ec;
+    --eventos-surface-muted: #f4f6f8;
     --eventos-text: #243342;
-    --eventos-muted: #585b62;
-    --eventos-field-border: #777a82;
-    --eventos-status-draft: #a1a5ac;
+    --eventos-muted: #4b5a68;
+    --eventos-field-border: #84909c;
+    --eventos-status-draft: #aab4be;
     --eventos-status-published: #2e7d32;
     --eventos-status-archived: #92400e;
 
     /* Elevación en dos niveles: reposo y elevada (sombra marina, nunca negra pura). */
-    --eventos-shadow-rest: 0 1px 2px rgb(21 43 131 / 0.06), 0 1px 3px rgb(21 43 131 / 0.04);
-    --eventos-shadow-raised: 0 10px 28px rgb(21 43 131 / 0.14), 0 2px 6px rgb(21 43 131 / 0.08);
+    --eventos-shadow-rest: 0 1px 2px rgb(1 39 135 / 0.06), 0 1px 3px rgb(1 39 135 / 0.04);
+    --eventos-shadow-raised: 0 10px 28px rgb(1 39 135 / 0.14), 0 2px 6px rgb(1 39 135 / 0.08);
 
     --eventos-radius-control: 8px;
     --eventos-radius-card: 12px;
@@ -257,26 +465,27 @@ h3,
 
 .fi-sidebar .fi-sidebar-item-btn {
     border-radius: var(--eventos-radius-control);
-    color: var(--eventos-navy-200);
+    color: #ffffff;
 }
 
 .fi-sidebar .fi-sidebar-item-btn .fi-sidebar-item-label,
 .fi-sidebar .fi-sidebar-item-btn .fi-sidebar-item-icon {
-    color: var(--eventos-navy-200);
+    color: #ffffff;
 }
 
 .fi-sidebar .fi-sidebar-item-btn:hover {
     background-color: rgb(255 255 255 / 0.08);
 }
 
-/* El ítem activo se distingue por el fondo marino profundo y el texto blanco; sin barra lateral de color. */
+/* El ítem activo va en lima con texto marino (identidad ANPR); la lima nunca lleva texto blanco. */
 .fi-sidebar .fi-sidebar-item.fi-active > .fi-sidebar-item-btn {
-    background-color: var(--eventos-navy-deep);
+    background-color: var(--eventos-lime);
 }
 
 .fi-sidebar .fi-sidebar-item.fi-active > .fi-sidebar-item-btn .fi-sidebar-item-label,
 .fi-sidebar .fi-sidebar-item.fi-active > .fi-sidebar-item-btn .fi-sidebar-item-icon {
-    color: #ffffff;
+    color: var(--eventos-navy);
+    font-weight: 600;
 }
 
 /* Barra superior y encabezados de página. */
@@ -428,7 +637,7 @@ h3,
 }
 
 .fi-modal-close-overlay {
-    background-color: rgb(13 30 112 / 0.5);
+    background-color: rgb(1 26 94 / 0.5);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -439,5 +648,62 @@ h3,
     .fi-ta-content-grid .fi-ta-record:hover,
     .fi-ta-content-grid .fi-ta-record:focus-within {
         transform: none;
+    }
+}
+
+/*
+ * Identidad ANPR en el escritorio: fondo general gris neutro, avatar en azul de texto y el logotipo de
+ * la organización del menú en lima con texto azul (la lima nunca lleva texto blanco).
+ */
+.fi-body {
+    background-color: var(--eventos-bg);
+}
+
+.fi-avatar {
+    background-color: var(--eventos-text);
+    color: #ffffff;
+}
+
+.fi-sidebar .fi-tenant-menu-trigger .fi-avatar {
+    background-color: var(--eventos-lime);
+    color: var(--eventos-navy);
+    font-weight: 700;
+}
+
+/*
+ * Marca de la barra superior: dentro de un evento es el nombre del evento (CA-020-20). Va en el azul de
+ * marca y con título tipográfico; si es largo se trunca para no empujar el menú ni el avatar.
+ */
+.fi-topbar .fi-logo {
+    max-width: min(32rem, 55vw);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-family: 'Montserrat', system-ui, -apple-system, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+    font-weight: 700;
+    color: var(--eventos-navy);
+}
+
+/*
+ * Filament oculta la marca por debajo de 1024 px. Como la marca es el nombre del evento, se muestra también
+ * en móvil, entre el botón del menú y el avatar, truncada para que no desborde.
+ */
+@media (max-width: 1023px) {
+    .fi-topbar-start {
+        display: flex;
+        flex: 1 1 0%;
+        min-width: 0;
+        margin-inline-end: 0.75rem;
+    }
+
+    /* Contraer el menú es solo de escritorio; en móvil el botón de la hamburguesa ya abre el cajón. */
+    .fi-topbar-start .fi-topbar-collapse-sidebar-btn-ctn {
+        display: none;
+    }
+
+    .fi-topbar-start .fi-logo {
+        margin-inline-start: 0.5rem;
+        max-width: 100%;
+        font-size: 1rem;
     }
 }

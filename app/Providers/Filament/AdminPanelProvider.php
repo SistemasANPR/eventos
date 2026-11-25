@@ -14,6 +14,8 @@ use App\Http\Middleware\EnsureTwoFactorConfirmed;
 use App\Models\Organization;
 use App\Support\Auth\TotpAuthentication;
 use App\Support\Panel\BrandPalette;
+use App\Support\Panel\EventBrandName;
+use App\Support\Panel\InitialsAvatarProvider;
 use Filament\Actions\Action;
 use Filament\Facades\Filament;
 use Filament\FontProviders\LocalFontProvider;
@@ -63,6 +65,11 @@ class AdminPanelProvider extends PanelProvider
                 fn (): View => view('filament.auth.throttle-notice'),
                 scopes: [Login::class, RequestPasswordReset::class],
             )
+            ->renderHook(
+                PanelsRenderHook::SIMPLE_LAYOUT_START,
+                fn (): View => view('filament.auth.brand-panel'),
+                scopes: [Login::class, RequestPasswordReset::class],
+            )
             ->tenant(Organization::class, slugAttribute: 'slug')
             ->tenantMiddleware([ApplyOrganizationContext::class], isPersistent: true)
             ->tenantProfile(EditOrganizationProfile::class)
@@ -70,6 +77,9 @@ class AdminPanelProvider extends PanelProvider
             ->viteTheme('resources/css/filament/admin/theme.css')
             ->font('Roboto', provider: LocalFontProvider::class)
             ->darkMode(false)
+            // Dentro de un evento la marca de la barra superior es el nombre del evento (plan 020, CA-020-20).
+            ->brandName(fn (): string => EventBrandName::resolve())
+            ->defaultAvatarProvider(InitialsAvatarProvider::class)
             // Menú lateral más estrecho que el de Filament (20 rem) y contraíble a solo iconos;
             // en pantallas menores a 1024 px Filament ya lo muestra como cajón (plan 015, CA-015-14).
             ->sidebarWidth('13rem')

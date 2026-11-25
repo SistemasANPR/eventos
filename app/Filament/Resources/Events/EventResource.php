@@ -36,6 +36,8 @@ use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
 
+use function Filament\Support\original_request;
+
 /**
  * Eventos de la organización (plan 003, H-003-1). La organización es el tenant
  * del panel: la consulta pasa por el scope global de `BelongsToOrganization` y
@@ -132,6 +134,14 @@ class EventResource extends Resource
      */
     public static function getNavigationItems(): array
     {
-        return [...parent::getNavigationItems(), ...EventSectionsNavigation::items()];
+        // Dentro de un evento la sección actual es la única activa (CA-020-21): «Eventos» solo se marca en la lista y al crear.
+        $events = array_map(
+            static fn (NavigationItem $item): NavigationItem => $item->isActiveWhen(
+                static fn (): bool => original_request()->routeIs(static::getRouteBaseName().'.*') && EventSectionsNavigation::eventId() === null,
+            ),
+            parent::getNavigationItems(),
+        );
+
+        return [...$events, ...EventSectionsNavigation::items()];
     }
 }

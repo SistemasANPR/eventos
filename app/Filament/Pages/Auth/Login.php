@@ -13,6 +13,7 @@ use Filament\Facades\Filament;
 use Filament\Support\Components\Attributes\Exposed;
 use Filament\Support\Components\Attributes\Unexposed;
 use Illuminate\Contracts\Auth\Authenticatable;
+use Illuminate\Contracts\Support\Htmlable;
 
 /**
  * Inicio de sesión del panel con el límite del plan 001 (DA-6): 5 intentos por
@@ -70,6 +71,16 @@ class Login extends FilamentLogin
         }
 
         parent::mount();
+    }
+
+    public function getHeading(): string|Htmlable
+    {
+        return __('access.login.heading');
+    }
+
+    public function getSubheading(): string|Htmlable|null
+    {
+        return __('access.login.subheading');
     }
 
     protected function isUserAllowedToAccessPanel(Authenticatable $user): bool

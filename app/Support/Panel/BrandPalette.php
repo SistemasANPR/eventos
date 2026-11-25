@@ -10,7 +10,7 @@ use Filament\Support\Colors\Color;
  * Paleta del panel de organizadores: los tokens de design.md §3.1 en el formato de Filament.
  *
  * Filament pinta el botón primario con el matiz 600, así que el marino del logotipo
- * (#152B83) ocupa el 600 y el resto de la escala se corre un paso. Los matices
+ * (#012787) ocupa el 600 y el resto de la escala se corre un paso. Los matices
  * 900 y 950 de cada escala no existen en la guía y se derivan más oscuros.
  * `tests/Feature/Panel/PanelThemeTest.php` vigila que sigan igual que `resources/css/app.css`.
  */
@@ -24,8 +24,8 @@ final class BrandPalette
     public static function primary(): array
     {
         return self::scale([
-            50 => '#f4f7fe', 100 => '#e5edff', 200 => '#cfdbf6', 300 => '#b3c4ea', 400 => '#768fcc',
-            500 => '#3a56a6', 600 => '#152b83', 700 => '#0d1e70', 800 => '#08155d', 900 => '#050e40', 950 => '#030824',
+            50 => '#eef1fa', 100 => '#dde4f6', 200 => '#b9c7f0', 300 => '#8da3de', 400 => '#4f6fc0',
+            500 => '#1f46a3', 600 => '#012787', 700 => '#011a5e', 800 => '#01134a', 900 => '#010c33', 950 => '#00071f',
         ]);
     }
 
@@ -37,8 +37,8 @@ final class BrandPalette
     public static function gray(): array
     {
         return self::scale([
-            50 => '#f8fafe', 100 => '#f1f3f8', 200 => '#e2e6ef', 300 => '#d0d4dc', 400 => '#a1a5ac',
-            500 => '#777a82', 600 => '#585b62', 700 => '#3f4249', 800 => '#26292f', 900 => '#14161c', 950 => '#0b0c10',
+            50 => '#fafbfc', 100 => '#f4f6f8', 200 => '#e3e8ec', 300 => '#c5ced6', 400 => '#aab4be',
+            500 => '#84909c', 600 => '#4b5a68', 700 => '#364452', 800 => '#243342', 900 => '#16202b', 950 => '#0d141c',
         ]);
     }
 
@@ -64,7 +64,7 @@ final class BrandPalette
     /** @return array<int, string> */
     public static function info(): array
     {
-        return self::state('#3a56a6');
+        return self::state('#1f46a3');
     }
 
     /** @return array<int, string> */
