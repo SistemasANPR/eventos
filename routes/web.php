@@ -11,9 +11,12 @@ use App\Http\Controllers\Panel\SubmissionFileDownloadController;
 use App\Http\Controllers\Panel\SubmissionFilePreviewController;
 use App\Http\Controllers\Public\ShowActivityMediaController;
 use App\Http\Controllers\Public\ShowCallController;
+use App\Http\Controllers\Public\ShowEventActivityController;
 use App\Http\Controllers\Public\ShowEventController;
 use App\Http\Controllers\Public\ShowEventLogoController;
 use App\Http\Controllers\Public\ShowEventProgramController;
+use App\Http\Controllers\Public\ShowEventSpeakerController;
+use App\Http\Controllers\Public\ShowEventSpeakersController;
 use App\Http\Controllers\Public\ShowLandingImageController;
 use App\Http\Controllers\Public\ShowPrivacyNoticeController;
 use App\Http\Controllers\Public\ShowSpeakerPhotoController;
@@ -53,6 +56,10 @@ Route::middleware([SetOrganizationFromRoute::class, HandleInertiaRequests::class
         Route::get('events/{event:slug}/privacy', ShowPrivacyNoticeController::class)->name('events.privacy');
         // Programa público del evento (plan 029, E-19): solo lectura, sin sesión; un día por vista.
         Route::get('events/{event:slug}/program', ShowEventProgramController::class)->name('events.program');
+        // Ponentes y detalle de actividad: el identificador es el uuid; si no lo es, 404 sin consultar.
+        Route::get('events/{event:slug}/speakers', ShowEventSpeakersController::class)->name('events.speakers.index');
+        Route::get('events/{event:slug}/speakers/{speaker}', ShowEventSpeakerController::class)->name('events.speakers.show');
+        Route::get('events/{event:slug}/activities/{activity}', ShowEventActivityController::class)->name('events.activities.show');
         Route::get('events/{event:slug}/call/{call:slug}', ShowCallController::class)->name('calls.show');
         // Imágenes del programa (plan 021, CA-021-18): el disco `media` es privado y solo se sirven las
         // de registros publicados y no borrados, de un evento publicado.
