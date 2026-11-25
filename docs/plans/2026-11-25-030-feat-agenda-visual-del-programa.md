@@ -4,7 +4,7 @@
 > `composer check:criteria` lee el **Estado** y los criterios de este archivo: no cambiar el formato de esas líneas.
 
 - **Fecha:** 2026-11-25
-- **Estado:** Borrador
+- **Estado:** Aprobado (2026-11-25: Antonio cierra DA-1 a DA-13 con la recomendación del plan; S-11 se cierra con DA-4)
 - **Esfuerzo:** L
 - **Deuda relacionada:** ninguna abierta. Este plan propone puntos nuevos (§10) y cierra la decisión S-11 de `docs/plan-de-desarrollo.md`.
 
@@ -49,7 +49,7 @@ Medido el 2026-11-25 sobre `staging` (`d7395d9`):
 
 ## 3. Decisiones
 
-Todas son **recomendaciones de este plan, pendientes de aprobar** junto con él.
+**Cerradas el 2026-11-25** por Antonio: DA-1 a DA-13 se aprueban tal como se recomiendan. Lo comprobado en F0 que afina el texto: la página de Actividades puede alternar vistas sobrescribiendo `content()` (Filament 5 lo permite y ya trae el mecanismo de pestañas `HasTabs`, DA-1); las categorías del plan 021 se borran físicamente (`DeleteProgramCategory`), así que la sala tampoco lleva borrado lógico (DA-13).
 
 ### DA-1 · Dónde vive la agenda — se recomienda **pestañas dentro de la misma página de Actividades**
 
@@ -241,7 +241,7 @@ Cada uno tiene al menos una prueba cuyo nombre lo cita (`CA-030-n: ...`) o decla
 
 | Fase | Commit | Fecha | Notas (salida real de las validaciones) |
 |---|---|---|---|
-| F0 | — | — | Pendiente de aprobación |
+| F0 | ver `git log` | 2026-11-25 | Plan en `Aprobado`; glosario (`Room` con ámbito Evento y término «Agenda»), propuesta de datos en `docs/database-design.md` §8.4, S-11 cerrada en `docs/plan-de-desarrollo.md`. Comprobado en el código: `ManageRelatedRecords::content()` es sobrescribible y `HasTabs` existe (DA-1); `DeleteProgramCategory` borra físicamente (DA-13); `sortable.js` de Filament disponible (DA-4). **Pendiente de F0:** el `EXPLAIN` del índice de §4.1 (necesita las migraciones de F2) y la prueba de concepto del arrastre (DA-4), que se hacen antes de F4 |
 
 ## 10. Deuda que deja (a registrar en F6)
 
