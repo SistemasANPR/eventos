@@ -260,7 +260,7 @@ it('CA-029-17: a published event with nothing visible answers 200 with empty day
             ->has('categories', 0));
 });
 
-it('CA-029-4: answers 404 for a draft, archived, nonexistent or other-organization event and for an unknown or suspended organization', function (): void {
+it('CA-029-4: answers 404 for a draft, nonexistent or other-organization event and for an unknown or suspended organization, and 410 for an archived one (plan 030)', function (): void {
     $draft = programPageEvent(['status' => EventStatus::Draft]);
     $archived = programPageEvent(['status' => EventStatus::Archived]);
     $own = programPageEvent();
@@ -269,7 +269,7 @@ it('CA-029-4: answers 404 for a draft, archived, nonexistent or other-organizati
     $suspendedEvent = Event::factory()->published()->create(['organization_id' => $suspended->id]);
 
     $this->get(programPageUrl($draft))->assertNotFound();
-    $this->get(programPageUrl($archived))->assertNotFound();
+    $this->get(programPageUrl($archived))->assertStatus(410);
     $this->get("/{$own->organization->slug}/events/no-existe/program")->assertNotFound();
     $this->get("/{$own->organization->slug}/events/{$other->slug}/program")->assertNotFound();
     $this->get("/no-existe/events/{$own->slug}/program")->assertNotFound();

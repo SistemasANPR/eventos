@@ -140,14 +140,15 @@ it('CA-022-17: a visitor sees the last published version, never the draft', func
     expect($response->getContent())->not->toContain('Secreto del borrador');
 });
 
-it('CA-022-23: a draft, archived, foreign or missing event answers 404, with or without landing', function (): void {
+it('CA-022-23: a draft, foreign or missing event answers 404 and an archived one 410, with or without landing', function (): void {
     $organization = Organization::factory()->create();
     $draft = Event::factory()->create(['organization_id' => $organization->id, 'slug' => 'borrador', 'status' => EventStatus::Draft]);
     $archived = Event::factory()->archived()->create(['organization_id' => $organization->id, 'slug' => 'archivado']);
-    foreach ([$draft, $archived] as $event) {
-        pageLanding($event, [['type' => 'spacer']]);
-        $this->get(pageUrl($event))->assertNotFound();
-    }
+    pageLanding($draft, [['type' => 'spacer']]);
+    $this->get(pageUrl($draft))->assertNotFound();
+    // Plan 030: el archivado ve la página «no disponible», sin la landing.
+    pageLanding($archived, [['type' => 'spacer']]);
+    $this->get(pageUrl($archived))->assertStatus(410)->assertInertia(fn (Assert $page) => $page->component('Events/Unavailable')->missing('landing'));
 
     $published = pageEvent($organization);
     pageLanding($published, [['type' => 'spacer']]);

@@ -21,6 +21,7 @@ use App\Http\Controllers\Public\ShowSubmissionConfirmationController;
 use App\Http\Controllers\Public\ShowSubmissionFormController;
 use App\Http\Controllers\Public\StoreSubmissionController;
 use App\Http\Controllers\Public\SubmissionFileUploadController;
+use App\Http\Middleware\EnsureEventIsAvailable;
 use App\Http\Middleware\HandleInertiaRequests;
 use App\Http\Middleware\PreventCaching;
 use App\Http\Middleware\SetOrganizationFromRoute;
@@ -47,13 +48,23 @@ Route::middleware([SetOrganizationFromRoute::class, HandleInertiaRequests::class
     ->prefix('{organization:slug}')
     ->scopeBindings()
     ->group(function (): void {
-        Route::get('events/{event:slug}', ShowEventController::class)->name('events.show');
+        // Las páginas y el envío pasan por `EnsureEventIsAvailable` (plan 030): evento archivado → 410 «no disponible»,
+        // en borrador → 404. Las rutas de medios y la subida de archivos no lo usan y siguen en 404 (CA-030-13).
+        Route::get('events/{event:slug}', ShowEventController::class)
+            ->middleware(EnsureEventIsAvailable::class)
+            ->name('events.show');
         // Logotipo del evento (plan 027, CA-027-10 y 11): el disco `media` es privado; solo con el evento publicado.
         Route::get('events/{event:slug}/logo', ShowEventLogoController::class)->name('public.events.logo');
-        Route::get('events/{event:slug}/privacy', ShowPrivacyNoticeController::class)->name('events.privacy');
+        Route::get('events/{event:slug}/privacy', ShowPrivacyNoticeController::class)
+            ->middleware(EnsureEventIsAvailable::class)
+            ->name('events.privacy');
         // Programa público del evento (plan 029, E-19): solo lectura, sin sesión; un día por vista.
-        Route::get('events/{event:slug}/program', ShowEventProgramController::class)->name('events.program');
-        Route::get('events/{event:slug}/call/{call:slug}', ShowCallController::class)->name('calls.show');
+        Route::get('events/{event:slug}/program', ShowEventProgramController::class)
+            ->middleware(EnsureEventIsAvailable::class)
+            ->name('events.program');
+        Route::get('events/{event:slug}/call/{call:slug}', ShowCallController::class)
+            ->middleware(EnsureEventIsAvailable::class)
+            ->name('calls.show');
         // Imágenes del programa (plan 021, CA-021-18): el disco `media` es privado y solo se sirven las
         // de registros publicados y no borrados, de un evento publicado.
         Route::get('events/{event:slug}/speakers/{speaker}/photo', ShowSpeakerPhotoController::class)->name('public.speakers.photo');
@@ -68,11 +79,15 @@ Route::middleware([SetOrganizationFromRoute::class, HandleInertiaRequests::class
             ->name('calls.files.store');
         // Formulario público de envío (plan 006, H-006-7). Sin caché: lleva claves emitidas a la sesión.
         Route::middleware(PreventCaching::class)->group(function (): void {
-            Route::get('events/{event:slug}/call/{call:slug}/submit', ShowSubmissionFormController::class)->name('calls.submit.show');
+            Route::get('events/{event:slug}/call/{call:slug}/submit', ShowSubmissionFormController::class)
+                ->middleware(EnsureEventIsAvailable::class)
+                ->name('calls.submit.show');
             Route::post('events/{event:slug}/call/{call:slug}/submit', StoreSubmissionController::class)
-                ->middleware('throttle:60,1')
+                ->middleware([EnsureEventIsAvailable::class, 'throttle:60,1'])
                 ->name('calls.submit.store');
-            Route::get('events/{event:slug}/call/{call:slug}/submitted', ShowSubmissionConfirmationController::class)->name('calls.submitted');
+            Route::get('events/{event:slug}/call/{call:slug}/submitted', ShowSubmissionConfirmationController::class)
+                ->middleware(EnsureEventIsAvailable::class)
+                ->name('calls.submitted');
         });
     });
 

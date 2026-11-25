@@ -94,12 +94,20 @@ it('CA-002-13: falls back to the default language when the visitor language is n
             ->where('event.name', 'Congreso Parques'));
 });
 
-it('CA-002-14: a draft or archived event answers 404', function (EventStatus $status): void {
+it('CA-002-14: a draft event answers 404', function (): void {
     $organization = Organization::factory()->create();
-    $event = Event::factory()->create(['organization_id' => $organization->id, 'status' => $status, 'slug' => 'congreso']);
+    $event = Event::factory()->create(['organization_id' => $organization->id, 'status' => EventStatus::Draft, 'slug' => 'congreso']);
 
     $this->get("/{$organization->slug}/events/{$event->slug}")->assertNotFound();
-})->with([EventStatus::Draft, EventStatus::Archived]);
+});
+
+// Plan 030 sustituye el 404 de un evento archivado por la página «no disponible» (410).
+it('CA-030-8: an archived event answers 410 instead of 404', function (): void {
+    $organization = Organization::factory()->create();
+    $event = Event::factory()->archived()->create(['organization_id' => $organization->id, 'slug' => 'congreso']);
+
+    $this->get("/{$organization->slug}/events/{$event->slug}")->assertStatus(410);
+});
 
 it('CA-002-14: a soft-deleted event answers 404', function (): void {
     $event = publishedEvent();

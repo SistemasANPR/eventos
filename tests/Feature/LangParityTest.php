@@ -50,3 +50,22 @@ it('has the same keys in es and en for every lang file', function (string $file)
     expect(array_values(array_diff($es, $en)))->toBe([], "Faltan en lang/en/{$file}")
         ->and(array_values(array_diff($en, $es)))->toBe([], "Faltan en lang/es/{$file}");
 })->with(fn (): array => array_combine(langFiles('es'), array_map(static fn (string $f): array => [$f], langFiles('es'))));
+
+it('CA-030-18: the texts of the unavailable event page and of the panel explanations exist in es and en, non-empty and different', function (): void {
+    $root = dirname(__DIR__, 2);
+    $keys = [
+        'public.php' => ['unavailable.title', 'unavailable.body', 'unavailable.hint', 'unavailable.submit_error'],
+        'calls.php' => ['actions.public_unavailable.archived', 'actions.public_unavailable.draft_event', 'actions.event_archived_badge'],
+    ];
+
+    foreach ($keys as $file => $paths) {
+        foreach ($paths as $path) {
+            $es = data_get(require "{$root}/lang/es/{$file}", $path);
+            $en = data_get(require "{$root}/lang/en/{$file}", $path);
+
+            expect($es)->toBeString()
+                ->and($en)->toBeString()
+                ->and($es !== '' && $en !== '' && $es !== $en)->toBeTrue("lang/es y lang/en de {$file}: {$path} vacío o sin traducir");
+        }
+    }
+});
