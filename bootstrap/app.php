@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Http\Middleware\EnsureEventIsAvailable;
 use App\Http\Middleware\SetOrganizationFromRoute;
 use App\Http\Middleware\TrustConfiguredProxies;
 use Illuminate\Foundation\Application;
@@ -30,6 +31,12 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->prependToPriorityList(
             before: SubstituteBindings::class,
             prepend: SetOrganizationFromRoute::class,
+        );
+
+        // Necesita el evento ya resuelto por el binding (plan 030).
+        $middleware->appendToPriorityList(
+            after: SubstituteBindings::class,
+            append: EnsureEventIsAvailable::class,
         );
     })
     ->withExceptions(function (Exceptions $exceptions): void {

@@ -64,7 +64,7 @@ function isEditorProps(value: unknown): value is LandingEditorProps {
         'preview' in value &&
         typeof value.preview === 'object' &&
         'publicUrl' in value &&
-        typeof value.publicUrl === 'string'
+        (value.publicUrl === null || typeof value.publicUrl === 'string')
     );
 }
 

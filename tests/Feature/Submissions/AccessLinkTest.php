@@ -199,6 +199,20 @@ it('CA-006-32: the request form validates the email and hides drafts', function 
     $this->get(AuthorFixtures::path($submission, 'my-submission/request-link'))->assertNotFound();
 });
 
+it('CA-032-6: the access-link page offers the way back to the event only while the event is published', function (): void {
+    $submission = AuthorFixtures::submission();
+    $path = AuthorFixtures::path($submission, 'my-submission/request-link');
+    $event = Event::query()->findOrFail($submission->event_id);
+
+    $this->get($path.'?lang=es')->assertOk()
+        ->assertInertia(fn ($page) => $page->where('eventUrl', "/{$submission->organization->slug}/events/{$event->slug}?lang=es"));
+
+    $event->forceFill(['status' => EventStatus::Archived])->save();
+
+    $this->get($path)->assertOk()
+        ->assertInertia(fn ($page) => $page->where('eventUrl', null));
+});
+
 it('CA-006-33: the token has at least 128 random bits, only its SHA-256 hash is stored and compared in constant time', function (): void {
     $submission = AuthorFixtures::submission();
 
