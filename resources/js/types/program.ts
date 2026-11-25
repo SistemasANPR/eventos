@@ -57,9 +57,9 @@ export interface Paginated<T> {
     nextUrl: string | null;
 }
 
-/** Enlaces entre las páginas del programa. `speakersUrl` es `null` hasta que exista la página de ponentes. */
+/** Enlaces entre las páginas del programa público; todos relativos y con el idioma pedido. */
 export interface ProgramNav {
     programUrl: string;
-    speakersUrl: string | null;
+    speakersUrl: string;
     eventUrl: string;
 }

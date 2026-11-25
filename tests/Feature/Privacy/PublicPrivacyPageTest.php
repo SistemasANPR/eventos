@@ -96,13 +96,16 @@ it('CA-003-17: an event with only a draft notice answers 404', function (): void
     $this->get('/parques/events/congreso/privacy')->assertNotFound();
 });
 
-it('CA-003-17: the notice of a draft or archived event is not public', function (string $state): void {
+// Plan 032: el aviso de un evento archivado no se publica; la página responde 410 «no disponible» (antes 404).
+it('CA-003-17: the notice of an archived event is not public', function (): void {
     $organization = Organization::factory()->create(['slug' => 'parques']);
-    $event = Event::factory()->{$state}()->create(['organization_id' => $organization->id, 'slug' => 'congreso']);
+    $event = Event::factory()->archived()->create(['organization_id' => $organization->id, 'slug' => 'congreso']);
     PrivacyNotice::factory()->published()->create(['event_id' => $event->id]);
 
-    $this->get('/parques/events/congreso/privacy')->assertNotFound();
-})->with(['archived']);
+    $this->get('/parques/events/congreso/privacy')
+        ->assertStatus(410)
+        ->assertInertia(fn (Assert $page) => $page->component('Events/Unavailable')->missing('notice'));
+});
 
 it('CA-003-17: a draft event answers 404 even with a published notice', function (): void {
     $organization = Organization::factory()->create(['slug' => 'parques']);

@@ -16,7 +16,7 @@ import {
     LandingSpacerBlockDemo,
     LandingTracksBlockDemo,
 } from '@/catalog/demos-landing';
-import { ActivityCardDemo, CategoryFilterDemo, EventFactDemo, LocaleSwitcherDemo, ProgramDayNavDemo } from '@/catalog/demos-molecules';
+import { ActivityCardDemo, CategoryFilterDemo, EventFactDemo, LocaleSwitcherDemo, PageNavDemo, ProgramDayNavDemo, SpeakerCardDemo } from '@/catalog/demos-molecules';
 import { EventHeroDemo } from '@/catalog/demos-organisms';
 
 /** Demo ejecutable de cada entrada del catálogo con `preview: 'demo'`, por el nombre de la entrada. */
@@ -27,6 +27,8 @@ export const demos: Record<string, ComponentType> = {
     LocaleSwitcher: LocaleSwitcherDemo,
     ProgramDayNav: ProgramDayNavDemo,
     ActivityCard: ActivityCardDemo,
+    SpeakerCard: SpeakerCardDemo,
+    PageNav: PageNavDemo,
     CategoryFilter: CategoryFilterDemo,
     EventHero: EventHeroDemo,
     SkipToContent: SkipToContentDemo,

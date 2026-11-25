@@ -4,7 +4,9 @@ import { ActivityCard } from '@/components/molecules/ActivityCard';
 import { CategoryFilter } from '@/components/molecules/CategoryFilter';
 import { EventFact } from '@/components/molecules/EventFact';
 import { LocaleSwitcher } from '@/components/molecules/LocaleSwitcher';
+import { PageNav } from '@/components/molecules/PageNav';
 import { ProgramDayNav } from '@/components/molecules/ProgramDayNav';
+import { SpeakerCard } from '@/components/molecules/SpeakerCard';
 import { useTranslation } from '@/hooks/useTranslation';
 
 /** Demo de `EventFact`: se usa dentro de un `<dl>`. */
@@ -55,6 +57,32 @@ export function ActivityCardDemo() {
             }}
         />
     );
+}
+
+/** Demo de `SpeakerCard`: una ponente con cargo, organización y descripción, sin fotografía. */
+export function SpeakerCardDemo() {
+    const { t } = useTranslation();
+
+    return (
+        <SpeakerCard
+            speaker={{
+                id: 'demo-speaker',
+                name: t('catalog.demo_data.speaker_name'),
+                company: t('catalog.demo_data.speaker_company'),
+                jobTitle: t('catalog.demo_data.speaker_job_title'),
+                tagline: t('catalog.demo_data.speaker_tagline'),
+                photoUrl: null,
+                url: '/components',
+            }}
+        />
+    );
+}
+
+/** Demo de `PageNav`: la segunda de tres páginas. */
+export function PageNavDemo() {
+    const { t } = useTranslation();
+
+    return <PageNav label={t('speakers.pagination_label')} page={{ currentPage: 2, lastPage: 3, prevUrl: '/components', nextUrl: '/components' }} />;
 }
 
 /** Demo de `CategoryFilter`: dos categorías con alternancia local. */

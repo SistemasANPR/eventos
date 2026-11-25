@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Filament\Resources\Events\Schemas;
 
-use App\Enums\EventStatus;
 use App\Filament\Resources\Events\Tables\EventsTable;
 use App\Models\Event;
+use App\Support\Events\PublicPageAvailability;
 use App\Support\Tenancy\CurrentOrganization;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Components\Section;
@@ -46,7 +46,7 @@ final class EventInfolist
                             'event' => $record->slug,
                         ]))
                         ->copyable()
-                        ->visible(fn (Event $record): bool => $record->status === EventStatus::Published)
+                        ->visible(fn (Event $record): bool => PublicPageAvailability::isAvailable($record))
                         ->columnSpanFull(),
                 ]),
         ]);

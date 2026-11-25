@@ -147,6 +147,13 @@ function setup(blocks: LandingBlockDraft[], api: LandingEditorApi = makeApi(), e
 const block = (position: number): HTMLElement => screen.getByTestId(`canvas-block-${position}`);
 
 describe('LandingEditor', () => {
+    it('CA-032-6: offers no «view landing» link when the event has no public page', () => {
+        setup([hero('h1', 'Bienvenidos')], makeApi(), { publicUrl: null });
+
+        expect(screen.queryByRole('link', { name: /landing_editor.action.view/ })).toBeNull();
+        expect(screen.getByRole('button', { name: 'landing_editor.action.discard' })).toBeInTheDocument();
+    });
+
     it('CA-022-35: draws the draft on the canvas with the public renderer and a view toggle', async () => {
         const { user } = setup([hero('h1', 'Bienvenidos'), spacer('s1')]);
 

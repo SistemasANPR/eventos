@@ -278,8 +278,8 @@ export interface LandingEditorProps {
     /** Textos de `lang/` (mismo formato que `SharedProps.translations`). */
     translations: Translations;
     preview: LandingPreviewData;
-    /** URL de la landing pública, para «Ver landing». */
-    publicUrl: string;
+    /** URL de la landing pública, para «Ver landing»; `null` si el evento no está publicado (no se ofrece el enlace). */
+    publicUrl: string | null;
     /** `true` si el borrador difiere de la versión publicada al abrir el editor. */
     hasUnpublishedChanges: boolean;
 }
