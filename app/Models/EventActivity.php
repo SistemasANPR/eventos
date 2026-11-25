@@ -27,6 +27,7 @@ use Illuminate\Support\Carbon;
  * @property string $organization_id
  * @property string $event_id
  * @property string|null $submission_id
+ * @property string|null $room_id
  * @property string $title
  * @property Carbon|null $starts_on
  * @property Carbon|null $ends_on
@@ -96,6 +97,12 @@ class EventActivity extends Model
     public function submission(): BelongsTo
     {
         return $this->belongsTo(Submission::class);
+    }
+
+    /** @return BelongsTo<Room, $this> */
+    public function room(): BelongsTo
+    {
+        return $this->belongsTo(Room::class);
     }
 
     /** @return BelongsToMany<ActivityCategory, $this> */

@@ -15,6 +15,7 @@ use App\Filament\Resources\Submissions\SubmissionResource;
 use App\Filament\Support\ActionErrors;
 use App\Models\Event;
 use App\Models\EventActivity;
+use App\Models\Room;
 use App\Models\Speaker;
 use App\Support\Events\EventTime;
 use App\Support\Files\MediaDisk;
@@ -165,7 +166,22 @@ class ManageEventActivities extends ManageRelatedRecords
     /** @return array<int, Action> */
     protected function getHeaderActions(): array
     {
-        return [ProgramCategoryShortcuts::button($this->event(), ProgramCategoryKind::Activity), $this->createAction()];
+        return [ProgramCategoryShortcuts::button($this->event(), ProgramCategoryKind::Activity), $this->roomsAction(), $this->createAction()];
+    }
+
+    /** Lleva a la lista de salas del evento (con su conteo); solo presenta, la Policy decide quién entra. */
+    private function roomsAction(): Action
+    {
+        $event = $this->event();
+
+        return Action::make('rooms')
+            ->label(__('program.rooms.button'))
+            ->icon(Heroicon::OutlinedBuildingOffice2)
+            ->color('gray')
+            ->outlined()
+            ->badge(fn (): int => Room::query()->where('event_id', $event->id)->count())
+            ->url(fn (): string => EventResource::getUrl('rooms', ['record' => $event]))
+            ->visible(fn (): bool => Gate::allows('viewAny', Room::class));
     }
 
     private function createAction(): Action

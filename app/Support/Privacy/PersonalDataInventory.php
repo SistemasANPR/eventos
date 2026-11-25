@@ -28,6 +28,7 @@ use App\Models\ReviewAnswer;
 use App\Models\ReviewAssignment;
 use App\Models\ReviewRevision;
 use App\Models\ReviewScopeRule;
+use App\Models\Room;
 use App\Models\Rubric;
 use App\Models\RubricCriterion;
 use App\Models\Speaker;
@@ -152,6 +153,7 @@ final class PersonalDataInventory
     public const EXEMPT = [
         Organization::class => 'Es el responsable del tratamiento: nombre e identificador de la organización, no de una persona.',
         ActivityCategory::class => 'Catálogo de categorías del programa definido por la organización.',
+        Room::class => 'Catálogo de salas del evento (nombre y orden) definido por la organización.',
         CallForSubmissions::class => 'Configuración de la convocatoria de la organización.',
         Event::class => 'Configuración del evento de la organización (nombre, fechas, idiomas, logotipo institucional).',
         EventActivity::class => 'Texto e imágenes del programa que redacta la organización; los ponentes se vinculan por identificador (la ficha es `Speaker`).',
