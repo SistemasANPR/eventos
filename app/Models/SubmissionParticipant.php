@@ -26,6 +26,12 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property string $full_name «nombre apellido» calculado por el servidor
  * @property string $email
  * @property string $country
+ * @property string|null $second_last_name apellido materno
+ * @property string|null $alt_email correo electrónico alternativo
+ * @property string|null $state estado o entidad
+ * @property string|null $city ciudad
+ * @property string|null $photo_file_id fotografía (archivo JPG o PNG ligado a la propuesta)
+ * @property string|null $phone teléfono con código de país
  * @property string|null $job_title
  * @property string|null $company
  * @property string|null $bio

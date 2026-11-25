@@ -3,7 +3,7 @@
 > Primer plan del proyecto y mínimo de R0 (épica E-02 de `docs/plan-de-desarrollo.md`). Es la base de todo lo demás. RLS de PostgreSQL y 2FA quedan fuera de este plan (RC-1 y RC-2) y pasan al plan 014 (R1).
 
 - **Fecha:** 2026-11-09
-- **Estado:** En curso
+- **Estado:** Terminado (2026-11-23: H-001-1 a H-001-4 construidas y registradas en §9; revisado contra el codigo)
 - **Esfuerzo:** L
 - **Deuda relacionada:** RLS de PostgreSQL (P1, RC-1) y 2FA (P1, RC-2), ambas con fecha límite 18-dic-2026 y dueño Antonio; se registrarán en `docs/sprints/deuda-tecnica.md` al aprobar el ADR-0011.
 
@@ -79,6 +79,7 @@ Medido el 2026-11-09: el repositorio contiene solo la plantilla (documentos, reg
 | `speakers.delete` | sí | no | no |
 | `activities.manage` | sí | sí | no |
 | `activities.delete` | sí | no | no |
+| `two_factor.reset` | sí | no | no |
 
   El `reviewer` (R1) no tiene permisos de organizador; sus permisos propios llegan con el plan 011. El usuario de plataforma no recibe permisos de organización por defecto.
 - **Convención de claves compuestas:** toda tabla con tenant a la que otra tabla hace referencia declara `unique(id, organization_id)` para que las claves foráneas compuestas impidan referencias entre organizaciones (la aplican `contacts` aquí, `events` en el plan 002 y calls, tracks y forms en los planes 004 y 005).

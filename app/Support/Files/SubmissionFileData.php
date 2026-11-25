@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Support\Files;
 
+use App\Enums\SubmissionFileStatus;
 use App\Models\SubmissionFile;
 
 /**
@@ -43,6 +44,37 @@ final class SubmissionFileData
             'mime_type' => $file->mime_type,
             'size_bytes' => $file->size_bytes,
         ];
+    }
+
+    /**
+     * Posición (desde 1) de cada archivo ya ligado a la propuesta, por orden de subida: la numeración de los
+     * nombres neutros que ve el evaluador, en pantalla (`archivo-{n}`) y al descargar (`propuesta-{n}`).
+     * Exige la organización en contexto.
+     *
+     * @return array<string, int> posición por identificador de archivo
+     */
+    public static function positions(string $submissionId): array
+    {
+        $ids = SubmissionFile::query()
+            ->where('submission_id', $submissionId)
+            ->where('status', SubmissionFileStatus::Attached)
+            ->orderBy('uploaded_at')
+            ->orderBy('id')
+            ->pluck('id')
+            ->all();
+
+        return array_map(static fn (int $index): int => $index + 1, array_flip($ids));
+    }
+
+    /**
+     * Nombre de descarga neutro del evaluador (plan 011, CA-011-20): `propuesta-{n}.{ext}`, sin nada del
+     * original. Se construye solo con datos generados por el servidor, como pide `PrivateUploads::temporaryUrl`.
+     */
+    public static function neutralDownloadName(SubmissionFile $file): string
+    {
+        $position = $file->submission_id === null ? 1 : (self::positions($file->submission_id)[$file->id] ?? 1);
+
+        return 'propuesta-'.$position.'.'.self::extension($file);
     }
 
     /** Extensión generada por el servidor al guardar (lista cerrada de `PrivateUploads::ALLOWED`). */

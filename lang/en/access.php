@@ -36,4 +36,19 @@ return [
         'device' => 'Approximate device: :device',
         'ignore' => 'If it was you, no action is needed. If not, change your password right away.',
     ],
+    'two_factor_enabled' => [
+        'subject' => 'You turned on two-step verification',
+        'greeting' => 'Hello',
+        'line' => 'Two-step verification was turned on for your account.',
+        'when' => 'Date: :date (UTC)',
+        'ignore' => 'If it was not you, tell an administrator of your organization right away.',
+    ],
+    'two_factor_reset' => [
+        'subject' => 'Your two-step verification was reset',
+        'greeting' => 'Hello',
+        'line' => 'An administrator reset the two-step verification of your account.',
+        'when' => 'Date: :date (UTC)',
+        'next' => 'The next time you sign in you will have to set it up again with your authenticator app.',
+        'ignore' => 'If you did not expect this, tell an administrator of your organization right away and change your password.',
+    ],
 ];

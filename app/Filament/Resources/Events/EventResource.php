@@ -10,11 +10,17 @@ use App\Filament\Resources\Events\Pages\EditEventLanding;
 use App\Filament\Resources\Events\Pages\ListEvents;
 use App\Filament\Resources\Events\Pages\ManageEventActivities;
 use App\Filament\Resources\Events\Pages\ManageEventActivityCategories;
+use App\Filament\Resources\Events\Pages\ManageEventAssignmentRules;
 use App\Filament\Resources\Events\Pages\ManageEventFormDefinitions;
+use App\Filament\Resources\Events\Pages\ManageEventReviewers;
+use App\Filament\Resources\Events\Pages\ManageEventRubrics;
 use App\Filament\Resources\Events\Pages\ManageEventSpeakerCategories;
 use App\Filament\Resources\Events\Pages\ManageEventSpeakers;
 use App\Filament\Resources\Events\Pages\ManageEventSubmissions;
 use App\Filament\Resources\Events\Pages\ViewEvent;
+use App\Filament\Resources\Events\Pages\ViewEventReviewerProgress;
+use App\Filament\Resources\Events\Pages\ViewEventReviewerProgressDetail;
+use App\Filament\Resources\Events\Pages\ViewEventReviewResults;
 use App\Filament\Resources\Events\RelationManagers\CallsRelationManager;
 use App\Filament\Resources\Events\RelationManagers\PrivacyNoticesRelationManager;
 use App\Filament\Resources\Events\RelationManagers\SubmissionTypesRelationManager;
@@ -98,6 +104,15 @@ class EventResource extends Resource
             // Nombre = ruta del recurso anidado (`FormDefinitionResource`): Filament lo usa como su índice.
             'form-definitions' => ManageEventFormDefinitions::route('/{record}/form-definitions'),
             'submissions' => ManageEventSubmissions::route('/{record}/submissions'),
+            // Evaluadores del evento y sus reglas permanentes de alcance (plan 011, F3b).
+            'reviewers' => ManageEventReviewers::route('/{record}/reviewers'),
+            'assignment-rules' => ManageEventAssignmentRules::route('/{record}/assignment-rules'),
+            // Rúbricas de evaluación del evento (plan 011, F4b); nombre = ruta del recurso anidado `RubricResource`.
+            'rubrics' => ManageEventRubrics::route('/{record}/rubrics'),
+            // Resultados, avance por evaluador (con su detalle) y cierre del periodo de evaluación (plan 011, F6).
+            'review-results' => ViewEventReviewResults::route('/{record}/review-results'),
+            'review-progress' => ViewEventReviewerProgress::route('/{record}/review-progress'),
+            'review-progress-detail' => ViewEventReviewerProgressDetail::route('/{record}/review-progress/{reviewer}'),
             // Ponentes del evento (plan 021, F2).
             'speakers' => ManageEventSpeakers::route('/{record}/speakers'),
             // Actividades del programa (plan 021, F3).

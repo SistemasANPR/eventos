@@ -9,6 +9,7 @@ use App\Models\CallForSubmissions;
 use App\Models\Event;
 use App\Models\Organization;
 use App\Models\PrivacyNotice;
+use App\Support\Calls\CallLandingData;
 use App\Support\Calls\PublicCallData;
 use App\Support\Calls\ResolveCallState;
 use App\Support\Events\PublicEventData;
@@ -41,6 +42,9 @@ final class ShowCallController
             'call' => PublicCallData::from($call, $event, $state, $locale),
             'event' => ['name' => $event->getTranslation('name', $locale), 'logoUrl' => PublicEventData::logoUrl($event, $organization)],
             'organization' => ['name' => $organization->name, 'slug' => $organization->slug],
+            // La landing se arma con estos datos; los nombres solo sirven para encontrar el texto propio de una convocatoria, si lo tiene.
+            'slugs' => ['organization' => $organization->slug, 'event' => $event->slug, 'call' => $call->slug],
+            'landing' => CallLandingData::from($call, $event, $organization, $locale),
             'eventUrl' => route('events.show', $eventRoute, false)."?lang={$locale}",
             // Solo con la convocatoria abierta se ofrece el botón de envío (plan 006, H-006-7).
             'submitUrl' => $state === CallState::Open

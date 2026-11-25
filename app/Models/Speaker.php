@@ -7,6 +7,8 @@ namespace App\Models;
 use App\Models\Concerns\BelongsToOrganization;
 use Carbon\CarbonImmutable;
 use Database\Factories\SpeakerFactory;
+use Illuminate\Database\Eloquent\Attributes\Scope;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -46,8 +48,26 @@ class Speaker extends Model
     /** @use HasFactory<SpeakerFactory> */
     use HasFactory, HasUuids, SoftDeletes;
 
+    /** Tamaño de página de la lista pública de ponentes y su tope (plan 029; AGENTS.md: máximo 100). */
+    public const PUBLIC_PER_PAGE = 48;
+
+    public const PUBLIC_MAX_PER_PAGE = 100;
+
     /** @var list<string> */
     protected $guarded = ['*'];
+
+    /**
+     * Lo que el público puede ver (plan 029, DA-6 y DA-7): publicado y no oculto por una reversa. El
+     * borrado lógico ya lo excluye el scope de `SoftDeletes`.
+     *
+     * @param  Builder<Speaker>  $query
+     */
+    #[Scope]
+    protected function visibleToPublic(Builder $query): void
+    {
+        $query->where($this->qualifyColumn('is_published'), true)
+            ->whereNull($this->qualifyColumn('hidden_by_reversal_at'));
+    }
 
     /** @return array<string, string> */
     protected function casts(): array

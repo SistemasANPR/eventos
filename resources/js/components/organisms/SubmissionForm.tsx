@@ -5,7 +5,8 @@ import { AcceptanceField } from '@/components/molecules/AcceptanceField';
 import { FormRenderer } from '@/components/organisms/FormRenderer';
 import { SubmissionBlock } from '@/components/organisms/SubmissionBlock';
 import { BUTTON_SECONDARY, FOCUS_RING, SECTION_CARD, SECTION_HEADING } from '@/lib/classes';
-import { hasErrors, mapServerErrors } from '@/lib/submission-errors';
+import { FIXED_PREFIX, hasErrors, mapServerErrors } from '@/lib/submission-errors';
+import { participantPhotoKey } from '@/lib/submission-fields';
 import { readSubmission } from '@/lib/submission-payload';
 import type { Translate } from '@/lib/translate';
 import { UploadFailedError, uploadSubmissionFile } from '@/lib/upload-submission-file';
@@ -74,8 +75,7 @@ export function SubmissionForm({ form, locale, t, errors, failure, isProcessing,
     const hasSiteKey = form.turnstileSiteKey !== '';
     const turnstileError = mapped.turnstile ?? turnstileMessage;
     const isClosed = failure?.code === 'CALL_NOT_OPEN';
-    const needsRefresh =
-        (failure !== null && NEEDS_REFRESH.includes(failure.code)) || mapped.general.length > 0;
+    const needsRefresh = (failure !== null && NEEDS_REFRESH.includes(failure.code)) || mapped.general.length > 0;
     const hasFieldErrors = hasErrors({ ...mapped, general: [] }) || Object.keys(uploadErrors).length > 0;
     const hasAlert = failure !== null || mapped.general.length > 0 || hasFieldErrors;
 
@@ -133,7 +133,10 @@ export function SubmissionForm({ form, locale, t, errors, failure, isProcessing,
                     try {
                         id = await uploadSubmissionFile(form.uploadUrl, file, fieldKey, credentials.token);
                     } catch (error) {
-                        const message = error instanceof UploadFailedError && error.message !== '' ? error.message : t('submit.error_upload', { name: file.name });
+                        const message =
+                            error instanceof UploadFailedError && error.message !== ''
+                                ? error.message
+                                : t('submit.error_upload', { name: file.name });
                         throw new FieldUploadError(fieldKey, message);
                     }
 
@@ -171,7 +174,9 @@ export function SubmissionForm({ form, locale, t, errors, failure, isProcessing,
             fileAnswers = await uploadFiles(files);
         } catch (error) {
             if (error instanceof FieldUploadError) {
-                setUploadErrors({ [error.fieldKey]: error.message });
+                const photo = /^participant_photo_(\d+)$/.exec(error.fieldKey);
+
+                setUploadErrors({ [photo === null ? error.fieldKey : `${FIXED_PREFIX}participants.${photo[1]}.photo`]: error.message });
             }
 
             return;
@@ -186,8 +191,12 @@ export function SubmissionForm({ form, locale, t, errors, failure, isProcessing,
             locale,
             title: values.title,
             track_id: values.track_id,
-            answers: { ...values.answers, ...fileAnswers },
-            participants: values.participants,
+            answers: Object.fromEntries(Object.entries({ ...values.answers, ...fileAnswers }).filter(([key]) => !isPhotoKey(key))),
+            participants: values.participants.map((participant, index) => {
+                const photoId = fileAnswers[participantPhotoKey(index)];
+
+                return Array.isArray(photoId) && photoId[0] !== undefined ? { ...participant, photo_file_id: photoId[0] } : participant;
+            }),
             consent,
             privacy_notice_version_id: form.privacyNotice.id,
             third_parties_authorized: thirdParties && participantIds.length > 1,
@@ -205,25 +214,35 @@ export function SubmissionForm({ form, locale, t, errors, failure, isProcessing,
 
     const submitLabel = isUploading ? t('submit.uploading') : isProcessing ? t('submit.sending') : t('submit.send_action');
 
-    const leading = (
-        <>
-            <SubmissionBlock
-                locale={locale}
-                defaultLocale={form.defaultLocale}
-                t={t}
-                tracks={form.tracks}
-                minParticipants={form.minParticipants}
-                maxParticipants={form.maxParticipants}
-                participantIds={participantIds}
-                onAddParticipant={handleAddParticipant}
-                onRemoveParticipant={handleRemoveParticipant}
-                errors={fieldErrors}
-                participantsError={mapped.participants}
-            />
-        </>
+    const isParticipantsLast = form.participantsPosition === 'bottom';
+    // Si el formulario trae su propia pregunta de título o de tema, el bloque fijo «Datos de la propuesta» no la repite.
+    const hasTitleField = form.fields.some((field) => field.key === `${FIXED_PREFIX}title`);
+    const hasTrackField = form.fields.some((field) => field.key === `${FIXED_PREFIX}track_id`);
+    const block = (parts: { showDetails: boolean; showParticipants: boolean }) => (
+        <SubmissionBlock
+            locale={locale}
+            defaultLocale={form.defaultLocale}
+            t={t}
+            tracks={form.tracks}
+            minParticipants={form.minParticipants}
+            maxParticipants={form.maxParticipants}
+            participantIds={participantIds}
+            onAddParticipant={handleAddParticipant}
+            onRemoveParticipant={handleRemoveParticipant}
+            errors={fieldErrors}
+            participantsError={mapped.participants}
+            participantConfig={form.participantFields}
+            showDetails={parts.showDetails}
+            showTitle={!hasTitleField}
+            showTrack={!hasTrackField}
+            showParticipants={parts.showParticipants}
+        />
     );
 
-    const trailing = (
+    // El formulario decide si los participantes van antes o después de las demás preguntas.
+    const leading = block({ showDetails: true, showParticipants: !isParticipantsLast });
+
+    const consentSection = (
         <section aria-labelledby="submit-consent-heading" className={cn(SECTION_CARD, 'space-y-4')}>
             <h2 id="submit-consent-heading" className={SECTION_HEADING}>
                 {t('submit.section_consent')}
@@ -272,6 +291,13 @@ export function SubmissionForm({ form, locale, t, errors, failure, isProcessing,
         </section>
     );
 
+    const trailing = (
+        <div className="space-y-8">
+            {isParticipantsLast ? block({ showDetails: false, showParticipants: true }) : null}
+            {consentSection}
+        </div>
+    );
+
     return (
         <div ref={container} className="space-y-6">
             <div ref={alert} tabIndex={-1} role="alert" aria-live="assertive" className={cn(!hasAlert && 'hidden')}>
@@ -302,7 +328,7 @@ export function SubmissionForm({ form, locale, t, errors, failure, isProcessing,
                 errors={fieldErrors}
                 onSubmit={handleSubmit}
                 leading={leading}
-                fieldsTitle={t('submit.section_questions')}
+                fieldsTitle={form.extraSectionTitle ?? t('submit.section_questions')}
                 trailing={trailing}
                 isSubmitting={isProcessing || isUploading}
                 isSubmitDisabled={isClosed}
@@ -310,6 +336,11 @@ export function SubmissionForm({ form, locale, t, errors, failure, isProcessing,
             />
         </div>
     );
+}
+
+/** Las fotografías de participantes viajan en cada participante, no entre las respuestas del formulario. */
+function isPhotoKey(key: string): boolean {
+    return key.startsWith('participant_photo_');
 }
 
 /** Error de la subida de un campo concreto: se muestra junto a ese campo. */

@@ -2,7 +2,18 @@ import { readSubmission } from '@/lib/submission-payload';
 import type { FormField } from '@/types/form';
 
 function field(key: string, type: FormField['type'], overrides: Partial<FormField> = {}): FormField {
-    return { key, type, required: false, position: 1, identifiesAuthor: false, label: { es: key }, help: [], config: [], retiredAt: null, ...overrides };
+    return {
+        key,
+        type,
+        required: false,
+        position: 1,
+        identifiesAuthor: false,
+        label: { es: key },
+        help: [],
+        config: [],
+        retiredAt: null,
+        ...overrides,
+    };
 }
 
 describe('readSubmission', () => {
@@ -63,7 +74,11 @@ describe('readSubmission', () => {
         data.append('deck', slides);
         data.append('poster', new File([], ''));
 
-        const { files, values } = readSubmission(data, [field('deck', 'file', { position: 1 }), field('poster', 'file', { position: 2 })], 1);
+        const { files, values } = readSubmission(
+            data,
+            [field('deck', 'file', { position: 1 }), field('poster', 'file', { position: 2 })],
+            1,
+        );
 
         expect(files).toEqual({ deck: [slides] });
         expect(values.answers).toEqual({});

@@ -20,6 +20,9 @@ use Illuminate\Validation\Rule;
  */
 class StoreCallForSubmissionsRequest extends FormRequest
 {
+    /** Máximo de enlaces propios en el pie de la página de una convocatoria. */
+    public const MAX_EXTRA_LINKS = 10;
+
     public function authorize(): bool
     {
         $event = $this->route('event');
@@ -59,9 +62,11 @@ class StoreCallForSubmissionsRequest extends FormRequest
             'closes_at' => ['required', 'date_format:Y-m-d H:i', 'after:opens_at'],
             'results_at' => ['nullable', 'date_format:Y-m-d H:i', 'after_or_equal:closes_at'],
             'show_back_link' => ['nullable', 'boolean'],
-            // El enlace propio lleva texto y dirección juntos; la dirección solo puede ser https (como los enlaces del texto enriquecido).
-            'extra_link_label' => ['nullable', 'string', 'max:100', 'required_with:extra_link_url'],
-            'extra_link_url' => ['nullable', 'string', 'max:2048', 'url:https', 'required_with:extra_link_label'],
+            // Enlaces propios del pie: hasta 10, cada uno con texto y dirección juntos; la dirección solo puede ser https
+            // (como los enlaces del texto enriquecido). Una fila totalmente vacía se descarta al guardar.
+            'extra_links' => ['nullable', 'array', 'max:'.self::MAX_EXTRA_LINKS],
+            'extra_links.*.label' => ['nullable', 'string', 'max:100', 'required_with:extra_links.*.url'],
+            'extra_links.*.url' => ['nullable', 'string', 'max:2048', 'url:https', 'required_with:extra_links.*.label'],
         ];
     }
 

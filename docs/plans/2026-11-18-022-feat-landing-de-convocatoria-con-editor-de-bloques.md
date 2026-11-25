@@ -3,7 +3,7 @@
 > Plan 022. Especificación (SDD, ADR-0001). El nombre del archivo conserva «landing-de-convocatoria» para no romper referencias; desde la revisión del 2026-11-19 la landing es **del evento**.
 
 - **Fecha:** 2026-11-18 (revisado el 2026-11-19)
-- **Estado:** Aprobado (2026-11-19: Gabriel aprueba el plan y cierra DA-1 a DA-17 por la delegación de AGENTS.md; la implementación la pide hoy, antes del lanzamiento)
+- **Estado:** En curso (2026-11-23: F0 a F4 construidas y registradas; F5 y F6 pendientes: editor visual, segunda parte, y cierre)
 - **Esfuerzo:** L
 - **Deuda relacionada:** ninguna directa. Se apoya en la excepción de React dentro del panel (ADR-0010) y en el disco `media` del plan 021 (DA-11).
 

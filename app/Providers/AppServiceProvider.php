@@ -21,9 +21,11 @@ use App\Support\Forms\IssuedUploadTokens;
 use App\Support\Forms\PendingUploadRepository;
 use App\Support\Forms\SessionIssuedUploadTokens;
 use App\Support\Forms\SubmissionAnswerCounter;
-use App\Support\Reviews\NoRecordedReviews;
+use App\Support\Reviews\RecordedReviews;
 use App\Support\Reviews\RubricUsageChecker;
 use App\Support\Tenancy\CurrentOrganization;
+use App\Support\Tenancy\DatabaseTenantContext;
+use App\Support\Tenancy\PlatformAccess;
 use Filament\Auth\Http\Responses\Contracts\LoginResponse as LoginResponseContract;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Database\Eloquent\Model;
@@ -51,8 +53,8 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(PendingUploadRepository::class, EloquentPendingUploads::class);
         $this->app->bind(TrackUsageChecker::class, SubmissionTrackUsage::class);
         $this->app->bind(SubmissionAnswerCounter::class, EloquentSubmissionAnswerCounter::class);
-        // Costura hacia las evaluaciones (plan 011, F4): hasta entonces ninguna rubrica tiene evaluaciones.
-        $this->app->bind(RubricUsageChecker::class, NoRecordedReviews::class);
+        // Costura hacia las evaluaciones (plan 011, DA-2): una rubrica con evaluaciones registradas no se edita.
+        $this->app->bind(RubricUsageChecker::class, RecordedReviews::class);
         // Acceso único (plan 017): cada persona llega a su portal, no al panel desde el que inició sesión.
         $this->app->bind(LoginResponseContract::class, LoginResponse::class);
     }
@@ -66,6 +68,9 @@ class AppServiceProvider extends ServiceProvider
         Model::shouldBeStrict(! $this->app->isProduction());
 
         $this->isolateQueuedJobsContext();
+
+        // RLS de PostgreSQL (plan 014): la base ve en cada consulta la organización del proceso.
+        DatabaseTenantContext::register();
 
         // Guard del autor de una propuesta, sin cuenta y separado del panel (plan 006, DA-3).
         Auth::extend('author', static fn (Application $app): AuthorGuard => new AuthorGuard($app->make(AuthorSession::class)));
@@ -93,6 +98,7 @@ class AppServiceProvider extends ServiceProvider
         $forgetContext = static function (JobProcessing|JobProcessed|JobFailed|JobExceptionOccurred $event): void {
             if ($event->connectionName !== 'sync') {
                 CurrentOrganization::forget();
+                PlatformAccess::disable();
             }
         };
 
@@ -100,6 +106,9 @@ class AppServiceProvider extends ServiceProvider
         Queue::after($forgetContext);
         Queue::failing($forgetContext);
         Queue::exceptionOccurred($forgetContext);
-        Queue::looping(static fn () => CurrentOrganization::forget());
+        Queue::looping(static function (): void {
+            CurrentOrganization::forget();
+            PlatformAccess::disable();
+        });
     }
 }

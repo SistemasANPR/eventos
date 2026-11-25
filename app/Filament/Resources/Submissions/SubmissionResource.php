@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Filament\Resources\Submissions;
 
+use App\Enums\ReviewAssignmentStatus;
 use App\Enums\SubmissionOrigin;
 use App\Filament\Resources\Events\EventResource;
 use App\Filament\Resources\Submissions\Pages\ViewSubmission;
@@ -23,8 +24,9 @@ use Illuminate\Database\Eloquent\Relations\Relation;
  * consulta de `EventResource`, que pasa por el scope de organización, así que un
  * evento de otra organización responde 404 (DA-6). La lista es la página del evento
  * `ManageEventSubmissions` (plan 020, F2); este recurso aporta la tabla y, con el
- * detalle de H-009-2, las páginas de cada propuesta. Solo lectura: sin crear, editar
- * ni borrar desde aquí. La Policy decide quién ve.
+ * detalle de H-009-2, las páginas de cada propuesta. Sin crear, editar ni borrar desde
+ * aquí; el estado cambia solo con las acciones de decisión del detalle (plan 012). La Policy
+ * decide quién ve, quién decide y quién revierte.
  */
 class SubmissionResource extends Resource
 {
@@ -78,7 +80,13 @@ class SubmissionResource extends Resource
     {
         return $query
             ->where('origin', SubmissionOrigin::Call)
-            ->with(['event', 'call', 'submissionType', 'track', 'activity']);
+            ->with(['event', 'call', 'submissionType', 'track', 'activity'])
+            // Evaluadores que cuentan para la cobertura (plan 011, CA-011-6): sin canceladas ni en conflicto.
+            ->withCount(['reviewAssignments as active_reviewers_count' => fn (Builder $assignments) => $assignments
+                ->whereIn('status', ReviewAssignmentStatus::coverageValues())])
+            // Conflictos de interés declarados por los evaluadores (plan 011, CA-011-17): el aviso de la lista.
+            ->withCount(['reviewAssignments as declared_conflicts_count' => fn (Builder $assignments) => $assignments
+                ->where('status', ReviewAssignmentStatus::DeclinedConflict)]);
     }
 
     /**

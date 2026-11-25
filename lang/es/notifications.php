@@ -21,6 +21,18 @@ return [
             'trigger' => 'Se inicia sesión desde un dispositivo no registrado.',
             'recipient' => 'El titular de la cuenta.',
         ],
+        'two_factor_enabled' => [
+            'name' => 'Verificación en dos pasos activada',
+            'description' => 'Aviso de seguridad con la fecha; nunca lleva el secreto ni los códigos de recuperación.',
+            'trigger' => 'Alguien confirma la verificación en dos pasos de su cuenta.',
+            'recipient' => 'El titular de la cuenta.',
+        ],
+        'two_factor_reset' => [
+            'name' => 'Verificación en dos pasos reiniciada',
+            'description' => 'Aviso de seguridad de que otro administrador reinició la verificación, con la fecha.',
+            'trigger' => 'Un administrador o la plataforma reinicia la verificación en dos pasos de una cuenta.',
+            'recipient' => 'El titular de la cuenta.',
+        ],
     ],
     'team' => [
         'set_password' => [
@@ -72,6 +84,46 @@ return [
             'description' => 'Confirma al autor que su propuesta quedó retirada.',
             'trigger' => 'El autor retira su propuesta.',
             'recipient' => 'La persona que envió la propuesta.',
+        ],
+        'accepted' => [
+            'name' => 'Propuesta aceptada',
+            'description' => 'Avisa al autor que su propuesta fue aceptada, con el comentario opcional del equipo. No lleva enlace de acceso: invita a pedir uno nuevo. No se puede desactivar.',
+            'trigger' => 'Un usuario con permiso publica los resultados de la convocatoria (o decide una propuesta cuando los resultados ya están publicados).',
+            'recipient' => 'La persona que envió la propuesta.',
+        ],
+        'rejected' => [
+            'name' => 'Propuesta no seleccionada',
+            'description' => 'Avisa al autor que su propuesta no fue seleccionada, con el comentario opcional del equipo. No lleva enlace de acceso. No se puede desactivar.',
+            'trigger' => 'Un usuario con permiso publica los resultados de la convocatoria (o decide una propuesta cuando los resultados ya están publicados).',
+            'recipient' => 'La persona que envió la propuesta.',
+        ],
+        'waitlisted' => [
+            'name' => 'Propuesta en lista de espera',
+            'description' => 'Avisa al autor que su propuesta quedó en lista de espera, con el comentario opcional del equipo. No lleva enlace de acceso. No se puede desactivar.',
+            'trigger' => 'Un usuario con permiso publica los resultados de la convocatoria (o decide una propuesta cuando los resultados ya están publicados).',
+            'recipient' => 'La persona que envió la propuesta.',
+        ],
+    ],
+    'call' => [
+        'closing_reminder' => [
+            'name' => 'Recordatorio de cierre de la convocatoria',
+            'description' => 'Recuerda a los autores con una propuesta enviada que la convocatoria está por cerrar. Un solo recordatorio por autor y convocatoria; si la edición por el autor está disponible, lo invita a corregir su propuesta.',
+            'trigger' => 'Tarea diaria: faltan los días configurados (por defecto 3) para el cierre de la convocatoria, en la zona horaria del evento.',
+            'recipient' => 'La persona que envió cada propuesta pendiente (una sola vez por convocatoria).',
+        ],
+    ],
+    'reviewer' => [
+        'assignment' => [
+            'name' => 'Propuestas asignadas al evaluador',
+            'description' => 'Un solo resumen por evaluador y por operación de asignación, con la cantidad de propuestas nuevas y el enlace a su tablero; una propuesta asignada después por una regla de alcance no envía correo.',
+            'trigger' => 'Un integrante del equipo asigna propuestas a un evaluador.',
+            'recipient' => 'El evaluador asignado.',
+        ],
+        'invitation' => [
+            'name' => 'Invitación al evaluador',
+            'description' => 'Invita a una persona a evaluar propuestas de un evento. Si es una cuenta nueva, el enlace permite establecer su contraseña y caduca en el plazo de los demás enlaces de contraseña.',
+            'trigger' => 'Un integrante del equipo invita a un evaluador a un evento.',
+            'recipient' => 'La persona invitada como evaluadora.',
         ],
     ],
 ];

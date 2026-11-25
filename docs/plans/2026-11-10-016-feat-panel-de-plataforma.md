@@ -3,7 +3,7 @@
 > Plan de la épica de operación de plataforma (adelanta RC-7 de `docs/plan-de-desarrollo.md` §3.4). Es la especificación de SDD (ADR-0001). Se presenta y se espera aprobación antes de escribir código.
 
 - **Fecha:** 2026-11-10
-- **Estado:** En curso
+- **Estado:** Terminado (2026-11-23: F0 a F5 construidas en un solo commit, e1a0f02)
 - **Esfuerzo:** L
 - **Deuda relacionada:** cierra DT-01 (`organization_id` propio en `activity_log`, fase F1); se apoya en DT-02 y en el plan 014 (2FA y RLS); adelanta RC-7 (hoy fijado a R5)
 

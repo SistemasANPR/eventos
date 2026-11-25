@@ -21,6 +21,18 @@ return [
             'trigger' => 'Someone signs in from an unregistered device.',
             'recipient' => 'The account owner.',
         ],
+        'two_factor_enabled' => [
+            'name' => 'Two-step verification turned on',
+            'description' => 'Security notice with the date; it never carries the secret or recovery codes.',
+            'trigger' => 'Someone confirms two-step verification on their account.',
+            'recipient' => 'The account owner.',
+        ],
+        'two_factor_reset' => [
+            'name' => 'Two-step verification reset',
+            'description' => 'Security notice that another administrator reset the verification, with the date.',
+            'trigger' => 'An administrator or the platform resets the two-step verification of an account.',
+            'recipient' => 'The account owner.',
+        ],
     ],
     'team' => [
         'set_password' => [
@@ -72,6 +84,46 @@ return [
             'description' => 'Confirms to the author that their submission was withdrawn.',
             'trigger' => 'The author withdraws their submission.',
             'recipient' => 'The person who sent the submission.',
+        ],
+        'accepted' => [
+            'name' => 'Submission accepted',
+            'description' => 'Tells the author their submission was accepted, with the team\'s optional comment. It carries no access link: it invites them to request a new one. It cannot be turned off.',
+            'trigger' => 'A user with permission publishes the call results (or decides a submission once the results are already published).',
+            'recipient' => 'The person who sent the submission.',
+        ],
+        'rejected' => [
+            'name' => 'Submission not selected',
+            'description' => 'Tells the author their submission was not selected, with the team\'s optional comment. It carries no access link. It cannot be turned off.',
+            'trigger' => 'A user with permission publishes the call results (or decides a submission once the results are already published).',
+            'recipient' => 'The person who sent the submission.',
+        ],
+        'waitlisted' => [
+            'name' => 'Submission on the waitlist',
+            'description' => 'Tells the author their submission is on the waitlist, with the team\'s optional comment. It carries no access link. It cannot be turned off.',
+            'trigger' => 'A user with permission publishes the call results (or decides a submission once the results are already published).',
+            'recipient' => 'The person who sent the submission.',
+        ],
+    ],
+    'call' => [
+        'closing_reminder' => [
+            'name' => 'Call closing reminder',
+            'description' => 'Reminds authors with a submitted proposal that the call is about to close. One reminder per author and call; if editing by the author is available, it invites them to fix their submission.',
+            'trigger' => 'Daily task: the configured number of days (3 by default) are left before the call closes, in the event time zone.',
+            'recipient' => 'The person who sent each pending submission (once per call).',
+        ],
+    ],
+    'reviewer' => [
+        'assignment' => [
+            'name' => 'Submissions assigned to the reviewer',
+            'description' => 'A single summary per reviewer and per assignment operation, with the number of new submissions and the link to their dashboard; a submission assigned later by a scope rule sends no email.',
+            'trigger' => 'A team member assigns submissions to a reviewer.',
+            'recipient' => 'The assigned reviewer.',
+        ],
+        'invitation' => [
+            'name' => 'Reviewer invitation',
+            'description' => 'Invites a person to review submissions of an event. For a new account the link lets them set their password and expires like any other password link.',
+            'trigger' => 'A team member invites a reviewer to an event.',
+            'recipient' => 'The person invited as a reviewer.',
         ],
     ],
 ];

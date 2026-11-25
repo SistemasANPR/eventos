@@ -65,7 +65,13 @@ it('CA-020-1: the organization admin sees the panel home, Events and the Organiz
     expect($sidebar)->toHaveCount(2)
         ->and($sidebar[0][0])->toBeNull()
         ->and(array_slice($sidebar[0][1], 1))->toBe([__('events.navigation')])
-        ->and($sidebar[1])->toBe([__('navigation.groups.organization'), [__('team.resource.plural'), __('mail_admin.navigation')]]);
+        // Equipo, Correos y, al final, las dos pantallas de privacidad (plan 014): solo las ve quien tiene sus permisos.
+        ->and($sidebar[1])->toBe([__('navigation.groups.organization'), [
+            __('team.resource.plural'),
+            __('mail_admin.navigation'),
+            __('privacy_admin.navigation.personal_data'),
+            __('privacy_admin.navigation.retention'),
+        ]]);
 });
 
 it('CA-020-2: the organizer sees the Organization group with Emails only, without Team', function (): void {
@@ -157,6 +163,13 @@ function eventSectionLabels(): array
         __('submission_panel.navigation'),
         __('program.speakers.navigation'),
         __('program.activities.navigation'),
+        // Plan 011, F3b: quien asigna ve la sección «Evaluadores» (organizador y administrador).
+        __('review_assignments.reviewers.navigation'),
+        // Plan 011, F4b: quien gestiona rúbricas ve la sección «Rúbricas» (organizador y administrador).
+        __('rubrics.navigation'),
+        // Plan 011, F6: resultados y avance por evaluador, con sus permisos propios.
+        __('review_results.results.navigation'),
+        __('review_results.progress.navigation'),
     ];
 }
 

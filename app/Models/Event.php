@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Enums\EventAssignmentRole;
 use App\Enums\EventStatus;
 use App\Enums\EventType;
 use App\Enums\TimeFormat;
@@ -43,6 +44,7 @@ use Spatie\Translatable\HasTranslations;
  * @property string $default_locale
  * @property string $currency
  * @property TimeFormat $time_format
+ * @property Carbon|null $review_period_closed_at instante UTC del cierre del periodo de evaluación; nulo si está abierto (plan 011)
  */
 #[Fillable([
     'name', 'description', 'slug', 'type', 'starts_at', 'ends_at', 'timezone',
@@ -59,12 +61,19 @@ class Event extends Model
     public array $translatable = ['name', 'description'];
 
     /** Mismo valor por defecto que la columna: un evento recién creado ya sabe su formato de hora (plan 023). */
-    protected $attributes = ['time_format' => '12h'];
+    protected $attributes = ['time_format' => '12h', 'review_period_closed_at' => null];
+
+    /** Periodo de evaluación abierto (plan 011): nadie lo ha cerrado. Cerrarlo y reabrirlo es de F6. */
+    public function reviewPeriodIsOpen(): bool
+    {
+        return $this->review_period_closed_at === null;
+    }
 
     /** @return array<string, string> */
     protected function casts(): array
     {
         return [
+            'review_period_closed_at' => 'datetime',
             'type' => EventType::class,
             'status' => EventStatus::class,
             'time_format' => TimeFormat::class,
@@ -105,6 +114,12 @@ class Event extends Model
     public function submissionTypes(): HasMany
     {
         return $this->hasMany(SubmissionType::class);
+    }
+
+    /** @return HasMany<Rubric, $this> rúbricas de evaluación del evento (plan 011) */
+    public function rubrics(): HasMany
+    {
+        return $this->hasMany(Rubric::class);
     }
 
     /** @return HasMany<Track, $this> */
@@ -153,6 +168,26 @@ class Event extends Model
     public function formDefinitions(): HasMany
     {
         return $this->hasMany(FormDefinition::class);
+    }
+
+    /**
+     * Asignaciones de evento de rol evaluador (plan 011): la lista de evaluadores del evento.
+     *
+     * @return HasMany<EventAssignment, $this>
+     */
+    public function reviewerAssignments(): HasMany
+    {
+        return $this->hasMany(EventAssignment::class)->where('role', EventAssignmentRole::Reviewer);
+    }
+
+    /**
+     * Reglas permanentes de alcance de la asignación de evaluadores (plan 011, F3b).
+     *
+     * @return HasMany<ReviewScopeRule, $this>
+     */
+    public function reviewScopeRules(): HasMany
+    {
+        return $this->hasMany(ReviewScopeRule::class);
     }
 
     /** @return HasMany<Submission, $this> */

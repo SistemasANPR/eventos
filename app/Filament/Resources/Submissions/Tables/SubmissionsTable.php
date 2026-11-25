@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Filament\Resources\Submissions\Tables;
 
 use App\Enums\SubmissionStatus;
+use App\Filament\Resources\Submissions\Actions\BulkDecisionActions;
+use App\Filament\Resources\Submissions\Actions\ReviewAssignmentActions;
 use App\Filament\Resources\Submissions\SubmissionResource;
 use App\Filament\Resources\Submissions\Support\SubmissionActivityLink;
 use App\Models\CallForSubmissions;
@@ -13,9 +15,12 @@ use App\Models\Submission;
 use App\Models\SubmissionType;
 use App\Models\Track;
 use App\Support\Events\EventTime;
+use App\Support\Reviews\ReviewCoverage;
 use Carbon\CarbonImmutable;
 use Carbon\Exceptions\InvalidFormatException;
+use Filament\Actions\BulkActionGroup;
 use Filament\Forms\Components\DatePicker;
+use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\Filter;
 use Filament\Tables\Filters\SelectFilter;
@@ -57,6 +62,7 @@ final class SubmissionsTable
                 TextColumn::make('status')
                     ->label(__('submission_panel.columns.status'))
                     ->badge(),
+                self::reviewersColumn(),
                 TextColumn::make('activity')
                     ->label(__('submission_panel.columns.activity'))
                     ->state(fn (Submission $record): ?string => SubmissionActivityLink::for($record)['title'] ?? null)
@@ -79,11 +85,49 @@ final class SubmissionsTable
                 self::showAcceptedFilter(),
                 self::dateRangeFilter(),
             ])
+            ->toolbarActions([BulkActionGroup::make([
+                ReviewAssignmentActions::bulkAssign(),
+                BulkDecisionActions::bulk('accept', SubmissionStatus::Accepted, Heroicon::OutlinedCheckCircle, 'success'),
+                BulkDecisionActions::bulk('waitlist', SubmissionStatus::Waitlisted, Heroicon::OutlinedClock, 'warning'),
+                BulkDecisionActions::bulk('reject', SubmissionStatus::Rejected, Heroicon::OutlinedXCircle, 'danger'),
+            ])])
             ->paginated([10, 25, 50, self::MAX_PER_PAGE])
             ->defaultPaginationPageOption(25)
             // Sin esto Filament acepta cualquier tamaño que llegue del cliente (CA-009-3).
             ->enforcePaginationPageOptions()
             ->emptyStateHeading(__('submission_panel.empty'));
+    }
+
+    /**
+     * Evaluadores asignados frente al mínimo de la rúbrica del tipo (plan 011, CA-011-6): una propuesta por
+     * evaluar con menos evaluadores que el mínimo se marca como «cobertura incompleta». Solo aplica a las
+     * propuestas que aún se evalúan (`submitted` y `under_review`). Debajo se avisa de los conflictos de interés
+     * declarados por los evaluadores (CA-011-17).
+     */
+    private static function reviewersColumn(): TextColumn
+    {
+        $evaluable = static fn (Submission $record): bool => in_array($record->status, [SubmissionStatus::Submitted, SubmissionStatus::UnderReview], true);
+        $incomplete = static fn (Submission $record, $livewire): bool => $evaluable($record)
+            && ReviewCoverage::for(self::event($livewire))->isIncomplete($record->submission_type_id, (int) $record->getAttribute('active_reviewers_count'));
+
+        return TextColumn::make('reviewers')
+            ->label(__('review_assignments.columns.reviewers'))
+            ->state(fn (Submission $record, $livewire): ?string => $evaluable($record)
+                ? $record->getAttribute('active_reviewers_count').'/'.ReviewCoverage::for(self::event($livewire))->minimumFor($record->submission_type_id)
+                : null)
+            ->badge()
+            ->color(fn (Submission $record, $livewire): string => $incomplete($record, $livewire) ? 'danger' : 'success')
+            ->description(function (Submission $record, $livewire) use ($incomplete): ?string {
+                // Los conflictos declarados (CA-011-17) se avisan junto a la cobertura: la propuesta puede
+                // necesitar otro evaluador.
+                $conflicts = (int) $record->getAttribute('declared_conflicts_count');
+                $notes = array_filter([
+                    $incomplete($record, $livewire) ? __('review_assignments.columns.coverage_incomplete') : null,
+                    $conflicts > 0 ? __('reviewer_integrity.organizer.conflicts', ['count' => $conflicts]) : null,
+                ]);
+
+                return $notes === [] ? null : implode(' · ', $notes);
+            });
     }
 
     /** @param  callable(Event): array<string, string>  $options */

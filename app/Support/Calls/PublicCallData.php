@@ -20,7 +20,7 @@ use Illuminate\Support\Carbon;
 final class PublicCallData
 {
     /**
-     * @return array{title: string, description: ?string, submissionType: string, state: string, opensAt: string, closesAt: string, resultsAt?: string, timezone: string, timeFormat: string, locale: string, locales: list<string>, tracks: list<array{name: string, description: ?string}>, showBackLink: bool, extraLink: ?array{label: string, url: string}}
+     * @return array{title: string, description: ?string, submissionType: string, state: string, opensAt: string, closesAt: string, resultsAt?: string, timezone: string, timeFormat: string, locale: string, locales: list<string>, tracks: list<array{name: string, description: ?string}>, showBackLink: bool, extraLinks: list<array{label: string, url: string}>}
      */
     public static function from(CallForSubmissions $call, Event $event, CallState $state, string $locale): array
     {
@@ -37,9 +37,7 @@ final class PublicCallData
             'locales' => $event->effectiveLocalesForCall($call),
             'tracks' => self::tracks($event, $locale),
             'showBackLink' => $call->show_back_link,
-            'extraLink' => $call->extra_link_label !== null && $call->extra_link_url !== null
-                ? ['label' => $call->extra_link_label, 'url' => $call->extra_link_url]
-                : null,
+            'extraLinks' => $call->extra_links ?? [],
         ];
 
         if ($call->results_at !== null) {

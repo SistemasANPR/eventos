@@ -59,4 +59,16 @@ return [
         'max_links_per_email' => 5,
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Recordatorio de cierre de la convocatoria (plan 012, H-012-4)
+    |--------------------------------------------------------------------------
+    |
+    | Días de calendario (en la zona horaria del evento) antes del cierre a partir de los cuales
+    | la tarea diaria avisa, una sola vez, a los autores con propuestas enviadas.
+    |
+    */
+
+    'closing_reminder_days' => 3,
+
 ];

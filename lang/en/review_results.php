@@ -1,0 +1,106 @@
+<?php
+
+declare(strict_types=1);
+
+/** Results, per-reviewer progress and closing the review period (plan 011, F6). */
+return [
+    'invalid_filter' => 'The chosen filter does not belong to this event.',
+
+    'results' => [
+        'navigation' => 'Results',
+        'title' => 'Review results: :name',
+        'description' => 'Weighted average, deviation and discrepancies per submission. Only submitted, current reviews count; cancelled ones, declared conflicts and drafts are left out.',
+        'filters' => [
+            'track' => 'Track',
+            'call' => 'Call',
+            'all_tracks' => 'All tracks',
+            'all_calls' => 'All calls',
+            'discrepancies' => 'Only with discrepancies',
+        ],
+        'columns' => [
+            'rank' => 'Rank',
+            'title' => 'Submission',
+            'status' => 'Status',
+            'evaluations' => 'Reviews',
+            'average' => 'Weighted average',
+            'percentage' => 'Percentage',
+            'deviation' => 'Deviation',
+        ],
+        'incomplete' => 'Incomplete',
+        'incomplete_hint' => 'It has fewer reviews than the minimum (:min): it does not count as final in the ranking.',
+        'no_rank' => '—',
+        'no_score' => 'No reviews',
+        'evaluations_count' => ':count of :min',
+        'detail' => 'View reviews',
+        'by_reviewer' => 'Reviews by reviewer',
+        'reviewer_average' => 'Average :average (rubric v:version)',
+        'comments' => 'Comments',
+        'no_comments' => 'No comments.',
+        'discrepancies_heading' => 'Discrepancies',
+        'discrepancy_item' => ':label: difference of :spread (threshold :threshold)',
+        'discrepancy_score' => ':name: :value',
+        'empty_heading' => 'There are no submissions to show yet',
+        'empty_description' => 'Submissions of the event that have reviewers assigned will appear here.',
+        'empty_discrepancies_heading' => 'No submissions with discrepancies',
+        'empty_discrepancies_description' => 'No submission has criteria where two reviewers differ by more than the threshold of their rubric.',
+        'per_page' => 'Per page',
+        'filter_reset_notice' => 'The chosen filter does not belong to this event and was removed.',
+    ],
+
+    'progress' => [
+        'navigation' => 'Progress',
+        'title' => 'Reviewer progress: :name',
+        'description' => 'How many reviews each reviewer has submitted. Scores and comments are not shown here.',
+        'overall' => 'Overall progress of the event',
+        'filters' => [
+            'reviewer' => 'Reviewer',
+            'all_reviewers' => 'All reviewers',
+            'sort' => 'Order by percentage',
+            'sort_asc' => 'Least progress first',
+            'sort_desc' => 'Most progress first',
+            'threshold' => 'Highlight below (%)',
+        ],
+        'columns' => [
+            'reviewer' => 'Reviewer',
+            'progress' => 'Progress',
+            'pending' => 'Pending',
+            'in_progress' => 'In progress',
+            'submitted' => 'Submitted',
+            'declined_conflict' => 'Conflict declared',
+        ],
+        'below_threshold' => 'Below the threshold',
+        'detail' => 'View detail',
+        'empty_heading' => 'This event has no reviewers yet',
+        'empty_description' => 'Invite reviewers from the "Reviewers" section to see their progress.',
+        'period' => 'Review period',
+        'period_open' => 'Open',
+        'period_closed' => 'Closed',
+        'period_closed_at' => 'Closed on :date',
+    ],
+
+    'detail' => [
+        'title' => 'Progress of :reviewer',
+        'back' => 'Back to progress',
+        'columns' => [
+            'submission' => 'Submission',
+            'status' => 'Assignment status',
+            'last_activity' => 'Last activity',
+        ],
+        'no_activity' => 'No activity',
+        'empty_heading' => 'No assignments',
+        'empty_description' => 'This reviewer has no submissions assigned in the event.',
+        'no_scores_note' => 'Scores and comments are only visible in "Results".',
+    ],
+
+    'period' => [
+        'close' => 'Close period',
+        'close_heading' => 'Close the review period',
+        'close_description' => 'Reviewers will no longer be able to create or change reviews. You can reopen it later.',
+        'closed' => 'Review period closed.',
+        'reopen' => 'Reopen period',
+        'reopen_heading' => 'Reopen the review period',
+        'reopen_description' => 'Reviewers will be able to score and re-review again.',
+        'reopened' => 'Review period reopened.',
+        'reason' => 'Reason (optional)',
+    ],
+];

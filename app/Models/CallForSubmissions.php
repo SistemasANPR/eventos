@@ -32,13 +32,13 @@ use Spatie\Translatable\HasTranslations;
  * @property Carbon $opens_at
  * @property Carbon $closes_at
  * @property Carbon|null $results_at
+ * @property Carbon|null $results_published_at cuándo se publicaron los resultados (plan 012, DA-2); nulo = aún internos
  * @property CallStatus $status
  * @property int $min_participants mínimo de participantes por propuesta (plan 006; por defecto 1)
  * @property int $max_participants máximo de participantes por propuesta (plan 006; por defecto 5)
  * @property string|null $form_definition_id formulario de propuestas; nulo hasta que se publica uno (plan 005)
  * @property bool $show_back_link si la página pública ofrece el enlace «Volver al evento» (por defecto sí)
- * @property string|null $extra_link_label texto del enlace propio del pie de la página pública
- * @property string|null $extra_link_url dirección https del enlace propio; va siempre junto con su texto
+ * @property list<array{label: string, url: string}>|null $extra_links enlaces propios del pie de la página pública (hasta 10; texto y dirección https)
  */
 class CallForSubmissions extends Model
 {
@@ -64,9 +64,11 @@ class CallForSubmissions extends Model
             'opens_at' => 'datetime',
             'closes_at' => 'datetime',
             'results_at' => 'datetime',
+            'results_published_at' => 'datetime',
             'min_participants' => 'integer',
             'max_participants' => 'integer',
             'show_back_link' => 'boolean',
+            'extra_links' => 'array',
         ];
     }
 

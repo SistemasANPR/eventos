@@ -15,6 +15,8 @@
 | Serie de eventos | `EventSeries` | Agrupa ediciones del mismo evento recurrente. *(Opcional: decidir en el plan de eventos.)* | Organización |
 | Convocatoria | `CallForSubmissions` | Periodo en que un evento recibe propuestas de un tipo, con fechas de apertura, cierre y resultados | Evento |
 | Propuesta | `Submission` | Envío de un autor a una convocatoria | Evento |
+| Lote de decisión | `DecisionBatch` | Una decisión masiva (aceptar, lista de espera o rechazar) sobre varias propuestas en una sola operación, con quién la hizo, cuándo, el filtro y el total; se puede revertir entero (plan 012) | Evento |
+| Publicación de resultados | `results_published_at` (convocatoria y propuesta) | Momento en que los resultados de una convocatoria dejan de ser internos y se avisa por correo a cada autor; hasta entonces el autor ve «en evaluación» (plan 012, DA-2) | Evento |
 | Ponente invitado | `Speaker` sin propuesta | Persona que el organizador da de alta directamente en Ponentes, sin convocatoria y sin propuesta; la actividad es opcional y se enlaza después (plan 021, DA-8). **Sustituye** al «conferencista invitado» del plan 018 (`Submission` con `origin = invited`): ese plan quedó reemplazado y el valor `invited` de `SubmissionOrigin` queda inactivo (deuda técnica DT-17) | Evento |
 | Categoría de propuesta (antes «Tipo de propuesta»; en pantalla, «Categoría») | `SubmissionType` | Sesión individual, panel, póster o taller | — (enum) |
 | Tema (antes «Eje temático») | `Track` | Tema que organiza propuestas y programa | Evento |

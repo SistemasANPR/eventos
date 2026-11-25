@@ -26,10 +26,16 @@ final class RolePermissions
         'forms.manage',
         'submissions.view',
         'submissions.export',
+        'submissions.decide',
         'files.download',
         'mail-templates.view',
         'speakers.manage',
         'activities.manage',
+        'review_assignments.manage',
+        'reviewers.invite',
+        'reviews.view_results',
+        'reviews.view_progress',
+        'reviews.close_period',
     ];
 
     private const ADMIN_ONLY = [
@@ -41,6 +47,9 @@ final class RolePermissions
         'personal_data.manage',
         'speakers.delete',
         'activities.delete',
+        'two_factor.reset',
+        'submissions.revert',
+        'retention.manage',
     ];
 
     /** @return array<string, list<string>> permisos por nombre de rol */

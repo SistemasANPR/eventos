@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Http\Controllers\Internal\ShowComponentCatalogController;
+use App\Http\Controllers\Panel\PersonDataExportDownloadController;
 use App\Http\Controllers\Panel\ShowEventLogoEditorController;
 use App\Http\Controllers\Panel\ShowLandingEditorImageController;
 use App\Http\Controllers\Panel\SubmissionExportDownloadController;
@@ -12,6 +13,7 @@ use App\Http\Controllers\Public\ShowActivityMediaController;
 use App\Http\Controllers\Public\ShowCallController;
 use App\Http\Controllers\Public\ShowEventController;
 use App\Http\Controllers\Public\ShowEventLogoController;
+use App\Http\Controllers\Public\ShowEventProgramController;
 use App\Http\Controllers\Public\ShowLandingImageController;
 use App\Http\Controllers\Public\ShowPrivacyNoticeController;
 use App\Http\Controllers\Public\ShowSpeakerPhotoController;
@@ -49,6 +51,8 @@ Route::middleware([SetOrganizationFromRoute::class, HandleInertiaRequests::class
         // Logotipo del evento (plan 027, CA-027-10 y 11): el disco `media` es privado; solo con el evento publicado.
         Route::get('events/{event:slug}/logo', ShowEventLogoController::class)->name('public.events.logo');
         Route::get('events/{event:slug}/privacy', ShowPrivacyNoticeController::class)->name('events.privacy');
+        // Programa público del evento (plan 029, E-19): solo lectura, sin sesión; un día por vista.
+        Route::get('events/{event:slug}/program', ShowEventProgramController::class)->name('events.program');
         Route::get('events/{event:slug}/call/{call:slug}', ShowCallController::class)->name('calls.show');
         // Imágenes del programa (plan 021, CA-021-18): el disco `media` es privado y solo se sirven las
         // de registros publicados y no borrados, de un evento publicado.
@@ -79,6 +83,12 @@ Route::middleware(['auth', SetOrganizationFromRoute::class])
     ->get('admin/{organization:slug}/submission-files/{file}', SubmissionFileDownloadController::class)
     ->name('submission-files.download');
 
+// Descarga del evaluador (plan 011, H-011-3): el mismo controlador y la misma Action; la Policy de
+// `SubmissionFilePolicy` deja pasar a quien tiene la propuesta asignada, con nombre neutro en pantalla.
+Route::middleware(['auth', SetOrganizationFromRoute::class])
+    ->get('reviewer/{organization:slug}/submission-files/{file}', SubmissionFileDownloadController::class)
+    ->name('reviewer-submission-files.download');
+
 // Vista previa de la imagen de una propuesta dentro del detalle del panel (misma autorización que la descarga).
 Route::middleware(['auth', SetOrganizationFromRoute::class])
     ->get('admin/{organization:slug}/submission-files/{file}/preview', SubmissionFilePreviewController::class)
@@ -102,6 +112,12 @@ Route::middleware(['auth', SetOrganizationFromRoute::class])
 Route::middleware(['auth', 'signed', SetOrganizationFromRoute::class])
     ->get('admin/{organization:slug}/submission-exports/{export}', SubmissionExportDownloadController::class)
     ->name('submission-exports.download');
+
+// Descarga del archivo de una exportación de datos de una persona (plan 014, H-014-4, CA-014-20). Igual que la
+// de propuestas: `auth`, URL firmada de 10 minutos con el identificador de quien la pidió y organización de la ruta.
+Route::middleware(['auth', 'signed', SetOrganizationFromRoute::class])
+    ->get('admin/{organization:slug}/person-data-exports/{export}', PersonDataExportDownloadController::class)
+    ->name('person-data-exports.download');
 
 // Rutas del autor de una propuesta (plan 006).
 require __DIR__.'/author.php';

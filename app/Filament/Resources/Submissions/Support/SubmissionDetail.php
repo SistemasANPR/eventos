@@ -10,7 +10,10 @@ use App\Enums\SubmissionFileStatus;
 use App\Models\Organization;
 use App\Models\Submission;
 use App\Models\SubmissionFile;
+use App\Models\SubmissionParticipant;
 use App\Models\User;
+use App\Support\Files\SubmissionFileData;
+use App\Support\Reviews\BlindReview;
 use Illuminate\Support\Number;
 
 /**
@@ -27,28 +30,117 @@ final class SubmissionDetail
     /**
      * @return array{
      *     answers: list<array{label: string, retired: bool, type: string, value: string|bool|list<string>|null, files: list<array{name: string, size: string, url: string|null, previewUrl: string|null}>, fileCount: int}>,
-     *     participants: list<array{name: string, email: string, country: string, jobTitle: ?string, company: ?string, bio: ?string, primary: bool}>,
-     *     canDownload: bool
+     *     participants: list<array{photoUrl: ?string, fields: list<array{label: string, value: string}>, name: string, email: string, country: string, state: ?string, city: ?string, phone: ?string, altEmail: ?string, jobTitle: ?string, company: ?string, bio: ?string, primary: bool}>,
+     *     canDownload: bool,
+     *     blind: bool
      * }
      */
     public static function for(Submission $submission, User $viewer, Organization $organization): array
     {
-        $canDownload = $viewer->checkPermissionTo('files.download');
+        return self::build($submission, $organization, $viewer->checkPermissionTo('files.download'), false, false);
+    }
+
+    /**
+     * El mismo detalle para el evaluador asignado (plan 011, H-011-3): sus archivos se descargan por la ruta
+     * del panel del evaluador y con nombre neutro `archivo-{n}.{ext}`, nunca con el original, que puede
+     * delatar al autor (plan 007, CA-007-23). El llamador ya comprobó que la propuesta es suya.
+     *
+     * Con revisión ciega (`BlindReview`, CA-011-18 y 19) el ocultamiento es de ESTE método, en el servidor: no
+     * salen los participantes ni los campos con `identifiesAuthor`, así que sus datos no llegan a la vista, a
+     * los atributos ni al estado de Livewire. `blind` solo avisa a la vista para explicar por qué faltan.
+     *
+     * @return array{
+     *     answers: list<array{label: string, retired: bool, type: string, value: string|bool|list<string>|null, files: list<array{name: string, size: string, url: string|null, previewUrl: string|null}>, fileCount: int}>,
+     *     participants: list<array{photoUrl: ?string, fields: list<array{label: string, value: string}>, name: string, email: string, country: string, state: ?string, city: ?string, phone: ?string, altEmail: ?string, jobTitle: ?string, company: ?string, bio: ?string, primary: bool}>,
+     *     canDownload: bool,
+     *     blind: bool
+     * }
+     */
+    public static function forReviewer(Submission $submission, Organization $organization): array
+    {
+        return self::build($submission, $organization, true, true, BlindReview::appliesTo($submission));
+    }
+
+    /**
+     * @return array{
+     *     answers: list<array{label: string, retired: bool, type: string, value: string|bool|list<string>|null, files: list<array{name: string, size: string, url: string|null, previewUrl: string|null}>, fileCount: int}>,
+     *     participants: list<array{photoUrl: ?string, fields: list<array{label: string, value: string}>, name: string, email: string, country: string, state: ?string, city: ?string, phone: ?string, altEmail: ?string, jobTitle: ?string, company: ?string, bio: ?string, primary: bool}>,
+     *     canDownload: bool,
+     *     blind: bool
+     * }
+     */
+    private static function build(Submission $submission, Organization $organization, bool $canDownload, bool $forReviewer, bool $blind): array
+    {
         $filesByField = self::filesByField($submission);
 
         return [
-            'answers' => self::answers($submission, $filesByField, $canDownload, $organization),
-            'participants' => $submission->participants->map(static fn ($participant): array => [
+            'answers' => self::answers($submission, $filesByField, $canDownload, $organization, $forReviewer, $blind),
+            // En modo ciego ni siquiera se carga la relación: los autores no pasan por memoria.
+            'participants' => $blind ? [] : $submission->participants->map(fn ($participant): array => [
+                'photoUrl' => self::photoUrl($participant->photo_file_id, $canDownload, $organization),
+                'fields' => self::participantFields($participant),
                 'name' => $participant->full_name,
                 'email' => $participant->email,
                 'country' => $participant->country,
+                'state' => $participant->state,
+                'city' => $participant->city,
+                'phone' => $participant->phone,
+                'altEmail' => $participant->alt_email,
                 'jobTitle' => $participant->job_title,
                 'company' => $participant->company,
                 'bio' => $participant->bio,
                 'primary' => $participant->is_primary,
             ])->values()->all(),
             'canDownload' => $canDownload,
+            'blind' => $blind,
         ];
+    }
+
+    /** Imagen de la fotografía del participante en el panel; sin permiso de descarga o sin foto, nada. */
+    private static function photoUrl(?string $fileId, bool $canDownload, Organization $organization): ?string
+    {
+        if ($fileId === null || ! $canDownload) {
+            return null;
+        }
+
+        $isImage = SubmissionFile::query()
+            ->whereKey($fileId)
+            ->where('status', SubmissionFileStatus::Attached)
+            ->whereIn('mime_type', DownloadSubmissionFile::IMAGE_TYPES)
+            ->exists();
+
+        return $isImage ? route('submission-files.preview', ['organization' => $organization->slug, 'file' => $fileId]) : null;
+    }
+
+    /**
+     * Cada dato del participante con su etiqueta (todo lo que dejó en el formulario); los vacíos no se muestran.
+     *
+     * @return list<array{label: string, value: string}>
+     */
+    private static function participantFields(SubmissionParticipant $participant): array
+    {
+        $values = [
+            'second_last_name' => $participant->second_last_name,
+            'email' => $participant->email,
+            'alt_email' => $participant->alt_email,
+            'phone' => $participant->phone,
+            'company' => $participant->company,
+            'job_title' => $participant->job_title,
+            'country' => $participant->country,
+            'state' => $participant->state,
+            'city' => $participant->city,
+            'bio' => $participant->bio,
+        ];
+
+        $rows = [];
+
+        foreach ($values as $key => $value) {
+            if (is_string($value) && $value !== '') {
+                $rows[] = ['label' => __("submission_panel.detail.participant.{$key}"), 'value' => $value];
+            }
+        }
+
+        return $rows;
     }
 
     /** @return array<string, list<SubmissionFile>> archivos ya ligados a la propuesta, por clave de campo */
@@ -58,6 +150,7 @@ final class SubmissionDetail
             ->where('submission_id', $submission->id)
             ->where('status', SubmissionFileStatus::Attached)
             ->orderBy('uploaded_at')
+            ->orderBy('id')
             ->get()
             ->groupBy('form_field_key')
             ->map(static fn ($files) => $files->all())
@@ -68,8 +161,11 @@ final class SubmissionDetail
      * @param  array<string, list<SubmissionFile>>  $filesByField
      * @return list<array{label: string, retired: bool, type: string, value: string|bool|list<string>|null, files: list<array{name: string, size: string, url: string|null, previewUrl: string|null}>, fileCount: int}>
      */
-    private static function answers(Submission $submission, array $filesByField, bool $canDownload, Organization $organization): array
+    private static function answers(Submission $submission, array $filesByField, bool $canDownload, Organization $organization, bool $forReviewer, bool $blind): array
     {
+        // Posición de cada archivo en la propuesta, para su nombre neutro (solo el evaluador).
+        $positions = $forReviewer ? SubmissionFileData::positions($submission->id) : null;
+        $hidden = $blind ? BlindReview::identifyingFieldKeys($submission) : [];
         $fallback = $submission->locale;
         $locale = app()->getLocale();
         $fields = is_array($submission->form_snapshot['fields'] ?? null) ? $submission->form_snapshot['fields'] : [];
@@ -85,6 +181,12 @@ final class SubmissionDetail
             }
 
             $seen[$key] = true;
+
+            // Revisión ciega: el campo que identifica al autor no sale, con su valor ni con sus archivos.
+            if (in_array($key, $hidden, true)) {
+                continue;
+            }
+
             $files = $type === FieldType::File ? ($filesByField[$key] ?? []) : [];
 
             // Un campo sin respuesta ni archivos no aporta nada al detalle.
@@ -97,14 +199,15 @@ final class SubmissionDetail
                 'retired' => false,
                 'type' => $type->value,
                 'value' => $type === FieldType::File ? null : self::value($type, $field, $submission->answers[$key] ?? null, $locale, $fallback),
-                'files' => self::files($files, $canDownload, $organization),
+                'files' => self::files($files, $canDownload, $organization, $positions),
                 'fileCount' => count($files),
             ];
         }
 
-        // Respuesta cuya clave no está en la instantánea (no debería ocurrir): se muestra, no se pierde.
+        // Respuesta cuya clave no está en la instantánea (no debería ocurrir): se muestra, no se pierde. Salvo en
+        // revisión ciega: sin su definición no se sabe si delata al autor, así que no sale.
         foreach ($submission->answers as $key => $answer) {
-            if (isset($seen[$key])) {
+            if (isset($seen[$key]) || $blind) {
                 continue;
             }
 
@@ -123,20 +226,23 @@ final class SubmissionDetail
 
     /**
      * @param  list<SubmissionFile>  $files
+     * @param  array<string, int>|null  $positions  posición de cada archivo en la propuesta, desde 1 (id => posición), si el detalle es del evaluador
      * @return list<array{name: string, size: string, url: string|null, previewUrl: string|null}>
      */
-    private static function files(array $files, bool $canDownload, Organization $organization): array
+    private static function files(array $files, bool $canDownload, Organization $organization, ?array $positions): array
     {
         if (! $canDownload) {
             return [];
         }
 
         return array_map(static fn (SubmissionFile $file): array => [
-            'name' => $file->original_name,
+            'name' => $positions === null
+                ? $file->original_name
+                : SubmissionFileData::forReviewer($file, $positions[$file->id] ?? 1)['name'],
             'size' => Number::fileSize($file->size_bytes),
-            'url' => route('submission-files.download', ['organization' => $organization->slug, 'file' => $file->id]),
-            // Las imágenes (JPG, PNG) también se muestran dentro de la página.
-            'previewUrl' => in_array($file->mime_type, DownloadSubmissionFile::IMAGE_TYPES, true)
+            'url' => route($positions === null ? 'submission-files.download' : 'reviewer-submission-files.download', ['organization' => $organization->slug, 'file' => $file->id]),
+            // Las imágenes (JPG, PNG) también se muestran dentro de la página; el evaluador las descarga.
+            'previewUrl' => $positions === null && in_array($file->mime_type, DownloadSubmissionFile::IMAGE_TYPES, true)
                 ? route('submission-files.preview', ['organization' => $organization->slug, 'file' => $file->id])
                 : null,
         ], $files);

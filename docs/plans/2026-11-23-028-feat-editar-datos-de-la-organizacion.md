@@ -3,7 +3,7 @@
 > Plan 028. Especificación (SDD, ADR-0001).
 
 - **Fecha:** 2026-11-23
-- **Estado:** Aprobado (2026-11-23: Gabriel aprueba el plan por la delegación de AGENTS.md)
+- **Estado:** En curso (2026-11-23: aprobado; la pagina de edicion de los datos de la organizacion ya esta fusionada en staging, sin registro de avance en §9)
 - **Esfuerzo:** S
 - **Deuda relacionada:** ninguna
 

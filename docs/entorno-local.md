@@ -106,4 +106,6 @@ El helper toma el token de la sesión de `Antonio1491` en `gh` (debe aparecer en
 | Scripts del contenedor que fallan con `\r` | Fin de línea CRLF. Comprobar `.gitattributes` y volver a clonar |
 | El hook de formato marca error | El contenedor `app` no está levantado: `docker compose up -d` |
 | Cambios que no se reflejan en el navegador | Vite no está corriendo o el puerto 5173 está ocupado |
+| `MissingAttributeException` por una columna que no existe (p. ej. `app_authentication_secret`) o error de tabla inexistente | La base local no tiene aplicadas las migraciones nuevas, normalmente tras traer cambios de `staging` o cambiar de rama: `docker compose exec app php artisan migrate`. Comprobar con `php artisan migrate:status` |
+| El panel obliga a configurar la verificación en dos pasos al iniciar sesión | La 2FA es obligatoria por defecto (plan 014). En local se apaga con `TWO_FACTOR_REQUIRED=false` en `.env` (no se versiona) y `docker compose exec app php artisan config:clear`. Nunca apagarla en producción |
 | La base local quedó inconsistente | `docker compose down -v` y volver a migrar (es destructivo y solo afecta datos ficticios) |

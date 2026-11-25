@@ -24,7 +24,7 @@ El cpanel que dio origen al proyecto sufría estos fallos. Cada uno tiene aquí 
 
 - Autenticación del framework o del kit de inicio; **no escribir una propia**. Contraseñas con el hash de Laravel; reglas mínimas de longitud y lista de contraseñas expuestas.
 - Verificación de correo y recuperación de contraseña con enlaces firmados y de un solo uso, con caducidad corta.
-- Verificación en dos pasos disponible; **obligatoria** para administradores de organización y roles de plataforma. El panel de plataforma (`/platform`, plan 016) permanece apagado fuera de local hasta que exista (`PLATFORM_PANEL_ENABLED`, `docs/operacion.md`).
+- Verificación en dos pasos (TOTP con códigos de recuperación, plan 014 F1) **obligatoria** para `org_admin`, `organizer`, `reviewer` y plataforma: tras iniciar sesión se fuerza su configuración y ninguna página de un panel se ve hasta confirmarla (`EnsureTwoFactorConfirmed`). Nadie desactiva la suya; la reinicia otro `org_admin` con `two_factor.reset` o, si no queda otro administrador, plataforma con verificación fuera de banda registrada; ambos casos se auditan y avisan al titular. Se enciende con `TWO_FACTOR_REQUIRED` (por defecto sí); otros planes consultan `TwoFactorRequirement` (plan 014 §4.1). El panel de plataforma (`/platform`, plan 016) permanece apagado fuera de local hasta que la 2FA esté encendida y desplegada (`PLATFORM_PANEL_ENABLED`, `docs/operacion.md`).
 - Límite de intentos en inicio de sesión, recuperación y registro; mensajes que no revelan si un correo existe.
 - **Acceso único (plan 017):** hay un solo formulario de acceso (`/admin/login`) para organizaciones y plataforma. Quien puede entrar a algún panel llega a su portal; quien no, recibe el mismo mensaje que ante una contraseña incorrecta. La URL a la que iba solo se respeta si es del propio sitio y la persona puede entrar a ese panel.
 - Regenerar la sesión al iniciar sesión; cookies `Secure`, `HttpOnly`, `SameSite=Lax` como mínimo; caducidad de sesión definida.
@@ -38,6 +38,7 @@ El cpanel que dio origen al proyecto sufría estos fallos. Cada uno tiene aquí 
 - Prueba por rol y acción: permitido y denegado. Un rol nuevo o un cambio de permisos exige especificación.
 - Ocultar un botón o un menú **no** es autorizar.
 - Los cambios de rol y de permisos se auditan.
+- **Segunda barrera: RLS de PostgreSQL** (plan 014, ADR-0003 DA-2). Toda tabla con `organization_id` lleva políticas que dejan ver y escribir solo las filas de la organización que `CurrentOrganization` fija en la sesión de la base; sin organización, ninguna fila y ninguna escritura. Protege contra un **fallo del scope o de una Policy** (una consulta cruda, un `withoutGlobalScopes()` olvidado, un bug de binding), **no** contra quien ejecute SQL arbitrario (esa persona puede cambiar la variable de sesión): contra eso valen las consultas parametrizadas y la revisión. El rol de aplicación no es propietario ni tiene `BYPASSRLS`; el de migraciones es otro (`docs/operacion.md` §10). La lista cerrada de tablas fuera de RLS (`RowLevelSecurity::PLATFORM_TABLES`: `organization_user`, `roles`, `model_has_roles`, `model_has_permissions`, `activity_log`) se justifica en el código; añadir una es una decisión de seguridad. Una tabla nueva con tenant llama a `RowLevelSecurity::enable()` en su migración y la guardiana lo exige. El contexto por tipo de ejecución (petición, job, comando, consola, plataforma) lo cubre `DatabaseTenantContext`: ningún código nuevo debe tocar la variable de sesión. Cualquier acceso de plataforma que cruce organizaciones pasa por `withoutOrganizationScope()` (autorizado y auditado), que además abre la lectura de plataforma en la base.
 
 ## 4. Entrada y salida
 
@@ -94,6 +95,7 @@ Antes de dar por terminado un módulo:
 
 - [ ] Cada ruta, acción y página tiene Policy y una prueba por rol (permitido y denegado).
 - [ ] Los modelos con datos de organización usan `BelongsToOrganization`; las guardianas pasan.
+- [ ] Una tabla nueva con `organization_id` llama a `RowLevelSecurity::enable()` en su migración (o se justifica en `PLATFORM_TABLES`); la guardiana de RLS pasa.
 - [ ] Toda entrada pasa por un Form Request; sin `$request->all()`.
 - [ ] Sin SQL con interpolación; sin asignación masiva sin `$fillable`.
 - [ ] Archivos en disco privado, con validación por contenido y URL temporal.

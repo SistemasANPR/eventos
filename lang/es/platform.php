@@ -21,6 +21,19 @@ return [
             'platform' => 'De plataforma',
             'organizations' => 'Organizaciones activas',
         ],
+        'reset_two_factor' => [
+            'action' => 'Reiniciar verificación en dos pasos',
+            'help' => 'Solo cuando no queda otro administrador que pueda hacerlo. Confirma la identidad de la persona por un canal distinto al correo de la cuenta y regístralo: queda auditado y la persona recibe un aviso por correo.',
+            'channel' => 'Canal de la verificación',
+            'channels' => [
+                'phone_call' => 'Llamada a un contacto registrado',
+                'message' => 'Mensaje a un contacto registrado',
+                'in_person' => 'En persona',
+            ],
+            'note' => 'Nota de la verificación',
+            'note_help' => 'Quién confirmó la identidad y a qué contacto previamente registrado (sin contraseñas ni códigos).',
+            'done' => 'Verificación en dos pasos reiniciada.',
+        ],
     ],
 
     'events' => [

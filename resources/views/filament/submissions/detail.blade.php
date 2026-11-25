@@ -6,6 +6,7 @@
      * @var \App\Models\Submission $submission
      * @var array{answers: list<array<string, mixed>>, participants: list<array<string, mixed>>, canDownload: bool} $detail
      * @var string $submittedAt
+     * @var list<array{when: string, from: string, to: string, actor: string|null, comment: string|null}> $history
      * @var array{title: string, url: string}|null $activityLink
      */
 @endphp
@@ -100,20 +101,44 @@
         @endforelse
     </x-filament::section>
 
+    <x-filament::section :heading="__('submission_decisions.history.heading')">
+        @forelse ($history as $row)
+            <div style="margin-bottom: 1rem; overflow-wrap: anywhere;">
+                <div>
+                    <strong>{{ $row['from'] }} &rarr; {{ $row['to'] }}</strong>
+                </div>
+                <div>{{ $row['when'] }} · {{ $row['actor'] ?? __('submission_decisions.history.system') }}</div>
+                @if ($row['comment'] !== null)
+                    <p style="margin: 0.25rem 0 0; white-space: pre-line;">{{ $row['comment'] }}</p>
+                @endif
+            </div>
+        @empty
+            <p style="margin: 0;">{{ __('submission_decisions.history.empty') }}</p>
+        @endforelse
+    </x-filament::section>
+
     <x-filament::section :heading="__('submission_panel.detail.participants')">
         @forelse ($detail['participants'] as $participant)
-            <div style="margin-bottom: 1rem; overflow-wrap: anywhere;">
-                <strong>{{ $participant['name'] }}</strong>
-                @if ($participant['primary'])
-                    <x-filament::badge>{{ __('submission_panel.detail.primary') }}</x-filament::badge>
+            <div style="margin-bottom: 1.5rem; overflow-wrap: anywhere; display: flex; gap: 1rem; align-items: flex-start;">
+                @if ($participant['photoUrl'] !== null)
+                    <a href="{{ $participant['photoUrl'] }}" target="_blank" rel="noopener" style="flex: none;">
+                        <img src="{{ $participant['photoUrl'] }}" alt="{{ $participant['name'] }}" loading="lazy" style="width: 6rem; height: 6rem; object-fit: cover; border-radius: 9999px; border: 1px solid rgb(0 0 0 / 0.1);">
+                    </a>
                 @endif
-                <div>{{ $participant['email'] }}</div>
-                <div>
-                    {{ collect([$participant['jobTitle'], $participant['company'], $participant['country']])->filter()->implode(' · ') }}
+                <div style="min-width: 0; flex: 1;">
+                    <strong>{{ $participant['name'] }}</strong>
+                    @if ($participant['primary'])
+                        <x-filament::badge>{{ __('submission_panel.detail.primary') }}</x-filament::badge>
+                    @endif
+                    <dl style="display: grid; grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr)); gap: 0.5rem 1rem; margin: 0.5rem 0 0;">
+                        @foreach ($participant['fields'] as $field)
+                            <div>
+                                <dt class="fi-fo-field-label-content">{{ $field['label'] }}</dt>
+                                <dd style="margin: 0; white-space: pre-line;">{{ $field['value'] }}</dd>
+                            </div>
+                        @endforeach
+                    </dl>
                 </div>
-                @if ($participant['bio'])
-                    <p style="margin: 0.25rem 0 0; white-space: pre-line;">{{ $participant['bio'] }}</p>
-                @endif
             </div>
         @empty
             <p style="margin: 0;">{{ __('submission_panel.detail.no_participants') }}</p>

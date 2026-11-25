@@ -33,16 +33,29 @@ final class CallAttributes
                 ? null
                 : EventAttributes::toUtc((string) $validated['results_at'], $timezone),
             'show_back_link' => (bool) ($validated['show_back_link'] ?? true),
-            'extra_link_label' => self::optionalText($validated['extra_link_label'] ?? null),
-            'extra_link_url' => self::optionalText($validated['extra_link_url'] ?? null),
+            'extra_links' => self::links($validated['extra_links'] ?? []),
         ];
     }
 
-    private static function optionalText(mixed $value): ?string
+    /**
+     * Enlaces propios con texto y dirección recortados; las filas vacías se descartan. Nulo si no queda ninguno.
+     *
+     * @return list<array{label: string, url: string}>|null
+     */
+    private static function links(mixed $links): ?array
     {
-        $text = is_string($value) ? trim($value) : '';
+        $clean = [];
 
-        return $text === '' ? null : $text;
+        foreach (is_array($links) ? $links : [] as $link) {
+            $label = is_array($link) && is_string($link['label'] ?? null) ? trim($link['label']) : '';
+            $url = is_array($link) && is_string($link['url'] ?? null) ? trim($link['url']) : '';
+
+            if ($label !== '' && $url !== '') {
+                $clean[] = ['label' => $label, 'url' => $url];
+            }
+        }
+
+        return $clean === [] ? null : $clean;
     }
 
     /**

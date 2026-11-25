@@ -30,7 +30,9 @@ function expectedMatrix(): array
     $organizer = [
         'events.manage', 'calls.manage', 'calls.view', 'tracks.manage', 'rubrics.manage', 'forms.manage',
         'submissions.view', 'submissions.export', 'files.download', 'mail-templates.view',
-        'speakers.manage', 'activities.manage',
+        'speakers.manage', 'activities.manage', 'submissions.decide',
+        'review_assignments.manage', 'reviewers.invite',
+        'reviews.view_results', 'reviews.view_progress', 'reviews.close_period',
     ];
 
     return [
@@ -38,6 +40,9 @@ function expectedMatrix(): array
             ...$organizer,
             'events.publish', 'event_assignments.manage', 'privacy_notices.manage', 'team.manage',
             'mail-templates.manage', 'personal_data.manage', 'speakers.delete', 'activities.delete',
+            'two_factor.reset',
+            'submissions.revert',
+            'retention.manage',
         ],
         'organizer' => $organizer,
         'reviewer' => [],

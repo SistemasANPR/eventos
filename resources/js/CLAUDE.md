@@ -24,7 +24,7 @@ Cada módulo de `lib/` tiene su `.test.ts` al lado.
 
 - Los datos llegan como **props de Inertia**. No se duplican con una capa de caché propia ni con `fetch` salvo en interacciones sin navegación (búsquedas, check-in).
 - Los tipos de las props se mantienen en `types/` y deben coincidir con lo que entrega Laravel. [CONFIRMAR: generar los tipos desde PHP (ADR-0004, DA-3).]
-- Formularios con el *helper* de Inertia (`useForm`); los errores de validación vienen del servidor con los nombres de campo de los Form Requests.
+- Formularios con el _helper_ de Inertia (`useForm`); los errores de validación vienen del servidor con los nombres de campo de los Form Requests.
 - Nada de lógica de negocio ni de autorización en el cliente: es solo presentación. El servidor decide.
 - Las acciones destructivas o de cambio de estado usan `router.post/patch/delete`, nunca enlaces GET.
 
@@ -41,7 +41,7 @@ Archivos lib: kebab-case                 date-format.ts · classes.ts
 ```
 
 - `export function` nombrada para todo componente. `export default` **solo** en `pages/` (convención de Inertia). Una prueba guardiana lo vigila.
-- Props: callbacks `onXxx`; booleanos `isXxx`, `hasXxx`, `canXxx`; variantes como unión de literales (`'primary' | 'secondary'`); `className?` siempre opcional; extender el elemento HTML cuando el componente *es* ese elemento.
+- Props: callbacks `onXxx`; booleanos `isXxx`, `hasXxx`, `canXxx`; variantes como unión de literales (`'primary' | 'secondary'`); `className?` siempre opcional; extender el elemento HTML cuando el componente _es_ ese elemento.
 - Anatomía de un componente: imports → tipos → JSDoc → componente → helpers locales. Manejadores y derivaciones nombrados, nunca lógica en línea en el JSX.
 
 ## 4. Componentes (Atomic Design)
@@ -66,8 +66,8 @@ Mobile-first sin excepción (`design.md` §6). HTML semántico, nombres accesibl
 - Fechas, números y monedas con `Intl`; nunca formato manual.
 
 ```ts
-new Intl.DateTimeFormat(locale, { dateStyle: 'long', timeStyle: 'short', timeZone: eventTimeZone }).format(date)
-new Intl.NumberFormat(locale, { style: 'currency', currency }).format(amountInCents / 100)
+new Intl.DateTimeFormat(locale, { dateStyle: 'long', timeStyle: 'short', timeZone: eventTimeZone }).format(date);
+new Intl.NumberFormat(locale, { style: 'currency', currency }).format(amountInCents / 100);
 ```
 
 ## 7. Seguridad

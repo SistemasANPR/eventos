@@ -49,6 +49,8 @@ use Illuminate\Support\Carbon;
  * @property Carbon $submitted_at
  * @property Carbon|null $withdrawn_at
  * @property int $version
+ * @property string|null $author_comment comentario de la última decisión para el autor (plan 012)
+ * @property Carbon|null $results_published_at cuándo se publicó su resultado (plan 012)
  * @property-read EventActivity|null $activity
  */
 class Submission extends Model
@@ -79,6 +81,7 @@ class Submission extends Model
             'third_parties_authorized_at' => 'datetime',
             'submitted_at' => 'datetime',
             'withdrawn_at' => 'datetime',
+            'results_published_at' => 'datetime',
         ];
     }
 
@@ -138,6 +141,26 @@ class Submission extends Model
     public function activity(): HasOne
     {
         return $this->hasOne(EventActivity::class);
+    }
+
+    /**
+     * Historial de estados, del más antiguo al más reciente (plan 012).
+     *
+     * @return HasMany<SubmissionStatusChange, $this>
+     */
+    public function statusChanges(): HasMany
+    {
+        return $this->hasMany(SubmissionStatusChange::class)->orderBy('created_at');
+    }
+
+    /**
+     * Asignaciones de evaluadores (plan 011).
+     *
+     * @return HasMany<ReviewAssignment, $this>
+     */
+    public function reviewAssignments(): HasMany
+    {
+        return $this->hasMany(ReviewAssignment::class);
     }
 
     /** @return HasMany<SubmissionAccessToken, $this> */

@@ -63,7 +63,12 @@ function CatalogSection({ entry }: { entry: CatalogEntry }) {
             {Demo === undefined ? (
                 <p className="text-sm text-text-muted">{t('catalog.no_demo')}</p>
             ) : (
-                <div role="group" aria-label={t('catalog.demo')} data-testid={`demo-${entry.name}`} className="rounded-lg border border-border bg-surface p-4 sm:p-6">
+                <div
+                    role="group"
+                    aria-label={t('catalog.demo')}
+                    data-testid={`demo-${entry.name}`}
+                    className="rounded-lg border border-border bg-surface p-4 sm:p-6"
+                >
                     <Demo />
                 </div>
             )}

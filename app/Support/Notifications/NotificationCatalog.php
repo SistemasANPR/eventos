@@ -40,6 +40,8 @@ final class NotificationCatalog
         $descriptors = [
             new NotificationDescriptor('auth.password_reset', ['user_name', 'reset_url', 'expires_in_minutes'], critical: true),
             new NotificationDescriptor('auth.new_device_login', ['user_name', 'occurred_at', 'device'], critical: true),
+            new NotificationDescriptor('auth.two_factor_enabled', ['user_name', 'occurred_at'], critical: true),
+            new NotificationDescriptor('auth.two_factor_reset', ['user_name', 'occurred_at'], critical: true),
             new NotificationDescriptor('team.set_password', ['member_name', 'organization_name', 'role_name', 'set_password_url'], critical: true),
             new NotificationDescriptor('team.membership_added', ['member_name', 'organization_name', 'role_name', 'login_url'], critical: true),
             new NotificationDescriptor('submission.received', ['author_name', 'submission_title', 'submission_reference', 'event_name', 'call_title', 'submission_type', 'track_name'], critical: true, recipientLimit: 5),
@@ -48,6 +50,13 @@ final class NotificationCatalog
             new NotificationDescriptor('submission.updated', ['author_name', 'submission_title', 'event_name', 'panel_url'], critical: false),
             new NotificationDescriptor('submission.withdrawn', ['author_name', 'submission_title', 'event_name', 'panel_url'], critical: false),
             new NotificationDescriptor('submission.withdrawn_author', ['author_name', 'submission_title', 'event_name', 'request_link_url'], critical: false),
+            // Resultado de la propuesta (plan 012, F3): críticos; ninguno lleva enlace de acceso (CA-012-14 y 17).
+            new NotificationDescriptor('submission.accepted', ['author_name', 'event_name', 'submission_title', 'author_comment', 'request_link_url'], critical: true),
+            new NotificationDescriptor('submission.rejected', ['author_name', 'event_name', 'submission_title', 'author_comment', 'request_link_url'], critical: true),
+            new NotificationDescriptor('submission.waitlisted', ['author_name', 'event_name', 'submission_title', 'author_comment', 'request_link_url'], critical: true),
+            new NotificationDescriptor('call.closing_reminder', ['author_name', 'event_name', 'closing_date', 'edit_hint', 'request_link_url'], critical: false),
+            new NotificationDescriptor('reviewer.assignment', ['reviewer_name', 'event_name', 'assigned_count', 'dashboard_url'], critical: true),
+            new NotificationDescriptor('reviewer.invitation', ['reviewer_name', 'organization_name', 'event_name', 'access_url', 'expires_in_minutes'], critical: true),
         ];
 
         $indexed = [];

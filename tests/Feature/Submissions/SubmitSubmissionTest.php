@@ -6,27 +6,37 @@ use App\Actions\Submissions\IssueFormSession;
 use App\Actions\Submissions\SubmitSubmission;
 use App\Enums\CallStatus;
 use App\Enums\FormDefinitionStatus;
+use App\Enums\ReviewAssignmentSource;
+use App\Enums\SubmissionFileStatus;
 use App\Enums\SubmissionOrigin;
 use App\Enums\SubmissionStatus;
 use App\Exceptions\Domain\CallNotOpen;
 use App\Exceptions\Domain\CallNotReady;
 use App\Exceptions\Domain\FormOutdated;
 use App\Exceptions\Domain\IdempotencyPayloadMismatch;
+use App\Jobs\SyncScopedAssignmentsJob;
 use App\Models\CallForSubmissions;
 use App\Models\Contact;
 use App\Models\Event;
+use App\Models\EventAssignment;
 use App\Models\FormDefinition;
+use App\Models\MailDispatch;
 use App\Models\Organization;
 use App\Models\PrivacyNotice;
+use App\Models\ReviewAssignment;
+use App\Models\ReviewScopeRule;
 use App\Models\Submission;
+use App\Models\SubmissionFile;
 use App\Models\SubmissionParticipant;
 use App\Models\Track;
+use App\Models\User;
 use App\Support\Tenancy\CurrentOrganization;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event as EventBus;
+use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Tests\Support\FakeSubmissionForm;
@@ -99,7 +109,7 @@ function subInput(array $ctx, array $overrides = []): array
         'track_id' => $ctx['track']->id,
         'answers' => ['summary' => 'Un resumen', 'level' => 'Básico'],
         'participants' => [
-            ['first_name' => 'Ana', 'last_name' => 'Pérez', 'email' => 'Ana@Example.com ', 'country' => 'MX', 'job_title' => 'Dra.', 'company' => 'ACME', 'bio' => 'Bio', 'is_primary' => true],
+            ['first_name' => 'Ana', 'last_name' => 'Pérez', 'email' => 'Ana@Example.com ', 'country' => 'MX', 'state' => 'CDMX', 'city' => 'Ciudad de México', 'phone' => '+52 55 1234 5678', 'job_title' => 'Dra.', 'company' => 'ACME', 'bio' => 'Bio', 'is_primary' => true],
         ],
         'consent' => true,
     ], $overrides);
@@ -120,7 +130,7 @@ function subSubmit(array $ctx, array $input): Submission
  */
 function subParticipant(string $email, array $overrides = []): array
 {
-    return array_replace(['first_name' => 'Persona', 'last_name' => $email, 'email' => $email, 'country' => 'CO', 'is_primary' => false], $overrides);
+    return array_replace(['first_name' => 'Persona', 'last_name' => $email, 'email' => $email, 'country' => 'CO', 'state' => 'CDMX', 'city' => 'Ciudad de México', 'phone' => '+52 55 1234 5678', 'job_title' => 'Dra.', 'company' => 'ACME', 'bio' => 'Semblanza profesional', 'is_primary' => false], $overrides);
 }
 
 /**
@@ -219,7 +229,7 @@ it('CA-006-5: enforces participant count, required data, one primary and distinc
 })->with([
     'none' => [[], 'participants'],
     'four' => [[subParticipant('a@x.com', ['is_primary' => true]), subParticipant('b@x.com'), subParticipant('c@x.com'), subParticipant('d@x.com')], 'participants'],
-    'no name' => [[['first_name' => '', 'last_name' => 'Pérez', 'email' => 'a@x.com', 'country' => 'MX', 'is_primary' => true]], 'participants.0.first_name'],
+    'no name' => [[['first_name' => '', 'last_name' => 'Pérez', 'email' => 'a@x.com', 'country' => 'MX', 'state' => 'CDMX', 'city' => 'Ciudad de México', 'phone' => '+52 55 1234 5678', 'job_title' => 'Dra.', 'company' => 'ACME', 'bio' => 'Semblanza profesional', 'is_primary' => true]], 'participants.0.first_name'],
     'bad email' => [[subParticipant('no-es-correo', ['is_primary' => true])], 'participants.0.email'],
     'bad country' => [[subParticipant('a@x.com', ['is_primary' => true, 'country' => 'ZZ'])], 'participants.0.country'],
     'no primary' => [[subParticipant('a@x.com')], 'participants'],
@@ -337,7 +347,7 @@ it('CA-006-10: reuses an existing contact without modifying it, and creates a ne
 
     $submission = subSubmit($ctx, subInput($ctx, [
         'participants' => [
-            ['first_name' => 'Ana', 'last_name' => 'Distinta', 'email' => 'ana@example.com', 'country' => 'MX', 'is_primary' => true],
+            ['first_name' => 'Ana', 'last_name' => 'Distinta', 'email' => 'ana@example.com', 'country' => 'MX', 'state' => 'CDMX', 'city' => 'Ciudad de México', 'phone' => '+52 55 1234 5678', 'job_title' => 'Dra.', 'company' => 'ACME', 'bio' => 'Semblanza profesional', 'is_primary' => true],
             subParticipant('nueva@example.com'),
         ],
         'third_parties_authorized' => true,
@@ -554,7 +564,7 @@ it('CA-021-13: stores first and last name separately and computes full_name on t
     $ctx = subScenario();
 
     $submission = subSubmit($ctx, subInput($ctx, ['participants' => [
-        ['first_name' => ' Ana  ', 'last_name' => 'Pérez Gómez', 'full_name' => 'Falso Cliente', 'email' => 'ana@example.com', 'country' => 'MX', 'is_primary' => true],
+        ['first_name' => ' Ana  ', 'last_name' => 'Pérez Gómez', 'full_name' => 'Falso Cliente', 'email' => 'ana@example.com', 'country' => 'MX', 'state' => 'CDMX', 'city' => 'Ciudad de México', 'phone' => '+52 55 1234 5678', 'job_title' => 'Dra.', 'company' => 'ACME', 'bio' => 'Semblanza profesional', 'is_primary' => true],
     ]]));
 
     $participant = $submission->participants()->sole();
@@ -586,7 +596,7 @@ it('CA-021-13: accepts names of 100 characters and keeps full_name within its co
     $ctx = subScenario();
 
     $submission = subSubmit($ctx, subInput($ctx, ['participants' => [
-        ['first_name' => str_repeat('ñ', 100), 'last_name' => str_repeat('á', 100), 'email' => 'a@x.com', 'country' => 'MX', 'is_primary' => true],
+        ['first_name' => str_repeat('ñ', 100), 'last_name' => str_repeat('á', 100), 'email' => 'a@x.com', 'country' => 'MX', 'state' => 'CDMX', 'city' => 'Ciudad de México', 'phone' => '+52 55 1234 5678', 'job_title' => 'Dra.', 'company' => 'ACME', 'bio' => 'Semblanza profesional', 'is_primary' => true],
     ]]));
 
     expect(mb_strlen($submission->participants()->sole()->full_name))->toBe(201);
@@ -629,4 +639,127 @@ it('CA-026-10: rejects a submission language that is no longer one of the effect
 
     expect(array_keys($errors))->toBe(['locale'])
         ->and($accepted->locale)->toBe('es');
+});
+
+it('CA-011-42: a proposal sent inside a saved scope is assigned by the rule, without mail', function (): void {
+    config(['queue.default' => 'sync']);
+    $ctx = subScenario();
+    $reviewer = User::factory()->create();
+    $reviewer->organizations()->attach($ctx['org']->id, ['status' => 'active']);
+    EventAssignment::factory()->create(['organization_id' => $ctx['org']->id, 'event_id' => $ctx['event']->id, 'user_id' => $reviewer->id]);
+    ReviewScopeRule::factory()->create([
+        'organization_id' => $ctx['org']->id, 'event_id' => $ctx['event']->id, 'reviewer_id' => $reviewer->id, 'track_id' => $ctx['track']->id,
+    ]);
+
+    $submission = subSubmit($ctx, subInput($ctx));
+
+    $assignment = ReviewAssignment::query()->where('submission_id', $submission->id)->sole();
+    expect($assignment->reviewer_id)->toBe($reviewer->id)
+        ->and($assignment->source)->toBe(ReviewAssignmentSource::Scope)
+        ->and($assignment->assigned_by)->toBeNull()
+        ->and($submission->fresh()->status)->toBe(SubmissionStatus::UnderReview)
+        ->and(MailDispatch::query()->where('notification_key', 'reviewer.assignment')->count())->toBe(0);
+});
+
+it('CA-011-42: a repeated submission with the same key does not queue the scope sync again', function (): void {
+    $ctx = subScenario();
+    $input = subInput($ctx);
+    Queue::fake();
+
+    subSubmit($ctx, $input);
+    subSubmit($ctx, $input);
+
+    Queue::assertPushed(SyncScopedAssignmentsJob::class, 1);
+});
+
+it('the second last name and the alternative email are optional, the rest of the participant data is required', function (): void {
+    $ctx = subScenario();
+
+    foreach (['state', 'city', 'phone', 'company', 'job_title', 'bio'] as $required) {
+        $errors = subErrors($ctx, subInput($ctx, ['participants' => [subParticipant('a@x.com', ['is_primary' => true, $required => ''])]]));
+
+        expect(array_key_exists("participants.0.{$required}", $errors))->toBeTrue("{$required} debe ser obligatorio");
+    }
+
+    expect(subErrors($ctx, subInput($ctx, ['participants' => [subParticipant('a@x.com', ['is_primary' => true, 'second_last_name' => '', 'alt_email' => ''])]])))->toBe([]);
+});
+
+it('stores the extra participant data; the maternal last name goes in its own column', function (): void {
+    $ctx = subScenario();
+
+    $submission = subSubmit($ctx, subInput($ctx, ['participants' => [subParticipant('a@x.com', [
+        'is_primary' => true,
+        'first_name' => 'Ana',
+        'last_name' => 'Pérez',
+        'second_last_name' => 'Gómez',
+        'alt_email' => 'ana.alterno@example.com',
+    ])]]));
+
+    $participant = $submission->participants()->sole();
+
+    expect($participant->full_name)->toBe('Ana Pérez')
+        ->and($participant->second_last_name)->toBe('Gómez')
+        ->and($participant->alt_email)->toBe('ana.alterno@example.com')
+        ->and($participant->state)->toBe('CDMX')
+        ->and($participant->city)->toBe('Ciudad de México');
+});
+
+it('attaches the photo of a participant and links it to that participant', function (): void {
+    $ctx = subScenario();
+    $token = 'tok-0123456789abcdef0123456789abcdef';
+    $photo = SubmissionFile::factory()->create([
+        'organization_id' => $ctx['org']->id,
+        'call_id' => $ctx['call']->id,
+        'event_id' => $ctx['event']->id,
+        'form_field_key' => 'participant_photo_0',
+        'upload_token_hash' => hash('sha256', $token),
+        'mime_type' => 'image/png',
+    ]);
+
+    $outcome = app(SubmitSubmission::class)->handle(
+        $ctx['call'],
+        subInput($ctx, ['participants' => [subParticipant('a@x.com', ['is_primary' => true, 'photo_file_id' => $photo->id])]]),
+        $token,
+    );
+
+    $participant = $outcome->submission->participants()->sole();
+
+    expect($participant->photo_file_id)->toBe($photo->id)
+        ->and($photo->fresh()->status)->toBe(SubmissionFileStatus::Attached)
+        ->and($photo->fresh()->submission_id)->toBe($outcome->submission->id);
+});
+
+it('refuses the photo of another participant slot or of another session', function (): void {
+    $ctx = subScenario();
+    $photo = SubmissionFile::factory()->create([
+        'organization_id' => $ctx['org']->id,
+        'call_id' => $ctx['call']->id,
+        'event_id' => $ctx['event']->id,
+        'form_field_key' => 'participant_photo_1',
+        'upload_token_hash' => hash('sha256', 'tok-0123456789abcdef0123456789abcdef'),
+    ]);
+
+    expect(fn () => app(SubmitSubmission::class)->handle(
+        $ctx['call'],
+        subInput($ctx, ['participants' => [subParticipant('a@x.com', ['is_primary' => true, 'photo_file_id' => $photo->id])]]),
+        'tok-0123456789abcdef0123456789abcdef',
+    ))->toThrow(ValidationException::class);
+});
+
+it('the form decides which participant questions are asked: a turned-off one is refused and an optional one may be empty', function (): void {
+    $ctx = subScenario();
+    $ctx['form']->forceFill(['settings' => ['participant_fields' => [
+        'company' => ['enabled' => false],
+        'bio' => ['enabled' => true, 'required' => false],
+        'state' => ['enabled' => true, 'required' => false],
+    ]]])->save();
+    $ctx['call']->refresh();
+
+    // Apagada: se rechaza aunque la mande el cliente.
+    $refused = subErrors($ctx, subInput($ctx, ['participants' => [subParticipant('a@x.com', ['is_primary' => true, 'company' => 'ACME'])]]));
+    expect(array_key_exists('participants.0.company', $refused))->toBeTrue();
+
+    // Opcionales vacías y la apagada sin mandar: se acepta.
+    $ok = subInput($ctx, ['participants' => [subParticipant('b@x.com', ['is_primary' => true, 'company' => null, 'bio' => '', 'state' => ''])]]);
+    expect(subErrors($ctx, $ok))->toBe([]);
 });
