@@ -142,7 +142,8 @@ it('CA-007-27: sweeps every organization without context and records the count p
 
     $counts = Activity::query()->where('event', 'submission_files_purged')->get()
         ->mapWithKeys(static fn (Activity $activity): array => [(string) $activity->properties->get('organization_id') => $activity->properties->get('count')]);
-    expect($counts->all())->toBe([$a->id => 2, $b->id => 1]);
+    // El orden en que se recorren las organizaciones no es parte del contrato: se compara por organizacion.
+    expect($counts->all())->toEqual([$a->id => 2, $b->id => 1]);
 
     $logged = (string) json_encode(Activity::query()->where('event', 'submission_files_purged')->get()->toArray());
     expect(str_contains($logged, 'presentacion.pdf'))->toBeFalse();
