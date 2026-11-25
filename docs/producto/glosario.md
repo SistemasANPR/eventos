@@ -43,12 +43,13 @@
 | Boleto | `Ticket` | Lo contratado por un asistente; tiene código QR | Evento |
 | Cupón | `Coupon` | Descuento aplicable a boletos | Evento |
 | Pago | `Payment` | Hecho financiero con su referencia del proveedor (ADR-0007) | Evento |
-| Patrocinador | `Sponsor` | Organización que patrocina un evento | Evento (`Contact`) |
+| Patrocinador | `Sponsor` | Organización que patrocina un evento. Desde el plan 030 es una ficha simple del evento (nombre, nivel, sitio web, logotipo y orden); el vínculo con `Contact` llega en R4 | Evento (`Contact`) |
 | Paquete de patrocinio | `SponsorshipPackage` | Beneficios y precio de un nivel de patrocinio | Evento |
 | Expositor | `Exhibitor` | Organización que tiene un espacio en la expo | Evento |
 | Voluntario | `Volunteer` | Persona que apoya la operación | Evento (`Contact`) |
 | Turno | `VolunteerShift` | Franja con cupo para voluntarios | Evento |
 | Hotel | `Hotel` | Alojamiento recomendado o con bloque | Evento |
+| Hospedaje | `Lodging` | Alojamiento recomendado de un evento, ficha simple del plan 030 (nombre, dirección, descripción, enlace de reserva, tarifa y orden); el bloque con cupo `Hotel` llega en R4 | Evento |
 | Plantilla de correo | `MailTemplate` | Personalización de un correo del catálogo para un idioma, con variables de lista blanca; por organización y, desde R1, por evento (`event_id`). La predeterminada del sistema no es un modelo: vive en `lang/` (plan 008) | Organización |
 | Notificación del catálogo | `NotificationType` | Un correo que el sistema puede enviar, registrado en código en `NotificationCatalog` con su clave (`submission.received`), variables, criticidad y límite por destinatario. No es un modelo ni una tabla (ADR-0009) | — (código) |
 | Ajuste de notificación | `NotificationSetting` | Si una organización tiene activa una notificación no crítica; sin fila, está activa (plan 008, H-008-5) | Organización |

@@ -7,10 +7,12 @@ namespace App\Filament\Resources\Events;
 use App\Filament\Resources\Forms\FormDefinitionResource;
 use App\Filament\Resources\Submissions\SubmissionResource;
 use App\Models\EventActivity;
+use App\Models\Lodging;
 use App\Models\Review;
 use App\Models\ReviewAssignment;
 use App\Models\Rubric;
 use App\Models\Speaker;
+use App\Models\Sponsor;
 use Closure;
 use Filament\Navigation\NavigationItem;
 use Filament\Support\Icons\Heroicon;
@@ -47,6 +49,8 @@ final class EventSectionsNavigation
             self::section($parentKey, __('review_results.progress.navigation'), Heroicon::OutlinedChartPie, 9, 'review-progress', ['review-progress', 'review-progress-detail'], fn (): bool => Gate::allows('viewProgress', [Review::class])),
             self::section($parentKey, __('program.speakers.navigation'), Heroicon::OutlinedMicrophone, 4, 'speakers', ['speakers', 'speaker-categories'], fn (): bool => Gate::allows('viewAny', Speaker::class)),
             self::section($parentKey, __('program.activities.navigation'), Heroicon::OutlinedCalendarDays, 5, 'activities', ['activities', 'activity-categories'], fn (): bool => Gate::allows('viewAny', EventActivity::class)),
+            self::section($parentKey, __('lodgings.navigation'), Heroicon::OutlinedBuildingOffice2, 10, 'lodgings', ['lodgings'], fn (): bool => Gate::allows('viewAny', Lodging::class)),
+            self::section($parentKey, __('sponsors.navigation'), Heroicon::OutlinedStar, 11, 'sponsors', ['sponsors'], fn (): bool => Gate::allows('viewAny', Sponsor::class)),
         ];
     }
 
