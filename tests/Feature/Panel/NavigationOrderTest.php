@@ -139,7 +139,7 @@ function eventSections(User $user, Organization $organization, ?Event $event): a
 }
 
 /**
- * Secciones del evento por fase y en el orden del ciclo de vida: configurar la convocatoria, evaluar y armar el programa.
+ * Secciones del evento por fase y en el orden del ciclo de vida: configurar la convocatoria, evaluar, armar el programa y la logística.
  * Las categorías del programa se abren desde el botón de Ponentes y Actividades.
  *
  * @return list<array{0: string, 1: list<string>}>
@@ -164,6 +164,11 @@ function eventSectionGroups(): array
         [__('navigation.groups.program'), [
             __('program.speakers.navigation'),
             __('program.activities.navigation'),
+        ]],
+        // Plan 030: Hospedaje y Patrocinadores, en un grupo propio.
+        [__('navigation.groups.logistics'), [
+            __('lodgings.navigation'),
+            __('sponsors.navigation'),
         ]],
     ];
 }
@@ -203,13 +208,14 @@ it('CA-020-18: the event section groups sit between Events and the Organization 
         __('navigation.groups.call'),
         __('navigation.groups.evaluation'),
         __('navigation.groups.program'),
+        __('navigation.groups.logistics'),
         __('navigation.groups.organization'),
     ]);
 });
 
 it('CA-020-18: the phase group labels exist in Spanish and English', function (): void {
     foreach (['es', 'en'] as $locale) {
-        foreach (['call', 'evaluation', 'program'] as $group) {
+        foreach (['call', 'evaluation', 'program', 'logistics'] as $group) {
             expect(__("navigation.groups.{$group}", [], $locale))->not->toBe("navigation.groups.{$group}");
         }
     }
