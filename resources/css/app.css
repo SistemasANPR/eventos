@@ -91,6 +91,9 @@
     /* Verde-azulado: etiquetas, iconos e información de apoyo. */
     --color-support: #156a62;
 
+    /* Verde claro de la marca ANPR: fondo de fechas y texto secundario sobre azul. */
+    --color-mist: #dae7e0;
+
     /*
      * Marca del Congreso Parques para el sitio público (portadas, cabeceras y detalles).
      * `brand` y `brand-deep` son fondos con texto blanco; `cta` es la lima de los botones

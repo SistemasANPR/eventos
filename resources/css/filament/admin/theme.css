@@ -125,6 +125,205 @@ h3,
     color: #4b5a68;
 }
 
+
+/*
+ * Acceso en dos columnas (identidad ANPR): panel de marca a la izquierda y formulario a la derecha.
+ * Solo aplica a las pantallas que reciben el panel de marca (`filament.auth.brand-panel`); el resto
+ * de pantallas simples conserva la tarjeta de arriba. Lima y verde claro son decorativos o van
+ * sobre fondo azul; el texto sobre blanco es siempre azul o gris de la guía.
+ */
+.fi-simple-layout:has(.eventos-auth-brand) {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    min-height: 100vh;
+    background: #ffffff;
+}
+
+.eventos-auth-brand {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 2.5rem;
+    overflow: hidden;
+    padding: 3.5rem 4rem;
+    background-color: var(--eventos-navy);
+    color: #ffffff;
+}
+
+.eventos-auth-brand > * {
+    position: relative;
+    z-index: 1;
+}
+
+.eventos-auth-brand-logo {
+    display: flex;
+    align-items: center;
+    gap: 0.875rem;
+    font-family: 'Montserrat', system-ui, -apple-system, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+    font-size: 1rem;
+    font-weight: 700;
+    line-height: 1.25;
+    max-width: 18rem;
+}
+
+.eventos-auth-brand-mark {
+    display: grid;
+    place-items: center;
+    flex: none;
+    width: 3rem;
+    height: 3rem;
+    border-radius: 0.75rem;
+    background-color: var(--eventos-lime);
+    color: var(--eventos-navy);
+    font-size: 1.125rem;
+    font-weight: 800;
+}
+
+.eventos-auth-brand-kicker {
+    margin: 0 0 0.75rem;
+    font-size: 0.8125rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    color: var(--eventos-lime);
+}
+
+.eventos-auth-brand-title {
+    margin: 0;
+    font-family: 'Montserrat', system-ui, -apple-system, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+    font-size: 4.5rem;
+    font-weight: 800;
+    line-height: 1;
+    letter-spacing: -0.02em;
+}
+
+.eventos-auth-brand-title::after {
+    content: '';
+    display: block;
+    width: 4.5rem;
+    height: 0.3125rem;
+    margin-top: 1.5rem;
+    border-radius: 9999px;
+    background-color: var(--eventos-lime);
+}
+
+.eventos-auth-brand-tagline {
+    max-width: 30rem;
+    margin: 1.5rem 0 0;
+    font-size: 1.25rem;
+    line-height: 1.6;
+    color: var(--eventos-mist);
+}
+
+.eventos-auth-brand-modules {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.eventos-auth-brand-modules li {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0.875rem;
+    border: 1px solid rgb(218 231 224 / 0.35);
+    border-radius: 9999px;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.eventos-auth-brand-icon {
+    width: 1.125rem;
+    height: 1.125rem;
+}
+
+/* Círculos decorativos: detrás del texto, recortados por el borde del panel. */
+.eventos-auth-brand-circle {
+    position: absolute;
+    z-index: 0;
+    border-radius: 9999px;
+    pointer-events: none;
+}
+
+.eventos-auth-brand-circle-ring {
+    inset-inline-end: -9rem;
+    inset-block-end: -11rem;
+    width: 26rem;
+    height: 26rem;
+    border: 3rem solid rgb(210 221 10 / 0.18);
+}
+
+.eventos-auth-brand-circle-dot {
+    inset-inline-end: 6rem;
+    inset-block-end: 6rem;
+    width: 7.5rem;
+    height: 7.5rem;
+    background-color: rgb(218 231 224 / 0.12);
+}
+
+/* Columna del formulario: sin tarjeta, título a la izquierda y el logotipo vive en el panel. */
+.fi-simple-layout:has(.eventos-auth-brand) .fi-simple-main-ctn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 3rem 2rem;
+}
+
+.fi-simple-layout:has(.eventos-auth-brand) .fi-simple-main {
+    width: 100%;
+    max-width: 26.25rem;
+    margin: 0;
+    padding: 0;
+    background-color: transparent;
+    box-shadow: none;
+    border-radius: 0;
+}
+
+.fi-simple-layout:has(.eventos-auth-brand) .fi-simple-header {
+    align-items: flex-start;
+    text-align: start;
+}
+
+.fi-simple-layout:has(.eventos-auth-brand) .fi-simple-header .fi-logo {
+    display: none;
+}
+
+.fi-simple-layout:has(.eventos-auth-brand) .fi-simple-header-heading {
+    font-size: 2rem;
+    font-weight: 800;
+    letter-spacing: -0.01em;
+}
+
+/* En pantallas menores a 1024 px el panel de marca es una cabecera compacta sobre el formulario. */
+@media (max-width: 1023px) {
+    .fi-simple-layout:has(.eventos-auth-brand) {
+        grid-template-columns: minmax(0, 1fr);
+        grid-template-rows: auto 1fr;
+    }
+
+    .eventos-auth-brand {
+        padding: 1.5rem 1.5rem;
+    }
+
+    .eventos-auth-brand-body,
+    .eventos-auth-brand-modules,
+    .eventos-auth-brand-circle {
+        display: none;
+    }
+
+    .fi-simple-layout:has(.eventos-auth-brand) .fi-simple-main-ctn {
+        align-items: flex-start;
+        padding: 2rem 1.5rem 3rem;
+    }
+
+    .fi-simple-layout:has(.eventos-auth-brand) .fi-simple-header-heading {
+        font-size: 1.5rem;
+    }
+}
+
 /*
  * Acabado visual del panel (plan 015, F3). Solo tokens de design.md §3.1: cada color
  * sale de estas variables y PanelStyleTest vigila que no aparezcan colores sueltos,
@@ -136,6 +335,7 @@ h3,
     --eventos-navy-50: #eef1fa;
     --eventos-navy-200: #b9c7f0;
     --eventos-lime: #d2dd0a;
+    --eventos-mist: #dae7e0;
     --eventos-bg: #f4f6f8;
     --eventos-border: #e3e8ec;
     --eventos-surface-muted: #f4f6f8;

@@ -63,6 +63,11 @@ class AdminPanelProvider extends PanelProvider
                 fn (): View => view('filament.auth.throttle-notice'),
                 scopes: [Login::class, RequestPasswordReset::class],
             )
+            ->renderHook(
+                PanelsRenderHook::SIMPLE_LAYOUT_START,
+                fn (): View => view('filament.auth.brand-panel'),
+                scopes: [Login::class, RequestPasswordReset::class],
+            )
             ->tenant(Organization::class, slugAttribute: 'slug')
             ->tenantMiddleware([ApplyOrganizationContext::class], isPersistent: true)
             ->tenantProfile(EditOrganizationProfile::class)
