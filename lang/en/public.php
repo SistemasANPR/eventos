@@ -177,6 +177,13 @@ return [
         'back_to_call' => 'Back to the call',
         'back_to_event' => 'Back to the event',
     ],
+    // Archived event (plan 032): seen by whoever opens an old link; it carries no event data.
+    'unavailable' => [
+        'title' => 'This event is no longer available',
+        'body' => ':organization archived this event and its public pages are no longer shown.',
+        'hint' => 'If you came from a saved link or an email, that link is no longer valid.',
+        'submit_error' => 'This event is no longer available and does not accept proposals.',
+    ],
     // Author access to their submission, no account (plan 006, H-006-3).
     'author' => [
         'request' => [

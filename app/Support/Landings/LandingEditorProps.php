@@ -8,6 +8,7 @@ use App\Actions\Landings\ResolveLandingBlocks;
 use App\Models\Event;
 use App\Models\EventLanding;
 use App\Models\Organization;
+use App\Support\Events\PublicPageAvailability;
 use Illuminate\Support\Facades\Lang;
 
 /**
@@ -32,7 +33,8 @@ final class LandingEditorProps
             // Los mismos textos de `lang/public.php` que el sitio público; el editor añade los suyos (`landing_editor.*`).
             'translations' => Lang::get('public'),
             'preview' => $resolve->preview($event, $organization, $event->default_locale),
-            'publicUrl' => route('events.show', ['organization' => $organization->slug, 'event' => $event->slug], false),
+            // Sin página pública (evento archivado o sin publicar) no hay enlace que ofrecer (plan 032, CA-032-6).
+            'publicUrl' => PublicPageAvailability::eventUrl($event, $organization),
             'hasUnpublishedChanges' => $landing->hasUnpublishedChanges(),
         ];
     }

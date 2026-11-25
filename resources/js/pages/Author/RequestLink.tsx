@@ -149,9 +149,11 @@ export default function RequestLink({
                 </form>
 
                 <div className={PAGE_FOOTER}>
-                    <TextLink href={eventUrl} className="-ml-3">
-                        {t('author.request.back_to_event')}
-                    </TextLink>
+                    {eventUrl !== null && (
+                        <TextLink href={eventUrl} className="-ml-3">
+                            {t('author.request.back_to_event')}
+                        </TextLink>
+                    )}
                     <LocaleSwitcher locales={event.locales} currentLocale={event.locale} />
                 </div>
             </article>

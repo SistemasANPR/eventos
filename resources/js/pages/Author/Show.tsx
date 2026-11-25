@@ -16,7 +16,7 @@ interface ShowProps {
     submission: AuthorSubmission;
     /** Minutos que dura la sesión del autor. */
     sessionMinutes: number;
-    eventUrl: string;
+    eventUrl: string | null;
     /** Destino del POST que retira la propuesta, o `null` si ya no se puede retirar (la decide el servidor). */
     withdrawUrl: string | null;
     /** Pantalla de edición, o `null` si la propuesta ya no se puede editar (la decide el servidor). */
@@ -128,9 +128,11 @@ export default function Show({ event, organization, submission, sessionMinutes, 
 
                 <footer className="flex flex-col gap-2 border-t border-border pt-4">
                     <p className="text-sm text-text-muted">{t('author.show.session_notice', { minutes: String(sessionMinutes) })}</p>
-                    <TextLink href={eventUrl} className="-ml-3 self-start">
-                        {t('author.show.back_to_event')}
-                    </TextLink>
+                    {eventUrl !== null && (
+                        <TextLink href={eventUrl} className="-ml-3 self-start">
+                            {t('author.show.back_to_event')}
+                        </TextLink>
+                    )}
                 </footer>
             </article>
         </PublicLayout>

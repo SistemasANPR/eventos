@@ -14,6 +14,7 @@ use App\Actions\Forms\PublishFormDefinition;
 use App\Enums\CallState;
 use App\Enums\CallStatus;
 use App\Enums\FormDefinitionStatus;
+use App\Enums\PublicPageUnavailability;
 use App\Filament\Resources\Events\Actions\LandingActions;
 use App\Filament\Resources\Events\EventResource;
 use App\Filament\Support\ActionErrors;
@@ -27,6 +28,7 @@ use App\Models\Submission;
 use App\Models\SubmissionType;
 use App\Support\Calls\ResolveCallState;
 use App\Support\Events\EventTime;
+use App\Support\Events\PublicPageAvailability;
 use App\Support\Tenancy\CurrentOrganization;
 use Carbon\CarbonImmutable;
 use Filament\Actions\Action;
@@ -67,6 +69,19 @@ class CallsRelationManager extends RelationManager
         return __('calls.relation_title');
     }
 
+    /** Con el evento archivado, la pestaña lo dice: sus convocatorias ya no tienen página pública (plan 032, CA-032-5). */
+    public static function getBadge(Model $ownerRecord, string $pageClass): ?string
+    {
+        return $ownerRecord instanceof Event && PublicPageAvailability::reasonFor($ownerRecord) === PublicPageUnavailability::Archived
+            ? __('calls.actions.event_archived_badge')
+            : null;
+    }
+
+    public static function getBadgeColor(Model $ownerRecord, string $pageClass): ?string
+    {
+        return 'warning';
+    }
+
     /** Solo quien consulta o gestiona convocatorias ve la sección (el revisor no). */
     public static function canViewForRecord(Model $ownerRecord, string $pageClass): bool
     {
@@ -81,8 +96,8 @@ class CallsRelationManager extends RelationManager
                     ->label(__('calls.columns.title'))
                     ->state(fn (CallForSubmissions $record): string => (string) $record->getTranslation('title', $this->owner()->default_locale, true))
                     ->weight('medium')
-                    // Enlace a la página pública; un borrador no la tiene (responde 404) y queda como texto.
-                    ->url(fn (CallForSubmissions $record): ?string => $this->hasPublicPage($record) ? $this->publicUrl($record) : null)
+                    // Enlace a la página pública; sin ella (borrador, evento archivado o sin publicar) queda como texto.
+                    ->url(fn (CallForSubmissions $record): ?string => $this->publicUrl($record))
                     ->openUrlInNewTab(),
                 TextColumn::make('submission_type_id')
                     ->label(__('calls.columns.type'))
@@ -297,39 +312,69 @@ class CallsRelationManager extends RelationManager
             ));
     }
 
-    /** Abre la página pública tal como la ve un visitante (CA-004-37). */
+    /**
+     * Abre la página pública tal como la ve un visitante (CA-004-37). Con el evento archivado o sin
+     * publicar se ofrece deshabilitada y sin URL, con la explicación (CA-032-2 y 3).
+     */
     private function viewPublicPageAction(): Action
     {
         return Action::make('viewPublicPage')
             ->label(__('calls.actions.view_public'))
             ->icon(Heroicon::OutlinedArrowTopRightOnSquare)
             ->color('gray')
-            ->url(fn (CallForSubmissions $record): string => $this->publicUrl($record))
+            ->url(fn (CallForSubmissions $record): ?string => $this->publicUrl($record))
             ->openUrlInNewTab()
-            ->visible(fn (CallForSubmissions $record): bool => $this->hasPublicPage($record));
+            ->disabled(fn (CallForSubmissions $record): bool => $this->unavailability($record) !== null)
+            ->tooltip(fn (CallForSubmissions $record): ?string => $this->unavailabilityExplanation($record))
+            ->visible(fn (CallForSubmissions $record): bool => $this->offersPublicLink($record));
     }
 
-    /** Copia la URL pública al portapapeles, sin ida al servidor. */
+    /** Copia la URL pública al portapapeles, sin ida al servidor; deshabilitada como «Ver» cuando no hay página. */
     private function copyPublicLinkAction(): Action
     {
         return Action::make('copyPublicLink')
             ->label(__('calls.actions.copy_link'))
             ->icon(Heroicon::OutlinedClipboardDocument)
             ->color('gray')
-            ->alpineClickHandler(fn (CallForSubmissions $record): string => 'window.navigator.clipboard.writeText('.Js::from($this->publicUrl($record))->toHtml().'); '
-                .'$tooltip('.Js::from(__('calls.actions.link_copied'))->toHtml().', { theme: $store.theme, timeout: 2000 })')
-            ->visible(fn (CallForSubmissions $record): bool => $this->hasPublicPage($record));
+            ->alpineClickHandler(fn (CallForSubmissions $record): ?string => ($url = $this->publicUrl($record)) === null
+                ? null
+                : 'window.navigator.clipboard.writeText('.Js::from($url)->toHtml().'); '
+                    .'$tooltip('.Js::from(__('calls.actions.link_copied'))->toHtml().', { theme: $store.theme, timeout: 2000 })')
+            ->disabled(fn (CallForSubmissions $record): bool => $this->unavailability($record) !== null)
+            ->tooltip(fn (CallForSubmissions $record): ?string => $this->unavailabilityExplanation($record))
+            ->visible(fn (CallForSubmissions $record): bool => $this->offersPublicLink($record));
     }
 
-    /** Un borrador responde 404 en la ruta pública (CA-004-20), así que no se ofrece su enlace (CA-004-38). */
-    private function hasPublicPage(CallForSubmissions $call): bool
+    private function unavailability(CallForSubmissions $call): ?PublicPageUnavailability
     {
-        return $call->status !== CallStatus::Draft;
+        return PublicPageAvailability::reasonFor($this->owner(), $call);
     }
 
-    /** Siempre con el contexto y el evento actuales, nunca con datos de otra organización (CA-004-40). */
-    private function publicUrl(CallForSubmissions $call): string
+    /** Un borrador de convocatoria no ofrece enlace (CA-004-38); el evento archivado o sin publicar lo ofrece deshabilitado. */
+    private function offersPublicLink(CallForSubmissions $call): bool
     {
+        return $this->unavailability($call) !== PublicPageUnavailability::DraftCall;
+    }
+
+    private function unavailabilityExplanation(CallForSubmissions $call): ?string
+    {
+        return match ($this->unavailability($call)) {
+            PublicPageUnavailability::Archived => __('calls.actions.public_unavailable.archived'),
+            PublicPageUnavailability::DraftEvent => __('calls.actions.public_unavailable.draft_event'),
+            PublicPageUnavailability::DraftCall, null => null,
+        };
+    }
+
+    /**
+     * Siempre con el contexto y el evento actuales, nunca con datos de otra organización (CA-004-40).
+     * `null` si no hay página pública: un enlace muerto no se ofrece (plan 032).
+     */
+    private function publicUrl(CallForSubmissions $call): ?string
+    {
+        if ($this->unavailability($call) !== null) {
+            return null;
+        }
+
         return route('calls.show', [
             'organization' => CurrentOrganization::get()->slug,
             'event' => $this->owner()->slug,

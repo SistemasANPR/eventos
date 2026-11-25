@@ -283,10 +283,12 @@ export function LandingEditor({
                     >
                         {t('landing_editor.action.discard')}
                     </button>
-                    <a href={publicUrl} target="_blank" rel="noopener noreferrer" className={cn(BUTTON_SECONDARY, FOCUS_RING)}>
-                        {t('landing_editor.action.view')}
-                        <span className="sr-only"> {t('landing_editor.action.opens_new_tab')}</span>
-                    </a>
+                    {publicUrl !== null && (
+                        <a href={publicUrl} target="_blank" rel="noopener noreferrer" className={cn(BUTTON_SECONDARY, FOCUS_RING)}>
+                            {t('landing_editor.action.view')}
+                            <span className="sr-only"> {t('landing_editor.action.opens_new_tab')}</span>
+                        </a>
+                    )}
                 </div>
             </header>
 
