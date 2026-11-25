@@ -58,7 +58,7 @@ final class EventSectionsNavigation
             self::section($program, __('program.activities.navigation'), Heroicon::OutlinedCalendarDays, 9, 'activities', ['activities', 'activity-categories'], fn (): bool => Gate::allows('viewAny', EventActivity::class)),
             // Hospedaje y Patrocinadores (plan 030): grupo propio, después de Programa y antes de Organización.
             self::section($logistics, __('lodgings.navigation'), Heroicon::OutlinedBuildingOffice2, 10, 'lodgings', ['lodgings'], fn (): bool => Gate::allows('viewAny', Lodging::class)),
-            self::section($logistics, __('sponsors.navigation'), Heroicon::OutlinedStar, 11, 'sponsors', ['sponsors'], fn (): bool => Gate::allows('viewAny', Sponsor::class)),
+            self::section($logistics, __('sponsors.navigation'), Heroicon::OutlinedStar, 11, 'sponsors', ['sponsors', 'sponsor-categories'], fn (): bool => Gate::allows('viewAny', Sponsor::class)),
         ];
     }
 

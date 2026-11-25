@@ -19,7 +19,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property string $organization_id
  * @property string $event_id
  * @property string $name
- * @property string|null $level
+ * @property string|null $sponsor_category_id
  * @property string|null $website_url
  * @property string|null $logo_path
  * @property int $position
@@ -38,5 +38,15 @@ class Sponsor extends Model
     public function event(): BelongsTo
     {
         return $this->belongsTo(Event::class);
+    }
+
+    /**
+     * Su nivel: la categoría de patrocinador del evento (plan 030, DA-6); puede no tener.
+     *
+     * @return BelongsTo<SponsorCategory, $this>
+     */
+    public function category(): BelongsTo
+    {
+        return $this->belongsTo(SponsorCategory::class, 'sponsor_category_id');
     }
 }

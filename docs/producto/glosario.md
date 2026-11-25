@@ -23,6 +23,7 @@
 | Ponente | `Speaker` | Persona que presenta en un evento: su ficha (nombre, apellido, correo, país, organización, cargo, biografía, fotografía, redes). Nace al aceptar una propuesta (uno por participante) o se da de alta a mano. Editar la ficha de un evento no cambia la de otro. Vínculo **opcional** a un `Contact` para sugerir y copiar datos de eventos anteriores (plan 021, DA-1) | Evento (`Contact` opcional) |
 | Categoría de ponente | `SpeakerCategory` | Etiqueta propia de cada evento para clasificar ponentes (magistral, invitado, panelista); catálogo independiente del de actividades y de los ejes; un ponente admite varias (plan 021, DA-7) | Evento |
 | Categoría de actividad | `ActivityCategory` | Etiqueta propia de cada evento para clasificar actividades; catálogo independiente del de ponentes y de los ejes; una actividad admite varias (plan 021, DA-7) | Evento |
+| Categoría de patrocinador | `SponsorCategory` | Etiqueta propia de cada evento (Oro, Plata, Bronce...) que se muestra como «Nivel» del patrocinador; catálogo aparte del de ponentes y actividades (plan 030) | Evento |
 | Comité evaluador | `ReviewCommittee` | Grupo de evaluadores de uno o más ejes | Evento |
 | Evaluador | `Reviewer` | Persona que califica propuestas | Evento |
 | Rúbrica | `Rubric` | Conjunto de criterios con su escala y peso. Versionada | Evento |
@@ -43,13 +44,13 @@
 | Boleto | `Ticket` | Lo contratado por un asistente; tiene código QR | Evento |
 | Cupón | `Coupon` | Descuento aplicable a boletos | Evento |
 | Pago | `Payment` | Hecho financiero con su referencia del proveedor (ADR-0007) | Evento |
-| Patrocinador | `Sponsor` | Organización que patrocina un evento. Desde el plan 030 es una ficha simple del evento (nombre, nivel, sitio web, logotipo y orden); el vínculo con `Contact` llega en R4 | Evento (`Contact`) |
+| Patrocinador | `Sponsor` | Organización que patrocina un evento. Desde el plan 030 es una ficha simple del evento (nombre, nivel —una categoría de patrocinador del evento—, sitio web, logotipo y orden); el vínculo con `Contact` llega en R4 | Evento (`Contact`) |
 | Paquete de patrocinio | `SponsorshipPackage` | Beneficios y precio de un nivel de patrocinio | Evento |
 | Expositor | `Exhibitor` | Organización que tiene un espacio en la expo | Evento |
 | Voluntario | `Volunteer` | Persona que apoya la operación | Evento (`Contact`) |
 | Turno | `VolunteerShift` | Franja con cupo para voluntarios | Evento |
 | Hotel | `Hotel` | Alojamiento recomendado o con bloque | Evento |
-| Hospedaje | `Lodging` | Alojamiento recomendado de un evento, ficha simple del plan 030 (nombre, dirección, descripción, enlace de reserva, tarifa y orden); el bloque con cupo `Hotel` llega en R4 | Evento |
+| Hospedaje | `Lodging` | Alojamiento recomendado de un evento, ficha simple del plan 030 (nombre, dirección, descripción, enlace de reserva, tarifa, hasta 10 imágenes y orden); el bloque con cupo `Hotel` llega en R4 | Evento |
 | Plantilla de correo | `MailTemplate` | Personalización de un correo del catálogo para un idioma, con variables de lista blanca; por organización y, desde R1, por evento (`event_id`). La predeterminada del sistema no es un modelo: vive en `lang/` (plan 008) | Organización |
 | Notificación del catálogo | `NotificationType` | Un correo que el sistema puede enviar, registrado en código en `NotificationCatalog` con su clave (`submission.received`), variables, criticidad y límite por destinatario. No es un modelo ni una tabla (ADR-0009) | — (código) |
 | Ajuste de notificación | `NotificationSetting` | Si una organización tiene activa una notificación no crítica; sin fila, está activa (plan 008, H-008-5) | Organización |

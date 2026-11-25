@@ -47,7 +47,7 @@ final class CreateSponsor
                     // Se bloquea el evento para que dos altas simultáneas no tomen el mismo orden.
                     Event::query()->whereKey($event->id)->lockForUpdate()->firstOrFail();
 
-                    $validated = Validator::make(SponsorRules::trimmed($data), SponsorRules::rules())->validate();
+                    $validated = Validator::make(SponsorRules::trimmed($data), SponsorRules::rules($event->id))->validate();
                     $attributes = SponsorRules::forStorage($validated);
                     $attributes['position'] ??= ((int) Sponsor::query()->where('event_id', $event->id)->max('position')) + 1;
 

@@ -17,6 +17,7 @@ use App\Filament\Resources\Events\Pages\ManageEventReviewers;
 use App\Filament\Resources\Events\Pages\ManageEventRubrics;
 use App\Filament\Resources\Events\Pages\ManageEventSpeakerCategories;
 use App\Filament\Resources\Events\Pages\ManageEventSpeakers;
+use App\Filament\Resources\Events\Pages\ManageEventSponsorCategories;
 use App\Filament\Resources\Events\Pages\ManageEventSponsors;
 use App\Filament\Resources\Events\Pages\ManageEventSubmissions;
 use App\Filament\Resources\Events\Pages\ViewEvent;
@@ -124,6 +125,7 @@ class EventResource extends Resource
             // Hospedaje y patrocinadores del evento (plan 030, F2).
             'lodgings' => ManageEventLodgings::route('/{record}/lodgings'),
             'sponsors' => ManageEventSponsors::route('/{record}/sponsors'),
+            'sponsor-categories' => ManageEventSponsorCategories::route('/{record}/sponsor-categories'),
             // Catálogos de categorías del programa (plan 021, F1).
             'speaker-categories' => ManageEventSpeakerCategories::route('/{record}/speaker-categories'),
             'activity-categories' => ManageEventActivityCategories::route('/{record}/activity-categories'),

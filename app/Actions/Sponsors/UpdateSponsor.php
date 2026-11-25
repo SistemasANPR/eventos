@@ -50,8 +50,8 @@ final class UpdateSponsor
 
                     $given = SponsorRules::trimmed($data);
                     $validated = Validator::make(
-                        [...$sponsor->only([...SponsorRules::TEXT_FIELDS, 'position']), ...$given],
-                        SponsorRules::rules(),
+                        [...$sponsor->only([...SponsorRules::TEXT_FIELDS, 'sponsor_category_id', 'position']), ...$given],
+                        SponsorRules::rules($event->id),
                     )->validate();
 
                     $attributes = SponsorRules::forStorage(array_intersect_key($validated, $given));
