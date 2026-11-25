@@ -39,9 +39,54 @@ return [
         'time_range' => ':start – :end',
         'speakers' => 'Speakers',
         'pagination_label' => 'Program pages',
-        'previous_page' => 'Previous page',
-        'next_page' => 'Next page',
+    ],
+    // Pagination of the public program lists (`PageNav` component).
+    'pagination' => [
+        'previous' => 'Previous page',
+        'next' => 'Next page',
         'page_of' => 'Page :current of :last',
+    ],
+    // Speakers list of the event (plan 029).
+    'speakers' => [
+        'title' => 'Speakers',
+        'description' => 'Speakers of :event: who takes part and what they present.',
+        'heading' => 'Who takes part',
+        'empty_title' => 'Speakers will be announced soon',
+        'empty_hint' => 'There are no published speakers yet. Please check back later.',
+        'pagination_label' => 'Speaker pages',
+        'role_separator' => ', ',
+        'back_to_event' => 'Back to the event',
+        'program_link' => 'See the program',
+    ],
+    // Profile of a speaker (plan 029).
+    'speaker' => [
+        'description' => ':name at :event.',
+        'bio' => 'Biography',
+        'links' => 'Links',
+        'categories' => 'Speaker categories',
+        'activities' => 'Activities',
+        'no_activities' => 'No activities scheduled for now.',
+        'back_to_speakers' => 'Back to the speakers',
+        'networks' => [
+            'linkedin' => 'LinkedIn',
+            'x' => 'X',
+            'instagram' => 'Instagram',
+            'facebook' => 'Facebook',
+            'youtube' => 'YouTube',
+            'tiktok' => 'TikTok',
+            'website' => 'Website',
+        ],
+    ],
+    // Detail of an activity (plan 029).
+    'activity' => [
+        'description' => ':title: :event.',
+        'schedule' => 'Schedule',
+        'on_date' => ':date, :range',
+        'description_heading' => 'Description',
+        'speakers' => 'Speakers',
+        'no_speakers' => 'Speakers to be confirmed.',
+        'categories' => 'Activity categories',
+        'back_to_program' => 'Back to the program',
     ],
     'call' => [
         'type' => 'Submission type',
@@ -246,6 +291,9 @@ return [
             'category_name' => 'Workshops',
             'category_other' => 'Talks',
             'speaker_name' => 'Ana Torres',
+            'speaker_company' => 'Parques de México',
+            'speaker_job_title' => 'Director of operations',
+            'speaker_tagline' => 'Two decades looking after green spaces in large cities.',
         ],
     ],
     // Event landing (plan 022): fixed texts of the public blocks.

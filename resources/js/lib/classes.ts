@@ -61,3 +61,9 @@ export const SECTION_CARD = 'rounded-3xl border border-border bg-surface p-5 sha
 
 /** Columna central de una página de la convocatoria (portada, formulario o confirmación). */
 export const CALL_COLUMN = 'mx-auto flex w-full max-w-4xl flex-col gap-8';
+
+/** Enlace del título de una tarjeta del programa (ponente o actividad): objetivo táctil de 44 px y subrayado al pasar. */
+export const CARD_TITLE_LINK = 'inline-flex min-h-11 items-center rounded-md underline-offset-4 hover:underline';
+
+/** Etiqueta redondeada de una categoría (actividad o ponente) en el programa público. */
+export const CATEGORY_CHIP = 'rounded-full bg-info-bg px-3 py-1 text-sm font-semibold text-info';

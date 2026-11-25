@@ -6,6 +6,7 @@ import { ActivityCard } from '@/components/molecules/ActivityCard';
 import { CategoryFilter } from '@/components/molecules/CategoryFilter';
 import { LocaleSwitcher } from '@/components/molecules/LocaleSwitcher';
 import { PageBanner } from '@/components/molecules/PageBanner';
+import { PageNav } from '@/components/molecules/PageNav';
 import { ProgramDayNav } from '@/components/molecules/ProgramDayNav';
 import { useTranslation } from '@/hooks/useTranslation';
 import { PublicLayout } from '@/layouts/PublicLayout';
@@ -88,7 +89,7 @@ export default function Program({ event, organization, days, day, activities, ca
                                 ))}
                             </ul>
                         )}
-                        <PageLinks activities={activities} />
+                        <PageNav page={activities} label={t('program.pagination_label')} />
                     </section>
                 )}
 
@@ -104,31 +105,3 @@ export default function Program({ event, organization, days, day, activities, ca
     );
 }
 
-/** Páginas anterior y siguiente de un día con más actividades de las que caben en una página. */
-function PageLinks({ activities }: { activities: Paginated<PublicActivitySummary> }) {
-    const { t } = useTranslation();
-
-    if (activities.lastPage < 2) {
-        return null;
-    }
-
-    return (
-        <nav aria-label={t('program.pagination_label')} className="flex flex-wrap items-center justify-between gap-2">
-            {activities.prevUrl !== null ? (
-                <TextLink href={activities.prevUrl} rel="prev">
-                    {t('program.previous_page')}
-                </TextLink>
-            ) : (
-                <span />
-            )}
-            <span className="text-base text-text-muted">{t('program.page_of', { current: String(activities.currentPage), last: String(activities.lastPage) })}</span>
-            {activities.nextUrl !== null ? (
-                <TextLink href={activities.nextUrl} rel="next">
-                    {t('program.next_page')}
-                </TextLink>
-            ) : (
-                <span />
-            )}
-        </nav>
-    );
-}
