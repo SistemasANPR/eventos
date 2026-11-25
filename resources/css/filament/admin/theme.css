@@ -190,6 +190,24 @@ h3,
     scrollbar-color: rgb(255 255 255 / 0.65) transparent;
 }
 
+/*
+ * Espaciado del menú: Filament separa los grupos con 1,75 rem y deja 2 rem arriba y abajo; con los grupos
+ * por fase del evento (plan 020, CA-020-18) el menú quedaba muy abierto. Se compacta sin tocar el área
+ * de toque de cada entrada (el alto de las entradas no cambia).
+ */
+.fi-sidebar-nav {
+    row-gap: 1rem;
+    padding-block: 1.25rem;
+}
+
+.fi-sidebar-nav-groups {
+    row-gap: 1rem;
+}
+
+.fi-sidebar .fi-sidebar-group-btn {
+    padding-block: 0.25rem;
+}
+
 /* Safari y navegadores sin `scrollbar-color`. */
 .fi-sidebar-nav::-webkit-scrollbar {
     width: 6px;
