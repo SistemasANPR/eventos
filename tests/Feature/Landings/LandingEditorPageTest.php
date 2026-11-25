@@ -146,7 +146,7 @@ it('CA-022-36: the editor receives the draft with every language, the version an
         ->and($props['publicUrl'])->toBe("/{$organization->slug}/events/{$event->slug}");
 });
 
-it('CA-030-6: the editor gets no public link while the event is draft or archived', function (EventStatus $status): void {
+it('CA-032-6: the editor gets no public link while the event is draft or archived', function (EventStatus $status): void {
     [$organization, $event, $admin] = formScenario();
     $event->forceFill(['status' => $status])->save();
     editorActAsAdmin($organization, $admin);

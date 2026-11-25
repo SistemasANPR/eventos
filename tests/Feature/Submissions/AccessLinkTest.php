@@ -199,7 +199,7 @@ it('CA-006-32: the request form validates the email and hides drafts', function 
     $this->get(AuthorFixtures::path($submission, 'my-submission/request-link'))->assertNotFound();
 });
 
-it('CA-030-6: the access-link page offers the way back to the event only while the event is published', function (): void {
+it('CA-032-6: the access-link page offers the way back to the event only while the event is published', function (): void {
     $submission = AuthorFixtures::submission();
     $path = AuthorFixtures::path($submission, 'my-submission/request-link');
     $event = Event::query()->findOrFail($submission->event_id);

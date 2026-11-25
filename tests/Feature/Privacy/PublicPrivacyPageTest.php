@@ -96,7 +96,7 @@ it('CA-003-17: an event with only a draft notice answers 404', function (): void
     $this->get('/parques/events/congreso/privacy')->assertNotFound();
 });
 
-// Plan 030: el aviso de un evento archivado no se publica; la página responde 410 «no disponible» (antes 404).
+// Plan 032: el aviso de un evento archivado no se publica; la página responde 410 «no disponible» (antes 404).
 it('CA-003-17: the notice of an archived event is not public', function (): void {
     $organization = Organization::factory()->create(['slug' => 'parques']);
     $event = Event::factory()->archived()->create(['organization_id' => $organization->id, 'slug' => 'congreso']);

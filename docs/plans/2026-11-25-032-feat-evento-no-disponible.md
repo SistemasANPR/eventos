@@ -1,10 +1,10 @@
 # feat: evento archivado o sin publicar, enlaces claros en el panel y página «no disponible» para el público
 
-> Plan de mejora de experiencia (fuera de la hoja de ruta R0 a R5). Es la especificación SDD (ADR-0001). `NNN` = 030: todos sus criterios son `CA-030-n`.
+> Plan de mejora de experiencia (fuera de la hoja de ruta R0 a R5). Es la especificación SDD (ADR-0001). `NNN` = 032: todos sus criterios son `CA-032-n`.
 > `composer check:criteria` lee el **Estado** y los criterios de este archivo: no cambiar el formato de esas líneas.
 
 - **Fecha:** 2026-11-25
-- **Estado:** Terminado (2026-11-25: F0 a F2 construidas y CA-030-17 verificado en navegador; registrado en §9)
+- **Estado:** Terminado (2026-11-25: F0 a F2 construidas y CA-032-17 verificado en navegador; registrado en §9)
 - **Esfuerzo:** M
 - **Deuda relacionada:** ninguna
 
@@ -37,8 +37,8 @@ Este plan corrige las dos cosas: el panel deja de ofrecer enlaces que no funcion
 
 | Historia | Enunciado | Tam. | Dependencias |
 |---|---|---|---|
-| H-030-1 | Como organizador, quiero que el panel no me ofrezca un enlace público que no funciona y me explique por qué, para no compartir enlaces muertos | S | plan 004 (H-004-5) |
-| H-030-2 | Como visitante con un enlace viejo, quiero ver que el evento ya no está disponible, para entender qué pasó y no creer que el sitio falla | M | plan 003 (evento archivado) |
+| H-032-1 | Como organizador, quiero que el panel no me ofrezca un enlace público que no funciona y me explique por qué, para no compartir enlaces muertos | S | plan 004 (H-004-5) |
+| H-032-2 | Como visitante con un enlace viejo, quiero ver que el evento ya no está disponible, para entender qué pasó y no creer que el sitio falla | M | plan 003 (evento archivado) |
 
 ## 2. Punto de partida
 
@@ -86,48 +86,48 @@ Cada fase deja el repo en verde y termina en su propio commit.
 
 | Fase | Qué se hace | Esfuerzo |
 |---|---|---|
-| F0 | La regla única y su prueba unitaria; el panel la usa: acciones deshabilitadas con explicación, insignia «Evento archivado», enlace de la landing y de la pantalla del autor (H-030-1) | S |
-| F1 | El sitio público: punto de decisión compartido, página Inertia «no disponible» con 410, textos es y en, pruebas de Pest y de Vitest (H-030-2) | M |
+| F0 | La regla única y su prueba unitaria; el panel la usa: acciones deshabilitadas con explicación, insignia «Evento archivado», enlace de la landing y de la pantalla del autor (H-032-1) | S |
+| F1 | El sitio público: punto de decisión compartido, página Inertia «no disponible» con 410, textos es y en, pruebas de Pest y de Vitest (H-032-2) | M |
 | F2 | Cierre: la guardiana que impide volver a decidir enlaces públicos a mano, verificación en navegador a ~375 y ~1280 px, registro en §9 | S |
 
 ## 7. Criterios de aceptación
 
-Cada uno tiene al menos una prueba cuyo nombre lo cita (`CA-030-n: ...`) o declara su comprobación manual con una línea `Manual:` debajo.
+Cada uno tiene al menos una prueba cuyo nombre lo cita (`CA-032-n: ...`) o declara su comprobación manual con una línea `Manual:` debajo.
 
-### H-030-1 · El panel no ofrece enlaces muertos
+### H-032-1 · El panel no ofrece enlaces muertos
 
-- **CA-030-1:** *Dado* un evento publicado y una convocatoria publicada, *cuando* el organizador abre la lista de convocatorias, *entonces* «Ver página pública» y «Copiar enlace» están habilitadas y apuntan a la URL pública de siempre.
-- **CA-030-2:** *Dado* un evento archivado con una convocatoria publicada, *cuando* el organizador abre la lista, *entonces* «Ver página pública» y «Copiar enlace» aparecen deshabilitadas, sin URL a la que navegar, y su descripción explica que el evento está archivado y que sus páginas públicas ya no se muestran.
-- **CA-030-3:** *Dado* un evento en borrador con una convocatoria publicada, *cuando* el organizador abre la lista, *entonces* las dos acciones aparecen deshabilitadas con la explicación «El evento aún no está publicado».
-- **CA-030-4:** *Dado* una convocatoria en borrador de un evento publicado, *cuando* el organizador abre la lista, *entonces* no se ofrece ningún enlace público, como hoy (CA-004-38).
-- **CA-030-5:** *Dado* un evento archivado, *cuando* el organizador abre su lista de convocatorias, *entonces* ve la insignia «Evento archivado»; con el evento publicado no aparece.
-- **CA-030-6:** *Dado* un evento que no está publicado, *cuando* se muestra el editor de la landing o la pantalla de acceso del autor, *entonces* no se ofrece el enlace público del evento.
-- **CA-030-7:** *Dado* cada estado posible (evento publicado, archivado y en borrador; convocatoria publicada, pausada, cerrada y en borrador), *cuando* se consulta la regla única, *entonces* responde si hay página pública y el motivo cuando no la hay, y el panel y las páginas públicas usan esa misma respuesta.
+- **CA-032-1:** *Dado* un evento publicado y una convocatoria publicada, *cuando* el organizador abre la lista de convocatorias, *entonces* «Ver página pública» y «Copiar enlace» están habilitadas y apuntan a la URL pública de siempre.
+- **CA-032-2:** *Dado* un evento archivado con una convocatoria publicada, *cuando* el organizador abre la lista, *entonces* «Ver página pública» y «Copiar enlace» aparecen deshabilitadas, sin URL a la que navegar, y su descripción explica que el evento está archivado y que sus páginas públicas ya no se muestran.
+- **CA-032-3:** *Dado* un evento en borrador con una convocatoria publicada, *cuando* el organizador abre la lista, *entonces* las dos acciones aparecen deshabilitadas con la explicación «El evento aún no está publicado».
+- **CA-032-4:** *Dado* una convocatoria en borrador de un evento publicado, *cuando* el organizador abre la lista, *entonces* no se ofrece ningún enlace público, como hoy (CA-004-38).
+- **CA-032-5:** *Dado* un evento archivado, *cuando* el organizador abre su lista de convocatorias, *entonces* ve la insignia «Evento archivado»; con el evento publicado no aparece.
+- **CA-032-6:** *Dado* un evento que no está publicado, *cuando* se muestra el editor de la landing o la pantalla de acceso del autor, *entonces* no se ofrece el enlace público del evento.
+- **CA-032-7:** *Dado* cada estado posible (evento publicado, archivado y en borrador; convocatoria publicada, pausada, cerrada y en borrador), *cuando* se consulta la regla única, *entonces* responde si hay página pública y el motivo cuando no la hay, y el panel y las páginas públicas usan esa misma respuesta.
 
-### H-030-2 · El público ve un aviso claro
+### H-032-2 · El público ve un aviso claro
 
-- **CA-030-8:** *Dado* un evento archivado, *cuando* un visitante abre la página del evento, la de una convocatoria, el formulario de envío, la confirmación de un envío, el programa o el aviso de privacidad, *entonces* la respuesta es 410 con la página «Este evento ya no está disponible», que muestra solo el nombre del evento y el de la organización.
-- **CA-030-9:** *Dado* un evento archivado, *cuando* se abre cualquiera de esas páginas, *entonces* la respuesta no contiene ningún dato del evento más allá de su nombre y el de la organización (ni fechas, ni programa, ni convocatorias, ni formulario ni enlace de envío).
-- **CA-030-10:** *Dado* un evento en borrador, *cuando* un visitante abre cualquiera de esas páginas, *entonces* la respuesta sigue siendo 404 y no revela nada.
-- **CA-030-11:** *Dado* un evento o una convocatoria que no existe, o que pertenece a otra organización, *cuando* se abre su página pública, *entonces* la respuesta es 404, como hoy.
-- **CA-030-12:** *Dado* un evento archivado, *cuando* alguien intenta enviar una propuesta a una de sus convocatorias, *entonces* la propuesta no se crea y la respuesta no revela datos del evento.
-- **CA-030-13:** *Dado* un evento archivado, *cuando* se piden su logo, las imágenes de su landing, las fotos de sus ponentes o los archivos de sus actividades, *entonces* la respuesta sigue siendo 404.
-- **CA-030-14:** *Dado* un evento publicado con una convocatoria pausada o cerrada, *cuando* un visitante abre su página, *entonces* se muestra como hoy, con el estado de la convocatoria.
-- **CA-030-15:** *Dado* un visitante con `?lang=` o con preferencia de idioma del navegador, *cuando* abre la página «no disponible», *entonces* el texto sale en ese idioma si es es o en, y con el idioma base del sistema si no.
-- **CA-030-16:** *Dado* la página «no disponible», *cuando* se solicita, *entonces* lleva la cabecera `X-Robots-Tag: noindex` y no se guarda en caché compartida.
-- **CA-030-17:** *Dado* la página «no disponible», *cuando* se abre en un teléfono (~375 px) y en un escritorio (~1280 px), *entonces* se ve completa, legible y sin desbordes, con la consola sin errores y accesibilidad AA (foco, contraste, jerarquía de títulos).
+- **CA-032-8:** *Dado* un evento archivado, *cuando* un visitante abre la página del evento, la de una convocatoria, el formulario de envío, la confirmación de un envío, el programa o el aviso de privacidad, *entonces* la respuesta es 410 con la página «Este evento ya no está disponible», que muestra solo el nombre del evento y el de la organización.
+- **CA-032-9:** *Dado* un evento archivado, *cuando* se abre cualquiera de esas páginas, *entonces* la respuesta no contiene ningún dato del evento más allá de su nombre y el de la organización (ni fechas, ni programa, ni convocatorias, ni formulario ni enlace de envío).
+- **CA-032-10:** *Dado* un evento en borrador, *cuando* un visitante abre cualquiera de esas páginas, *entonces* la respuesta sigue siendo 404 y no revela nada.
+- **CA-032-11:** *Dado* un evento o una convocatoria que no existe, o que pertenece a otra organización, *cuando* se abre su página pública, *entonces* la respuesta es 404, como hoy.
+- **CA-032-12:** *Dado* un evento archivado, *cuando* alguien intenta enviar una propuesta a una de sus convocatorias, *entonces* la propuesta no se crea y la respuesta no revela datos del evento.
+- **CA-032-13:** *Dado* un evento archivado, *cuando* se piden su logo, las imágenes de su landing, las fotos de sus ponentes o los archivos de sus actividades, *entonces* la respuesta sigue siendo 404.
+- **CA-032-14:** *Dado* un evento publicado con una convocatoria pausada o cerrada, *cuando* un visitante abre su página, *entonces* se muestra como hoy, con el estado de la convocatoria.
+- **CA-032-15:** *Dado* un visitante con `?lang=` o con preferencia de idioma del navegador, *cuando* abre la página «no disponible», *entonces* el texto sale en ese idioma si es es o en, y con el idioma base del sistema si no.
+- **CA-032-16:** *Dado* la página «no disponible», *cuando* se solicita, *entonces* lleva la cabecera `X-Robots-Tag: noindex` y no se guarda en caché compartida.
+- **CA-032-17:** *Dado* la página «no disponible», *cuando* se abre en un teléfono (~375 px) y en un escritorio (~1280 px), *entonces* se ve completa, legible y sin desbordes, con la consola sin errores y accesibilidad AA (foco, contraste, jerarquía de títulos).
   Manual: verificar en navegador a 375 y 1280 px con la consola abierta y registrar el resultado en §9.
-- **CA-030-18:** *Dado* los textos nuevos, *cuando* se compara `lang/es` con `lang/en`, *entonces* tienen las mismas claves, y ningún texto visible está escrito a mano en el código.
+- **CA-032-18:** *Dado* los textos nuevos, *cuando* se compara `lang/es` con `lang/en`, *entonces* tienen las mismas claves, y ningún texto visible está escrito a mano en el código.
 
 ## 8. Riesgos
 
 | Riesgo | Mitigación |
 |---|---|
-| Revelar con el 410 que existió un borrador o un evento ajeno | Solo un evento **archivado** de la organización de la ruta responde 410; el borrador y lo inexistente siguen en 404 (CA-030-10 y 11) |
-| Dejar datos del evento en la página «no disponible» | La página recibe solo el nombre del evento y de la organización; CA-030-9 lo prueba buscando fechas, programa y enlaces |
+| Revelar con el 410 que existió un borrador o un evento ajeno | Solo un evento **archivado** de la organización de la ruta responde 410; el borrador y lo inexistente siguen en 404 (CA-032-10 y 11) |
+| Dejar datos del evento en la página «no disponible» | La página recibe solo el nombre del evento y de la organización; CA-032-9 lo prueba buscando fechas, programa y enlaces |
 | Una ruta pública nueva olvida el punto de decisión y vuelve el 404 mudo | Guardiana en F2: toda ruta de página de `events/{event}` pasa por el punto compartido |
-| Cambiar el comportamiento de las convocatorias pausadas o cerradas | CA-030-14 las deja como hoy |
-| El panel y el público deciden distinto | Una única regla (CA-030-7) |
+| Cambiar el comportamiento de las convocatorias pausadas o cerradas | CA-032-14 las deja como hoy |
+| El panel y el público deciden distinto | Una única regla (CA-032-7) |
 
 ## 9. Registro de avance
 
@@ -137,5 +137,5 @@ Cada uno tiene al menos una prueba cuyo nombre lo cita (`CA-030-n: ...`) o decla
 |---|---|---|---|
 | F0 | `b115eed` | 2026-11-25 | Regla única `App\Support\Events\PublicPageAvailability` (+ enum `PublicPageUnavailability`; incluye `eventUrl()` para los enlaces al evento). El panel la usa: «Ver» y «Copiar enlace» deshabilitadas, sin URL y con tooltip explicativo (evento archivado o sin publicar); borrador de convocatoria sigue oculto (CA-004-38); la insignia «Evento archivado» se muestra en la **pestaña** de convocatorias (`getBadge` del gestor de relación), no por fila; el enlace público del editor de la landing y el de vuelta al evento en las pantallas del autor valen `null` sin página pública (el frontend los oculta). Pest: 82 pruebas enfocadas verdes (`PublicPageAvailabilityTest` con los 12 cruces de estado, `CallPanelTest`, `LandingEditorPageTest`, `AccessLinkTest`); Arch/Unit/Events/Calls/Landings/Tenancy/Catalog: 849 verdes (2 rojas por el cambio 404→410 de F1, esperado); Pint y Larastan sin errores; `typecheck`, `lint` y Vitest (45 archivos, 334 pruebas) verdes. Se ajustaron CA-004-37/38/40 y CA-022-36 para publicar el evento antes de comprobar el enlace. |
 | F1 | `01f9ff8` | 2026-11-25 | Punto compartido `App\Http\Middleware\EnsureEventIsAvailable`, aplicado por ruta (`->middleware(...)`) a las 7 rutas de página y de envío de `events/{event}` en `routes/web.php` y registrado después del binding con `appendToPriorityList` en `bootstrap/app.php`. Evento archivado: 410 con la página `Events/Unavailable` (solo nombre del evento y de la organización), `X-Robots-Tag: noindex`, `Cache-Control: no-store, private`; el POST de envío responde JSON 410 `EVENT_UNAVAILABLE` sin llegar al controlador. Borrador, inexistente o de otra organización: 404. Idioma: `?lang=` es/en, luego `Accept-Language`, luego `config('app.locale')`. Textos en `lang/{es,en}/public.php` (`unavailable.*`) y `calls.php`. Pest: `tests/Feature/Public` + `tests/Arch` + `LangParityTest` + páginas públicas de evento y landing: 200 verdes; Submissions/Privacy/Program/Calls: 1204 verdes y 12 rojas (las 11 ajenas conocidas —9 de exportación, 2 de `PrivacyNoticePanelTest`— y `CA-003-17`, que esperaba 404 para un archivado y se actualizó a 410: 13 verdes tras el cambio). Se actualizaron a 410 las pruebas de archivado de `PublicEventPageTest` (CA-002-14), `PublicLandingPageTest` (CA-022-23), `PublicProgramPageTest` (CA-029-4) y `PublicPrivacyPageTest` (CA-003-17). Pint y Larastan sin errores. `typecheck`, `lint`, Vitest (45 archivos, 334 pruebas) verdes. `npm run build` falla con EACCES en `node_modules/.vite-temp` (limitación del contenedor); `npx vite build --configLoader runner --outDir /tmp/...` compila bien. `composer check:criteria`: 0 errores (los 12 avisos son del plan 002). |
-| F2 | `06fa90e` | 2026-11-25 | Guardianas: `tests/Feature/Public/PublicEventPagesGuardTest.php` (toda ruta `events/{event}/...` pasa por `EnsureEventIsAvailable`, salvo las de medios y la subida de archivos, que se listan por nombre; las del autor `my-submission` tienen guard propio) y `tests/Arch/PublicLinksTest.php` (el panel y las pantallas del autor que arman un enlace público consultan `PublicPageAvailability`). **Suite completa PHP** (`tests/Arch tests/Feature tests/Unit`, 2093 s): 3011 verdes y 11 rojas, exactamente las 11 ajenas conocidas (9 de exportación CA-009-11 a 19 por falta de `maatwebsite/excel` en el vendor local y CA-003-11 y CA-003-14 de `PrivacyNoticePanelTest`). `check:criteria`: 0 errores. Frontend: `typecheck`, `lint`, Vitest (45 archivos, 334 pruebas) verdes; build con `npx vite build --configLoader runner` correcto (`npm run build` falla por EACCES del contenedor). **No ejecutado:** CA-030-17 (verificación manual en navegador a ~375 y ~1280 px con la consola abierta: no hay navegador en este entorno) y la revisión visual de la insignia «Evento archivado» en la pestaña de convocatorias. El plan queda en «Aprobado» hasta registrar CA-030-17. |
-| Verificación | (sin código) | 2026-11-25 | CA-030-17 en navegador (Playwright, servidor de prueba con datos ficticios: evento publicado, archivado y en borrador, cada uno con una convocatoria publicada). **Público:** publicado 200; archivado **410** con `X-Robots-Tag: noindex` en el evento y 410 en su convocatoria; borrador 404. La página «no disponible» se ve bien a 375 y 1280 px (encabezado con la organización, título, motivo y nota), en es y con `?lang=en` en inglés (CA-030-15); sin errores de consola salvo el aviso del propio navegador por el 410 del documento. **Panel (evento archivado):** la pestaña Convocatorias lleva la insignia «Evento archivado»; en el menú de la fila «Ver» y «Copiar enlace» salen deshabilitadas con el tooltip «El evento está archivado: sus páginas públicas ya no se muestran.»; a 375 px la tabla desplaza dentro de su contenedor y la página no desborda; consola sin errores a ambos anchos. **No comprobado en navegador:** el aviso del evento en borrador en el panel (texto distinto, DA-3) y el caso de control del evento publicado (cubiertos por `CallPanelTest` y `PublicPageAvailabilityTest`). |
+| F2 | `06fa90e` | 2026-11-25 | Guardianas: `tests/Feature/Public/PublicEventPagesGuardTest.php` (toda ruta `events/{event}/...` pasa por `EnsureEventIsAvailable`, salvo las de medios y la subida de archivos, que se listan por nombre; las del autor `my-submission` tienen guard propio) y `tests/Arch/PublicLinksTest.php` (el panel y las pantallas del autor que arman un enlace público consultan `PublicPageAvailability`). **Suite completa PHP** (`tests/Arch tests/Feature tests/Unit`, 2093 s): 3011 verdes y 11 rojas, exactamente las 11 ajenas conocidas (9 de exportación CA-009-11 a 19 por falta de `maatwebsite/excel` en el vendor local y CA-003-11 y CA-003-14 de `PrivacyNoticePanelTest`). `check:criteria`: 0 errores. Frontend: `typecheck`, `lint`, Vitest (45 archivos, 334 pruebas) verdes; build con `npx vite build --configLoader runner` correcto (`npm run build` falla por EACCES del contenedor). **No ejecutado:** CA-032-17 (verificación manual en navegador a ~375 y ~1280 px con la consola abierta: no hay navegador en este entorno) y la revisión visual de la insignia «Evento archivado» en la pestaña de convocatorias. El plan queda en «Aprobado» hasta registrar CA-032-17. |
+| Verificación | (sin código) | 2026-11-25 | CA-032-17 en navegador (Playwright, servidor de prueba con datos ficticios: evento publicado, archivado y en borrador, cada uno con una convocatoria publicada). **Público:** publicado 200; archivado **410** con `X-Robots-Tag: noindex` en el evento y 410 en su convocatoria; borrador 404. La página «no disponible» se ve bien a 375 y 1280 px (encabezado con la organización, título, motivo y nota), en es y con `?lang=en` en inglés (CA-032-15); sin errores de consola salvo el aviso del propio navegador por el 410 del documento. **Panel (evento archivado):** la pestaña Convocatorias lleva la insignia «Evento archivado»; en el menú de la fila «Ver» y «Copiar enlace» salen deshabilitadas con el tooltip «El evento está archivado: sus páginas públicas ya no se muestran.»; a 375 px la tabla desplaza dentro de su contenedor y la página no desborda; consola sin errores a ambos anchos. **No comprobado en navegador:** el aviso del evento en borrador en el panel (texto distinto, DA-3) y el caso de control del evento publicado (cubiertos por `CallPanelTest` y `PublicPageAvailabilityTest`). |

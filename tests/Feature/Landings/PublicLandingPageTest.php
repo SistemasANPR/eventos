@@ -146,7 +146,7 @@ it('CA-022-23: a draft, foreign or missing event answers 404 and an archived one
     $archived = Event::factory()->archived()->create(['organization_id' => $organization->id, 'slug' => 'archivado']);
     pageLanding($draft, [['type' => 'spacer']]);
     $this->get(pageUrl($draft))->assertNotFound();
-    // Plan 030: el archivado ve la página «no disponible», sin la landing.
+    // Plan 032: el archivado ve la página «no disponible», sin la landing.
     pageLanding($archived, [['type' => 'spacer']]);
     $this->get(pageUrl($archived))->assertStatus(410)->assertInertia(fn (Assert $page) => $page->component('Events/Unavailable')->missing('landing'));
 

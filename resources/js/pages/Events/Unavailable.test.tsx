@@ -29,7 +29,7 @@ vi.mock('@inertiajs/react', () => ({
 describe('Events/Unavailable page', () => {
     const props = { event: { name: 'Congreso Parques' }, organization: { name: 'Parques de México', slug: 'parques' } };
 
-    it('CA-030-8: tells the visitor the event is no longer available, with the event and organization names only', () => {
+    it('CA-032-8: tells the visitor the event is no longer available, with the event and organization names only', () => {
         render(<Unavailable {...props} />);
 
         expect(screen.getByRole('heading', { level: 1, name: 'Este evento ya no está disponible' })).toBeInTheDocument();
@@ -38,7 +38,7 @@ describe('Events/Unavailable page', () => {
         expect(screen.getByText(/ese enlace ya no está vigente/)).toBeInTheDocument();
     });
 
-    it('CA-030-9: offers no link to the event, its calls or its program', () => {
+    it('CA-032-9: offers no link to the event, its calls or its program', () => {
         render(<Unavailable {...props} />);
 
         // El único enlace de la página es el de «saltar al contenido» del diseño.
@@ -46,14 +46,14 @@ describe('Events/Unavailable page', () => {
         expect(links.map((link) => link.getAttribute('href'))).toEqual(['#contenido']);
     });
 
-    it('CA-030-16: is marked noindex and the title names the page, the event and the organization', () => {
+    it('CA-032-16: is marked noindex and the title names the page, the event and the organization', () => {
         const { container } = render(<Unavailable {...props} />);
 
         expect(document.title).toBe('Este evento ya no está disponible · Congreso Parques · Parques de México');
         expect(container.ownerDocument.querySelector('meta[name="robots"]')).toHaveAttribute('content', 'noindex');
     });
 
-    it('CA-030-17: has one level-one heading and a labelled main region', () => {
+    it('CA-032-17: has one level-one heading and a labelled main region', () => {
         render(<Unavailable {...props} />);
 
         expect(screen.getAllByRole('heading', { level: 1 })).toHaveLength(1);

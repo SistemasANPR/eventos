@@ -6,13 +6,13 @@ import { PAGE_TITLE } from '@/lib/classes';
 import type { PublicOrganization } from '@/types/event';
 
 interface UnavailableProps {
-    /** Solo el nombre: ni fechas, ni programa, ni convocatorias (plan 030, CA-030-9). */
+    /** Solo el nombre: ni fechas, ni programa, ni convocatorias (plan 032, CA-032-9). */
     event: { name: string };
     organization: PublicOrganization;
 }
 
 /**
- * Evento archivado (plan 030, H-030-2): el servidor responde 410 con esta página en lugar de un 404 mudo.
+ * Evento archivado (plan 032, H-032-2): el servidor responde 410 con esta página en lugar de un 404 mudo.
  * Es un aviso, no un error de la persona: no ofrece enlaces del evento porque ya no tiene páginas públicas.
  */
 export default function Unavailable({ event, organization }: UnavailableProps) {

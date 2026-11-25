@@ -14,17 +14,17 @@ use Inertia\Inertia;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
- * El único punto de decisión de las páginas públicas de un evento (plan 030, H-030-2). Se aplica a toda ruta
+ * El único punto de decisión de las páginas públicas de un evento (plan 032, H-032-2). Se aplica a toda ruta
  * `events/{event}/...` que muestra una página o recibe el envío; la pregunta la responde `PublicPageAvailability`,
  * la misma regla que usa el panel.
  *
  * - Evento publicado: sigue su camino (la convocatoria en borrador la sigue rechazando su controlador con 404).
  * - Evento archivado: 410 con la página «ya no está disponible» (solo el nombre del evento y de la organización;
- *   CA-030-8 y 9). El envío (POST) no llega al controlador: no se crea nada y la respuesta es JSON sin datos.
- * - Evento en borrador: 404, igual que uno inexistente (CA-030-10).
+ *   CA-032-8 y 9). El envío (POST) no llega al controlador: no se crea nada y la respuesta es JSON sin datos.
+ * - Evento en borrador: 404, igual que uno inexistente (CA-032-10).
  *
  * Va DESPUÉS del binding de modelos (`bootstrap/app.php`): un evento o una convocatoria inexistentes, o de otra
- * organización, ya respondieron 404 antes de llegar aquí (CA-030-11). Las rutas de medios no la usan (CA-030-13).
+ * organización, ya respondieron 404 antes de llegar aquí (CA-032-11). Las rutas de medios no la usan (CA-032-13).
  */
 final class EnsureEventIsAvailable
 {

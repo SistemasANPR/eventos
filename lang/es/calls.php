@@ -137,7 +137,7 @@ return [
         'view_public' => 'Ver',
         'copy_link' => 'Copiar enlace',
         'link_copied' => 'Enlace copiado',
-        // Por qué no se ofrece el enlace público de una convocatoria (plan 030).
+        // Por qué no se ofrece el enlace público de una convocatoria (plan 032).
         'public_unavailable' => [
             'archived' => 'El evento está archivado: sus páginas públicas ya no se muestran.',
             'draft_event' => 'El evento aún no está publicado.',

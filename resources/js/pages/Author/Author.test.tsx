@@ -151,7 +151,7 @@ describe('Author/RequestLink page', () => {
         expect(screen.getByRole('button', { name: 'Enviarme el enlace' })).toBeInTheDocument();
     });
 
-    it('CA-030-6: links back to the event only when the event still has a public page', () => {
+    it('CA-032-6: links back to the event only when the event still has a public page', () => {
         const { rerender } = render(<RequestLink {...requestProps} />);
         expect(screen.getByRole('link', { name: 'Volver al evento' })).toHaveAttribute('href', '/parques/events/congreso?lang=es');
 
@@ -270,7 +270,7 @@ describe('Author/Show page', () => {
         expect(container.querySelector('main b')).toBeNull();
     });
 
-    it('CA-030-6: links back to the event only when the event still has a public page', () => {
+    it('CA-032-6: links back to the event only when the event still has a public page', () => {
         const { rerender } = render(<Show {...props} />);
         expect(screen.getByRole('link', { name: 'Volver al evento' })).toHaveAttribute('href', '/parques/events/congreso?lang=es');
 

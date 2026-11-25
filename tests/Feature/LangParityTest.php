@@ -51,7 +51,7 @@ it('has the same keys in es and en for every lang file', function (string $file)
         ->and(array_values(array_diff($en, $es)))->toBe([], "Faltan en lang/es/{$file}");
 })->with(fn (): array => array_combine(langFiles('es'), array_map(static fn (string $f): array => [$f], langFiles('es'))));
 
-it('CA-030-18: the texts of the unavailable event page and of the panel explanations exist in es and en, non-empty and different', function (): void {
+it('CA-032-18: the texts of the unavailable event page and of the panel explanations exist in es and en, non-empty and different', function (): void {
     $root = dirname(__DIR__, 2);
     $keys = [
         'public.php' => ['unavailable.title', 'unavailable.body', 'unavailable.hint', 'unavailable.submit_error'],

@@ -177,7 +177,7 @@ return [
         'back_to_call' => 'Volver a la convocatoria',
         'back_to_event' => 'Volver al evento',
     ],
-    // Evento archivado (plan 030): lo ve quien abre un enlace viejo; no lleva ningún dato del evento.
+    // Evento archivado (plan 032): lo ve quien abre un enlace viejo; no lleva ningún dato del evento.
     'unavailable' => [
         'title' => 'Este evento ya no está disponible',
         'body' => ':organization archivó este evento y sus páginas públicas ya no se muestran.',

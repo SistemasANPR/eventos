@@ -69,7 +69,7 @@ class CallsRelationManager extends RelationManager
         return __('calls.relation_title');
     }
 
-    /** Con el evento archivado, la pestaña lo dice: sus convocatorias ya no tienen página pública (plan 030, CA-030-5). */
+    /** Con el evento archivado, la pestaña lo dice: sus convocatorias ya no tienen página pública (plan 032, CA-032-5). */
     public static function getBadge(Model $ownerRecord, string $pageClass): ?string
     {
         return $ownerRecord instanceof Event && PublicPageAvailability::reasonFor($ownerRecord) === PublicPageUnavailability::Archived
@@ -314,7 +314,7 @@ class CallsRelationManager extends RelationManager
 
     /**
      * Abre la página pública tal como la ve un visitante (CA-004-37). Con el evento archivado o sin
-     * publicar se ofrece deshabilitada y sin URL, con la explicación (CA-030-2 y 3).
+     * publicar se ofrece deshabilitada y sin URL, con la explicación (CA-032-2 y 3).
      */
     private function viewPublicPageAction(): Action
     {
@@ -367,7 +367,7 @@ class CallsRelationManager extends RelationManager
 
     /**
      * Siempre con el contexto y el evento actuales, nunca con datos de otra organización (CA-004-40).
-     * `null` si no hay página pública: un enlace muerto no se ofrece (plan 030).
+     * `null` si no hay página pública: un enlace muerto no se ofrece (plan 032).
      */
     private function publicUrl(CallForSubmissions $call): ?string
     {

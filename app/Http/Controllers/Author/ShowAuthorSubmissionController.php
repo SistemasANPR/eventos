@@ -45,7 +45,7 @@ final class ShowAuthorSubmissionController
                 : null,
             'wasUpdated' => (bool) $request->session()->pull('author.updated', false),
             'sessionMinutes' => (int) config('submissions.author.session_minutes'),
-            // Sin página pública del evento (archivado) no se ofrece el enlace de vuelta (plan 030, CA-030-6).
+            // Sin página pública del evento (archivado) no se ofrece el enlace de vuelta (plan 032, CA-032-6).
             'eventUrl' => PublicPageAvailability::eventUrl($event, $organization, $locale),
         ]);
     }

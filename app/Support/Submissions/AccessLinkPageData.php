@@ -29,7 +29,7 @@ final class AccessLinkPageData
             'tooManyRequests' => $tooManyRequests,
             'maxLinks' => (int) config('submissions.author.max_links_per_email'),
             'expiresInMinutes' => (int) config('submissions.author.access_link_minutes'),
-            // Sin página pública del evento (archivado) no se ofrece el enlace de vuelta (plan 030, CA-030-6).
+            // Sin página pública del evento (archivado) no se ofrece el enlace de vuelta (plan 032, CA-032-6).
             'eventUrl' => PublicPageAvailability::eventUrl($event, $organization, $locale),
         ];
     }

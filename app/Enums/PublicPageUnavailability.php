@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Enums;
 
-/** Por qué una página pública no existe (plan 030): la respuesta de `PublicPageAvailability`. */
+/** Por qué una página pública no existe (plan 032): la respuesta de `PublicPageAvailability`. */
 enum PublicPageUnavailability: string
 {
     /** El evento se archivó: el público ve «ya no está disponible» (410). */

@@ -135,7 +135,7 @@ return [
         'view_public' => 'View',
         'copy_link' => 'Copy link',
         'link_copied' => 'Link copied',
-        // Why a call's public link is not offered (plan 030).
+        // Why a call's public link is not offered (plan 032).
         'public_unavailable' => [
             'archived' => 'The event is archived: its public pages are no longer shown.',
             'draft_event' => 'The event is not published yet.',

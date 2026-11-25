@@ -51,8 +51,8 @@ Route::middleware([SetOrganizationFromRoute::class, HandleInertiaRequests::class
     ->prefix('{organization:slug}')
     ->scopeBindings()
     ->group(function (): void {
-        // Las páginas y el envío pasan por `EnsureEventIsAvailable` (plan 030): evento archivado → 410 «no disponible»,
-        // en borrador → 404. Las rutas de medios y la subida de archivos no lo usan y siguen en 404 (CA-030-13).
+        // Las páginas y el envío pasan por `EnsureEventIsAvailable` (plan 032): evento archivado → 410 «no disponible»,
+        // en borrador → 404. Las rutas de medios y la subida de archivos no lo usan y siguen en 404 (CA-032-13).
         Route::get('events/{event:slug}', ShowEventController::class)
             ->middleware(EnsureEventIsAvailable::class)
             ->name('events.show');

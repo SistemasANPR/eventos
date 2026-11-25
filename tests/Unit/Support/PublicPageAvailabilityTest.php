@@ -19,7 +19,7 @@ function availabilityCall(CallStatus $status): CallForSubmissions
     return (new CallForSubmissions)->forceFill(['status' => $status]);
 }
 
-it('CA-030-7: an event alone has a public page only when published, and the reason says why not', function (EventStatus $status, ?PublicPageUnavailability $reason): void {
+it('CA-032-7: an event alone has a public page only when published, and the reason says why not', function (EventStatus $status, ?PublicPageUnavailability $reason): void {
     $event = availabilityEvent($status);
 
     expect(PublicPageAvailability::reasonFor($event))->toBe($reason)
@@ -30,7 +30,7 @@ it('CA-030-7: an event alone has a public page only when published, and the reas
     'draft' => [EventStatus::Draft, PublicPageUnavailability::DraftEvent],
 ]);
 
-it('CA-030-7: every combination of event status and call status gives one answer', function (EventStatus $eventStatus, CallStatus $callStatus, ?PublicPageUnavailability $reason): void {
+it('CA-032-7: every combination of event status and call status gives one answer', function (EventStatus $eventStatus, CallStatus $callStatus, ?PublicPageUnavailability $reason): void {
     $event = availabilityEvent($eventStatus);
     $call = availabilityCall($callStatus);
 

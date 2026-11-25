@@ -101,8 +101,8 @@ it('CA-002-14: a draft event answers 404', function (): void {
     $this->get("/{$organization->slug}/events/{$event->slug}")->assertNotFound();
 });
 
-// Plan 030 sustituye el 404 de un evento archivado por la página «no disponible» (410).
-it('CA-030-8: an archived event answers 410 instead of 404', function (): void {
+// Plan 032 sustituye el 404 de un evento archivado por la página «no disponible» (410).
+it('CA-032-8: an archived event answers 410 instead of 404', function (): void {
     $organization = Organization::factory()->create();
     $event = Event::factory()->archived()->create(['organization_id' => $organization->id, 'slug' => 'congreso']);
 

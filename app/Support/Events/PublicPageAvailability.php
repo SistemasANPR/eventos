@@ -12,7 +12,7 @@ use App\Models\Event;
 use App\Models\Organization;
 
 /**
- * La regla única de la página pública (plan 030, CA-030-7): dado un evento, y opcionalmente una de sus
+ * La regla única de la página pública (plan 032, CA-032-7): dado un evento, y opcionalmente una de sus
  * convocatorias, dice si hay página pública y, si no, por qué. La usan el panel (qué enlaces ofrece) y el
  * sitio público (`EnsureEventIsAvailable`): una sola respuesta para ambos, para que no se contradigan.
  *
@@ -33,7 +33,7 @@ final class PublicPageAvailability
 
     /**
      * Dirección relativa de la página pública del evento, o `null` si no la hay: un enlace muerto no se
-     * ofrece (CA-030-6). Con `$locale`, abre la página en ese idioma.
+     * ofrece (CA-032-6). Con `$locale`, abre la página en ese idioma.
      */
     public static function eventUrl(Event $event, Organization $organization, ?string $locale = null): ?string
     {

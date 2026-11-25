@@ -260,7 +260,7 @@ it('CA-029-17: a published event with nothing visible answers 200 with empty day
             ->has('categories', 0));
 });
 
-it('CA-029-4: answers 404 for a draft, nonexistent or other-organization event and for an unknown or suspended organization, and 410 for an archived one (plan 030)', function (): void {
+it('CA-029-4: answers 404 for a draft, nonexistent or other-organization event and for an unknown or suspended organization, and 410 for an archived one (plan 032)', function (): void {
     $draft = programPageEvent(['status' => EventStatus::Draft]);
     $archived = programPageEvent(['status' => EventStatus::Archived]);
     $own = programPageEvent();

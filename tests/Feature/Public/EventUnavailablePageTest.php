@@ -26,7 +26,7 @@ afterEach(function (): void {
 });
 
 /*
- * Plan 030, F1: un evento archivado responde 410 con la página «ya no está disponible» en todas sus páginas
+ * Plan 032, F1: un evento archivado responde 410 con la página «ya no está disponible» en todas sus páginas
  * públicas; un borrador o lo inexistente sigue en 404; los medios siguen en 404.
  */
 
@@ -82,7 +82,7 @@ function unavailablePages(Event $event): array
     ];
 }
 
-it('CA-030-8: an archived event answers 410 with the unavailable page on each of its public pages', function (string $page): void {
+it('CA-032-8: an archived event answers 410 with the unavailable page on each of its public pages', function (string $page): void {
     [$event] = unavailableScenario(EventStatus::Archived);
 
     // Las peticiones de prueba traen `Accept-Language: en-us`: el visitante declara el suyo.
@@ -95,7 +95,7 @@ it('CA-030-8: an archived event answers 410 with the unavailable page on each of
             ->where('organization.slug', $event->organization->slug));
 })->with(['event', 'call', 'submission form', 'confirmation', 'program', 'privacy notice']);
 
-it('CA-030-9: the unavailable page carries the event name and the organization and nothing else of the event', function (string $page): void {
+it('CA-032-9: the unavailable page carries the event name and the organization and nothing else of the event', function (string $page): void {
     [$event] = unavailableScenario(EventStatus::Archived);
 
     $response = $this->get(unavailablePages($event)[$page], ['Accept-Language' => 'es'])->assertStatus(410);
@@ -111,7 +111,7 @@ it('CA-030-9: the unavailable page carries the event name and the organization a
     }
 })->with(['event', 'call', 'submission form', 'confirmation', 'program', 'privacy notice']);
 
-it('CA-030-10: a draft event keeps answering 404 on every public page and reveals nothing', function (string $page): void {
+it('CA-032-10: a draft event keeps answering 404 on every public page and reveals nothing', function (string $page): void {
     [$event] = unavailableScenario(EventStatus::Draft);
 
     $response = $this->get(unavailablePages($event)[$page])->assertNotFound();
@@ -121,7 +121,7 @@ it('CA-030-10: a draft event keeps answering 404 on every public page and reveal
     }
 })->with(['event', 'call', 'submission form', 'confirmation', 'program', 'privacy notice']);
 
-it('CA-030-11: a missing event or call, or one of another organization, answers 404 and not 410', function (): void {
+it('CA-032-11: a missing event or call, or one of another organization, answers 404 and not 410', function (): void {
     [$event] = unavailableScenario(EventStatus::Archived);
     $other = Organization::factory()->create();
     $base = "/{$event->organization->slug}/events/{$event->slug}";
@@ -135,7 +135,7 @@ it('CA-030-11: a missing event or call, or one of another organization, answers 
     $this->get("/{$other->slug}/events/{$event->slug}/program")->assertNotFound();
 });
 
-it('CA-030-12: sending a proposal to an archived event creates nothing and reveals nothing about the event', function (): void {
+it('CA-032-12: sending a proposal to an archived event creates nothing and reveals nothing about the event', function (): void {
     [$event] = unavailableScenario(EventStatus::Archived);
 
     $response = $this->postJson("/{$event->organization->slug}/events/{$event->slug}/call/ponencias/submit", ['title' => 'Mi propuesta'])
@@ -149,7 +149,7 @@ it('CA-030-12: sending a proposal to an archived event creates nothing and revea
     }
 });
 
-it('CA-030-12: a draft event still answers 404 to the submission', function (): void {
+it('CA-032-12: a draft event still answers 404 to the submission', function (): void {
     [$event] = unavailableScenario(EventStatus::Draft);
 
     $this->postJson("/{$event->organization->slug}/events/{$event->slug}/call/ponencias/submit", ['title' => 'Mi propuesta'])->assertNotFound();
@@ -157,7 +157,7 @@ it('CA-030-12: a draft event still answers 404 to the submission', function (): 
     expect(DB::table('submissions')->count())->toBe(0);
 });
 
-it('CA-030-13: the media routes of an archived event keep answering 404', function (): void {
+it('CA-032-13: the media routes of an archived event keep answering 404', function (): void {
     [$event] = unavailableScenario(EventStatus::Archived);
     $base = "/{$event->organization->slug}/events/{$event->slug}";
     $id = (string) Str::uuid();
@@ -169,7 +169,7 @@ it('CA-030-13: the media routes of an archived event keep answering 404', functi
     $this->get("{$base}/landing/images/{$id}")->assertNotFound();
 });
 
-it('CA-030-14: a paused or closed call of a published event shows as before, with its state', function (CallStatus $status, string $state): void {
+it('CA-032-14: a paused or closed call of a published event shows as before, with its state', function (CallStatus $status, string $state): void {
     [$event] = unavailableScenario(EventStatus::Published, $status);
 
     $this->get("/{$event->organization->slug}/events/{$event->slug}/call/ponencias")
@@ -180,13 +180,13 @@ it('CA-030-14: a paused or closed call of a published event shows as before, wit
     'closed' => [CallStatus::Closed, 'closed'],
 ]);
 
-it('CA-030-14: a published event keeps answering 200 on its pages', function (): void {
+it('CA-032-14: a published event keeps answering 200 on its pages', function (): void {
     [$event] = unavailableScenario(EventStatus::Published);
 
     $this->get("/{$event->organization->slug}/events/{$event->slug}")->assertOk()->assertInertia(fn (Assert $inertia) => $inertia->component('Events/Show'));
 });
 
-it('CA-030-15: the unavailable page uses ?lang=, then the browser language when it is es or en, then the system base language', function (string $query, string $header, string $locale, string $title): void {
+it('CA-032-15: the unavailable page uses ?lang=, then the browser language when it is es or en, then the system base language', function (string $query, string $header, string $locale, string $title): void {
     [$event] = unavailableScenario(EventStatus::Archived);
 
     $this->get("/{$event->organization->slug}/events/{$event->slug}{$query}", ['Accept-Language' => $header])
@@ -206,7 +206,7 @@ it('CA-030-15: the unavailable page uses ?lang=, then the browser language when 
     'no preference at all falls back to the base language' => ['', '', 'es', 'Este evento ya no está disponible'],
 ]);
 
-it('CA-030-16: the unavailable page is not indexed and not kept in shared caches', function (): void {
+it('CA-032-16: the unavailable page is not indexed and not kept in shared caches', function (): void {
     [$event] = unavailableScenario(EventStatus::Archived);
 
     $response = $this->get("/{$event->organization->slug}/events/{$event->slug}")->assertStatus(410);

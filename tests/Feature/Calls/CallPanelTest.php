@@ -204,7 +204,7 @@ function callInStatus(Event $event, User $admin, CallStatus $status): CallForSub
     return $status === CallStatus::Published ? $call : app(ChangeCallStatus::class)->handle($admin, $call, $status);
 }
 
-/** El evento pasa al estado dado (plan 030): la página pública de una convocatoria depende también de él. */
+/** El evento pasa al estado dado (plan 032): la página pública de una convocatoria depende también de él. */
 function setPanelEventStatus(Event $event, EventStatus $status): void
 {
     $event->forceFill(['status' => $status])->save();
@@ -357,7 +357,7 @@ function panelRowAction(Testable $component, string $name, CallForSubmissions $c
     return $action->record($call);
 }
 
-it('CA-030-1: with a published event and a published call, both links are enabled and point to the usual URL', function (): void {
+it('CA-032-1: with a published event and a published call, both links are enabled and point to the usual URL', function (): void {
     [$organization, $event, $admin] = callPanelScenario();
     setPanelEventStatus($event, EventStatus::Published);
     $call = callInStatus($event, $admin, CallStatus::Published);
@@ -375,7 +375,7 @@ it('CA-030-1: with a published event and a published call, both links are enable
         ->and(CallsRelationManager::getBadge($event, ViewEvent::class))->toBeNull();
 });
 
-it('CA-030-2: with an archived event both links are disabled, have no URL and explain it', function (CallStatus $status): void {
+it('CA-032-2: with an archived event both links are disabled, have no URL and explain it', function (CallStatus $status): void {
     [$organization, $event, $admin] = callPanelScenario();
     setPanelEventStatus($event, EventStatus::Published);
     $call = callInStatus($event, $admin, $status);
@@ -401,7 +401,7 @@ it('CA-030-2: with an archived event both links are disabled, have no URL and ex
     'closed' => [CallStatus::Closed],
 ]);
 
-it('CA-030-3: with a draft event both links are disabled and say the event is not published yet', function (): void {
+it('CA-032-3: with a draft event both links are disabled and say the event is not published yet', function (): void {
     [$organization, $event, $admin] = callPanelScenario();
     setPanelEventStatus($event, EventStatus::Published);
     $call = callInStatus($event, $admin, CallStatus::Published);
@@ -419,7 +419,7 @@ it('CA-030-3: with a draft event both links are disabled and say the event is no
         ->and(panelRowAction($component, 'copyPublicLink', $call)->getTooltip())->toBe(__('calls.actions.public_unavailable.draft_event'));
 });
 
-it('CA-030-4: a draft call of a published event offers no public link at all', function (): void {
+it('CA-032-4: a draft call of a published event offers no public link at all', function (): void {
     [$organization, $event, $admin] = callPanelScenario();
     setPanelEventStatus($event, EventStatus::Published);
     $call = callInStatus($event, $admin, CallStatus::Draft);
@@ -430,7 +430,7 @@ it('CA-030-4: a draft call of a published event offers no public link at all', f
         ->assertActionHidden(TestAction::make('copyPublicLink')->table($call));
 });
 
-it('CA-030-5: the calls section shows the archived-event badge only while the event is archived', function (): void {
+it('CA-032-5: the calls section shows the archived-event badge only while the event is archived', function (): void {
     [, $event] = callPanelScenario();
 
     setPanelEventStatus($event, EventStatus::Published);

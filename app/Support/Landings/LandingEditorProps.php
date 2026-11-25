@@ -33,7 +33,7 @@ final class LandingEditorProps
             // Los mismos textos de `lang/public.php` que el sitio público; el editor añade los suyos (`landing_editor.*`).
             'translations' => Lang::get('public'),
             'preview' => $resolve->preview($event, $organization, $event->default_locale),
-            // Sin página pública (evento archivado o sin publicar) no hay enlace que ofrecer (plan 030, CA-030-6).
+            // Sin página pública (evento archivado o sin publicar) no hay enlace que ofrecer (plan 032, CA-032-6).
             'publicUrl' => PublicPageAvailability::eventUrl($event, $organization),
             'hasUnpublishedChanges' => $landing->hasUnpublishedChanges(),
         ];

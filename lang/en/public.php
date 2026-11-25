@@ -177,7 +177,7 @@ return [
         'back_to_call' => 'Back to the call',
         'back_to_event' => 'Back to the event',
     ],
-    // Archived event (plan 030): seen by whoever opens an old link; it carries no event data.
+    // Archived event (plan 032): seen by whoever opens an old link; it carries no event data.
     'unavailable' => [
         'title' => 'This event is no longer available',
         'body' => ':organization archived this event and its public pages are no longer shown.',

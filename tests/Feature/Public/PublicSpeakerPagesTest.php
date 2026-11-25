@@ -399,7 +399,7 @@ it('CA-029-15: the interface of the detail pages follows ?lang= and the texts of
 
 // --- Las tres rutas: 404 uniforme --------------------------------------------------------------------
 
-it('CA-029-4: answers 404 on the three routes for a draft, nonexistent or other-organization event and a suspended organization, and 410 for an archived one (CA-030-8)', function (): void {
+it('CA-029-4: answers 404 on the three routes for a draft, nonexistent or other-organization event and a suspended organization, and 410 for an archived one (CA-032-8)', function (): void {
     $draft = spkEvent(['status' => EventStatus::Draft]);
     $archived = spkEvent(['status' => EventStatus::Archived]);
     $own = spkEvent();
@@ -409,7 +409,7 @@ it('CA-029-4: answers 404 on the three routes for a draft, nonexistent or other-
 
     foreach (['/speakers', '/speakers/'.Str::uuid(), '/activities/'.Str::uuid()] as $tail) {
         $this->get(spkBase($draft).$tail)->assertNotFound();
-        // Plan 030: un evento archivado ya no es 404, es la página «no disponible» (410).
+        // Plan 032: un evento archivado ya no es 404, es la página «no disponible» (410).
         $this->get(spkBase($archived).$tail)->assertStatus(410);
         $this->get(spkBase($suspendedEvent).$tail)->assertNotFound();
         $this->get("/{$own->organization->slug}/events/no-existe{$tail}")->assertNotFound();
