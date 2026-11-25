@@ -104,4 +104,3 @@ export default function Program({ event, organization, days, day, activities, ca
         </PublicLayout>
     );
 }
-
