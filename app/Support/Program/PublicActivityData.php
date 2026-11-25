@@ -50,8 +50,7 @@ final class PublicActivityData
                 ->values()
                 ->all(),
             'iconUrl' => self::mediaUrl($activity->icon_path, 'icon', $organization, $event, $activity),
-            // La página de detalle llega en F3 (`events.activities.show`); la ruta se construye igual que las demás.
-            'url' => "/{$organization}/events/{$event->slug}/activities/{$activity->id}",
+            'url' => route('events.activities.show', ['organization' => $organization, 'event' => $event->slug, 'activity' => $activity->id], false),
         ];
     }
 
