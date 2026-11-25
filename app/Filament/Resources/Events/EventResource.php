@@ -124,13 +124,14 @@ class EventResource extends Resource
     }
 
     /**
-     * «Eventos» y, dentro de un evento, sus secciones anidadas en el menú lateral (plan 020, DA-1
-     * revisada el 2026-11-17: submenú en el aside azul, no una columna dentro de la página).
+     * «Eventos» y, dentro de un evento, sus secciones como grupos del menú lateral por fase (plan 020,
+     * DA-1 revisada el 2026-11-17 y de nuevo el 2026-11-25: en el aside azul, agrupadas en Convocatoria,
+     * Evaluación y Programa, no como una columna dentro de la página ni como submenú de «Eventos»).
      *
      * @return array<int, NavigationItem>
      */
     public static function getNavigationItems(): array
     {
-        return [...parent::getNavigationItems(), ...EventSectionsNavigation::items(static::class)];
+        return [...parent::getNavigationItems(), ...EventSectionsNavigation::items()];
     }
 }

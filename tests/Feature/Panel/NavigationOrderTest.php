@@ -65,8 +65,10 @@ it('CA-020-1: the organization admin sees the panel home, Events and the Organiz
     expect($sidebar)->toHaveCount(2)
         ->and($sidebar[0][0])->toBeNull()
         ->and(array_slice($sidebar[0][1], 1))->toBe([__('events.navigation')])
-        // Equipo, Correos y, al final, las dos pantallas de privacidad (plan 014): solo las ve quien tiene sus permisos.
+        // «Datos de la organización» (CA-020-19), Equipo, Correos y, al final, las dos pantallas de privacidad
+        // (plan 014): solo las ve quien tiene sus permisos.
         ->and($sidebar[1])->toBe([__('navigation.groups.organization'), [
+            __('organizations.profile.title'),
             __('team.resource.plural'),
             __('mail_admin.navigation'),
             __('privacy_admin.navigation.personal_data'),
@@ -118,10 +120,11 @@ it('CA-020-4: the Organization group label exists in Spanish and English', funct
 });
 
 /**
- * Secciones del evento como ítems anidados bajo «Eventos» en el menú lateral (plan 020, CA-020-17).
- * Con evento, simula su ruta: el menú lee el evento de la petición original, como en el panel real.
+ * Grupos de secciones del evento en el menú lateral (plan 020, CA-020-17 y CA-020-18): todos los grupos
+ * salvo el de inicio y el de «Organización». Con evento, simula su ruta: el menú lee el evento de la
+ * petición original, como en el panel real.
  *
- * @return list<string>
+ * @return list<array{0: ?string, 1: list<string>}>
  */
 function eventSections(User $user, Organization $organization, ?Event $event): array
 {
@@ -129,63 +132,55 @@ function eventSections(User $user, Organization $organization, ?Event $event): a
         withEventRoute($event);
     }
 
-    sidebarFor($user, $organization);
-
-    $labels = [];
-
-    foreach (Filament::getNavigation() as $group) {
-        /** @var NavigationItem $item */
-        foreach (collect($group->getItems())->all() as $item) {
-            if ($item->getLabel() !== __('events.navigation')) {
-                continue;
-            }
-
-            /** @var NavigationItem $child */
-            foreach (collect($item->getChildItems())->all() as $child) {
-                $labels[] = $child->getLabel();
-            }
-        }
-    }
-
-    return $labels;
+    return array_values(array_filter(
+        sidebarFor($user, $organization),
+        fn (array $group): bool => $group[0] !== null && $group[0] !== __('navigation.groups.organization'),
+    ));
 }
 
 /**
- * Secciones del evento: las del plan 020; las categorías del programa se abren desde el botón de Ponentes y Actividades.
+ * Secciones del evento por fase y en el orden del ciclo de vida: configurar la convocatoria, evaluar y armar el programa.
+ * Las categorías del programa se abren desde el botón de Ponentes y Actividades.
  *
- * @return list<string>
+ * @return list<array{0: string, 1: list<string>}>
  */
-function eventSectionLabels(): array
+function eventSectionGroups(): array
 {
     return [
-        __('events.sub_navigation.summary'),
-        __('forms.navigation'),
-        __('submission_panel.navigation'),
-        __('program.speakers.navigation'),
-        __('program.activities.navigation'),
-        // Plan 011, F3b: quien asigna ve la sección «Evaluadores» (organizador y administrador).
-        __('review_assignments.reviewers.navigation'),
-        // Plan 011, F4b: quien gestiona rúbricas ve la sección «Rúbricas» (organizador y administrador).
-        __('rubrics.navigation'),
-        // Plan 011, F6: resultados y avance por evaluador, con sus permisos propios.
-        __('review_results.results.navigation'),
-        __('review_results.progress.navigation'),
+        [__('navigation.groups.call'), [
+            __('events.sub_navigation.summary'),
+            __('forms.navigation'),
+            __('submission_panel.navigation'),
+        ]],
+        [__('navigation.groups.evaluation'), [
+            // La rúbrica se define antes de asignar evaluadores (plan 011, F4b).
+            __('rubrics.navigation'),
+            // Plan 011, F3b: quien asigna ve la sección «Evaluadores» (organizador y administrador).
+            __('review_assignments.reviewers.navigation'),
+            // Plan 011, F6: resultados y avance por evaluador, con sus permisos propios.
+            __('review_results.results.navigation'),
+            __('review_results.progress.navigation'),
+        ]],
+        [__('navigation.groups.program'), [
+            __('program.speakers.navigation'),
+            __('program.activities.navigation'),
+        ]],
     ];
 }
 
-it('CA-020-17: inside an event the sidebar nests its sections under Events for an admin', function (): void {
+it('CA-020-17: inside an event the sidebar offers its sections for an admin', function (): void {
     [$organization, $event, $admin] = formScenario(OrganizationRole::OrgAdmin);
 
-    expect(eventSections($admin, $organization, $event))->toBe(eventSectionLabels());
+    expect(eventSections($admin, $organization, $event))->toBe(eventSectionGroups());
 });
 
 it('CA-020-17: the organizer sees the same event sections in the sidebar', function (): void {
     [$organization, $event, $organizer] = formScenario(OrganizationRole::Organizer);
 
-    expect(eventSections($organizer, $organization, $event))->toBe(eventSectionLabels());
+    expect(eventSections($organizer, $organization, $event))->toBe(eventSectionGroups());
 });
 
-it('CA-020-17: outside an event the sidebar has no nested event sections', function (): void {
+it('CA-020-17: outside an event the sidebar has no event section groups', function (): void {
     [$organization, , $admin] = formScenario(OrganizationRole::OrgAdmin);
 
     expect(eventSections($admin, $organization, null))->toBe([]);
@@ -195,4 +190,42 @@ it('CA-020-17: who cannot access events sees no event sections even inside an ev
     [$organization, $event, $reviewer] = formScenario(OrganizationRole::Reviewer);
 
     expect(eventSections($reviewer, $organization, $event))->toBe([]);
+});
+
+it('CA-020-18: the event section groups sit between Events and the Organization group, by phase', function (): void {
+    [$organization, $event, $admin] = formScenario(OrganizationRole::OrgAdmin);
+    withEventRoute($event);
+
+    $order = array_map(fn (array $group): ?string => $group[0], sidebarFor($admin, $organization));
+
+    expect($order)->toBe([
+        null,
+        __('navigation.groups.call'),
+        __('navigation.groups.evaluation'),
+        __('navigation.groups.program'),
+        __('navigation.groups.organization'),
+    ]);
+});
+
+it('CA-020-18: the phase group labels exist in Spanish and English', function (): void {
+    foreach (['es', 'en'] as $locale) {
+        foreach (['call', 'evaluation', 'program'] as $group) {
+            expect(__("navigation.groups.{$group}", [], $locale))->not->toBe("navigation.groups.{$group}");
+        }
+    }
+});
+
+it('CA-020-19: the organization profile entry opens the Organization group for the admin', function (): void {
+    [$organization, , $admin] = formScenario(OrganizationRole::OrgAdmin);
+
+    $organizationGroup = sidebarFor($admin, $organization)[1];
+
+    expect($organizationGroup[0])->toBe(__('navigation.groups.organization'))
+        ->and($organizationGroup[1][0])->toBe(__('organizations.profile.title'));
+});
+
+it('CA-020-19: the organizer, who cannot edit the organization, does not see its profile entry', function (): void {
+    [$organization, , $organizer] = formScenario(OrganizationRole::Organizer);
+
+    expect(sidebarFor($organizer, $organization)[1][1])->not->toContain(__('organizations.profile.title'));
 });
