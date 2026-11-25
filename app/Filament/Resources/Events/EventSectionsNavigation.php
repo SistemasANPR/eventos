@@ -55,7 +55,7 @@ final class EventSectionsNavigation
             self::section($evaluation, __('review_results.results.navigation'), Heroicon::OutlinedChartBar, 6, 'review-results', ['review-results'], fn (): bool => Gate::allows('viewResults', [Review::class])),
             self::section($evaluation, __('review_results.progress.navigation'), Heroicon::OutlinedChartPie, 7, 'review-progress', ['review-progress', 'review-progress-detail'], fn (): bool => Gate::allows('viewProgress', [Review::class])),
             self::section($program, __('program.speakers.navigation'), Heroicon::OutlinedMicrophone, 8, 'speakers', ['speakers', 'speaker-categories'], fn (): bool => Gate::allows('viewAny', Speaker::class)),
-            self::section($program, __('program.activities.navigation'), Heroicon::OutlinedCalendarDays, 9, 'activities', ['activities', 'activity-categories'], fn (): bool => Gate::allows('viewAny', EventActivity::class)),
+            self::section($program, __('program.activities.navigation'), Heroicon::OutlinedCalendarDays, 9, 'activities', ['activities', 'activity-categories', 'rooms'], fn (): bool => Gate::allows('viewAny', EventActivity::class)),
             // Hospedaje y Patrocinadores (plan 030): grupo propio, después de Programa y antes de Organización.
             self::section($logistics, __('lodgings.navigation'), Heroicon::OutlinedBuildingOffice2, 10, 'lodgings', ['lodgings'], fn (): bool => Gate::allows('viewAny', Lodging::class)),
             self::section($logistics, __('sponsors.navigation'), Heroicon::OutlinedStar, 11, 'sponsors', ['sponsors'], fn (): bool => Gate::allows('viewAny', Sponsor::class)),

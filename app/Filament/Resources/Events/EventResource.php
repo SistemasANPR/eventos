@@ -14,6 +14,7 @@ use App\Filament\Resources\Events\Pages\ManageEventAssignmentRules;
 use App\Filament\Resources\Events\Pages\ManageEventFormDefinitions;
 use App\Filament\Resources\Events\Pages\ManageEventLodgings;
 use App\Filament\Resources\Events\Pages\ManageEventReviewers;
+use App\Filament\Resources\Events\Pages\ManageEventRooms;
 use App\Filament\Resources\Events\Pages\ManageEventRubrics;
 use App\Filament\Resources\Events\Pages\ManageEventSpeakerCategories;
 use App\Filament\Resources\Events\Pages\ManageEventSpeakers;
@@ -127,6 +128,8 @@ class EventResource extends Resource
             // Catálogos de categorías del programa (plan 021, F1).
             'speaker-categories' => ManageEventSpeakerCategories::route('/{record}/speaker-categories'),
             'activity-categories' => ManageEventActivityCategories::route('/{record}/activity-categories'),
+            // Salas del evento (plan 031, F2).
+            'rooms' => ManageEventRooms::route('/{record}/rooms'),
         ];
     }
 

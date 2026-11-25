@@ -35,7 +35,8 @@
 | Bloque de la landing | `LandingBlock` (tipos en el enum `LandingBlockType`) | Pieza de la landing de una lista blanca de 9 tipos: `hero`, `rich_text`, `event_info`, `calls`, `tracks`, `faq`, `image_gallery`, `spacer` y `columns`. Se guarda como objeto `jsonb` con identificador, tipo y contenido validado por su tipo (`LandingBlockRules`); no es un modelo. No confundir con `ScheduleBlock` (bloque del horario) (plan 022, DA-3, DA-13) | Evento (dentro de `EventLanding`) |
 | Imagen de la landing | `LandingImage` (tabla `landing_images`) | Imagen subida por el organizador para una landing, en el disco privado `media`; los bloques guardan su identificador, nunca su ruta (plan 022, DA-7) | Evento |
 | Sede | `Venue` | Lugar del evento | Organización |
-| Sala | `Room` | Espacio dentro de una sede | Organización |
+| Sala | `Room` | Espacio del evento donde ocurren actividades (salón, auditorio, aula): catálogo propio de cada evento, con nombre y orden; una actividad programada tiene a lo sumo una, o ninguna. Dos actividades no comparten sala a la misma hora (plan 031, DA-2, DA-3, DA-5). Las sedes y las salas compartidas entre eventos quedan para después | Evento |
+| Agenda | — (vista, no es un modelo) | Segunda vista de las actividades en el panel: un día por pantalla, una columna por sala y las horas en vertical; se alterna con la lista y lee las mismas actividades. No es `Schedule` (el programa publicado por versiones) (plan 031, DA-1) | Evento |
 | Taller | `Workshop` | Sesión con cupo e inscripción | Evento |
 | Asistente | `Attendee` | Persona que asiste al evento | Evento (`Contact`) |
 | Inscripción | `Registration` | Registro de un asistente con sus boletos | Evento |
