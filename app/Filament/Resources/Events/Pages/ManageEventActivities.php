@@ -41,6 +41,7 @@ use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Filters\TernaryFilter;
+use Filament\Tables\Grouping\Group;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
@@ -132,7 +133,9 @@ class ManageEventActivities extends ManageRelatedRecords
                         : SubmissionResource::getUrl('view', ['event' => $record->event_id, 'record' => $record->submission]))
                     ->limit(40),
             ])
-            ->defaultSort(fn (Builder $query): Builder => $query->orderBy('starts_on')->orderBy('starts_at')->orderBy('title'))
+            ->groups([$this->dayGroup()])
+            ->defaultGroup('starts_on')
+            ->defaultSort(fn (Builder $query): Builder => $query->orderBy('starts_on')->orderBy('starts_at')->orderBy('ends_at')->orderBy('title'))
             ->filters([
                 SelectFilter::make('category')
                     ->label(__('program.activities.filters.category'))
@@ -399,6 +402,31 @@ class ManageEventActivities extends ManageRelatedRecords
         return $query->whereHas('categories', fn (Builder $categories): Builder => $categories
             ->where('activity_categories.event_id', $this->event()->id)
             ->whereKey($value));
+    }
+
+    /**
+     * Agrupa la lista por día de inicio (plan 031, DA-12): una actividad de varios días queda bajo el
+     * día en que empieza, y las que no tienen fecha forman el último grupo («Sin programar»; en
+     * PostgreSQL los nulos van al final en orden ascendente). Dentro de cada día manda el orden por
+     * defecto: hora de inicio, hora de fin y título.
+     */
+    private function dayGroup(): Group
+    {
+        return Group::make('starts_on')
+            ->label(__('program.activities.group_by_day'))
+            ->titlePrefixedWithLabel(false)
+            ->getKeyFromRecordUsing(fn (EventActivity $record): ?string => $record->starts_on?->toDateString())
+            ->getTitleFromRecordUsing(fn (EventActivity $record): string => self::dayHeading($record))
+            ->scopeQueryByKeyUsing(fn (Builder $query, ?string $key): Builder => $key === null
+                ? $query->whereNull('starts_on')
+                : $query->whereDate('starts_on', $key));
+    }
+
+    private static function dayHeading(EventActivity $activity): string
+    {
+        return $activity->starts_on === null
+            ? __('program.activities.unscheduled')
+            : $activity->starts_on->locale(app()->getLocale())->isoFormat('dddd, LL');
     }
 
     private static function dateLabel(EventActivity $activity): string

@@ -123,6 +123,7 @@ return [
         'empty_heading' => 'There are no activities yet',
         'empty_description' => 'Create the first activity of the event program.',
         'unscheduled' => 'Unscheduled',
+        'group_by_day' => 'Day',
         'hidden_by_reversal' => 'Hidden by reversal',
         'timezone_hint' => 'Local time of the event (:timezone).',
         'columns' => [

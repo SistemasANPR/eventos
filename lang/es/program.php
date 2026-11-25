@@ -123,6 +123,7 @@ return [
         'empty_heading' => 'Aún no hay actividades',
         'empty_description' => 'Crea la primera actividad del programa del evento.',
         'unscheduled' => 'Sin programar',
+        'group_by_day' => 'Día',
         'hidden_by_reversal' => 'Oculto por reversa',
         'timezone_hint' => 'Hora local del evento (:timezone).',
         'columns' => [
