@@ -140,6 +140,18 @@ class Event extends Model
         return $this->hasMany(Speaker::class);
     }
 
+    /** @return HasMany<Lodging, $this> */
+    public function lodgings(): HasMany
+    {
+        return $this->hasMany(Lodging::class);
+    }
+
+    /** @return HasMany<Sponsor, $this> */
+    public function sponsors(): HasMany
+    {
+        return $this->hasMany(Sponsor::class);
+    }
+
     /** @return HasMany<ActivityCategory, $this> */
     public function activityCategories(): HasMany
     {

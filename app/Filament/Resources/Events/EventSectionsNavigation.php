@@ -7,10 +7,12 @@ namespace App\Filament\Resources\Events;
 use App\Filament\Resources\Forms\FormDefinitionResource;
 use App\Filament\Resources\Submissions\SubmissionResource;
 use App\Models\EventActivity;
+use App\Models\Lodging;
 use App\Models\Review;
 use App\Models\ReviewAssignment;
 use App\Models\Rubric;
 use App\Models\Speaker;
+use App\Models\Sponsor;
 use Closure;
 use Filament\Navigation\NavigationItem;
 use Filament\Support\Icons\Heroicon;
@@ -19,14 +21,14 @@ use Illuminate\Support\Facades\Gate;
 use function Filament\Support\original_request;
 
 /**
- * Secciones del evento como grupos del menú lateral, por fase del evento: Convocatoria, Evaluación y
- * Programa (plan 020, CA-020-17 y CA-020-18). Aparecen solo cuando la ruta trae un evento (su vista,
+ * Secciones del evento como grupos del menú lateral, por fase del evento: Convocatoria, Evaluación,
+ * Programa y Logística (plan 020, CA-020-17 y CA-020-18). Aparecen solo cuando la ruta trae un evento (su vista,
  * edición, formularios o propuestas) y, además, solo para quien puede acceder a cada sección; un grupo
  * sin entradas visibles no se muestra. Ocultar una entrada no autoriza: cada ruta se niega por su Policy.
  * El evento sale de la petición original, así que también sirve en las peticiones de Livewire.
  *
  * El orden de los grupos sale del `sort` de su primera entrada: Convocatoria (1 a 3), Evaluación (4 a 7)
- * y Programa (8 y 9) van después de «Eventos» y antes del grupo «Organización» (desde el 9).
+ * Programa (8 y 9) y Logística (10 y 11) van después de «Eventos» y antes del grupo «Organización».
  */
 final class EventSectionsNavigation
 {
@@ -36,6 +38,7 @@ final class EventSectionsNavigation
         $call = static fn (): string => __('navigation.groups.call');
         $evaluation = static fn (): string => __('navigation.groups.evaluation');
         $program = static fn (): string => __('navigation.groups.program');
+        $logistics = static fn (): string => __('navigation.groups.logistics');
 
         return [
             self::section($call, __('events.sub_navigation.summary'), Heroicon::OutlinedEye, 1, 'view', ['view', 'edit'], fn (): bool => EventResource::canAccess()),
@@ -53,6 +56,9 @@ final class EventSectionsNavigation
             self::section($evaluation, __('review_results.progress.navigation'), Heroicon::OutlinedChartPie, 7, 'review-progress', ['review-progress', 'review-progress-detail'], fn (): bool => Gate::allows('viewProgress', [Review::class])),
             self::section($program, __('program.speakers.navigation'), Heroicon::OutlinedMicrophone, 8, 'speakers', ['speakers', 'speaker-categories'], fn (): bool => Gate::allows('viewAny', Speaker::class)),
             self::section($program, __('program.activities.navigation'), Heroicon::OutlinedCalendarDays, 9, 'activities', ['activities', 'activity-categories'], fn (): bool => Gate::allows('viewAny', EventActivity::class)),
+            // Hospedaje y Patrocinadores (plan 030): grupo propio, después de Programa y antes de Organización.
+            self::section($logistics, __('lodgings.navigation'), Heroicon::OutlinedBuildingOffice2, 10, 'lodgings', ['lodgings'], fn (): bool => Gate::allows('viewAny', Lodging::class)),
+            self::section($logistics, __('sponsors.navigation'), Heroicon::OutlinedStar, 11, 'sponsors', ['sponsors'], fn (): bool => Gate::allows('viewAny', Sponsor::class)),
         ];
     }
 

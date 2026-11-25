@@ -7,6 +7,7 @@ return [
         'call' => 'Call for submissions',
         'evaluation' => 'Review',
         'program' => 'Program',
+        'logistics' => 'Logistics',
         'organization' => 'Organization',
     ],
 ];

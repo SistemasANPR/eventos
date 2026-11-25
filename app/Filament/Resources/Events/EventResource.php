@@ -12,10 +12,12 @@ use App\Filament\Resources\Events\Pages\ManageEventActivities;
 use App\Filament\Resources\Events\Pages\ManageEventActivityCategories;
 use App\Filament\Resources\Events\Pages\ManageEventAssignmentRules;
 use App\Filament\Resources\Events\Pages\ManageEventFormDefinitions;
+use App\Filament\Resources\Events\Pages\ManageEventLodgings;
 use App\Filament\Resources\Events\Pages\ManageEventReviewers;
 use App\Filament\Resources\Events\Pages\ManageEventRubrics;
 use App\Filament\Resources\Events\Pages\ManageEventSpeakerCategories;
 use App\Filament\Resources\Events\Pages\ManageEventSpeakers;
+use App\Filament\Resources\Events\Pages\ManageEventSponsors;
 use App\Filament\Resources\Events\Pages\ManageEventSubmissions;
 use App\Filament\Resources\Events\Pages\ViewEvent;
 use App\Filament\Resources\Events\Pages\ViewEventReviewerProgress;
@@ -119,6 +121,9 @@ class EventResource extends Resource
             'speakers' => ManageEventSpeakers::route('/{record}/speakers'),
             // Actividades del programa (plan 021, F3).
             'activities' => ManageEventActivities::route('/{record}/activities'),
+            // Hospedaje y patrocinadores del evento (plan 030, F2).
+            'lodgings' => ManageEventLodgings::route('/{record}/lodgings'),
+            'sponsors' => ManageEventSponsors::route('/{record}/sponsors'),
             // Catálogos de categorías del programa (plan 021, F1).
             'speaker-categories' => ManageEventSpeakerCategories::route('/{record}/speaker-categories'),
             'activity-categories' => ManageEventActivityCategories::route('/{record}/activity-categories'),
