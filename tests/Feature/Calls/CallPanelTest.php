@@ -8,6 +8,7 @@ use App\Actions\Calls\PublishCall;
 use App\Actions\Privacy\CreatePrivacyNoticeDraft;
 use App\Actions\Privacy\PublishPrivacyNotice;
 use App\Enums\CallStatus;
+use App\Enums\EventStatus;
 use App\Enums\OrganizationRole;
 use App\Filament\Resources\Events\Pages\ViewEvent;
 use App\Filament\Resources\Events\RelationManagers\CallsRelationManager;
@@ -16,6 +17,7 @@ use App\Models\Event;
 use App\Models\Organization;
 use App\Models\User;
 use App\Support\Tenancy\CurrentOrganization;
+use Filament\Actions\Action;
 use Filament\Actions\Testing\TestAction;
 use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -202,8 +204,15 @@ function callInStatus(Event $event, User $admin, CallStatus $status): CallForSub
     return $status === CallStatus::Published ? $call : app(ChangeCallStatus::class)->handle($admin, $call, $status);
 }
 
+/** El evento pasa al estado dado (plan 030): la página pública de una convocatoria depende también de él. */
+function setPanelEventStatus(Event $event, EventStatus $status): void
+{
+    $event->forceFill(['status' => $status])->save();
+}
+
 it('CA-004-37: a published, paused or closed call offers its public page, opened in a new tab, with the URL of its own organization, event and call', function (CallStatus $status): void {
     [$organization, $event, $admin] = callPanelScenario();
+    setPanelEventStatus($event, EventStatus::Published);
     $call = callInStatus($event, $admin, $status);
     CurrentOrganization::set($organization);
 
@@ -222,6 +231,7 @@ it('CA-004-37: a published, paused or closed call offers its public page, opened
 
 it('CA-004-38: a draft call offers neither the public page nor the link, because its URL answers 404', function (): void {
     [$organization, $event, $admin] = callPanelScenario();
+    setPanelEventStatus($event, EventStatus::Published);
     $call = callInStatus($event, $admin, CallStatus::Draft);
     CurrentOrganization::set($organization);
 
@@ -232,6 +242,7 @@ it('CA-004-38: a draft call offers neither the public page nor the link, because
 
 it('the title of a published call links to its public page in a new tab, and a draft title is plain text', function (): void {
     [$organization, $event, $admin] = callPanelScenario();
+    setPanelEventStatus($event, EventStatus::Published);
     $published = callInStatus($event, $admin, CallStatus::Published);
     $draft = callInStatus($event, $admin, CallStatus::Draft);
     CurrentOrganization::set($organization);
@@ -252,6 +263,7 @@ it('CA-004-39: a reviewer does not reach the calls manager, so the public page a
 
 it('CA-004-40: the public URL never carries the slug of another organization', function (): void {
     [$organization, $event, $admin] = callPanelScenario();
+    setPanelEventStatus($event, EventStatus::Published);
     $call = callInStatus($event, $admin, CallStatus::Published);
 
     $otherOrganization = Organization::factory()->create();
@@ -330,3 +342,103 @@ it('every custom link needs both text and an https address', function (array $li
     'insecure address' => [['label' => 'Sitio', 'url' => 'http://example.test']],
     'script address' => [['label' => 'Sitio', 'url' => 'javascript:alert(1)']],
 ]);
+
+/**
+ * La acción de la fila, tal como la arma la tabla (con su tooltip y su estado deshabilitado).
+ *
+ * @param  Testable<CallsRelationManager>  $component
+ */
+function panelRowAction(Testable $component, string $name, CallForSubmissions $call): Action
+{
+    $action = $component->instance()->getTable()->getFlatRecordActions()[$name] ?? null;
+
+    expect($action)->toBeInstanceOf(Action::class);
+
+    return $action->record($call);
+}
+
+it('CA-030-1: with a published event and a published call, both links are enabled and point to the usual URL', function (): void {
+    [$organization, $event, $admin] = callPanelScenario();
+    setPanelEventStatus($event, EventStatus::Published);
+    $call = callInStatus($event, $admin, CallStatus::Published);
+    CurrentOrganization::set($organization);
+
+    $publicUrl = route('calls.show', ['organization' => $organization->slug, 'event' => $event->slug, 'call' => $call->slug]);
+    $component = callManager($event);
+
+    $component
+        ->assertActionEnabled(TestAction::make('viewPublicPage')->table($call))
+        ->assertActionEnabled(TestAction::make('copyPublicLink')->table($call))
+        ->assertActionHasUrl(TestAction::make('viewPublicPage')->table($call), $publicUrl);
+
+    expect(panelRowAction($component, 'viewPublicPage', $call)->getTooltip())->toBeNull()
+        ->and(CallsRelationManager::getBadge($event, ViewEvent::class))->toBeNull();
+});
+
+it('CA-030-2: with an archived event both links are disabled, have no URL and explain it', function (CallStatus $status): void {
+    [$organization, $event, $admin] = callPanelScenario();
+    setPanelEventStatus($event, EventStatus::Published);
+    $call = callInStatus($event, $admin, $status);
+    setPanelEventStatus($event, EventStatus::Archived);
+    CurrentOrganization::set($organization);
+
+    $component = callManager($event->fresh());
+
+    $component
+        ->assertActionVisible(TestAction::make('viewPublicPage')->table($call))
+        ->assertActionDisabled(TestAction::make('viewPublicPage')->table($call))
+        ->assertActionVisible(TestAction::make('copyPublicLink')->table($call))
+        ->assertActionDisabled(TestAction::make('copyPublicLink')->table($call))
+        ->assertActionDoesNotHaveUrl(TestAction::make('viewPublicPage')->table($call), route('calls.show', ['organization' => $organization->slug, 'event' => $event->slug, 'call' => $call->slug]));
+
+    expect(panelRowAction($component, 'viewPublicPage', $call)->getUrl())->toBeNull()
+        ->and(panelRowAction($component, 'viewPublicPage', $call)->getTooltip())->toBe(__('calls.actions.public_unavailable.archived'))
+        ->and(panelRowAction($component, 'copyPublicLink', $call)->getTooltip())->toBe(__('calls.actions.public_unavailable.archived'))
+        ->and($component->instance()->getTable()->getColumn('title')->record($call)->getUrl())->toBeNull();
+})->with([
+    'published' => [CallStatus::Published],
+    'paused' => [CallStatus::Paused],
+    'closed' => [CallStatus::Closed],
+]);
+
+it('CA-030-3: with a draft event both links are disabled and say the event is not published yet', function (): void {
+    [$organization, $event, $admin] = callPanelScenario();
+    setPanelEventStatus($event, EventStatus::Published);
+    $call = callInStatus($event, $admin, CallStatus::Published);
+    setPanelEventStatus($event, EventStatus::Draft);
+    CurrentOrganization::set($organization);
+
+    $component = callManager($event->fresh());
+
+    $component
+        ->assertActionDisabled(TestAction::make('viewPublicPage')->table($call))
+        ->assertActionDisabled(TestAction::make('copyPublicLink')->table($call));
+
+    expect(panelRowAction($component, 'viewPublicPage', $call)->getUrl())->toBeNull()
+        ->and(panelRowAction($component, 'viewPublicPage', $call)->getTooltip())->toBe(__('calls.actions.public_unavailable.draft_event'))
+        ->and(panelRowAction($component, 'copyPublicLink', $call)->getTooltip())->toBe(__('calls.actions.public_unavailable.draft_event'));
+});
+
+it('CA-030-4: a draft call of a published event offers no public link at all', function (): void {
+    [$organization, $event, $admin] = callPanelScenario();
+    setPanelEventStatus($event, EventStatus::Published);
+    $call = callInStatus($event, $admin, CallStatus::Draft);
+    CurrentOrganization::set($organization);
+
+    callManager($event)
+        ->assertActionHidden(TestAction::make('viewPublicPage')->table($call))
+        ->assertActionHidden(TestAction::make('copyPublicLink')->table($call));
+});
+
+it('CA-030-5: the calls section shows the archived-event badge only while the event is archived', function (): void {
+    [, $event] = callPanelScenario();
+
+    setPanelEventStatus($event, EventStatus::Published);
+    expect(CallsRelationManager::getBadge($event, ViewEvent::class))->toBeNull();
+
+    setPanelEventStatus($event, EventStatus::Archived);
+    expect(CallsRelationManager::getBadge($event, ViewEvent::class))->toBe(__('calls.actions.event_archived_badge'));
+
+    setPanelEventStatus($event, EventStatus::Draft);
+    expect(CallsRelationManager::getBadge($event, ViewEvent::class))->toBeNull();
+});

@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Enums\EventStatus;
 use App\Enums\OrganizationRole;
 use App\Filament\Resources\Events\EventResource;
 use App\Filament\Resources\Events\Pages\EditEventLanding;
@@ -126,6 +127,7 @@ it('CA-022-2: opening the editor of an event without landing creates it with the
 
 it('CA-022-36: the editor receives the draft with every language, the version and the live data of the event', function (): void {
     [$organization, $event, $admin] = formScenario();
+    $event->forceFill(['status' => EventStatus::Published])->save();
     editorActAsAdmin($organization, $admin);
 
     $html = Livewire::test(EditEventLanding::class, ['record' => $event->id])->html();
@@ -143,6 +145,22 @@ it('CA-022-36: the editor receives the draft with every language, the version an
         ->and($props['preview'])->toHaveKeys(['event', 'calls', 'tracks'])
         ->and($props['publicUrl'])->toBe("/{$organization->slug}/events/{$event->slug}");
 });
+
+it('CA-030-6: the editor gets no public link while the event is draft or archived', function (EventStatus $status): void {
+    [$organization, $event, $admin] = formScenario();
+    $event->forceFill(['status' => $status])->save();
+    editorActAsAdmin($organization, $admin);
+
+    $html = Livewire::test(EditEventLanding::class, ['record' => $event->id])->html();
+    preg_match('/data-props="([^"]*)"/', $html, $matches);
+    $props = json_decode(html_entity_decode($matches[1] ?? ''), true, flags: JSON_THROW_ON_ERROR);
+
+    expect($props)->toHaveKey('publicUrl')
+        ->and($props['publicUrl'])->toBeNull();
+})->with([
+    'draft' => [EventStatus::Draft],
+    'archived' => [EventStatus::Archived],
+]);
 
 it('CA-022-6: save draft, update and discard from the editor return a flat result and respect what each one does', function (): void {
     [$organization, $event, $admin] = formScenario();

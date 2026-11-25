@@ -10,6 +10,7 @@ use App\Enums\SubmissionStatus;
 use App\Models\Event;
 use App\Models\Organization;
 use App\Support\Auth\AuthorSession;
+use App\Support\Events\PublicPageAvailability;
 use App\Support\Submissions\AuthorSubmissionData;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -44,7 +45,8 @@ final class ShowAuthorSubmissionController
                 : null,
             'wasUpdated' => (bool) $request->session()->pull('author.updated', false),
             'sessionMinutes' => (int) config('submissions.author.session_minutes'),
-            'eventUrl' => route('events.show', ['organization' => $organization->slug, 'event' => $event->slug], false)."?lang={$locale}",
+            // Sin página pública del evento (archivado) no se ofrece el enlace de vuelta (plan 030, CA-030-6).
+            'eventUrl' => PublicPageAvailability::eventUrl($event, $organization, $locale),
         ]);
     }
 }

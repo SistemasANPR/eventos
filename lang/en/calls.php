@@ -135,6 +135,12 @@ return [
         'view_public' => 'View',
         'copy_link' => 'Copy link',
         'link_copied' => 'Link copied',
+        // Why a call's public link is not offered (plan 030).
+        'public_unavailable' => [
+            'archived' => 'The event is archived: its public pages are no longer shown.',
+            'draft_event' => 'The event is not published yet.',
+        ],
+        'event_archived_badge' => 'Event archived',
         'publish' => 'Publish',
         'publish_confirm' => 'Publish this call? It will open and close by itself on the given dates (event time).',
         'published' => 'Call published',

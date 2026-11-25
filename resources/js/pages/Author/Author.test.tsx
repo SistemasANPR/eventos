@@ -151,6 +151,14 @@ describe('Author/RequestLink page', () => {
         expect(screen.getByRole('button', { name: 'Enviarme el enlace' })).toBeInTheDocument();
     });
 
+    it('CA-030-6: links back to the event only when the event still has a public page', () => {
+        const { rerender } = render(<RequestLink {...requestProps} />);
+        expect(screen.getByRole('link', { name: 'Volver al evento' })).toHaveAttribute('href', '/parques/events/congreso?lang=es');
+
+        rerender(<RequestLink {...requestProps} eventUrl={null} />);
+        expect(screen.queryByRole('link', { name: 'Volver al evento' })).toBeNull();
+    });
+
     it('shows the same neutral notice after a request, without saying whether the email exists', () => {
         render(<RequestLink {...requestProps} linkRequested />);
 
@@ -260,6 +268,14 @@ describe('Author/Show page', () => {
 
         expect(container.querySelector('main script')).toBeNull();
         expect(container.querySelector('main b')).toBeNull();
+    });
+
+    it('CA-030-6: links back to the event only when the event still has a public page', () => {
+        const { rerender } = render(<Show {...props} />);
+        expect(screen.getByRole('link', { name: 'Volver al evento' })).toHaveAttribute('href', '/parques/events/congreso?lang=es');
+
+        rerender(<Show {...props} eventUrl={null} />);
+        expect(screen.queryByRole('link', { name: 'Volver al evento' })).toBeNull();
     });
 
     it('links to the edit page only when the server says the proposal can be edited', () => {
