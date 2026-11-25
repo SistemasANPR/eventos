@@ -175,6 +175,58 @@ h3,
     box-shadow: none;
 }
 
+/*
+ * Barra de desplazamiento del menú: fina e integrada al marino en vez de la nativa gris. Filament ya
+ * reserva el espacio (`scrollbar-gutter: stable`), así que los ítems no se corren al aparecer. El pulgar
+ * en reposo (blanco al 40 %) ronda 3:1 sobre el marino; sube al pasar el cursor o al enfocar dentro.
+ */
+.fi-sidebar-nav {
+    scrollbar-width: thin;
+    scrollbar-color: rgb(255 255 255 / 0.4) transparent;
+}
+
+.fi-sidebar-nav:hover,
+.fi-sidebar-nav:focus-within {
+    scrollbar-color: rgb(255 255 255 / 0.65) transparent;
+}
+
+/*
+ * Espaciado del menú: Filament separa los grupos con 1,75 rem y deja 2 rem arriba y abajo; con los grupos
+ * por fase del evento (plan 020, CA-020-18) el menú quedaba muy abierto. Se compacta sin tocar el área
+ * de toque de cada entrada (el alto de las entradas no cambia).
+ */
+.fi-sidebar-nav {
+    row-gap: 1rem;
+    padding-block: 1.25rem;
+}
+
+.fi-sidebar-nav-groups {
+    row-gap: 1rem;
+}
+
+.fi-sidebar .fi-sidebar-group-btn {
+    padding-block: 0.25rem;
+}
+
+/* Safari y navegadores sin `scrollbar-color`. */
+.fi-sidebar-nav::-webkit-scrollbar {
+    width: 6px;
+}
+
+.fi-sidebar-nav::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.fi-sidebar-nav::-webkit-scrollbar-thumb {
+    background-color: rgb(255 255 255 / 0.4);
+    border-radius: 9999px;
+}
+
+.fi-sidebar-nav:hover::-webkit-scrollbar-thumb,
+.fi-sidebar-nav:focus-within::-webkit-scrollbar-thumb {
+    background-color: rgb(255 255 255 / 0.65);
+}
+
 .fi-sidebar .fi-logo,
 .fi-sidebar .fi-tenant-menu-trigger {
     color: #ffffff;
