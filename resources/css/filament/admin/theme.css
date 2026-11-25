@@ -650,3 +650,22 @@ h3,
         transform: none;
     }
 }
+
+/*
+ * Identidad ANPR en el escritorio: fondo general gris neutro, avatar en azul de texto y el logotipo de
+ * la organización del menú en lima con texto azul (la lima nunca lleva texto blanco).
+ */
+.fi-body {
+    background-color: var(--eventos-bg);
+}
+
+.fi-avatar {
+    background-color: var(--eventos-text);
+    color: #ffffff;
+}
+
+.fi-sidebar .fi-tenant-menu-trigger .fi-avatar {
+    background-color: var(--eventos-lime);
+    color: var(--eventos-navy);
+    font-weight: 700;
+}

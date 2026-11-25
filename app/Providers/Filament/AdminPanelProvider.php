@@ -14,6 +14,7 @@ use App\Http\Middleware\EnsureTwoFactorConfirmed;
 use App\Models\Organization;
 use App\Support\Auth\TotpAuthentication;
 use App\Support\Panel\BrandPalette;
+use App\Support\Panel\InitialsAvatarProvider;
 use Filament\Actions\Action;
 use Filament\Facades\Filament;
 use Filament\FontProviders\LocalFontProvider;
@@ -75,6 +76,7 @@ class AdminPanelProvider extends PanelProvider
             ->viteTheme('resources/css/filament/admin/theme.css')
             ->font('Roboto', provider: LocalFontProvider::class)
             ->darkMode(false)
+            ->defaultAvatarProvider(InitialsAvatarProvider::class)
             // Menú lateral más estrecho que el de Filament (20 rem) y contraíble a solo iconos;
             // en pantallas menores a 1024 px Filament ya lo muestra como cajón (plan 015, CA-015-14).
             ->sidebarWidth('13rem')
