@@ -24,8 +24,10 @@ const translations = {
         time_range: ':start – :end',
         speakers: 'Ponentes',
         pagination_label: 'Páginas del programa',
-        previous_page: 'Página anterior',
-        next_page: 'Página siguiente',
+    },
+    pagination: {
+        previous: 'Página anterior',
+        next: 'Página siguiente',
         page_of: 'Página :current de :last',
     },
 };
@@ -58,7 +60,7 @@ const event: PublicEvent = {
     logoUrl: null,
 };
 const organization = { name: 'Parques de México', slug: 'parques' };
-const nav: ProgramNav = { programUrl: '/parques/events/congreso/program', speakersUrl: null, eventUrl: '/parques/events/congreso' };
+const nav: ProgramNav = { programUrl: '/parques/events/congreso/program', speakersUrl: '/parques/events/congreso/speakers', eventUrl: '/parques/events/congreso' };
 const talleres: PublicCategory = { id: 'c1', name: 'Talleres' };
 const charlas: PublicCategory = { id: 'c2', name: 'Charlas' };
 

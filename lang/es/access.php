@@ -51,4 +51,13 @@ return [
         'next' => 'La próxima vez que inicies sesión deberás configurarla de nuevo con tu aplicación autenticadora.',
         'ignore' => 'Si no lo esperabas, avisa de inmediato a un administrador de tu organización y cambia tu contraseña.',
     ],
+    'login' => [
+        'organization' => 'Asociación Nacional de Parques y Recreación',
+        'kicker' => 'PLATAFORMA DE EVENTOS',
+        'title' => 'Eventos',
+        'tagline' => 'Convocatorias, evaluación de propuestas y programa de los encuentros de la ANPR, en un solo lugar.',
+        'modules' => ['call' => 'Convocatoria', 'review' => 'Evaluación', 'program' => 'Programa'],
+        'heading' => 'Entre a su cuenta',
+        'subheading' => 'Use el correo con el que le invitaron a la plataforma.',
+    ],
 ];

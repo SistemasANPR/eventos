@@ -11,6 +11,7 @@ use App\Models\Organization;
 use App\Models\PrivacyNotice;
 use App\Support\Events\PublicEventData;
 use App\Support\Program\PublicActivityData;
+use App\Support\Program\PublicProgramLinks;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -31,9 +32,9 @@ final class ShowEventProgramController
         $locale = PublicEventData::resolveLocale($request, $event);
         app()->setLocale($locale);
 
-        $program = $list->handle($event, $this->day($request), $this->page($request));
-        $language = $this->explicitLanguage($request, $event);
-        $parameters = ['organization' => $organization->slug, 'event' => $event->slug];
+        $program = $list->handle($event, $this->day($request), PublicProgramLinks::page($request));
+        $language = PublicProgramLinks::explicitLanguage($request, $event);
+        $parameters = PublicProgramLinks::parameters($organization, $event);
 
         return Inertia::render('Events/Program', [
             'event' => PublicEventData::from($event, $organization, $locale),
@@ -58,12 +59,7 @@ final class ShowEventProgramController
                 ->map(static fn ($category): array => ['id' => $category->id, 'name' => $category->name])
                 ->values()
                 ->all(),
-            'nav' => [
-                'programUrl' => $this->programUrl($parameters, $language),
-                // La página de ponentes llega en F3; hasta entonces no hay a dónde enlazar.
-                'speakersUrl' => null,
-                'eventUrl' => route('events.show', [...$parameters, ...$this->languageQuery($language)], false),
-            ],
+            'nav' => PublicProgramLinks::nav($organization, $event, $language),
             // Solo se enlaza si hay una versión PUBLICADA (CA-003-19); un borrador no cuenta.
             'privacyUrl' => PrivacyNotice::currentPublished($event) === null
                 ? null
@@ -79,34 +75,12 @@ final class ShowEventProgramController
         return is_string($day) ? $day : null;
     }
 
-    /** `?page=` solo cuenta si es un entero positivo; cualquier otro valor es la primera página. */
-    private function page(Request $request): int
-    {
-        $page = $request->query('page');
-
-        return is_string($page) && ctype_digit($page) ? max(1, (int) $page) : 1;
-    }
-
-    /** El idioma que el visitante pidió con `?lang=` y el evento ofrece: es el único que se conserva en los enlaces. */
-    private function explicitLanguage(Request $request, Event $event): ?string
-    {
-        $requested = $request->query('lang');
-
-        return is_string($requested) && in_array($requested, $event->offeredLocales(), true) ? $requested : null;
-    }
-
-    /** @return array<string, string> */
-    private function languageQuery(?string $language): array
-    {
-        return $language === null ? [] : ['lang' => $language];
-    }
-
     /** @param  array{organization: string, event: string}  $parameters */
     private function programUrl(array $parameters, ?string $language, ?string $day = null, int $page = 1): string
     {
         return route('events.program', [
             ...$parameters,
-            ...$this->languageQuery($language),
+            ...PublicProgramLinks::languageQuery($language),
             ...($day === null ? [] : ['day' => $day]),
             ...($page > 1 ? ['page' => (string) $page] : []),
         ], false);

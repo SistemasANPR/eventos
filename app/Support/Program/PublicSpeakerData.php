@@ -35,8 +35,7 @@ final class PublicSpeakerData
             'photoUrl' => $speaker->photo_path === null
                 ? null
                 : route('public.speakers.photo', ['organization' => $organization, 'event' => $event->slug, 'speaker' => $speaker->id], false),
-            // La página de la ficha llega en F3 (`events.speakers.show`); la ruta se construye igual que las demás.
-            'url' => "/{$organization}/events/{$event->slug}/speakers/{$speaker->id}",
+            'url' => route('events.speakers.show', ['organization' => $organization, 'event' => $event->slug, 'speaker' => $speaker->id], false),
         ];
     }
 

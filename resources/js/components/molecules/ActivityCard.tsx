@@ -1,5 +1,5 @@
 import { useTranslation } from '@/hooks/useTranslation';
-import { FOCUS_RING, HEADING_MD, LIST_CARD } from '@/lib/classes';
+import { CARD_TITLE_LINK, CATEGORY_CHIP, FOCUS_RING, HEADING_MD, LIST_CARD } from '@/lib/classes';
 import { formatLocalDate, formatLocalTime } from '@/lib/date-format';
 import { cn } from '@/lib/utils';
 import type { TimeFormat } from '@/types/event';
@@ -36,7 +36,7 @@ export function ActivityCard({ activity, locale, timeFormat, className }: Activi
                     <p className="text-sm font-bold text-support">{range}</p>
                     {endsAnotherDay && <p className="text-sm text-text-muted">{t('program.until', { date: formatLocalDate(activity.endDate, locale) })}</p>}
                     <h3 className={HEADING_MD}>
-                        <a href={activity.url} className={cn('inline-flex min-h-11 items-center rounded-md underline-offset-4 hover:underline', FOCUS_RING)}>
+                        <a href={activity.url} className={cn(CARD_TITLE_LINK, FOCUS_RING)}>
                             {activity.title}
                         </a>
                     </h3>
@@ -48,7 +48,7 @@ export function ActivityCard({ activity, locale, timeFormat, className }: Activi
             {activity.categories.length > 0 && (
                 <ul className="flex flex-wrap gap-2">
                     {activity.categories.map((category) => (
-                        <li key={category.id} className="rounded-full bg-info-bg px-3 py-1 text-sm font-semibold text-info">
+                        <li key={category.id} className={CATEGORY_CHIP}>
                             {category.name}
                         </li>
                     ))}

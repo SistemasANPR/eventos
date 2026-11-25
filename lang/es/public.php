@@ -39,9 +39,54 @@ return [
         'time_range' => ':start – :end',
         'speakers' => 'Ponentes',
         'pagination_label' => 'Páginas del programa',
-        'previous_page' => 'Página anterior',
-        'next_page' => 'Página siguiente',
+    ],
+    // Paginación de las listas públicas del programa (componente `PageNav`).
+    'pagination' => [
+        'previous' => 'Página anterior',
+        'next' => 'Página siguiente',
         'page_of' => 'Página :current de :last',
+    ],
+    // Lista de ponentes del evento (plan 029).
+    'speakers' => [
+        'title' => 'Ponentes',
+        'description' => 'Ponentes de :event: quiénes participan y qué presentan.',
+        'heading' => 'Quiénes participan',
+        'empty_title' => 'Los ponentes se anunciarán pronto',
+        'empty_hint' => 'Todavía no hay ponentes publicados. Vuelve más tarde.',
+        'pagination_label' => 'Páginas de ponentes',
+        'role_separator' => ', ',
+        'back_to_event' => 'Volver al evento',
+        'program_link' => 'Ver el programa',
+    ],
+    // Ficha de un ponente (plan 029).
+    'speaker' => [
+        'description' => ':name en :event.',
+        'bio' => 'Biografía',
+        'links' => 'Enlaces',
+        'categories' => 'Categorías del ponente',
+        'activities' => 'Actividades',
+        'no_activities' => 'Sin actividades programadas por ahora.',
+        'back_to_speakers' => 'Volver a los ponentes',
+        'networks' => [
+            'linkedin' => 'LinkedIn',
+            'x' => 'X',
+            'instagram' => 'Instagram',
+            'facebook' => 'Facebook',
+            'youtube' => 'YouTube',
+            'tiktok' => 'TikTok',
+            'website' => 'Sitio web',
+        ],
+    ],
+    // Detalle de una actividad (plan 029).
+    'activity' => [
+        'description' => ':title: :event.',
+        'schedule' => 'Horario',
+        'on_date' => ':date, :range',
+        'description_heading' => 'Descripción',
+        'speakers' => 'Ponentes',
+        'no_speakers' => 'Ponentes por confirmar.',
+        'categories' => 'Categorías de la actividad',
+        'back_to_program' => 'Volver al programa',
     ],
     'call' => [
         'type' => 'Categoría',
@@ -253,6 +298,9 @@ return [
             'category_name' => 'Talleres',
             'category_other' => 'Conferencias',
             'speaker_name' => 'Ana Torres',
+            'speaker_company' => 'Parques de México',
+            'speaker_job_title' => 'Directora de operaciones',
+            'speaker_tagline' => 'Dos décadas cuidando espacios verdes en ciudades grandes.',
         ],
     ],
     // Landing del evento (plan 022): textos fijos de los bloques públicos.

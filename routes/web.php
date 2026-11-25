@@ -11,9 +11,12 @@ use App\Http\Controllers\Panel\SubmissionFileDownloadController;
 use App\Http\Controllers\Panel\SubmissionFilePreviewController;
 use App\Http\Controllers\Public\ShowActivityMediaController;
 use App\Http\Controllers\Public\ShowCallController;
+use App\Http\Controllers\Public\ShowEventActivityController;
 use App\Http\Controllers\Public\ShowEventController;
 use App\Http\Controllers\Public\ShowEventLogoController;
 use App\Http\Controllers\Public\ShowEventProgramController;
+use App\Http\Controllers\Public\ShowEventSpeakerController;
+use App\Http\Controllers\Public\ShowEventSpeakersController;
 use App\Http\Controllers\Public\ShowLandingImageController;
 use App\Http\Controllers\Public\ShowPrivacyNoticeController;
 use App\Http\Controllers\Public\ShowSpeakerPhotoController;
@@ -62,6 +65,16 @@ Route::middleware([SetOrganizationFromRoute::class, HandleInertiaRequests::class
         Route::get('events/{event:slug}/program', ShowEventProgramController::class)
             ->middleware(EnsureEventIsAvailable::class)
             ->name('events.program');
+        // Ponentes y detalle de actividad: el identificador es el uuid; si no lo es, 404 sin consultar.
+        Route::get('events/{event:slug}/speakers', ShowEventSpeakersController::class)
+            ->middleware(EnsureEventIsAvailable::class)
+            ->name('events.speakers.index');
+        Route::get('events/{event:slug}/speakers/{speaker}', ShowEventSpeakerController::class)
+            ->middleware(EnsureEventIsAvailable::class)
+            ->name('events.speakers.show');
+        Route::get('events/{event:slug}/activities/{activity}', ShowEventActivityController::class)
+            ->middleware(EnsureEventIsAvailable::class)
+            ->name('events.activities.show');
         Route::get('events/{event:slug}/call/{call:slug}', ShowCallController::class)
             ->middleware(EnsureEventIsAvailable::class)
             ->name('calls.show');

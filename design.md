@@ -158,9 +158,9 @@ Dirección visual: **Institucional** (variación A de la guía de marca). El mar
 
 | Escala | 50 | 100 | 200 | 300 | 400 | 500 | 600 | 700 | 800 | 900 |
 |---|---|---|---|---|---|---|---|---|---|---|
-| Marino | `#F4F7FE` | `#E5EDFF` | `#CFDBF6` | `#B3C4EA` | `#768FCC` | `#5772BA` | `#3A56A6` | **`#152B83`** (logo) | `#0D1E70` | `#08155D` |
-| Lima | `#F6FAE3` | `#EBF2C8` | `#D9E663` | **`#BFCC36`** (logo) | `#A9B523` | `#8F9A15` | `#757D0E` | `#5B620C` | `#43480C` | `#2D310C` |
-| Neutro frío | `#F8FAFE` | `#F1F3F8` | `#E2E6EF` | `#D0D4DC` | `#A1A5AC` | `#777A82` | `#585B62` | `#3F4249` | `#26292F` | `#14161C` |
+| Azul ANPR | `#EEF1FA` | `#DDE4F6` | `#B9C7F0` | `#8DA3DE` | `#4F6FC0` | `#1F46A3` | **`#012787`** (marca) | `#011A5E` | `#01134A` | `#010C33` |
+| Lima | `#F8FAE0` | `#F0F5B0` | `#E6EE5C` | **`#D2DD0A`** (marca) | `#B5BF09` | `#939B08` | `#747B06` | `#5A6005` | `#434704` | `#2D3003` |
+| Neutro frío | `#FAFBFC` | `#F4F6F8` | `#E3E8EC` | `#C5CED6` | `#AAB4BE` | `#84909C` | `#4B5A68` | `#364452` | `#243342` | `#16202B` |
 
 Verde-azulado de apoyo: `#156A62` (texto e iconos). El `#3D9E94` del logotipo es **solo decorativo**: no lleva texto.
 
@@ -168,18 +168,18 @@ Verde-azulado de apoyo: `#156A62` (texto e iconos). El `#3D9E94` del logotipo es
 
 | Token | Valor | Uso | Contraste |
 |---|---|---|---|
-| `bg` | `#F8FAFE` | Fondo de página | — |
+| `bg` | `#F4F6F8` | Fondo de página | — |
 | `surface` | `#FFFFFF` | Tarjetas y campos de formulario | — |
 | `surface-raised` | `#FFFFFF` con sombra | Modales, menús, tarjetas elevadas | — |
-| `border` | `#E2E6EF` | Divisores y tarjetas | — |
-| `border-input` | `#777A82` | Borde de campos de formulario | 3:1 (WCAG 1.4.11) |
+| `border` | `#E3E8EC` | Divisores y tarjetas | — |
+| `border-input` | `#84909C` | Borde de campos de formulario | 3:1 (WCAG 1.4.11) |
 | `text` | `#243342` | Cuerpo y títulos de tarjetas | AAA · 12,9:1 con blanco |
-| `text-muted` | `#585B62` | Metadatos, ayudas, pies de foto | AAA · 6,8:1 con blanco |
-| `primary` | `#152B83` | Botones principales, barra de navegación, enlaces y títulos | AAA · 12,3:1 con blanco |
+| `text-muted` | `#4B5A68` | Metadatos, ayudas, pies de foto | AAA · 7,1:1 con blanco |
+| `primary` | `#012787` | Botones principales, menú lateral, panel del login, enlaces, títulos y cifras | AAA · 12,8:1 con blanco |
 | `primary-contrast` | `#FFFFFF` | Texto sobre `primary` y `primary-hover` | — |
-| `primary-hover` | `#0D1E70` | Hover y activo del primario | AAA · 14,6:1 con blanco |
-| `accent` | `#BFCC36` | Destacados, insignias y la acción principal sobre fondo marino | AA · 7,0:1 con texto marino |
-| `accent-contrast` | `#152B83` | Texto sobre `accent` | — |
+| `primary-hover` | `#011A5E` | Hover y activo del primario | AAA · 16,0:1 con blanco |
+| `accent` | `#D2DD0A` | Sección activa del menú, subrayados, la acción destacada y la cifra destacada sobre azul | AAA · 8,6:1 con texto azul |
+| `accent-contrast` | `#012787` | Texto sobre `accent` | — |
 | `support` | `#156A62` | Etiquetas, iconos e información de apoyo | AA · 6,4:1 con blanco |
 
 Semánticos de estado (texto / fondo):
@@ -189,7 +189,7 @@ Semánticos de estado (texto / fondo):
 | `success` | `#2E7D32` | `#E8F5E9` |
 | `warning` | `#92400E` | `#FEF3C7` |
 | `error` | `#B42318` | `#FEE4E2` |
-| `info` | `#3A56A6` | `#E5EDFF` |
+| `info` | `#1F46A3` | `#EEF1FA` |
 
 Reglas de uso:
 

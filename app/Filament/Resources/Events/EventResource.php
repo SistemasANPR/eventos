@@ -12,10 +12,12 @@ use App\Filament\Resources\Events\Pages\ManageEventActivities;
 use App\Filament\Resources\Events\Pages\ManageEventActivityCategories;
 use App\Filament\Resources\Events\Pages\ManageEventAssignmentRules;
 use App\Filament\Resources\Events\Pages\ManageEventFormDefinitions;
+use App\Filament\Resources\Events\Pages\ManageEventLodgings;
 use App\Filament\Resources\Events\Pages\ManageEventReviewers;
 use App\Filament\Resources\Events\Pages\ManageEventRubrics;
 use App\Filament\Resources\Events\Pages\ManageEventSpeakerCategories;
 use App\Filament\Resources\Events\Pages\ManageEventSpeakers;
+use App\Filament\Resources\Events\Pages\ManageEventSponsors;
 use App\Filament\Resources\Events\Pages\ManageEventSubmissions;
 use App\Filament\Resources\Events\Pages\ViewEvent;
 use App\Filament\Resources\Events\Pages\ViewEventReviewerProgress;
@@ -35,6 +37,8 @@ use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
+
+use function Filament\Support\original_request;
 
 /**
  * Eventos de la organización (plan 003, H-003-1). La organización es el tenant
@@ -117,6 +121,9 @@ class EventResource extends Resource
             'speakers' => ManageEventSpeakers::route('/{record}/speakers'),
             // Actividades del programa (plan 021, F3).
             'activities' => ManageEventActivities::route('/{record}/activities'),
+            // Hospedaje y patrocinadores del evento (plan 030, F2).
+            'lodgings' => ManageEventLodgings::route('/{record}/lodgings'),
+            'sponsors' => ManageEventSponsors::route('/{record}/sponsors'),
             // Catálogos de categorías del programa (plan 021, F1).
             'speaker-categories' => ManageEventSpeakerCategories::route('/{record}/speaker-categories'),
             'activity-categories' => ManageEventActivityCategories::route('/{record}/activity-categories'),
@@ -124,13 +131,22 @@ class EventResource extends Resource
     }
 
     /**
-     * «Eventos» y, dentro de un evento, sus secciones anidadas en el menú lateral (plan 020, DA-1
-     * revisada el 2026-11-17: submenú en el aside azul, no una columna dentro de la página).
+     * «Eventos» y, dentro de un evento, sus secciones como grupos del menú lateral por fase (plan 020,
+     * DA-1 revisada el 2026-11-17 y de nuevo el 2026-11-25: en el aside azul, agrupadas en Convocatoria,
+     * Evaluación y Programa, no como una columna dentro de la página ni como submenú de «Eventos»).
      *
      * @return array<int, NavigationItem>
      */
     public static function getNavigationItems(): array
     {
-        return [...parent::getNavigationItems(), ...EventSectionsNavigation::items(static::class)];
+        // Dentro de un evento la sección actual es la única activa (CA-020-21): «Eventos» solo se marca en la lista y al crear.
+        $events = array_map(
+            static fn (NavigationItem $item): NavigationItem => $item->isActiveWhen(
+                static fn (): bool => original_request()->routeIs(static::getRouteBaseName().'.*') && EventSectionsNavigation::eventId() === null,
+            ),
+            parent::getNavigationItems(),
+        );
+
+        return [...$events, ...EventSectionsNavigation::items()];
     }
 }

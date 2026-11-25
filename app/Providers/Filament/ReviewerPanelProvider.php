@@ -11,6 +11,7 @@ use App\Http\Middleware\EnsureTwoFactorConfirmed;
 use App\Models\Organization;
 use App\Support\Auth\TotpAuthentication;
 use App\Support\Panel\BrandPalette;
+use App\Support\Panel\InitialsAvatarProvider;
 use Filament\FontProviders\LocalFontProvider;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
@@ -50,6 +51,7 @@ class ReviewerPanelProvider extends PanelProvider
             ->viteTheme('resources/css/filament/admin/theme.css')
             ->font('Roboto', provider: LocalFontProvider::class)
             ->darkMode(false)
+            ->defaultAvatarProvider(InitialsAvatarProvider::class)
             ->colors([
                 'primary' => BrandPalette::primary(),
                 'gray' => BrandPalette::gray(),
