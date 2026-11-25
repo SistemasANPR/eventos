@@ -119,7 +119,7 @@ Cada propuesta sigue el formato de la sección 6 y viaja con su plan. Las anteri
 5. **Alternativa descartada:** guardar el correo en claro en el registro de anonimizaciones (sería dato personal justo donde se prometió borrarlo); borrar físicamente las filas (rompe claves foráneas y conteos, DA-4); una columna `anonymized_at` en todas las tablas (solo se añade donde vive el dato personal y hay que marcar la fila).
 
 
-### 8.4 Plan 030: salas y sala de la actividad (aprobada el 2026-11-25 con el plan; DA-2, DA-3, DA-10 y DA-13)
+### 8.4 Plan 031: salas y sala de la actividad (aprobada el 2026-11-25 con el plan; DA-2, DA-3, DA-10 y DA-13)
 
 1. **Necesidad:** la agenda visual necesita saber **dónde** ocurre cada actividad para mostrar una columna por sala y rechazar que dos actividades ocupen la misma sala a la vez. Dueño: módulo de programa (`app/Actions/Program/`). Ciclo de vida: la sala se crea, se edita, se ordena y se elimina (sin historial propio); la actividad la conserva mientras exista.
 2. **Inspección:** no existe ninguna tabla de salas ni de sedes; `events` solo guarda `venue_name` y `venue_address` como texto; `event_activities` no tiene sala. Las categorías del plan 021 (`activity_categories`) son el patrón a seguir: catálogo por evento, borrado físico, único por nombre.

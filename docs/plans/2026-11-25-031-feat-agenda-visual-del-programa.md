@@ -1,6 +1,6 @@
 # feat: Agenda visual del programa (E-20): salas, vista por día y sala, y reglas de choques
 
-> Plan 030. Es la especificación SDD (ADR-0001). Se presenta y se espera aprobación antes de escribir código. `NNN` = 030: todos sus criterios son `CA-030-n`. Cubre **E-20** en su primera entrega: la agenda dentro del panel como segunda vista de las actividades. El sitio público no cambia (plan 029).
+> Plan 031. Es la especificación SDD (ADR-0001). Se presenta y se espera aprobación antes de escribir código. `NNN` = 031: todos sus criterios son `CA-031-n`. Cubre **E-20** en su primera entrega: la agenda dentro del panel como segunda vista de las actividades. El sitio público no cambia (plan 029).
 > `composer check:criteria` lee el **Estado** y los criterios de este archivo: no cambiar el formato de esas líneas.
 
 - **Fecha:** 2026-11-25
@@ -43,7 +43,7 @@ Medido el 2026-11-25 sobre `staging` (`d7395d9`):
 - **Acciones existentes.** `app/Actions/Program/`: `CreateActivity`, `UpdateActivity`, `SetActivityPublication`, `DeleteActivity`, `SyncActivitySpeakers`, `PromoteSubmissionToProgram` y `HideProgramOfSubmission`. Reciben un array validado; la firma no cambia si se agrega una clave al arreglo.
 - **Tecnología del panel.** Filament `v5.11.4` sobre Livewire `v4.4.8`. `package.json` **no** incluye librerías de calendario ni de arrastre. Filament incluye `sortable.js` (SortableJS) en `vendor/filament/support/resources/js/`. React vive en `resources/js/` y es del sitio público (ADR-0004); el panel no monta React.
 - **Plan 029 en curso.** Su F2 está hecha y F3 a F5 pendientes (rama `feat/plan-029-ponentes-y-detalle`). Toca `EventActivity` (scope `visibleToPublic`) y la capa pública, no la pantalla del panel. Este plan no cambia nada público.
-- **Numeración.** El último plan es el 029 (`2026-11-24-029-...`); ninguna rama ni worktree tiene un 030.
+- **Numeración.** El último plan fusionado es el 029 (`2026-11-24-029-...`); el 030 (evento no disponible) esta en curso en otra rama sin fusionar, por eso este plan es el 031 (se habia nombrado 030 por error y se renumero el 2026-11-25).
 - **Deuda.** `docs/sprints/deuda-tecnica.md` no tiene puntos abiertos sobre programa, salas ni agenda.
 - **Plan de desarrollo.** E-20 «Programa y agenda» está en R3, esfuerzo L, depende de E-12 y E-19, con entregable «Agenda sin choques»; S-11 (Livewire o React dentro de Filament) está `[PENDIENTE]` y esperaba este plan.
 
@@ -161,79 +161,79 @@ Cada fase deja el repo en verde y termina en su propio commit. Prueba primero en
 | Fase | Qué se hace | Criterio de terminado | Esfuerzo |
 |---|---|---|---|
 | F0 | Aprobar este plan y cerrar DA-1 a DA-13. Glosario (`Room` con ámbito Evento; término «Agenda»), propuesta de datos en `docs/database-design.md` §6, S-11 cerrada en `docs/plan-de-desarrollo.md`. Comprobar cómo alternar vistas en `ManageRelatedRecords` (DA-1), cómo tratan las categorías el borrado (DA-13), el `EXPLAIN` del índice (§4.1) y la prueba de concepto de arrastre (DA-4) | Plan en `Aprobado`; decisiones registradas en §3 y en el commit; la prueba de concepto confirma o cambia DA-4 | S |
-| F1 | **Lista agrupada por día y ordenada por hora** (DA-12). No toca datos ni Actions | CA-030-1 a 4 verdes; `composer check` en verde con su salida; verificación en navegador a 375 y 1280 px | S |
-| F2 | **Salas:** migración (aprobada), modelo, factory, `RoomPolicy`, Actions y Form Requests, gestión en el panel, orden, bloqueo de borrado, pruebas de aislamiento | CA-030-5 a 8 verdes; `ModelsAreScoped` y `TenantIsolation` incluyen `Room` | M |
-| F3 | **Sala en la actividad y reglas de choque:** `room_id` en la migración de F2 (o su propia migración), selector en el formulario, columna «Sala» en la lista, `DetectScheduleConflicts`, rechazo de sala ocupada y aviso de ponente en `CreateActivity`, `UpdateActivity` y `SyncActivitySpeakers` | CA-030-9 a 18 y 28 verdes (pruebas escritas **antes** del código y vistas fallar) | M |
-| F4 | **Agenda de lectura:** pestaña, selector de día, cuadrícula día × sala, marcas de choque, panel de pendientes y estados vacío, de carga y de error. Sin arrastre | CA-030-19, 20, 24, 25 y 29 verdes; navegador a 375 y 1280 px | M |
-| F5 | **Mover:** `MoveActivity`, arrastre en la cuadrícula y desde el panel de pendientes, acción «Mover…» con teclado, auditoría | CA-030-21 a 23, 26 y 27 verdes; verificación manual de CA-030-30 | L |
+| F1 | **Lista agrupada por día y ordenada por hora** (DA-12). No toca datos ni Actions | CA-031-1 a 4 verdes; `composer check` en verde con su salida; verificación en navegador a 375 y 1280 px | S |
+| F2 | **Salas:** migración (aprobada), modelo, factory, `RoomPolicy`, Actions y Form Requests, gestión en el panel, orden, bloqueo de borrado, pruebas de aislamiento | CA-031-5 a 8 verdes; `ModelsAreScoped` y `TenantIsolation` incluyen `Room` | M |
+| F3 | **Sala en la actividad y reglas de choque:** `room_id` en la migración de F2 (o su propia migración), selector en el formulario, columna «Sala» en la lista, `DetectScheduleConflicts`, rechazo de sala ocupada y aviso de ponente en `CreateActivity`, `UpdateActivity` y `SyncActivitySpeakers` | CA-031-9 a 18 y 28 verdes (pruebas escritas **antes** del código y vistas fallar) | M |
+| F4 | **Agenda de lectura:** pestaña, selector de día, cuadrícula día × sala, marcas de choque, panel de pendientes y estados vacío, de carga y de error. Sin arrastre | CA-031-19, 20, 24, 25 y 29 verdes; navegador a 375 y 1280 px | M |
+| F5 | **Mover:** `MoveActivity`, arrastre en la cuadrícula y desde el panel de pendientes, acción «Mover…» con teclado, auditoría | CA-031-21 a 23, 26 y 27 verdes; verificación manual de CA-031-30 | L |
 | F6 | Verificación completa en navegador (375 y 1280 px, consola, teclado), `composer check` y `npm run typecheck`, `lint`, `test` y `build` si se tocó `resources/js`, deuda de §10 en `docs/sprints/deuda-tecnica.md` (commit `docs(debt)` aparte) y cierre del plan | Todos los criterios con prueba o `Manual:` registrada; plan en `Terminado` | S |
 
 F1 es independiente: puede entregarse y usarse antes de que exista una sola sala.
 
 ## 7. Criterios de aceptación
 
-Cada uno tiene al menos una prueba cuyo nombre lo cita (`CA-030-n: ...`) o declara su comprobación manual con una línea `Manual:` debajo.
+Cada uno tiene al menos una prueba cuyo nombre lo cita (`CA-031-n: ...`) o declara su comprobación manual con una línea `Manual:` debajo.
 
 **Lista agrupada por día (F1)**
 
-- **CA-030-1:** *Dado* un evento con actividades en tres días y algunas sin programar, *cuando* se abre la lista de Actividades, *entonces* se agrupa por día con un encabezado de fecha larga en el idioma del usuario, ordenada por día ascendente, y dentro de cada día por hora de inicio, hora de fin y título; el grupo «Sin programar» va al final.
-- **CA-030-2:** *Dado* una actividad que empieza el día 20 a las 22:00 y termina el 21 a las 02:00, *cuando* se abre la lista, *entonces* aparece solo bajo el día 20 y su fila muestra la fecha de fin.
-- **CA-030-3:** *Dado* más actividades que el tamaño de página y filtros activos (categoría, publicada, programada), *cuando* se pagina o se filtra, *entonces* el orden global (día y hora) se conserva y los filtros existentes siguen funcionando.
-- **CA-030-4:** *Dado* la lista agrupada, *cuando* se ve a ~375 y ~1280 px con la consola abierta, *entonces* se lee sin desplazamiento horizontal de la página y sin errores.
+- **CA-031-1:** *Dado* un evento con actividades en tres días y algunas sin programar, *cuando* se abre la lista de Actividades, *entonces* se agrupa por día con un encabezado de fecha larga en el idioma del usuario, ordenada por día ascendente, y dentro de cada día por hora de inicio, hora de fin y título; el grupo «Sin programar» va al final.
+- **CA-031-2:** *Dado* una actividad que empieza el día 20 a las 22:00 y termina el 21 a las 02:00, *cuando* se abre la lista, *entonces* aparece solo bajo el día 20 y su fila muestra la fecha de fin.
+- **CA-031-3:** *Dado* más actividades que el tamaño de página y filtros activos (categoría, publicada, programada), *cuando* se pagina o se filtra, *entonces* el orden global (día y hora) se conserva y los filtros existentes siguen funcionando.
+- **CA-031-4:** *Dado* la lista agrupada, *cuando* se ve a ~375 y ~1280 px con la consola abierta, *entonces* se lee sin desplazamiento horizontal de la página y sin errores.
   Manual: abrir el evento, Actividades, con datos de tres días y sin programar; a 375 y 1280 px; esperar o hacer scroll antes de concluir un fallo por animaciones de entrada.
 
 **Salas (F2)**
 
-- **CA-030-5:** *Dado* un organizador con `activities.manage`, *cuando* crea una sala con nombre, *entonces* queda en su evento; el nombre es obligatorio y de hasta 100 caracteres, un nombre repetido en el mismo evento (sin distinguir mayúsculas) se rechaza y el mismo nombre en otro evento se acepta.
-- **CA-030-6:** *Dado* un usuario `reviewer`, un autor o uno de otra organización, *cuando* intenta ver, crear, editar u ordenar salas, *entonces* se deniega en el servidor; eliminar exige `org_admin`; y una sala de otra organización consultada por identificador responde 404 (prueba de aislamiento).
-- **CA-030-7:** *Dado* una sala con actividades asignadas, *cuando* se intenta eliminar, *entonces* falla con un error que dice cuántas actividades la usan, no se borra y las actividades conservan su sala; una sala sin actividades sí se elimina.
-- **CA-030-8:** *Dado* varias salas, *cuando* se reordenan, *entonces* su `position` se guarda y es el orden de las columnas de la agenda y del selector.
+- **CA-031-5:** *Dado* un organizador con `activities.manage`, *cuando* crea una sala con nombre, *entonces* queda en su evento; el nombre es obligatorio y de hasta 100 caracteres, un nombre repetido en el mismo evento (sin distinguir mayúsculas) se rechaza y el mismo nombre en otro evento se acepta.
+- **CA-031-6:** *Dado* un usuario `reviewer`, un autor o uno de otra organización, *cuando* intenta ver, crear, editar u ordenar salas, *entonces* se deniega en el servidor; eliminar exige `org_admin`; y una sala de otra organización consultada por identificador responde 404 (prueba de aislamiento).
+- **CA-031-7:** *Dado* una sala con actividades asignadas, *cuando* se intenta eliminar, *entonces* falla con un error que dice cuántas actividades la usan, no se borra y las actividades conservan su sala; una sala sin actividades sí se elimina.
+- **CA-031-8:** *Dado* varias salas, *cuando* se reordenan, *entonces* su `position` se guarda y es el orden de las columnas de la agenda y del selector.
 
 **Sala en la actividad y choques (F3)**
 
-- **CA-030-9:** *Dado* una actividad programada, *cuando* se le asigna una sala del mismo evento, *entonces* se guarda; la sala es opcional; una sala de otro evento u otra organización se rechaza con error de validación; y una actividad **sin programar** no admite sala.
-- **CA-030-10:** *Dado* dos actividades en la misma sala con intervalos que se cruzan, *cuando* se guarda, se edita o se mueve la segunda, *entonces* el cambio se **rechaza** con el error `ACTIVITY_ROOM_CONFLICT` que nombra la actividad en conflicto y no se escribe nada (ni la sala, ni el horario, ni los ponentes).
-- **CA-030-11:** *Dado* una actividad que termina a las 10:00 en una sala, *cuando* otra empieza a las 10:00 en la misma sala, *entonces* se acepta (intervalos medio abiertos, DA-5).
-- **CA-030-12:** *Dado* una actividad del día 20 de 22:00 al día 21 a las 02:00 en una sala, *cuando* otra del día 21 de 01:00 a 02:30 se programa en esa sala, *entonces* se rechaza; y una del día 21 de 02:00 a 03:00 se acepta.
-- **CA-030-13:** *Dado* dos actividades con el mismo horario en salas distintas, o una sin sala, *cuando* se guardan, *entonces* se aceptan.
-- **CA-030-14:** *Dado* una actividad no publicada, o oculta por reversa, con sala y horario, *cuando* otra intenta ocupar esa sala a la misma hora, *entonces* se rechaza (DA-6); una actividad eliminada no cuenta.
-- **CA-030-15:** *Dado* un ponente asignado a dos actividades con horarios que se cruzan (en cualquier sala), *cuando* se guarda la segunda o se le asigna el ponente, *entonces* el cambio **se guarda** y la respuesta incluye el aviso con el nombre del ponente y de la otra actividad.
-- **CA-030-16:** *Dado* el rechazo por sala ocupada, *cuando* ocurre dentro de un cambio de varios pasos (datos, categorías, ponentes, sala), *entonces* la transacción se revierte entera: no queda ninguna escritura parcial.
-- **CA-030-17:** *Dado* un cambio de horario o de sala, *cuando* se ejecuta, *entonces* la comprobación y la escritura ocurren en la misma transacción con la fila del evento bloqueada (DA-10); la prueba lo verifica y registra la comprobación manual de la concurrencia real.
+- **CA-031-9:** *Dado* una actividad programada, *cuando* se le asigna una sala del mismo evento, *entonces* se guarda; la sala es opcional; una sala de otro evento u otra organización se rechaza con error de validación; y una actividad **sin programar** no admite sala.
+- **CA-031-10:** *Dado* dos actividades en la misma sala con intervalos que se cruzan, *cuando* se guarda, se edita o se mueve la segunda, *entonces* el cambio se **rechaza** con el error `ACTIVITY_ROOM_CONFLICT` que nombra la actividad en conflicto y no se escribe nada (ni la sala, ni el horario, ni los ponentes).
+- **CA-031-11:** *Dado* una actividad que termina a las 10:00 en una sala, *cuando* otra empieza a las 10:00 en la misma sala, *entonces* se acepta (intervalos medio abiertos, DA-5).
+- **CA-031-12:** *Dado* una actividad del día 20 de 22:00 al día 21 a las 02:00 en una sala, *cuando* otra del día 21 de 01:00 a 02:30 se programa en esa sala, *entonces* se rechaza; y una del día 21 de 02:00 a 03:00 se acepta.
+- **CA-031-13:** *Dado* dos actividades con el mismo horario en salas distintas, o una sin sala, *cuando* se guardan, *entonces* se aceptan.
+- **CA-031-14:** *Dado* una actividad no publicada, o oculta por reversa, con sala y horario, *cuando* otra intenta ocupar esa sala a la misma hora, *entonces* se rechaza (DA-6); una actividad eliminada no cuenta.
+- **CA-031-15:** *Dado* un ponente asignado a dos actividades con horarios que se cruzan (en cualquier sala), *cuando* se guarda la segunda o se le asigna el ponente, *entonces* el cambio **se guarda** y la respuesta incluye el aviso con el nombre del ponente y de la otra actividad.
+- **CA-031-16:** *Dado* el rechazo por sala ocupada, *cuando* ocurre dentro de un cambio de varios pasos (datos, categorías, ponentes, sala), *entonces* la transacción se revierte entera: no queda ninguna escritura parcial.
+- **CA-031-17:** *Dado* un cambio de horario o de sala, *cuando* se ejecuta, *entonces* la comprobación y la escritura ocurren en la misma transacción con la fila del evento bloqueada (DA-10); la prueba lo verifica y registra la comprobación manual de la concurrencia real.
   Manual: dos sesiones del panel mueven a la vez dos actividades a la misma sala y hora; solo una se acepta y la otra recibe el error de choque.
-- **CA-030-18:** *Dado* las Actions existentes (`CreateActivity`, `UpdateActivity`, `SyncActivitySpeakers`, `SetActivityPublication`), *cuando* se llaman con los argumentos de antes, *entonces* siguen funcionando con la misma firma y sus pruebas del plan 021 pasan sin cambios.
+- **CA-031-18:** *Dado* las Actions existentes (`CreateActivity`, `UpdateActivity`, `SyncActivitySpeakers`, `SetActivityPublication`), *cuando* se llaman con los argumentos de antes, *entonces* siguen funcionando con la misma firma y sus pruebas del plan 021 pasan sin cambios.
 
 **Agenda (F4 y F5)**
 
-- **CA-030-19:** *Dado* un evento con salas y actividades programadas, *cuando* se abre la pestaña Agenda, *entonces* muestra el primer día del programa con una columna por sala en el orden de `position` más «Sin sala», cada actividad ocupa las filas de su duración, la hora usa el formato (12 h o 24 h) y la zona del evento, y el selector lista los días locales del evento y los de sus actividades.
-- **CA-030-20:** *Dado* un choque de ponente (o un choque de sala preexistente), *cuando* se ve la agenda y la lista, *entonces* ambas actividades llevan una insignia con texto (no solo color) y su detalle dice con cuál chocan.
-- **CA-030-21:** *Dado* una actividad sin programar en el panel de pendientes, *cuando* se arrastra a una celda libre, *entonces* queda programada en ese día, esa hora de inicio y esa sala, con 60 minutos de duración; si la celda está ocupada en esa sala se rechaza con el mensaje de choque y la actividad vuelve al panel.
-- **CA-030-22:** *Dado* una actividad programada de un solo día, *cuando* se arrastra a otro día, hora o sala, *entonces* conserva su duración, el servidor recalcula el fin sin confiar en el que envía el cliente, y una sala o una actividad de otro evento u organización se rechaza como inexistente.
-- **CA-030-23:** *Dado* una actividad de varios días o que cruza la medianoche, *cuando* se ve la agenda, *entonces* aparece bajo su día de inicio con el indicador y **no** es arrastrable; se mueve con el formulario o con «Mover…».
-- **CA-030-24:** *Dado* un usuario sin `activities.manage` o de otra organización, *cuando* intenta abrir la pestaña Agenda o mover una actividad, *entonces* se deniega en el servidor aunque conozca la dirección o llame directo al componente.
-- **CA-030-25:** *Dado* un evento sin salas, sin actividades o con un error de carga, *cuando* se abre la agenda, *entonces* sin salas muestra la columna «Sin sala» y la invitación a crear salas; sin actividades muestra el estado vacío; un fallo de base se muestra como error y no como agenda vacía.
-- **CA-030-26:** *Dado* cualquier actividad, *cuando* se usa la acción «Mover…» (día, hora y sala) con teclado y sin arrastrar, *entonces* ejecuta la misma `MoveActivity` con las mismas reglas y mensajes.
-- **CA-030-27:** *Dado* un movimiento aceptado, *cuando* termina, *entonces* la auditoría registra la actividad, el antes y el después de fecha, hora y sala, y quién lo hizo, sin datos personales.
-- **CA-030-28:** *Dado* las props públicas de una actividad y de un ponente (plan 029), *cuando* se construyen con una actividad que tiene sala, *entonces* las claves son **exactamente** las de antes y ninguna cadena contiene la sala (DA-9).
-- **CA-030-29:** *Dado* un evento con 50 actividades, 8 salas y 20 ponentes, *cuando* se abre la agenda de un día, *entonces* el número de consultas no crece con el número de actividades (sin N+1; el límite se fija al medirlo en F4).
-- **CA-030-30:** *Dado* la agenda y el arrastre, *cuando* se ven y se usan a ~375 y ~1280 px con la consola abierta, *entonces* la página no se desplaza horizontalmente (la cuadrícula se desplaza dentro de su contenedor), los controles tienen un área de toque de al menos 44 px, el foco es visible, el contraste cumple AA, el arrastre funciona con ratón y la acción «Mover…» cubre teclado y táctil, y la consola no muestra errores.
+- **CA-031-19:** *Dado* un evento con salas y actividades programadas, *cuando* se abre la pestaña Agenda, *entonces* muestra el primer día del programa con una columna por sala en el orden de `position` más «Sin sala», cada actividad ocupa las filas de su duración, la hora usa el formato (12 h o 24 h) y la zona del evento, y el selector lista los días locales del evento y los de sus actividades.
+- **CA-031-20:** *Dado* un choque de ponente (o un choque de sala preexistente), *cuando* se ve la agenda y la lista, *entonces* ambas actividades llevan una insignia con texto (no solo color) y su detalle dice con cuál chocan.
+- **CA-031-21:** *Dado* una actividad sin programar en el panel de pendientes, *cuando* se arrastra a una celda libre, *entonces* queda programada en ese día, esa hora de inicio y esa sala, con 60 minutos de duración; si la celda está ocupada en esa sala se rechaza con el mensaje de choque y la actividad vuelve al panel.
+- **CA-031-22:** *Dado* una actividad programada de un solo día, *cuando* se arrastra a otro día, hora o sala, *entonces* conserva su duración, el servidor recalcula el fin sin confiar en el que envía el cliente, y una sala o una actividad de otro evento u organización se rechaza como inexistente.
+- **CA-031-23:** *Dado* una actividad de varios días o que cruza la medianoche, *cuando* se ve la agenda, *entonces* aparece bajo su día de inicio con el indicador y **no** es arrastrable; se mueve con el formulario o con «Mover…».
+- **CA-031-24:** *Dado* un usuario sin `activities.manage` o de otra organización, *cuando* intenta abrir la pestaña Agenda o mover una actividad, *entonces* se deniega en el servidor aunque conozca la dirección o llame directo al componente.
+- **CA-031-25:** *Dado* un evento sin salas, sin actividades o con un error de carga, *cuando* se abre la agenda, *entonces* sin salas muestra la columna «Sin sala» y la invitación a crear salas; sin actividades muestra el estado vacío; un fallo de base se muestra como error y no como agenda vacía.
+- **CA-031-26:** *Dado* cualquier actividad, *cuando* se usa la acción «Mover…» (día, hora y sala) con teclado y sin arrastrar, *entonces* ejecuta la misma `MoveActivity` con las mismas reglas y mensajes.
+- **CA-031-27:** *Dado* un movimiento aceptado, *cuando* termina, *entonces* la auditoría registra la actividad, el antes y el después de fecha, hora y sala, y quién lo hizo, sin datos personales.
+- **CA-031-28:** *Dado* las props públicas de una actividad y de un ponente (plan 029), *cuando* se construyen con una actividad que tiene sala, *entonces* las claves son **exactamente** las de antes y ninguna cadena contiene la sala (DA-9).
+- **CA-031-29:** *Dado* un evento con 50 actividades, 8 salas y 20 ponentes, *cuando* se abre la agenda de un día, *entonces* el número de consultas no crece con el número de actividades (sin N+1; el límite se fija al medirlo en F4).
+- **CA-031-30:** *Dado* la agenda y el arrastre, *cuando* se ven y se usan a ~375 y ~1280 px con la consola abierta, *entonces* la página no se desplaza horizontalmente (la cuadrícula se desplaza dentro de su contenedor), los controles tienen un área de toque de al menos 44 px, el foco es visible, el contraste cumple AA, el arrastre funciona con ratón y la acción «Mover…» cubre teclado y táctil, y la consola no muestra errores.
   Manual: abrir Actividades, pestaña Agenda, con salas y actividades de prueba; arrastrar una programada, una pendiente y una en choque; repetir con teclado y «Mover…»; a 375 y 1280 px; anotar en §9 lo observado.
 
 ## 8. Riesgos
 
 | Riesgo | Mitigación |
 |---|---|
-| **Cambiar el comportamiento de las Actions del plan 021** (`CreateActivity`, `UpdateActivity`, `SyncActivitySpeakers`) y romper a quien las llama (plan 012, `PromoteSubmissionToProgram`) | La firma no cambia; `room_id` es una clave opcional del arreglo; CA-030-18 mantiene verdes las pruebas existentes; las Actions que crean actividades sin fecha no generan choques |
-| **Fuga entre organizaciones o eventos** por una sala o consulta sin acotar | `Room` con `BelongsToOrganization`, clave foránea compuesta `(room_id, event_id, organization_id)`, validación en el servidor, CA-030-6, 22 y 24; revisión con `/revisar-aislamiento` antes de cerrar F3 y F5 |
-| **Condición de carrera**: dos personas ocupan la misma sala a la vez | Comprobación y escritura en la misma transacción con el evento bloqueado (DA-10, CA-030-17); la restricción de exclusión queda como deuda (§10) |
+| **Cambiar el comportamiento de las Actions del plan 021** (`CreateActivity`, `UpdateActivity`, `SyncActivitySpeakers`) y romper a quien las llama (plan 012, `PromoteSubmissionToProgram`) | La firma no cambia; `room_id` es una clave opcional del arreglo; CA-031-18 mantiene verdes las pruebas existentes; las Actions que crean actividades sin fecha no generan choques |
+| **Fuga entre organizaciones o eventos** por una sala o consulta sin acotar | `Room` con `BelongsToOrganization`, clave foránea compuesta `(room_id, event_id, organization_id)`, validación en el servidor, CA-031-6, 22 y 24; revisión con `/revisar-aislamiento` antes de cerrar F3 y F5 |
+| **Condición de carrera**: dos personas ocupan la misma sala a la vez | Comprobación y escritura en la misma transacción con el evento bloqueado (DA-10, CA-031-17); la restricción de exclusión queda como deuda (§10) |
 | **El arrastre a mano resulta frágil** (táctil, desplazamiento, accesibilidad) | Prueba de concepto en F0 antes de comprometer F4 y F5; el servidor decide todo; «Mover…» es la vía accesible y táctil; sin dependencias nuevas, si no alcanza se pide permiso para una librería (acción 4) |
-| **Choques entre actividades de varios días o que cruzan la medianoche** calculados mal | Un solo cálculo (`DetectScheduleConflicts`) sobre intervalos locales medio abiertos; CA-030-11 y 12 con los casos límite |
+| **Choques entre actividades de varios días o que cruzan la medianoche** calculados mal | Un solo cálculo (`DetectScheduleConflicts`) sobre intervalos locales medio abiertos; CA-031-11 y 12 con los casos límite |
 | **Hora local sin zona** y cambios de horario de verano en la zona del evento | Se calcula con la hora de pared del evento, igual que el plan 021 (DA-12); en las zonas con horario de verano una hora ambigua se trata como hora de pared. Se anota como límite conocido |
 | **Las ocultas por reversa ocupan sala sin que nadie las vea** | La agenda las muestra atenuadas con «Oculto por reversa» (DA-6) y se pueden mover o eliminar |
 | **Se cuele E-20 completo** (versiones, exportación, pósters, sala pública) | Fuera de alcance (§1); cada uno va a otro plan |
-| **Conflicto con el plan 029 en curso** | No comparten archivos: este plan toca la pantalla del panel, las Actions y datos; el 029, la capa pública. DA-9 y CA-030-28 protegen su contrato. Esta rama sale de `staging` actualizada y se integra después de sincronizar |
+| **Conflicto con el plan 029 en curso** | No comparten archivos: este plan toca la pantalla del panel, las Actions y datos; el 029, la capa pública. DA-9 y CA-031-28 protegen su contrato. Esta rama sale de `staging` actualizada y se integra después de sincronizar |
 | **Se adelanta E-20 respecto del plan de desarrollo (R3)** | Es decisión de Antonio (2026-11-25); R1 sigue siendo la prioridad y las fases son pequeñas y separables: F1 se puede entregar sola |
-| **Agenda ilegible en móvil** (varias columnas de salas) | La cuadrícula se desplaza dentro de su contenedor; las acciones críticas tienen alternativa («Mover…», formulario); CA-030-30 |
+| **Agenda ilegible en móvil** (varias columnas de salas) | La cuadrícula se desplaza dentro de su contenedor; las acciones críticas tienen alternativa («Mover…», formulario); CA-031-30 |
 
 ## 9. Registro de avance
 
