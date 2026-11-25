@@ -14,6 +14,7 @@ use App\Http\Middleware\EnsureTwoFactorConfirmed;
 use App\Models\Organization;
 use App\Support\Auth\TotpAuthentication;
 use App\Support\Panel\BrandPalette;
+use App\Support\Panel\EventBrandName;
 use App\Support\Panel\InitialsAvatarProvider;
 use Filament\Actions\Action;
 use Filament\Facades\Filament;
@@ -76,6 +77,8 @@ class AdminPanelProvider extends PanelProvider
             ->viteTheme('resources/css/filament/admin/theme.css')
             ->font('Roboto', provider: LocalFontProvider::class)
             ->darkMode(false)
+            // Dentro de un evento la marca de la barra superior es el nombre del evento (plan 020, CA-020-20).
+            ->brandName(fn (): string => EventBrandName::resolve())
             ->defaultAvatarProvider(InitialsAvatarProvider::class)
             // Menú lateral más estrecho que el de Filament (20 rem) y contraíble a solo iconos;
             // en pantallas menores a 1024 px Filament ya lo muestra como cajón (plan 015, CA-015-14).
@@ -128,8 +131,12 @@ class AdminPanelProvider extends PanelProvider
             ->group(fn (): string => __('navigation.groups.organization'))
             ->icon(Heroicon::OutlinedBuildingOffice2)
             ->sort(9)
-            ->visible(fn (): bool => ($tenant = Filament::getTenant()) instanceof Organization && EditOrganizationProfile::canView($tenant))
-            ->url(fn (): string => EditOrganizationProfile::getUrl(tenant: Filament::getTenant()))
+            // Solo en el panel de organizaciones: Filament conserva los ítems del panel que armó el menú primero y, sin
+            // esta guarda, un usuario de plataforma que también es miembro los vería (y fallaría) en el panel de plataforma.
+            ->visible(fn (): bool => Filament::getCurrentPanel()?->getId() === 'admin'
+                && ($tenant = Filament::getTenant()) instanceof Organization
+                && EditOrganizationProfile::canView($tenant))
+            ->url(fn (): string => EditOrganizationProfile::getUrl(panel: 'admin', tenant: Filament::getTenant()))
             ->activeWhen(fn (): bool => original_request()->routeIs('filament.admin.tenant.profile'));
     }
 

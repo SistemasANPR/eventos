@@ -669,3 +669,41 @@ h3,
     color: var(--eventos-navy);
     font-weight: 700;
 }
+
+/*
+ * Marca de la barra superior: dentro de un evento es el nombre del evento (CA-020-20). Va en el azul de
+ * marca y con título tipográfico; si es largo se trunca para no empujar el menú ni el avatar.
+ */
+.fi-topbar .fi-logo {
+    max-width: min(32rem, 55vw);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-family: 'Montserrat', system-ui, -apple-system, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+    font-weight: 700;
+    color: var(--eventos-navy);
+}
+
+/*
+ * Filament oculta la marca por debajo de 1024 px. Como la marca es el nombre del evento, se muestra también
+ * en móvil, entre el botón del menú y el avatar, truncada para que no desborde.
+ */
+@media (max-width: 1023px) {
+    .fi-topbar-start {
+        display: flex;
+        flex: 1 1 0%;
+        min-width: 0;
+        margin-inline-end: 0.75rem;
+    }
+
+    /* Contraer el menú es solo de escritorio; en móvil el botón de la hamburguesa ya abre el cajón. */
+    .fi-topbar-start .fi-topbar-collapse-sidebar-btn-ctn {
+        display: none;
+    }
+
+    .fi-topbar-start .fi-logo {
+        margin-inline-start: 0.5rem;
+        max-width: 100%;
+        font-size: 1rem;
+    }
+}

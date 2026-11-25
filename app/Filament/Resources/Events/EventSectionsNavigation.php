@@ -74,7 +74,7 @@ final class EventSectionsNavigation
     }
 
     /** Evento de la ruta: el parámetro `event` de los recursos anidados o `record` de las páginas del propio evento. */
-    private static function eventId(): ?string
+    public static function eventId(): ?string
     {
         $route = original_request()->route();
 
