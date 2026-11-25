@@ -17,6 +17,7 @@ use App\Models\EventLanding;
 use App\Models\FormDefinition;
 use App\Models\KnownDevice;
 use App\Models\LandingImage;
+use App\Models\Lodging;
 use App\Models\MailDispatch;
 use App\Models\MailTemplate;
 use App\Models\NotificationSetting;
@@ -32,6 +33,7 @@ use App\Models\Rubric;
 use App\Models\RubricCriterion;
 use App\Models\Speaker;
 use App\Models\SpeakerCategory;
+use App\Models\Sponsor;
 use App\Models\Submission;
 use App\Models\SubmissionAccessToken;
 use App\Models\SubmissionFile;
@@ -159,6 +161,8 @@ final class PersonalDataInventory
         EventLanding::class => 'Contenido de la página pública redactado por la organización.',
         FormDefinition::class => 'Definición del formulario (campos y reglas), sin respuestas de personas.',
         LandingImage::class => 'Imágenes de la página pública cargadas por la organización.',
+        Lodging::class => 'Hoteles recomendados del evento (nombre, dirección, enlace de reserva): datos de un negocio que registra la organización, sin personas.',
+        Sponsor::class => 'Patrocinadores del evento (nombre de la empresa, logotipo, nivel y sitio web): datos de una organización, sin personas.',
         MailTemplate::class => 'Plantillas de correo de la organización, sin destinatarios.',
         NotificationSetting::class => 'Interruptores de notificaciones de la organización.',
         PrivacyNotice::class => 'Texto del aviso de privacidad; `published_by` es el identificador de un miembro del equipo.',

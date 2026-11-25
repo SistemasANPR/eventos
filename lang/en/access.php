@@ -51,4 +51,13 @@ return [
         'next' => 'The next time you sign in you will have to set it up again with your authenticator app.',
         'ignore' => 'If you did not expect this, tell an administrator of your organization right away and change your password.',
     ],
+    'login' => [
+        'organization' => 'National Association of Parks and Recreation',
+        'kicker' => 'EVENTS PLATFORM',
+        'title' => 'Events',
+        'tagline' => 'Calls for proposals, proposal review and the program of ANPR gatherings, in one place.',
+        'modules' => ['call' => 'Call', 'review' => 'Review', 'program' => 'Program'],
+        'heading' => 'Sign in to your account',
+        'subheading' => 'Use the email address you were invited with.',
+    ],
 ];

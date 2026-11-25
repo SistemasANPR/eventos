@@ -33,7 +33,7 @@ class TeamMemberResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedUsers;
 
-    protected static ?int $navigationSort = 10;
+    protected static ?int $navigationSort = 13;
 
     public static function getNavigationGroup(): ?string
     {

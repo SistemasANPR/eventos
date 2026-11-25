@@ -14,12 +14,12 @@
 
 @theme {
     --color-surface: #ffffff;
-    --color-border: #e2e6ef;
-    --color-border-input: #777a82;
+    --color-border: #e3e8ec;
+    --color-border-input: #84909c;
     --color-text: #243342;
-    --color-text-muted: #585b62;
-    --color-primary: #152b83;
-    --color-primary-hover: #0d1e70;
+    --color-text-muted: #4b5a68;
+    --color-primary: #012787;
+    --color-primary-hover: #011a5e;
     --color-primary-contrast: #ffffff;
     --color-error: #b42318;
 }

@@ -14,16 +14,21 @@ use App\Http\Middleware\EnsureTwoFactorConfirmed;
 use App\Models\Organization;
 use App\Support\Auth\TotpAuthentication;
 use App\Support\Panel\BrandPalette;
+use App\Support\Panel\EventBrandName;
+use App\Support\Panel\InitialsAvatarProvider;
 use Filament\Actions\Action;
+use Filament\Facades\Filament;
 use Filament\FontProviders\LocalFontProvider;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
+use Filament\Navigation\NavigationItem;
 use Filament\Pages\Dashboard;
 use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\Support\Enums\Width;
+use Filament\Support\Icons\Heroicon;
 use Filament\View\PanelsRenderHook;
 use Filament\Widgets\AccountWidget;
 use Illuminate\Contracts\View\View;
@@ -33,6 +38,8 @@ use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
 use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
+
+use function Filament\Support\original_request;
 
 /**
  * Panel de organizadores (ADR-0004). La organización es el tenant de Filament:
@@ -58,12 +65,21 @@ class AdminPanelProvider extends PanelProvider
                 fn (): View => view('filament.auth.throttle-notice'),
                 scopes: [Login::class, RequestPasswordReset::class],
             )
+            ->renderHook(
+                PanelsRenderHook::SIMPLE_LAYOUT_START,
+                fn (): View => view('filament.auth.brand-panel'),
+                scopes: [Login::class, RequestPasswordReset::class],
+            )
             ->tenant(Organization::class, slugAttribute: 'slug')
             ->tenantMiddleware([ApplyOrganizationContext::class], isPersistent: true)
             ->tenantProfile(EditOrganizationProfile::class)
+            ->navigationItems([self::organizationProfileItem()])
             ->viteTheme('resources/css/filament/admin/theme.css')
             ->font('Roboto', provider: LocalFontProvider::class)
             ->darkMode(false)
+            // Dentro de un evento la marca de la barra superior es el nombre del evento (plan 020, CA-020-20).
+            ->brandName(fn (): string => EventBrandName::resolve())
+            ->defaultAvatarProvider(InitialsAvatarProvider::class)
             // Menú lateral más estrecho que el de Filament (20 rem) y contraíble a solo iconos;
             // en pantallas menores a 1024 px Filament ya lo muestra como cajón (plan 015, CA-015-14).
             ->sidebarWidth('13rem')
@@ -102,6 +118,26 @@ class AdminPanelProvider extends PanelProvider
             ->authMiddleware([
                 Authenticate::class,
             ]);
+    }
+
+    /**
+     * «Datos de la organización» como primera entrada del grupo «Organización» (sort 12, antes de Equipo,
+     * que lleva 13): la pantalla ya existía, pero solo se alcanzaba desde el selector de organización.
+     * Se ofrece a quien puede editarla (`EditOrganizationProfile::canView`); la Policy la niega en el servidor.
+     * Solo existe en este panel: el de plataforma no tiene la ruta del perfil de organización, y un usuario
+     * de plataforma que además es miembro de una organización llegaba a pedir una URL inexistente (500).
+     */
+    private static function organizationProfileItem(): NavigationItem
+    {
+        return NavigationItem::make(fn (): string => __('organizations.profile.title'))
+            ->group(fn (): string => __('navigation.groups.organization'))
+            ->icon(Heroicon::OutlinedBuildingOffice2)
+            ->sort(12)
+            ->visible(fn (): bool => Filament::getCurrentPanel()?->getId() === 'admin'
+                && ($tenant = Filament::getTenant()) instanceof Organization
+                && EditOrganizationProfile::canView($tenant))
+            ->url(fn (): string => EditOrganizationProfile::getUrl(panel: 'admin', tenant: Filament::getTenant()))
+            ->activeWhen(fn (): bool => original_request()->routeIs('filament.admin.tenant.profile'));
     }
 
     /**
