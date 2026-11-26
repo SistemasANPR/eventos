@@ -201,7 +201,7 @@ return [
             'too_many_body' => 'You made too many requests. Wait a moment and try again.',
             'turnstile_failed' => 'The security check could not be loaded. Check your connection and reload the page.',
             'turnstile_missing' => 'The security check is not available on this site. Let the organization know.',
-            'back_to_event' => 'Back to the event',
+            'back' => 'Back',
         ],
         'confirm' => [
             'title' => 'Open my submission',

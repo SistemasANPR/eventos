@@ -5,11 +5,13 @@ declare(strict_types=1);
 use App\Actions\Submissions\ConsumeAccessToken;
 use App\Actions\Submissions\CreateAccessToken;
 use App\Actions\Submissions\SendAccessLink;
+use App\Enums\CallStatus;
 use App\Enums\EventStatus;
 use App\Enums\SubmissionStatus;
 use App\Exceptions\Domain\AccessLinkInvalid;
 use App\Jobs\SendTransactionalMail;
 use App\Models\Activity;
+use App\Models\CallForSubmissions;
 use App\Models\Event;
 use App\Models\Organization;
 use App\Models\Submission;
@@ -199,18 +201,76 @@ it('CA-006-32: the request form validates the email and hides drafts', function 
     $this->get(AuthorFixtures::path($submission, 'my-submission/request-link'))->assertNotFound();
 });
 
-it('CA-032-6: the access-link page offers the way back to the event only while the event is published', function (): void {
+it('CA-032-6: the access-link page offers the way back only while the event is published', function (): void {
     $submission = AuthorFixtures::submission();
     $path = AuthorFixtures::path($submission, 'my-submission/request-link');
     $event = Event::query()->findOrFail($submission->event_id);
 
     $this->get($path.'?lang=es')->assertOk()
-        ->assertInertia(fn ($page) => $page->where('eventUrl', "/{$submission->organization->slug}/events/{$event->slug}?lang=es"));
+        ->assertInertia(fn ($page) => $page->where('backUrl', fn (?string $url): bool => $url !== null));
 
     $event->forceFill(['status' => EventStatus::Archived])->save();
 
     $this->get($path)->assertOk()
-        ->assertInertia(fn ($page) => $page->where('eventUrl', null));
+        ->assertInertia(fn ($page) => $page->where('backUrl', null));
+});
+
+it('CA-034-20: «Regresar» goes to the call: the one named by ?call=, or the only public call of the event', function (): void {
+    $submission = AuthorFixtures::submission();
+    $organization = Organization::query()->findOrFail($submission->organization_id);
+    $event = Event::query()->findOrFail($submission->event_id);
+    // El evento queda con una sola convocatoria pública, creada aquí (el fixture de la propuesta no lo garantiza).
+    CallForSubmissions::query()->where('event_id', $event->id)->delete();
+    $call = CallForSubmissions::factory()->published()->create(['organization_id' => $organization->id, 'event_id' => $event->id, 'slug' => 'unica']);
+    $path = AuthorFixtures::path($submission, 'my-submission/request-link');
+    $callUrl = "/{$organization->slug}/events/{$event->slug}/call/{$call->slug}?lang=es";
+
+    // Una sola convocatoria pública y sin indicación: esa.
+    $this->get($path.'?lang=es')->assertInertia(fn ($page) => $page->where('backUrl', $callUrl));
+
+    // Con la indicación `?call=` de esa convocatoria: la misma.
+    $this->get($path.'?lang=es&call='.$call->slug)->assertInertia(fn ($page) => $page->where('backUrl', $callUrl));
+
+    // Con una segunda convocatoria pública y sin indicación no hay una sola: regresa al evento.
+    $other = CallForSubmissions::factory()->published()->create(['organization_id' => $organization->id, 'event_id' => $event->id, 'slug' => 'otra-convocatoria']);
+    $this->get($path.'?lang=es')->assertInertia(fn ($page) => $page->where('backUrl', "/{$organization->slug}/events/{$event->slug}?lang=es"));
+
+    // Con la indicación de cada una, regresa a la suya.
+    $this->get($path.'?lang=es&call='.$other->slug)->assertInertia(fn ($page) => $page->where('backUrl', "/{$organization->slug}/events/{$event->slug}/call/{$other->slug}?lang=es"));
+
+    // Una indicación que no es de este evento no se obedece (ni revela nada): regresa al evento.
+    $this->get($path.'?lang=es&call=no-existe')->assertInertia(fn ($page) => $page->where('backUrl', "/{$organization->slug}/events/{$event->slug}?lang=es"));
+});
+
+it('CA-034-20: a draft call is never the destination of «Regresar»', function (): void {
+    $submission = AuthorFixtures::submission();
+    $organization = Organization::query()->findOrFail($submission->organization_id);
+    $event = Event::query()->findOrFail($submission->event_id);
+    CallForSubmissions::query()->where('event_id', $event->id)->delete();
+    $draft = CallForSubmissions::factory()->create(['organization_id' => $organization->id, 'event_id' => $event->id, 'slug' => 'borrador', 'status' => CallStatus::Draft]);
+
+    $this->get(AuthorFixtures::path($submission, 'my-submission/request-link').'?lang=es&call='.$draft->slug)
+        ->assertInertia(fn ($page) => $page->where('backUrl', "/{$organization->slug}/events/{$event->slug}?lang=es"));
+});
+
+it('CA-034-20: the call hint is kept when the request-link form is sent', function (): void {
+    $submission = AuthorFixtures::submission();
+    $call = CallForSubmissions::query()->findOrFail($submission->call_for_submissions_id);
+
+    $this->post(AuthorFixtures::path($submission, 'my-submission/request-link').'?lang=es&call='.$call->slug, accessLinkPayload(['email' => 'ana@example.test']))
+        ->assertRedirect(AuthorFixtures::path($submission, 'my-submission/request-link').'?lang=es&call='.$call->slug);
+});
+
+it('CA-034-21: the language links depend on the languages the event offers: one language, none to switch to', function (): void {
+    $submission = AuthorFixtures::submission();
+    $event = Event::query()->findOrFail($submission->event_id);
+    $path = AuthorFixtures::path($submission, 'my-submission/request-link');
+
+    $event->forceFill(['default_locale' => 'es', 'locales' => ['es']])->save();
+    $this->get($path)->assertInertia(fn ($page) => $page->where('event.locales', ['es']));
+
+    $event->forceFill(['default_locale' => 'es', 'locales' => ['es', 'en']])->save();
+    $this->get($path)->assertInertia(fn ($page) => $page->where('event.locales', ['es', 'en']));
 });
 
 it('CA-006-33: the token has at least 128 random bits, only its SHA-256 hash is stored and compared in constant time', function (): void {
