@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace App\Support\Program;
 
+use App\Enums\RoomKind;
 use App\Models\EventActivity;
+use App\Models\Room;
 use App\Models\Speaker;
 use Illuminate\Database\Eloquent\Builder;
 
@@ -28,6 +30,13 @@ final class DetectScheduleConflicts
     public static function roomConflict(string $eventId, ?string $roomId, array $slot, ?string $exceptActivityId = null): ?EventActivity
     {
         if ($roomId === null) {
+            return null;
+        }
+
+        // Un lugar externo admite actividades simultáneas (plan 035, CA-035-16): solo las salas se excluyen entre sí.
+        $kind = Room::query()->whereKey($roomId)->value('kind');
+
+        if ($kind instanceof RoomKind && $kind->allowsOverlap()) {
             return null;
         }
 

@@ -9,6 +9,7 @@ use App\Models\Event;
 use App\Models\EventActivity;
 use App\Models\Room;
 use App\Models\Speaker;
+use App\Support\Program\ActivityWrites;
 use Closure;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Gate;
@@ -63,6 +64,7 @@ class StoreActivityRequest extends FormRequest
             'category_ids.*' => ['string', self::categoryOfEvent($event)],
             ...self::speakerRules($event),
             'room_id' => ['nullable', 'string', self::roomOfEvent($event)],
+            'quota' => ['nullable', 'integer', 'min:1', 'max:'.ActivityWrites::MAX_QUOTA],
             'is_published' => ['sometimes', 'boolean'],
             'icon' => ['nullable', 'file'],
             'image' => ['nullable', 'file'],

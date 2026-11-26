@@ -64,6 +64,14 @@ class EventActivity extends Model
      */
     public array $scheduleWarnings = [];
 
+    /**
+     * Aviso de que el cupo supera la capacidad del lugar, del último guardado hecho con las Actions (plan 035,
+     * CA-035-11). No impide guardar ni se guarda: nulo si no hay nada que avisar.
+     *
+     * @var array{quota: int, capacity: int}|null
+     */
+    public ?array $quotaWarning = null;
+
     /** @var list<string> */
     protected $guarded = ['*'];
 

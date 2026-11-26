@@ -80,6 +80,7 @@ final class CreateActivity
                         'icon_path' => $iconPath,
                         'image_path' => $imagePath,
                         'room_id' => $validated['room_id'] ?? null,
+                        'quota' => isset($validated['quota']) ? (int) $validated['quota'] : null,
                         'is_published' => $validated['is_published'] ?? true,
                     ])->save();
 
@@ -102,6 +103,7 @@ final class CreateActivity
 
                     // Un ponente en dos actividades que se cruzan no impide guardar: se avisa (CA-031-15).
                     $activity->scheduleWarnings = DetectScheduleConflicts::speakerClashes($activity);
+                    $activity->quotaWarning = ActivityWrites::quotaWarning($activity->quota, $activity->room_id);
 
                     return $activity;
                 });

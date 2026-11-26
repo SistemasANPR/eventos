@@ -58,6 +58,7 @@ final class UpdateActivity
 
             $stored = [];
             $warnings = [];
+            $quotaWarning = null;
 
             try {
                 $icon = $validated['icon'] ?? null;
@@ -66,7 +67,7 @@ final class UpdateActivity
                 $newIcon = $icon instanceof UploadedFile ? $stored[] = ActivityWrites::storeImage($icon, $event, ProgramImageType::Icon, 'icon') : null;
                 $newImage = $image instanceof UploadedFile ? $stored[] = ActivityWrites::storeImage($image, $event, ProgramImageType::Image, 'image') : null;
 
-                $replaced = DB::transaction(function () use ($actor, $activity, $validated, $newIcon, $newImage, &$warnings): array {
+                $replaced = DB::transaction(function () use ($actor, $activity, $validated, $newIcon, $newImage, &$warnings, &$quotaWarning): array {
                     // Primero el evento y luego la actividad (siempre en ese orden); la sala se comprueba antes de escribir (DA-10).
                     ActivityWrites::lockEvent($activity->event_id);
                     $current = EventActivity::query()->whereKey($activity->id)->lockForUpdate()->firstOrFail();
@@ -86,6 +87,10 @@ final class UpdateActivity
 
                     if (array_key_exists('room_id', $validated)) {
                         $attributes['room_id'] = $validated['room_id'];
+                    }
+
+                    if (array_key_exists('quota', $validated)) {
+                        $attributes['quota'] = $validated['quota'] === null ? null : (int) $validated['quota'];
                     }
 
                     if (array_key_exists('summary', $validated)) {
@@ -145,6 +150,7 @@ final class UpdateActivity
 
                     $activity->setRawAttributes($current->getAttributes(), true);
                     $warnings = DetectScheduleConflicts::speakerClashes($current);
+                    $quotaWarning = ActivityWrites::quotaWarning($current->quota, $current->room_id);
 
                     return array_values(array_filter($old, is_string(...)));
                 });
@@ -161,6 +167,7 @@ final class UpdateActivity
             }
 
             $activity->scheduleWarnings = $warnings;
+            $activity->quotaWarning = $quotaWarning;
 
             return $activity;
         });
