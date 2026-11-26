@@ -4,7 +4,7 @@
 > `composer check:criteria` lee el **Estado** y los criterios de este archivo: no cambiar el formato de esas líneas.
 
 - **Fecha:** 2026-11-26
-- **Estado:** Borrador
+- **Estado:** Aprobado (2026-11-26: Antonio aprueba el plan y cierra DA-1 a DA-6 con la recomendación del plan)
 - **Esfuerzo:** M
 - **Deuda relacionada:** ninguna abierta. El plan 006 §9 deja la comprobación manual de CA-006-58 pendiente; este plan toca las mismas pantallas y la repite para ellas.
 
