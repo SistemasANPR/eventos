@@ -118,3 +118,25 @@ Cada propuesta sigue el formato de la sección 6 y viaja con su plan. Las anteri
 3. **Integridad:** modelos con `BelongsToOrganization` y prueba de aislamiento; `anonymization_log` no guarda el correo ni ningún dato personal; `retention_policies` rechaza plazos de cero. La anonimización no borra filas (salvo `known_devices`): sustituye valores, de modo que las claves foráneas, los conteos y las calificaciones se conservan.
 4. **Cambio:** aditivo y reversible (`down()` borra las dos tablas y las columnas `anonymized_at`; se pierde la huella de lo ya anonimizado). Las aplica el humano, primero en `staging`; antes de la primera anonimización real hay que definir `ANONYMIZATION_SALT` (secreto distinto por entorno; cambiarla invalida las huellas ya registradas).
 5. **Alternativa descartada:** guardar el correo en claro en el registro de anonimizaciones (sería dato personal justo donde se prometió borrarlo); borrar físicamente las filas (rompe claves foráneas y conteos, DA-4); una columna `anonymized_at` en todas las tablas (solo se añade donde vive el dato personal y hay que marcar la fila).
+
+
+### 8.4 Plan 031: salas y sala de la actividad (aprobada el 2026-11-25 con el plan; DA-2, DA-3, DA-10 y DA-13)
+
+1. **Necesidad:** la agenda visual necesita saber **dónde** ocurre cada actividad para mostrar una columna por sala y rechazar que dos actividades ocupen la misma sala a la vez. Dueño: módulo de programa (`app/Actions/Program/`). Ciclo de vida: la sala se crea, se edita, se ordena y se elimina (sin historial propio); la actividad la conserva mientras exista.
+2. **Inspección:** no existe ninguna tabla de salas ni de sedes; `events` solo guarda `venue_name` y `venue_address` como texto; `event_activities` no tiene sala. Las categorías del plan 021 (`activity_categories`) son el patrón a seguir: catálogo por evento, borrado físico, único por nombre.
+3. **Modelo propuesto:**
+   - `rooms` (ámbito **evento**): `id uuid`, `organization_id`, `event_id`, `name varchar(100)`, `position` (smallint, 0 por defecto), `timestamps`. Clave foránea compuesta `(event_id, organization_id)` hacia `events`, trigger `rooms_organization_id_immutable` y `UNIQUE (id, event_id, organization_id)` para la clave foránea compuesta de la actividad.
+   - `event_activities.room_id uuid` (nula): clave foránea compuesta `(room_id, event_id, organization_id)` hacia `rooms`, restrictiva. Sin capacidad, sede ni equipamiento (sin demanda hoy).
+   - Por qué tabla y no texto: la sala se reutiliza en muchas actividades, se ordena y se consulta por choques; un texto libre permitiría «Sala A» y «sala a» como espacios distintos (sección 2).
+4. **Integridad:**
+   - Único `(event_id, lower(name))` en `rooms`.
+   - `CHECK` en `event_activities`: `room_id IS NULL OR starts_on IS NOT NULL` (una actividad sin programar no puede tener sala, DA-3).
+   - La sala es del mismo evento y organización que la actividad por la clave foránea compuesta; con la columna nula el vínculo es opcional.
+   - **Sin restricción de exclusión** sobre el cruce de horarios: la regla de «sala ocupada» se comprueba en la Action con el evento bloqueado (DA-10). Una restricción `btree_gist` queda como deuda P3 (necesita la extensión en todos los entornos).
+   - Índice `(event_id, room_id, starts_on, starts_at)` en `event_activities` para la consulta de choques; se crea solo si el `EXPLAIN` de F2/F3 muestra que hace falta.
+   - Sin borrado lógico en `rooms` (catálogo sin historial); eliminar una sala usada se bloquea en la Action con un error explícito (DA-13), y la clave foránea restrictiva lo respalda.
+   - Permisos y aislamiento: `Room` con `BelongsToOrganization`; reutiliza `activities.manage` y `activities.delete` (`org_admin` y `organizer`; eliminar, `org_admin`), sin permisos nuevos.
+   - Historial: auditoría con ids (alta, edición, orden y eliminación de salas; cada movimiento de actividad con antes y después de fecha, hora y sala), sin datos personales.
+5. **Cambio:** aditivo y reversible. Una migración crea `rooms`; otra agrega `event_activities.room_id` con su clave foránea y el `CHECK`; cada una con su `down()` (quita la columna y la tabla, y se pierden las salas y sus asignaciones). Todas las actividades existentes quedan sin sala y siguen válidas (el `CHECK` se cumple con la columna nula). Sin datos que transformar. Verificación: pruebas de esquema (las restricciones rechazan lo inválido), prueba de aislamiento y `OrganizationIdImmutableTest`. Las migraciones las aplica el humano.
+6. **Alternativa descartada:** `Venue` y `Room` de la organización reutilizables entre ediciones (la propuesta original del glosario): exige construir sedes y su relación con el evento sin que nadie lo pida hoy; el evento ya funciona con texto. Se ofrecerá «copiar salas de otro evento» cuando haga falta. Otra descartada: una columna de texto `room` en la actividad (ver el punto 3).
+7. **Preguntas de negocio:** ninguna abierta para el esquema.
