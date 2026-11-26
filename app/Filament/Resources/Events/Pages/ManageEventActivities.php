@@ -9,11 +9,13 @@ use App\Actions\Program\DeleteActivity;
 use App\Actions\Program\SetActivityPublication;
 use App\Actions\Program\UpdateActivity;
 use App\Enums\ProgramCategoryKind;
+use App\Enums\RoomKind;
 use App\Exceptions\Domain\ActivityRoomConflict;
 use App\Filament\Resources\Events\EventResource;
 use App\Filament\Resources\Events\ProgramCategoryShortcuts;
 use App\Filament\Resources\Submissions\SubmissionResource;
 use App\Filament\Support\ActionErrors;
+use App\Models\ActivityContact;
 use App\Models\Event;
 use App\Models\EventActivity;
 use App\Models\Room;
@@ -22,11 +24,13 @@ use App\Support\Events\EventTime;
 use App\Support\Files\MediaDisk;
 use App\Support\Files\MediaThumbnail;
 use App\Support\Program\ActivityWrites;
+use App\Support\Program\ExternalDetails;
 use BackedEnum;
 use Filament\Actions\Action;
 use Filament\Forms\Components\Checkbox;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\FileUpload;
+use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\RichEditor;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
@@ -89,7 +93,7 @@ class ManageEventActivities extends ManageRelatedRecords
         $event = $this->event();
 
         return $table
-            ->modifyQueryUsing(fn (Builder $query): Builder => $query->with(['submission', 'categories', 'speakers', 'room']))
+            ->modifyQueryUsing(fn (Builder $query): Builder => $query->with(['submission', 'categories', 'speakers', 'room', 'contacts']))
             ->columns([
                 ImageColumn::make('thumbnail')
                     ->label(__('program.activities.columns.image'))
@@ -288,7 +292,9 @@ class ManageEventActivities extends ManageRelatedRecords
             Select::make('room_id')
                 ->label(__('program.activities.form.room'))
                 ->placeholder(__('program.activities.form.room_none'))
-                ->options(fn (): array => $this->placeOptions()),
+                ->options(fn (): array => $this->placeOptions())
+                ->live(),
+            ...$this->externalFields(),
             Toggle::make('has_quota')
                 ->label(__('program.activities.form.has_quota'))
                 ->live(),
@@ -370,6 +376,15 @@ class ManageEventActivities extends ManageRelatedRecords
             'starts_at' => $activity->starts_at === null ? null : substr($activity->starts_at, 0, 5),
             'ends_at' => $activity->ends_at === null ? null : substr($activity->ends_at, 0, 5),
             'room_id' => $activity->room_id,
+            'meeting_point' => $activity->meeting_point,
+            'has_transport' => $activity->transport_info !== null,
+            'transport_info' => $activity->transport_info,
+            'contacts' => $activity->contacts->map(fn (ActivityContact $contact): array => [
+                'name' => $contact->name,
+                'phone' => $contact->phone,
+                'email' => $contact->email,
+                'is_public' => $contact->is_public,
+            ])->all(),
             'has_quota' => $activity->quota !== null,
             'quota' => $activity->quota,
             'summary' => $activity->summary,
@@ -395,6 +410,19 @@ class ManageEventActivities extends ManageRelatedRecords
         }
 
         unset($data['has_quota']);
+
+        // Punto de reunión, transporte y responsables solo viajan con un lugar externo; con una sala o sin lugar no se envían
+        // (la Action borra los que la actividad tuviera). «Incluye transporte» apagado deja la actividad sin transporte.
+        if (! $this->isExternalPlace($data['room_id'] ?? null)) {
+            unset($data['meeting_point'], $data['transport_info'], $data['contacts'], $data['has_transport']);
+        } else {
+            if (! ($data['has_transport'] ?? false)) {
+                $data['transport_info'] = null;
+            }
+
+            $data['contacts'] = array_values($data['contacts'] ?? []);
+            unset($data['has_transport']);
+        }
 
         foreach (['icon', 'image'] as $field) {
             if (! ($data[$field] ?? null) instanceof UploadedFile) {
@@ -543,6 +571,60 @@ class ManageEventActivities extends ManageRelatedRecords
     private static function mediaUrl(EventActivity $activity, string $type): ?string
     {
         return MediaThumbnail::dataUri($type === 'icon' ? $activity->icon_path : $activity->image_path, $type === 'icon' ? 96 : 160);
+    }
+
+    /**
+     * Datos de una actividad en un lugar externo (plan 035, DA-4): aparecen solo cuando el lugar elegido es externo.
+     * Punto de reunión, transporte con su detalle y hasta cinco responsables, cada uno con su marca «visible al
+     * público» apagada por defecto y el recordatorio de que la persona debe haber dado su permiso (CA-035-33).
+     *
+     * @return list<mixed>
+     */
+    private function externalFields(): array
+    {
+        $external = fn (Get $get): bool => $this->isExternalPlace($get('room_id'));
+
+        return [
+            TextInput::make('meeting_point')
+                ->label(__('program.activities.form.meeting_point'))
+                ->helperText(__('program.activities.form.meeting_point_help'))
+                ->maxLength(ExternalDetails::TEXT_LIMIT)
+                ->visible($external),
+            Toggle::make('has_transport')
+                ->label(__('program.activities.form.has_transport'))
+                ->live()
+                ->visible($external),
+            TextInput::make('transport_info')
+                ->label(__('program.activities.form.transport_info'))
+                ->helperText(__('program.activities.form.transport_info_help'))
+                ->maxLength(ExternalDetails::TEXT_LIMIT)
+                ->required(fn (Get $get): bool => (bool) $get('has_transport'))
+                ->visible(fn (Get $get): bool => $external($get) && (bool) $get('has_transport')),
+            Repeater::make('contacts')
+                ->label(__('program.activities.form.contacts'))
+                ->helperText(__('program.activities.form.contacts_help'))
+                ->schema([
+                    TextInput::make('name')->label(__('program.activities.form.contact_name'))->required()->maxLength(120),
+                    TextInput::make('phone')->label(__('program.activities.form.contact_phone'))->tel()->maxLength(40),
+                    TextInput::make('email')->label(__('program.activities.form.contact_email'))->email()->maxLength(254),
+                    Toggle::make('is_public')
+                        ->label(__('program.activities.form.contact_is_public'))
+                        ->helperText(__('program.activities.form.contact_is_public_help'))
+                        ->default(false),
+                ])
+                ->maxItems(ExternalDetails::MAX_CONTACTS)
+                ->defaultItems(0)
+                ->addActionLabel(__('program.activities.form.contacts_add'))
+                ->visible($external),
+        ];
+    }
+
+    /** Si el lugar elegido es externo; un valor ausente o que no es de este evento no lo es. */
+    private function isExternalPlace(mixed $roomId): bool
+    {
+        return is_string($roomId)
+            && Str::isUuid($roomId)
+            && Room::query()->where('event_id', $this->event()->id)->whereKey($roomId)->value('kind') === RoomKind::External;
     }
 
     /**

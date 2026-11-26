@@ -22,6 +22,7 @@ use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Livewire\Features\SupportTesting\Testable;
 use Livewire\Livewire;
 
@@ -534,4 +535,130 @@ it('CA-035-11: a quota above the capacity of the place is saved and the panel sh
         ->assertNotified(__('program.activities.messages.quota_over_capacity_title'));
 
     expect(CurrentOrganization::run($organization, fn () => EventActivity::query()->where('event_id', $event->id)->count()))->toBe(1);
+});
+
+it('CA-035-21: the meeting point, the transport and the contacts appear only when the chosen place is external', function (): void {
+    [$organization, $event, $admin] = formScenario();
+    $park = CurrentOrganization::run($organization, fn (): Room => Room::factory()->external()->create(['event_id' => $event->id, 'name' => 'Parque Lineal']));
+    $room = CurrentOrganization::run($organization, fn (): Room => Room::factory()->create(['event_id' => $event->id, 'name' => 'Auditorio']));
+    $fields = ['meeting_point', 'has_transport', 'contacts'];
+
+    $component = activitiesPage($organization, $admin, $event)->mountAction('createActivity');
+    foreach ($fields as $field) {
+        $component->assertSchemaComponentHidden($field);
+    }
+
+    $component->setActionData(['room_id' => $room->id]);
+    foreach ($fields as $field) {
+        $component->assertSchemaComponentHidden($field);
+    }
+
+    $component->setActionData(['room_id' => $park->id]);
+    foreach ($fields as $field) {
+        $component->assertSchemaComponentVisible($field);
+    }
+});
+
+it('CA-035-21: the admin saves an activity in an external place with meeting point, transport and two contacts', function (): void {
+    [$organization, $event, $admin] = formScenario();
+    $park = CurrentOrganization::run($organization, fn (): Room => Room::factory()->external()->create(['event_id' => $event->id, 'name' => 'Parque Lineal']));
+
+    activitiesPage($organization, $admin, $event)
+        ->callAction('createActivity', [
+            'title' => 'Taller en el parque',
+            'starts_on' => '2027-03-10', 'ends_on' => '2027-03-10', 'starts_at' => '09:00', 'ends_at' => '10:00',
+            'room_id' => $park->id,
+            'meeting_point' => 'Puerta norte, junto al quiosco',
+            'has_transport' => true,
+            'transport_info' => 'Salida a las 8:30 desde el lobby',
+            'contacts' => [
+                ['name' => 'Ana Torres', 'phone' => '+52 55 1234-5678', 'email' => 'ana@example.test', 'is_public' => true],
+                ['name' => 'Luis Mora'],
+            ],
+        ])
+        ->assertHasNoActionErrors();
+
+    $activity = CurrentOrganization::run($organization, fn () => EventActivity::query()->where('event_id', $event->id)->firstOrFail());
+    $contacts = DB::table('activity_contacts')->where('activity_id', $activity->id)->orderBy('position')->get(['name', 'is_public'])->map(fn (object $row): array => (array) $row)->all();
+
+    expect($activity->meeting_point)->toBe('Puerta norte, junto al quiosco')
+        ->and($activity->transport_info)->toBe('Salida a las 8:30 desde el lobby')
+        ->and($contacts)->toBe([['name' => 'Ana Torres', 'is_public' => true], ['name' => 'Luis Mora', 'is_public' => false]]);
+});
+
+it('CA-035-21: turning off the transport switch removes the transport detail', function (): void {
+    [$organization, $event, $admin] = formScenario();
+    $park = CurrentOrganization::run($organization, fn (): Room => Room::factory()->external()->create(['event_id' => $event->id]));
+    $activity = panelActivity($event, ['room_id' => $park->id, 'transport_info' => 'Autobús a las 8:00', 'meeting_point' => 'Puerta norte']);
+
+    activitiesPage($organization, $admin, $event)
+        ->callAction(TestAction::make('editActivity')->table($activity), [
+            'title' => $activity->title,
+            'starts_on' => '2027-03-10', 'ends_on' => '2027-03-10', 'starts_at' => '10:00', 'ends_at' => '11:00',
+            'room_id' => $park->id,
+            'meeting_point' => 'Puerta norte',
+            'has_transport' => false,
+            'transport_info' => 'Autobús a las 8:00',
+        ])
+        ->assertHasNoActionErrors();
+
+    expect($activity->refresh()->transport_info)->toBeNull()->and($activity->meeting_point)->toBe('Puerta norte');
+});
+
+it('CA-035-21: moving the activity to a room from the form clears the external details even if the form still carried them', function (): void {
+    [$organization, $event, $admin] = formScenario();
+    $park = CurrentOrganization::run($organization, fn (): Room => Room::factory()->external()->create(['event_id' => $event->id, 'name' => 'Parque']));
+    $room = CurrentOrganization::run($organization, fn (): Room => Room::factory()->create(['event_id' => $event->id, 'name' => 'Auditorio']));
+    $activity = panelActivity($event, ['room_id' => $park->id, 'meeting_point' => 'Puerta norte', 'transport_info' => 'Autobús']);
+    DB::table('activity_contacts')->insert(['id' => (string) Str::uuid(), 'organization_id' => $organization->id, 'event_id' => $event->id, 'activity_id' => $activity->id, 'name' => 'Ana', 'position' => 1, 'created_at' => now(), 'updated_at' => now()]);
+
+    activitiesPage($organization, $admin, $event)
+        ->callAction(TestAction::make('editActivity')->table($activity), [
+            'title' => $activity->title,
+            'starts_on' => '2027-03-10', 'ends_on' => '2027-03-10', 'starts_at' => '10:00', 'ends_at' => '11:00',
+            'room_id' => $room->id,
+            'meeting_point' => 'Puerta norte',
+            'has_transport' => true,
+            'transport_info' => 'Autobús',
+            'contacts' => [['name' => 'Ana']],
+        ])
+        ->assertHasNoActionErrors();
+
+    expect($activity->refresh()->room_id)->toBe($room->id)
+        ->and($activity->meeting_point)->toBeNull()
+        ->and($activity->transport_info)->toBeNull()
+        ->and(DB::table('activity_contacts')->where('activity_id', $activity->id)->count())->toBe(0);
+});
+
+it('CA-035-21: the form holds at most five contacts', function (): void {
+    [$organization, $event, $admin] = formScenario();
+    $park = CurrentOrganization::run($organization, fn (): Room => Room::factory()->external()->create(['event_id' => $event->id]));
+
+    activitiesPage($organization, $admin, $event)
+        ->callAction('createActivity', [
+            'title' => 'Muchos responsables',
+            'starts_on' => '2027-03-10', 'ends_on' => '2027-03-10', 'starts_at' => '09:00', 'ends_at' => '10:00',
+            'room_id' => $park->id,
+            'contacts' => array_map(fn (int $i): array => ['name' => "Responsable {$i}"], range(1, 6)),
+        ])
+        ->assertHasActionErrors(['contacts']);
+
+    expect(CurrentOrganization::run($organization, fn () => EventActivity::query()->where('event_id', $event->id)->count()))->toBe(0);
+});
+
+it('CA-035-33: the contact visibility help reminds that the person must have given permission', function (): void {
+    foreach (['es' => 'permiso', 'en' => 'permission'] as $locale => $word) {
+        app()->setLocale($locale);
+
+        expect(__('program.activities.form.contact_is_public_help'))->toContain($word)
+            ->and(__('program.activities.form.contacts_help'))->not->toBe('program.activities.form.contacts_help');
+    }
+
+    [$organization, $event, $admin] = formScenario();
+    app()->setLocale('es');
+    $park = CurrentOrganization::run($organization, fn (): Room => Room::factory()->external()->create(['event_id' => $event->id]));
+    $component = activitiesPage($organization, $admin, $event)->mountAction('createActivity')->setActionData(['room_id' => $park->id]);
+
+    // El repetidor de responsables existe y, con un lugar externo, se ve.
+    $component->assertSchemaComponentVisible('contacts');
 });
