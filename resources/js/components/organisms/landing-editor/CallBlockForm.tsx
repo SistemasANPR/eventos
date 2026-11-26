@@ -1,7 +1,7 @@
 import { ChoiceField } from '@/components/molecules/ChoiceField';
 import { ImageField } from '@/components/molecules/ImageField';
 import { LocalizedField } from '@/components/molecules/LocalizedField';
-import { BUTTON_SECONDARY } from '@/lib/classes';
+import { BUTTON_SECONDARY, EDITOR_ITEM_FIELDSET } from '@/lib/classes';
 import { emptyStepItem, emptyTextItem, LANDING_LIMITS } from '@/lib/landing-blocks';
 import type { Translate } from '@/lib/translate';
 import { cn } from '@/lib/utils';
@@ -108,7 +108,7 @@ export function CallBlockForm({ block, onChange, onUpload, locales, locale, defa
                     {field('intro', block.intro, (intro) => onChange({ ...block, intro }), { isMultiline: true })}
                     <p className="text-base text-text-muted">{t('landing_editor.settings.call_requirements_note')}</p>
                     {block.items.map((item, position) => (
-                        <fieldset key={item.key} className="flex flex-col gap-3 rounded-md border border-border p-3">
+                        <fieldset key={item.key} className={EDITOR_ITEM_FIELDSET}>
                             <legend className="px-1 text-sm font-semibold text-text">
                                 {t('landing_editor.call_field.requirement', { number: String(position + 1) })}
                             </legend>
@@ -160,7 +160,7 @@ export function CallBlockForm({ block, onChange, onUpload, locales, locale, defa
                             });
 
                         return (
-                            <fieldset key={item.key} className="flex flex-col gap-3 rounded-md border border-border p-3">
+                            <fieldset key={item.key} className={EDITOR_ITEM_FIELDSET}>
                                 <legend className="px-1 text-sm font-semibold text-text">
                                     {t('landing_editor.call_field.step', { number: String(position + 1) })}
                                 </legend>
