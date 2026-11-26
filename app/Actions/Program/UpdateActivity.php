@@ -14,6 +14,7 @@ use App\Models\User;
 use App\Support\Auth\AuthorizesInOrganization;
 use App\Support\Program\ActivityWrites;
 use App\Support\Program\DetectScheduleConflicts;
+use App\Support\Program\ExternalDetails;
 use App\Support\Tenancy\CurrentOrganization;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\UploadedFile;
@@ -77,6 +78,10 @@ final class UpdateActivity
                     $roomId = array_key_exists('room_id', $validated) ? $validated['room_id'] : $current->room_id;
                     ActivityWrites::assertRoomFree($current->event_id, $roomId, ActivityWrites::slot($validated), $current->id);
 
+                    // Los datos del lugar externo solo viven con un lugar externo; si ya no lo es, se borran (CA-035-13 y 14).
+                    $external = ExternalDetails::isExternal($roomId);
+                    ExternalDetails::assertAllowed($validated, $external);
+
                     $attributes = [
                         'title' => $validated['title'],
                         'starts_on' => $validated['starts_on'],
@@ -87,6 +92,14 @@ final class UpdateActivity
 
                     if (array_key_exists('room_id', $validated)) {
                         $attributes['room_id'] = $validated['room_id'];
+                    }
+
+                    foreach (['meeting_point', 'transport_info'] as $field) {
+                        if (! $external) {
+                            $attributes[$field] = null;
+                        } elseif (array_key_exists($field, $validated)) {
+                            $attributes[$field] = $validated[$field];
+                        }
                     }
 
                     if (array_key_exists('quota', $validated)) {
@@ -132,6 +145,19 @@ final class UpdateActivity
                         }
                     }
 
+                    // Los responsables: con un lugar externo, exactamente los que vengan (ausente conserva); si no, ninguno.
+                    $contacts = null;
+
+                    if (! $external) {
+                        $contacts = ExternalDetails::syncContacts($current, []);
+                    } elseif (array_key_exists('contacts', $validated)) {
+                        $contacts = ExternalDetails::syncContacts($current, array_values($validated['contacts'] ?? []));
+                    }
+
+                    if ($contacts !== null && $contacts['changed']) {
+                        $changed[] = 'contacts';
+                    }
+
                     // Los ponentes solo cambian si vienen en los datos; la Action deja su propia auditoría.
                     if (array_key_exists('speaker_ids', $validated)) {
                         app(SyncActivitySpeakers::class)->handle($actor, $current, array_values($validated['speaker_ids'] ?? []));
@@ -145,6 +171,8 @@ final class UpdateActivity
                             'organization_id' => $current->organization_id,
                             'event_id' => $current->event_id,
                             'changed' => $changed,
+                            // Solo cuántos responsables, nunca sus datos (plan 035, CA-035-14).
+                            ...($contacts !== null && $contacts['changed'] ? ['contacts' => ['before' => $contacts['before'], 'after' => $contacts['after']]] : []),
                         ])
                         ->log('activity_updated');
 

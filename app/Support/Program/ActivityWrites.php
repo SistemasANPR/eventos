@@ -44,7 +44,7 @@ final class ActivityWrites
             $data['quota'] = null;
         }
 
-        return $data;
+        return ExternalDetails::normalized($data);
     }
 
     /** Descripción enriquecida saneada (DA-16); sin texto visible, nula. */
