@@ -67,6 +67,10 @@ En equipos compartidos, una sesión de 60 min abierta por el envío justifica un
 
 Texto fijo: «Te enviaremos un enlace al correo con el que registraste la propuesta. Dura {N} minutos y solo se puede usar una vez.» `N` sale de `submissions.author.access_link_minutes`. La respuesta del servidor sigue siendo idéntica exista o no el correo (CA-006-32).
 
+### DA-7 · «Regresar» y selector de idioma en la pantalla de pedir acceso — se recomienda **regresar a la convocatoria y mostrar idiomas solo si el evento ofrece más de uno**
+
+Pedido por Antonio el 2026-11-26 tras ver la pantalla en el navegador. (a) El enlace «Volver al evento» pasa a llamarse **«Regresar»** y lleva a la **convocatoria**. La pantalla es del evento y no sabe de qué convocatoria viene quien la abre, así que el destino se elige así: la que indica `?call=` (el enlace de la convocatoria ya lo lleva y el formulario lo conserva), validada contra las convocatorias públicas de **ese** evento; si no hay indicación, la única convocatoria pública del evento; con varias y sin indicación, la página del evento; sin página pública (archivado), no hay enlace (CA-032-6). Un borrador nunca es destino. (b) Los enlaces de idioma ya salen de `Event::offeredLocales()` (idioma por defecto más los seleccionados en el evento, plan 026) y `LocaleSwitcher` no se muestra con menos de dos; se deja una prueba que lo vigila en esta pantalla.
+
 ## 4. Contrato
 
 - **Rutas JSON o webhooks:** ninguno.
@@ -76,7 +80,7 @@ Texto fijo: «Te enviaremos un enlace al correo con el que registraste la propue
   - `Calls/Submitted`: `authorUrl` (a `author.submission.show`, sin token) y `editDeadline` (ISO UTC o `null`) con `timezone` y `timeFormat` del evento.
   - `Calls/Show`: `authorRequestUrl`.
   - `Author/Show`: `editPolicy` = `{state: 'editable'|'call_closed'|'in_process', until: string|null}`, `timezone`, `timeFormat`, `logoutUrl`.
-  - `Author/RequestLink`: sin props nuevas; ya recibe `expiresInMinutes` y `maxLinks` (`AccessLinkPageData`). Solo cambia el texto de introducción (DA-6).
+  - `Author/RequestLink`: ya recibe `expiresInMinutes` y `maxLinks` (`AccessLinkPageData`); cambia el texto de introducción (DA-6) y `eventUrl` pasa a `backUrl`, el destino de «Regresar» (DA-7, `AccessLinkBackUrl`). La dirección acepta `?call={slug}` como indicación de la convocatoria.
 - **Datos:** sin cambios. Sin migración.
 - **Textos:** claves nuevas en `lang/es` y `lang/en` (`public.php`, `mail_templates.php`), con paridad.
 
@@ -144,6 +148,11 @@ Cada uno tiene al menos una prueba cuyo nombre lo cita (`CA-034-n: ...`) o decla
 - **CA-034-16:** *Dado* una sesión de autor, *cuando* se hace POST con CSRF a `author.logout`, *entonces* la sesión se cierra, se audita y redirige a la convocatoria; *cuando* se hace GET, *entonces* responde 405; y después `author.submission.show` redirige a pedir acceso.
 - **CA-034-17:** *Dado* abrir y cerrar sesión de autor, *entonces* la auditoría registra `author_session_opened` (con `via: submit` o `via: link`) y `author_session_closed`, sin datos personales.
 
+**Regresar e idiomas en la pantalla de pedir acceso (DA-7)**
+
+- **CA-034-20:** *Dado* la pantalla de pedir acceso, *cuando* se abre, *entonces* el enlace se llama «Regresar» y lleva a la convocatoria: la que indica `?call=` si es una convocatoria pública de ese evento, o la única convocatoria pública del evento; con varias y sin indicación lleva a la página del evento; una indicación de otro evento, inexistente o de un borrador no se obedece; la indicación se conserva al enviar el formulario; y sin página pública del evento no hay enlace.
+- **CA-034-21:** *Dado* un evento que ofrece un solo idioma, *cuando* se abre la pantalla de pedir acceso, *entonces* no hay enlaces de idioma; con más de uno, sí (idiomas del evento = `offeredLocales()`).
+
 **Idiomas y accesibilidad**
 
 - **CA-034-18:** *Dado* los textos nuevos, *entonces* existen en es y en con paridad (`LangParityTest`) y todo texto visible usa i18n.
@@ -170,4 +179,5 @@ Cada uno tiene al menos una prueba cuyo nombre lo cita (`CA-034-n: ...`) o decla
 | F0 | de13a2b | 2026-11-26 | Aprobado por Antonio el 2026-11-26 (DA-1 a DA-6 con la recomendación). Ajustes a lo medido en el código: `closes_at` es obligatorio (CA-034-9 sin caso «sin cierre»), `AccessLinkPageData` ya expone `expiresInMinutes` (CA-034-13) y el cierre de sesión audita con un método nuevo de `AuthorSession`. |
 | F1 | 282277f, d59c96b, aa2be1c | 2026-11-26 | Sesión de autor al enviar, `author.logout` con auditoría, acuse con `edit_deadline` y `request_link_url` (formateo compartido en `CallClosingDate`), `PrepareAuthorEdit::policy`, props de confirmación y convocatoria. Pruebas escritas primero (rojo visto en sesión, acuse y props); las del cierre de sesión se escribieron tras la ruta. Larastan: sin errores. Pint al día. |
 | F2 | e2da10f | 2026-11-26 | `Calls/Submitted`, `Calls/Show` (página y landing), `Author/Show`, `Author/RequestLink`, textos es/en. `npm run typecheck` y `npm run lint` sin errores; Vitest 50 archivos / 375 pruebas en verde; build con `npx vite build --configLoader runner` (con `npm run build` falla el EACCES conocido de `node_modules/.vite-temp` del contenedor). |
+| F2b | (ver commit) | 2026-11-26 | DA-7 pedida por Antonio al ver la pantalla: «Regresar» a la convocatoria con `AccessLinkBackUrl` y `?call=`, y prueba del selector de idiomas. Pest, Larastan, Pint, typecheck, lint y Vitest (377) en verde; build recompilado. |
 | F3 | pendiente | | Suite completa de PHP, `composer check:criteria` y la comprobación manual de CA-034-19 a ~375 px y ~1280 px con la consola abierta (el navegador de Playwright lo usaba otra sesión y la extensión de Chrome no conectó). |

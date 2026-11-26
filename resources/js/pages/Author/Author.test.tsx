@@ -25,7 +25,7 @@ const translations = {
             too_many_body: 'Espera un momento.',
             turnstile_failed: 'No se pudo cargar la verificación.',
             turnstile_missing: 'La verificación no está disponible.',
-            back_to_event: 'Volver al evento',
+            back: 'Regresar',
         },
         confirm: {
             title: 'Abrir mi propuesta',
@@ -109,7 +109,7 @@ const requestProps: AccessLinkPageProps = {
     tooManyRequests: false,
     maxLinks: 5,
     expiresInMinutes: 30,
-    eventUrl: '/parques/events/congreso?lang=es',
+    backUrl: '/parques/events/congreso/call/ponencias?lang=es',
 };
 
 const submission: AuthorSubmission = {
@@ -163,12 +163,30 @@ describe('Author/RequestLink page', () => {
         expect(screen.getByRole('button', { name: 'Enviarme el enlace' })).toBeInTheDocument();
     });
 
-    it('CA-032-6: links back to the event only when the event still has a public page', () => {
+    it('CA-032-6: offers the way back only when the event still has a public page', () => {
         const { rerender } = render(<RequestLink {...requestProps} />);
-        expect(screen.getByRole('link', { name: 'Volver al evento' })).toHaveAttribute('href', '/parques/events/congreso?lang=es');
+        expect(screen.getByRole('link', { name: 'Regresar' })).toHaveAttribute('href', '/parques/events/congreso/call/ponencias?lang=es');
 
-        rerender(<RequestLink {...requestProps} eventUrl={null} />);
+        rerender(<RequestLink {...requestProps} backUrl={null} />);
+        expect(screen.queryByRole('link', { name: 'Regresar' })).toBeNull();
+    });
+
+    it('CA-034-20: the way back is called Regresar and goes where the server says (the call), not to the event', () => {
+        render(<RequestLink {...requestProps} />);
+
         expect(screen.queryByRole('link', { name: 'Volver al evento' })).toBeNull();
+        expect(screen.getByRole('link', { name: 'Regresar' })).toHaveAttribute('href', '/parques/events/congreso/call/ponencias?lang=es');
+    });
+
+    it('CA-034-21: the language links show only when the event offers more than one language', () => {
+        const two = render(<RequestLink {...requestProps} />);
+        expect(screen.getByRole('navigation')).toBeInTheDocument();
+        expect(screen.getByRole('link', { name: /English/ })).toBeInTheDocument();
+        two.unmount();
+
+        render(<RequestLink {...requestProps} event={{ ...requestProps.event, locales: ['es'] }} />);
+        expect(screen.queryByRole('navigation')).toBeNull();
+        expect(screen.queryByRole('link', { name: /English/ })).toBeNull();
     });
 
     it('shows the same neutral notice after a request, without saying whether the email exists', () => {

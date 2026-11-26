@@ -54,13 +54,19 @@ final class RequestAccessLinkController
 
         $request->session()->put('author.link_requested', true);
 
-        return to_route('author.request-link.show', ['organization' => $organization->slug, 'event' => $event->slug, 'lang' => $locale], 303);
+        // La indicación de la convocatoria se conserva para que «Regresar» siga llevando a ella (plan 034, DA-7).
+        return to_route('author.request-link.show', array_filter([
+            'organization' => $organization->slug,
+            'event' => $event->slug,
+            'lang' => $locale,
+            'call' => AccessLinkPageData::callHint($request->query('call')),
+        ]), 303);
     }
 
     /** 429 con `Retry-After`, en la misma página y con el mensaje en pantalla (CA-006-25). */
     private function tooManyRequests(RequestAccessLinkRequest $request, Organization $organization, Event $event, string $locale, ThrottleRequestsException $exception): Response
     {
-        $response = Inertia::render('Author/RequestLink', AccessLinkPageData::from($organization, $event, $locale, tooManyRequests: true))
+        $response = Inertia::render('Author/RequestLink', AccessLinkPageData::from($organization, $event, $locale, tooManyRequests: true, callSlug: AccessLinkPageData::callHint($request->query('call'))))
             ->toResponse($request)
             ->setStatusCode(429);
         $response->headers->add($exception->getHeaders());

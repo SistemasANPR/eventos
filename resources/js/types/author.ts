@@ -26,8 +26,8 @@ export interface AccessLinkPageProps {
     tooManyRequests: boolean;
     maxLinks: number;
     expiresInMinutes: number;
-    /** Página pública del evento; `null` si el evento ya no la tiene (archivado). */
-    eventUrl: string | null;
+    /** Destino de «Regresar»: la convocatoria (o el evento si hay varias); `null` si el evento ya no tiene página (archivado). */
+    backUrl: string | null;
 }
 
 /** Una respuesta del formulario con la etiqueta con que se envió. */

@@ -23,7 +23,7 @@ export default function RequestLink({
     tooManyRequests,
     maxLinks,
     expiresInMinutes,
-    eventUrl,
+    backUrl,
 }: AccessLinkPageProps) {
     const { t } = useTranslation();
     const { url } = usePage();
@@ -149,9 +149,9 @@ export default function RequestLink({
                 </form>
 
                 <div className={PAGE_FOOTER}>
-                    {eventUrl !== null && (
-                        <TextLink href={eventUrl} className="-ml-3">
-                            {t('author.request.back_to_event')}
+                    {backUrl !== null && (
+                        <TextLink href={backUrl} className="-ml-3">
+                            {t('author.request.back')}
                         </TextLink>
                     )}
                     <LocaleSwitcher locales={event.locales} currentLocale={event.locale} />

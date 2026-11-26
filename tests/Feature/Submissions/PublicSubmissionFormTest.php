@@ -569,5 +569,5 @@ it('CA-034-12: the call page always links to the request-link page while the cal
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
             ->component('Calls/Show')
-            ->where('authorRequestUrl', '/parques/events/congreso/my-submission/request-link?lang=es'));
+            ->where('authorRequestUrl', '/parques/events/congreso/my-submission/request-link?lang=es&call=ponencias'));
 })->with(['published', 'paused', 'closed']);

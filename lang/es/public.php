@@ -201,7 +201,7 @@ return [
             'too_many_body' => 'Hiciste demasiadas solicitudes. Espera un momento e inténtalo de nuevo.',
             'turnstile_failed' => 'No se pudo cargar la verificación de seguridad. Revisa tu conexión y recarga la página.',
             'turnstile_missing' => 'La verificación de seguridad no está disponible en este sitio. Avisa a la organización.',
-            'back_to_event' => 'Volver al evento',
+            'back' => 'Regresar',
         ],
         'confirm' => [
             'title' => 'Abrir mi propuesta',
