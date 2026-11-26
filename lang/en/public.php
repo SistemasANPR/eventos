@@ -89,6 +89,7 @@ return [
         'back_to_program' => 'Back to the program',
     ],
     'call' => [
+        'already_submitted' => 'Already sent your proposal? View or edit it',
         'type' => 'Submission type',
         'status' => 'Status',
         'opens_at' => 'Opens',
@@ -174,6 +175,8 @@ return [
     'submitted' => [
         'title' => 'We received your proposal',
         'body' => 'Your proposal for ":call" was registered. We will send the confirmation to the main person email.',
+        'edit_action' => 'View or edit my proposal',
+        'edit_until' => 'You can edit it until :date.',
         'back_to_call' => 'Back to the call',
         'back_to_event' => 'Back to the event',
     ],
@@ -188,7 +191,7 @@ return [
     'author' => [
         'request' => [
             'title' => 'Request my access link',
-            'intro' => 'Enter the email of the main person on your submission and we will send you a link to view it.',
+            'intro' => 'Enter the email of the main person on your submission and we will send you a link to view or edit it. The link goes to that email, lasts :minutes minutes and can only be used once.',
             'email_label' => 'Email address',
             'submit' => 'Send me the link',
             'sending' => 'Sending…',
@@ -225,6 +228,12 @@ return [
         ],
         'show' => [
             'edit_action' => 'Edit my submission',
+            'edit_until' => 'You can edit your submission until :date.',
+            'edit_closed' => 'The call closed on :date; it can no longer be edited.',
+            'edit_closed_no_date' => 'The call has closed; it can no longer be edited.',
+            'edit_in_process' => 'Your submission is already being processed and cannot be edited.',
+            'logout' => 'Sign out',
+            'logging_out' => 'Signing out…',
             'updated_notice' => 'Your changes were saved.',
             'title' => 'My submission',
             'reference' => 'Reference :reference',

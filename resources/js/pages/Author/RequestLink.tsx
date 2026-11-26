@@ -64,7 +64,7 @@ export default function RequestLink({
                         {title}
                     </h1>
                     <p className="text-lg text-text">{event.name}</p>
-                    <p className="max-w-prose text-base text-text-muted">{t('author.request.intro')}</p>
+                    <p className="max-w-prose text-base text-text-muted">{t('author.request.intro', { minutes: String(expiresInMinutes) })}</p>
                 </header>
 
                 {linkRequested && (

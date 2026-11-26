@@ -33,6 +33,8 @@ interface CallLandingProps {
     eventUrl: string;
     privacyUrl: string | null;
     submitUrl: string | null;
+    /** Página para pedir el enlace de acceso a una propuesta ya enviada (plan 034); `null` si no se ofrece. */
+    authorRequestUrl?: string | null;
 }
 
 function buildView(call: PublicCall, content: CallLandingContent, submitUrl: string | null): LandingView {
@@ -78,7 +80,7 @@ function useIsPromoReached() {
  * los datos reales de la convocatoria (`buildLandingContent`); el texto propio de una convocatoria, si lo tiene, está en
  * `lib/call-landings.ts`.
  */
-export function CallLanding({ call, event, data, organization, slugs, eventUrl, privacyUrl, submitUrl }: CallLandingProps) {
+export function CallLanding({ call, event, data, organization, slugs, eventUrl, privacyUrl, submitUrl, authorRequestUrl = null }: CallLandingProps) {
     const { t } = useTranslation();
     const { promoRef, isReached } = useIsPromoReached();
     const content = useMemo(() => buildLandingContent({ call, event, slugs, data }), [call, event, slugs, data]);
@@ -86,6 +88,7 @@ export function CallLanding({ call, event, data, organization, slugs, eventUrl, 
 
     const links = [
         ...(call.showBackLink === false ? [] : [{ label: 'Volver al evento', href: eventUrl }]),
+        ...(authorRequestUrl === null ? [] : [{ label: t('call.already_submitted'), href: authorRequestUrl }]),
         ...(privacyUrl === null ? [] : [{ label: 'Aviso de privacidad', href: privacyUrl }]),
         ...(call.extraLinks ?? []).map((link) => ({ label: link.label, href: link.url, rel: 'noopener noreferrer nofollow' })),
         ...call.locales

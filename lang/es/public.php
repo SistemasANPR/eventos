@@ -89,6 +89,7 @@ return [
         'back_to_program' => 'Volver al programa',
     ],
     'call' => [
+        'already_submitted' => '¿Ya enviaste tu propuesta? Consúltala o edítala',
         'type' => 'Categoría',
         'status' => 'Estado',
         'opens_at' => 'Apertura',
@@ -174,6 +175,8 @@ return [
     'submitted' => [
         'title' => 'Recibimos tu propuesta',
         'body' => 'Tu propuesta para «:call» quedó registrada. Enviaremos la confirmación al correo de la persona principal.',
+        'edit_action' => 'Ver o editar mi propuesta',
+        'edit_until' => 'Puedes corregirla hasta el :date.',
         'back_to_call' => 'Volver a la convocatoria',
         'back_to_event' => 'Volver al evento',
     ],
@@ -188,7 +191,7 @@ return [
     'author' => [
         'request' => [
             'title' => 'Pedir mi enlace de acceso',
-            'intro' => 'Escribe el correo de la persona principal de tu propuesta y te enviaremos un enlace para consultarla.',
+            'intro' => 'Escribe el correo de la persona principal de tu propuesta y te enviaremos un enlace para consultarla o editarla. El enlace llega a ese correo, dura :minutes minutos y solo se puede usar una vez.',
             'email_label' => 'Correo electrónico',
             'submit' => 'Enviarme el enlace',
             'sending' => 'Enviando…',
@@ -225,6 +228,12 @@ return [
         ],
         'show' => [
             'edit_action' => 'Editar mi propuesta',
+            'edit_until' => 'Puedes editar tu propuesta hasta el :date.',
+            'edit_closed' => 'La convocatoria cerró el :date; ya no se puede editar.',
+            'edit_closed_no_date' => 'La convocatoria ya cerró; ya no se puede editar.',
+            'edit_in_process' => 'Tu propuesta ya está en proceso y no se puede editar.',
+            'logout' => 'Cerrar sesión',
+            'logging_out' => 'Cerrando…',
             'updated_notice' => 'Guardamos los cambios de tu propuesta.',
             'title' => 'Mi propuesta',
             'reference' => 'Referencia :reference',
