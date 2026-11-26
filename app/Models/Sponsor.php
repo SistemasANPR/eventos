@@ -23,6 +23,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property string|null $website_url
  * @property string|null $logo_path
  * @property int $position
+ * @property list<array{id: string, label: string, type: string, value?: string|null, path?: string|null}>|null $extra_fields
  */
 class Sponsor extends Model
 {
@@ -33,6 +34,12 @@ class Sponsor extends Model
 
     /** @var list<string> */
     protected $guarded = ['*'];
+
+    /** @return array<string, string> */
+    protected function casts(): array
+    {
+        return ['extra_fields' => 'array'];
+    }
 
     /** @return BelongsTo<Event, $this> */
     public function event(): BelongsTo

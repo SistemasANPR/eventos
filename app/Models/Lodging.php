@@ -24,6 +24,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property string|null $booking_url
  * @property string|null $rate
  * @property int $position
+ * @property list<array{id: string, label: string, type: string, value?: string|null, path?: string|null}>|null $extra_fields
  */
 class Lodging extends Model
 {
@@ -34,6 +35,12 @@ class Lodging extends Model
 
     /** @var list<string> */
     protected $guarded = ['*'];
+
+    /** @return array<string, string> */
+    protected function casts(): array
+    {
+        return ['extra_fields' => 'array'];
+    }
 
     /** @return BelongsTo<Event, $this> */
     public function event(): BelongsTo

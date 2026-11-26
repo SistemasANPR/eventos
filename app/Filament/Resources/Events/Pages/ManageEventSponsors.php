@@ -9,6 +9,7 @@ use App\Actions\Sponsors\DeleteSponsor;
 use App\Actions\Sponsors\UpdateSponsor;
 use App\Filament\Resources\Events\EventResource;
 use App\Filament\Support\ActionErrors;
+use App\Filament\Support\ExtraFieldsInput;
 use App\Models\Event;
 use App\Models\Sponsor;
 use App\Models\SponsorCategory;
@@ -140,6 +141,7 @@ class ManageEventSponsors extends ManageRelatedRecords
                 ->label(__('sponsors.fields.remove_logo'))
                 ->visible(fn (?Model $record): bool => $record instanceof Sponsor && $record->logo_path !== null),
             TextInput::make('position')->label(__('sponsors.fields.position'))->helperText(__('sponsors.fields.position_help'))->numeric()->integer()->minValue(0)->maxValue(9999),
+            ExtraFieldsInput::make(),
         ];
     }
 
@@ -167,7 +169,10 @@ class ManageEventSponsors extends ManageRelatedRecords
             ->icon(Heroicon::OutlinedPencilSquare)
             ->modalWidth('2xl')
             ->schema(fn (): array => $this->components())
-            ->fillForm(fn (Model $record): array => $this->sponsor($record)->only(['name', 'sponsor_category_id', 'website_url', 'position']))
+            ->fillForm(fn (Model $record): array => [
+                ...$this->sponsor($record)->only(['name', 'sponsor_category_id', 'website_url', 'position']),
+                'extra_fields' => ExtraFieldsInput::fill($this->sponsor($record)->extra_fields),
+            ])
             ->visible(fn (Model $record): bool => Gate::allows('update', $record))
             ->action(function (Model $record, array $data, Schema $schema): void {
                 $this->run(
@@ -216,7 +221,7 @@ class ManageEventSponsors extends ManageRelatedRecords
             unset($data['remove_logo']);
         }
 
-        return $data;
+        return ExtraFieldsInput::input($data);
     }
 
     private function sponsor(Model $record): Sponsor

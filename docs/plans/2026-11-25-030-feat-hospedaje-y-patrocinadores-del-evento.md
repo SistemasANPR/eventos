@@ -43,6 +43,10 @@ Un hospedaje tiene hasta 10 imágenes (JPG, PNG o WebP de hasta 2 MB cada una), 
 
 El texto libre «Nivel» se reemplaza por una categoría del evento que se elige en un selector (etiqueta «Nivel») y se administra desde el botón «Categorías», como las de ponentes. La categoría es opcional. `sponsors.level` se elimina: una migración de datos convierte cada valor distinto en categoría del evento y asigna cada patrocinador a la suya. Eliminar una categoría NO borra a los patrocinadores: quedan sin nivel (la Action los suelta antes de borrar; la clave foránea compuesta `restrict` es el respaldo). Se gestiona con `sponsors.manage` y eliminar con `sponsors.delete`. Cerrada el 2026-11-25 a petición del usuario.
 
+### DA-7 · Datos adicionales por registro — se recomienda **una columna JSON `extra_fields` en `lodgings` y `sponsors`**
+
+Cada hotel y cada patrocinador puede tener hasta 10 «datos adicionales»: título libre (hasta 120 caracteres) y tipo **texto** (hasta 500) o **foto** (JPG, PNG o WebP de hasta 2 MB). Se eligió una columna JSON en la propia fila (lista de `{id, label, type, value | path}`) y no una tabla hija porque los datos solo se leen y escriben junto con su registro, no se consultan ni ordenan por separado y no hay datos personales; las fotos usan `StoreProgramImage` (tipos `LodgingImage` y `SponsorLogo`, mismo disco `media` privado) y su ruta viaja en el JSON. La lista que llega REEMPLAZA a la guardada (sin la clave, no cambia): un dato con el `id` de uno existente de ESE registro lo conserva (y su foto si no se sube otra); un `id` ajeno o repetido cuenta como dato nuevo. Quitar un dato, reemplazar o cambiar su foto, o eliminar el registro borra los archivos DESPUÉS de confirmar la transacción; si el guardado falla, se borran las fotos recién subidas. La lógica compartida vive en `App\Support\Extras\ExtraFields`. Cerrada el 2026-11-26 a petición del usuario («campos extra por registro»). Alternativa descartada: preguntas definidas una vez por evento (como el constructor de formularios de propuestas), por su mayor alcance.
+
 ## 4. Contrato
 
 Sin rutas JSON ni webhooks. Cambios de datos: tablas `lodgings` y `sponsors` (migración `2026_11_28_100000`), con RLS (`tenant_isolation`), clave foránea compuesta `(event_id, organization_id)` hacia `events` y disparador de `organization_id` inmutable. Páginas del panel: `/{evento}/lodgings` y `/{evento}/sponsors`. Migración de datos aparte para sembrar los permisos nuevos en las organizaciones existentes. Segunda entrega (2026-11-25, DA-5 y DA-6): migraciones `2026_11_29_100000` (tablas `lodging_images` y `sponsor_categories`, columna `sponsors.sponsor_category_id`, con RLS), `2026_11_29_100100` (datos: `level` pasa a categorías) y `2026_11_29_100200` (baja de `level`). Página nueva `/{evento}/sponsor-categories`, sin entrada propia en el menú (Patrocinadores sigue activa en ella).
@@ -88,6 +92,9 @@ Sin rutas JSON ni webhooks. Cambios de datos: tablas `lodgings` y `sponsors` (mi
 - **CA-030-15:** *Dado* un hospedaje con imágenes, *cuando* se quita una imagen o se elimina el hospedaje, *entonces* su archivo se borra del disco; las imágenes de otro hospedaje no se pueden quitar desde este.
 - **CA-030-16:** *Dado* patrocinadores existentes con el texto libre «Nivel», *cuando* se aplica la migración, *entonces* cada valor distinto (sin distinguir mayúsculas ni espacios) es una categoría de su evento, cada patrocinador queda en la suya y los que no tenían nivel siguen sin él.
 - **CA-030-17:** *Dado* un usuario con permiso, *cuando* abre Patrocinadores, *entonces* ve el botón «Categorías» con su conteo, el campo «Nivel» lista las categorías del evento y la lista las muestra y filtra por nivel; la página de categorías de un evento de otra organización responde 404.
+- **CA-030-18:** *Dado* un administrador u organizador, *cuando* agrega o edita un hospedaje o un patrocinador con datos adicionales (hasta 10, de texto o foto), *entonces* se guardan con su título y sus fotos van al disco `media` del evento; con más de 10, un tipo que no es texto ni foto, un título o texto vacío, una foto faltante o un archivo que no es una imagen aceptable, se informa el error junto al campo y no se guarda nada ni queda un archivo huérfano.
+- **CA-030-19:** *Dado* un registro con datos adicionales, *cuando* se edita (cambiar, conservar, quitar, reemplazar una foto o pasar una foto a texto) o se elimina, *entonces* los archivos que dejan de usarse se borran del disco; sin la clave `extra_fields` nada cambia; un dato que no es de este registro no se puede conservar ni quitar desde él.
+- **CA-030-20:** *Dado* un organizador, *cuando* edita los datos adicionales, *entonces* puede; un evaluador y un administrador de otra organización no pueden crearlos ni cambiarlos.
 
 ## 8. Riesgos
 
@@ -97,6 +104,8 @@ Sin rutas JSON ni webhooks. Cambios de datos: tablas `lodgings` y `sponsors` (mi
 | Un archivo huérfano si falla el guardado | Se borra en el `catch`; el archivo anterior se borra solo tras confirmar la transacción. |
 | Organizaciones existentes sin los permisos nuevos | Migración de datos que vuelve a sembrar los roles (idempotente). |
 | Perder el «Nivel» de los patrocinadores ya cargados al quitar `level` | La migración de datos copia cada valor a una categoría ANTES de que otra migración elimine la columna, recorriendo cada organización con su contexto (RLS); su reversa devuelve los nombres a `level`. |
+| Un archivo huérfano al reemplazar o quitar la foto de un dato adicional | Las rutas anteriores se borran solo tras confirmar la transacción; las nuevas se borran en el `catch` si algo falla. |
+| Reusar el `id` de un dato de otro registro para heredar su foto | `ExtraFields` solo reconoce los `id` del propio registro; los demás son datos nuevos y piden su propia foto. |
 | Un patrocinador apuntando a una categoría de otro evento | Clave foránea compuesta `(categoría, evento)` y regla `SponsorRules` que exige que la categoría sea del evento. |
 
 ## 9. Registro de avance
@@ -106,3 +115,4 @@ Sin rutas JSON ni webhooks. Cambios de datos: tablas `lodgings` y `sponsors` (mi
 | F1 | — | 2026-11-25 | Pendiente de commit |
 | F2 | — | 2026-11-25 | Pendiente de commit |
 | F3 | — | 2026-11-25 | Galería del hospedaje (DA-5) y categorías de patrocinador (DA-6). Pendiente de commit |
+| F4 | — | 2026-11-26 | Datos adicionales por registro (DA-7, CA-030-18 a 20): migración `2026_11_30_100000_add_extra_fields_to_lodgings_and_sponsors`, `ExtraFields`, `ExtraFieldsInput` y pruebas `tests/Feature/Extras`. Pendiente de commit |
