@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Enums\OrganizationRole;
+use App\Models\Activity;
 use App\Models\Event;
 use App\Models\Organization;
 use App\Models\SubmissionParticipant;
@@ -133,4 +134,58 @@ it('CA-006-40: the author sees answers, participants and status, and nothing exc
     foreach (['Propuesta ajena secreta', 'id-secreto-del-archivo', 'idempotency_key', 'payload_hash', 'organization_id', 'registered_by', 'token_hash'] as $forbidden) {
         expect($everything)->not->toContain($forbidden);
     }
+});
+
+/*
+ * Plan 034: cerrar la sesión a mano y aislamiento de la sesión abierta al enviar (CA-034-15 a 17).
+ */
+
+it('CA-034-15: a session opened by submitting in organization A grants nothing on organization B', function (): void {
+    $a = AuthorFixtures::submission();
+    $b = AuthorFixtures::submission();
+    app(AuthorSession::class)->open($a, AuthorSession::VIA_SUBMIT);
+
+    $this->get(AuthorFixtures::path($a))->assertOk();
+    $this->get(AuthorFixtures::path($b))->assertNotFound();
+    $this->post(AuthorFixtures::path($b, 'my-submission/logout'))->assertNotFound();
+});
+
+it('CA-034-16: POST logout closes the author session, audits it and returns to the call page', function (): void {
+    $submission = AuthorFixtures::submission();
+    $organization = Organization::query()->findOrFail($submission->organization_id);
+    app(AuthorSession::class)->open($submission);
+    $this->get(AuthorFixtures::path($submission))->assertOk();
+
+    $response = $this->post(AuthorFixtures::path($submission, 'my-submission/logout'));
+
+    $response->assertStatus(303);
+    expect((string) $response->headers->get('Location'))->toContain("/{$organization->slug}/events/")
+        ->and(Activity::query()->where('event', 'author_session_closed')->count())->toBe(1);
+    $this->get(AuthorFixtures::path($submission))->assertRedirect(AuthorFixtures::path($submission, 'my-submission/request-link'));
+});
+
+it('CA-034-16: logout answers 405 to GET and sends a visitor without session to request a link', function (): void {
+    $submission = AuthorFixtures::submission();
+    $requestLink = AuthorFixtures::path($submission, 'my-submission/request-link');
+
+    $this->post(AuthorFixtures::path($submission, 'my-submission/logout'))->assertRedirect($requestLink);
+
+    app(AuthorSession::class)->open($submission);
+    $this->get(AuthorFixtures::path($submission, 'my-submission/logout'))->assertMethodNotAllowed();
+    $this->get(AuthorFixtures::path($submission))->assertOk();
+});
+
+it('CA-034-17: opening by link and closing the session are audited without personal data', function (): void {
+    $submission = AuthorFixtures::submission();
+    $session = app(AuthorSession::class);
+
+    $session->open($submission);
+    $session->logout();
+
+    $opened = Activity::query()->where('event', 'author_session_opened')->sole();
+    $closed = Activity::query()->where('event', 'author_session_closed')->sole();
+    expect($opened->properties->get('via'))->toBe('link')
+        ->and($opened->properties->get('organization_id'))->toBe($submission->organization_id)
+        ->and($closed->properties->get('organization_id'))->toBe($submission->organization_id)
+        ->and((string) $opened->properties.(string) $closed->properties)->not->toContain('ana@example.test');
 });
