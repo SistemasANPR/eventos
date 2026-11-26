@@ -52,6 +52,14 @@ class EventActivity extends Model
 
     public const PUBLIC_MAX_PER_PAGE = 100;
 
+    /**
+     * Avisos de ponente repetido que dejó el último guardado hecho con las Actions (plan 031, CA-031-15).
+     * No se guardan: viven solo en esta instancia, para que quien la recibe los muestre.
+     *
+     * @var list<array{speaker: string, activity: string, activity_id: string}>
+     */
+    public array $scheduleWarnings = [];
+
     /** @var list<string> */
     protected $guarded = ['*'];
 

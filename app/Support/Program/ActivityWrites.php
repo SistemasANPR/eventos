@@ -6,6 +6,7 @@ namespace App\Support\Program;
 
 use App\Actions\Program\StoreProgramImage;
 use App\Enums\ProgramImageType;
+use App\Exceptions\Domain\ActivityRoomConflict;
 use App\Models\Event;
 use App\Models\EventActivity;
 use App\Support\Html\RichTextSanitizer;
@@ -76,5 +77,47 @@ final class ActivityWrites
         $pivot = ['organization_id' => $activity->organization_id, 'event_id' => $activity->event_id];
 
         $activity->categories()->sync(array_fill_keys($categoryIds, $pivot));
+    }
+
+    /**
+     * Bloquea la fila del evento hasta el final de la transacción (plan 031, DA-10): comprobar la sala y
+     * escribir ocurren sin que otra persona ocupe la misma sala entre las dos cosas. Es el mismo bloqueo de `DeleteRoom`.
+     */
+    public static function lockEvent(string $eventId): void
+    {
+        Event::query()->whereKey($eventId)->lockForUpdate()->firstOrFail();
+    }
+
+    /**
+     * Rechaza el cambio si otra actividad del evento ya ocupa la sala en ese intervalo (CA-031-10).
+     * Se llama dentro de la transacción y con el evento bloqueado, antes de escribir nada.
+     *
+     * @param  array{starts_on: string, starts_at: string, ends_on: string, ends_at: string}  $slot
+     *
+     * @throws ActivityRoomConflict
+     */
+    public static function assertRoomFree(string $eventId, ?string $roomId, array $slot, ?string $exceptActivityId = null): void
+    {
+        $conflict = DetectScheduleConflicts::roomConflict($eventId, $roomId, $slot, $exceptActivityId);
+
+        if ($conflict !== null) {
+            throw new ActivityRoomConflict($conflict->title);
+        }
+    }
+
+    /**
+     * Intervalo que se guardará, con las horas normalizadas a `H:i:s`.
+     *
+     * @param  array<string, mixed>  $validated
+     * @return array{starts_on: string, starts_at: string, ends_on: string, ends_at: string}
+     */
+    public static function slot(array $validated): array
+    {
+        return [
+            'starts_on' => (string) $validated['starts_on'],
+            'starts_at' => self::time((string) $validated['starts_at']),
+            'ends_on' => (string) $validated['ends_on'],
+            'ends_at' => self::time((string) $validated['ends_at']),
+        ];
     }
 }
