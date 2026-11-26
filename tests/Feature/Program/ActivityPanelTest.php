@@ -9,6 +9,7 @@ use App\Models\ActivityCategory;
 use App\Models\Event;
 use App\Models\EventActivity;
 use App\Models\Organization;
+use App\Models\Room;
 use App\Models\Speaker;
 use App\Models\Submission;
 use App\Models\User;
@@ -19,6 +20,7 @@ use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Features\SupportTesting\Testable;
 use Livewire\Livewire;
@@ -409,4 +411,57 @@ it('CA-021-2: the description typed in the form is saved sanitized', function ()
     $activity = CurrentOrganization::run($organization, fn () => EventActivity::query()->firstOrFail());
 
     expect($activity->description)->toBe('<p>Hola</p>');
+});
+
+it('CA-031-9: the form offers only the rooms of the event, saves the chosen one and the list shows it', function (): void {
+    [$organization, $event, $admin] = formScenario();
+    $room = CurrentOrganization::run($organization, fn (): Room => Room::factory()->create(['event_id' => $event->id, 'name' => 'Auditorio']));
+    CurrentOrganization::run($organization, fn (): Room => Room::factory()->create(['event_id' => Event::factory()->create(['organization_id' => $organization->id])->id, 'name' => 'De otro evento']));
+
+    $component = activitiesPage($organization, $admin, $event)
+        ->callAction('createActivity', [
+            'title' => 'Con sala',
+            'starts_on' => '2027-03-10', 'ends_on' => '2027-03-10', 'starts_at' => '09:00', 'ends_at' => '10:00',
+            'room_id' => $room->id,
+        ])
+        ->assertHasNoActionErrors();
+
+    $activity = CurrentOrganization::run($organization, fn () => EventActivity::query()->where('event_id', $event->id)->firstOrFail());
+
+    expect($activity->room_id)->toBe($room->id);
+    $component->assertSee('Auditorio')->assertDontSee('De otro evento');
+});
+
+it('CA-031-10: an occupied room shows the conflict next to the room field and saves nothing', function (): void {
+    [$organization, $event, $admin] = formScenario();
+    $room = CurrentOrganization::run($organization, fn (): Room => Room::factory()->create(['event_id' => $event->id]));
+    panelActivity($event, ['title' => 'Charla ocupante', 'room_id' => $room->id, 'starts_at' => '09:00:00', 'ends_at' => '10:00:00']);
+
+    activitiesPage($organization, $admin, $event)
+        ->callAction('createActivity', [
+            'title' => 'Choca',
+            'starts_on' => '2027-03-10', 'ends_on' => '2027-03-10', 'starts_at' => '09:30', 'ends_at' => '10:30',
+            'room_id' => $room->id,
+        ])
+        ->assertHasActionErrors(['room_id']);
+
+    expect(CurrentOrganization::run($organization, fn () => EventActivity::query()->where('event_id', $event->id)->count()))->toBe(1);
+});
+
+it('CA-031-15: a speaker booked at the same time is saved and the panel shows a persistent warning', function (): void {
+    [$organization, $event, $admin] = formScenario();
+    $speaker = CurrentOrganization::run($organization, fn (): Speaker => Speaker::factory()->create(['event_id' => $event->id]));
+    $other = panelActivity($event, ['title' => 'Otra charla', 'starts_at' => '09:00:00', 'ends_at' => '10:00:00']);
+    DB::table('activity_speaker')->insert(['activity_id' => $other->id, 'speaker_id' => $speaker->id, 'organization_id' => $organization->id, 'event_id' => $event->id, 'position' => 0]);
+
+    activitiesPage($organization, $admin, $event)
+        ->callAction('createActivity', [
+            'title' => 'Se cruza',
+            'starts_on' => '2027-03-10', 'ends_on' => '2027-03-10', 'starts_at' => '09:30', 'ends_at' => '10:30',
+            'speaker_ids' => [$speaker->id],
+        ])
+        ->assertHasNoActionErrors()
+        ->assertNotified(__('program.activities.messages.speaker_clash_title'));
+
+    expect(CurrentOrganization::run($organization, fn () => EventActivity::query()->where('event_id', $event->id)->count()))->toBe(2);
 });

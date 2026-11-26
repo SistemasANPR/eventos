@@ -9,6 +9,7 @@ use App\Actions\Program\DeleteActivity;
 use App\Actions\Program\SetActivityPublication;
 use App\Actions\Program\UpdateActivity;
 use App\Enums\ProgramCategoryKind;
+use App\Exceptions\Domain\ActivityRoomConflict;
 use App\Filament\Resources\Events\EventResource;
 use App\Filament\Resources\Events\ProgramCategoryShortcuts;
 use App\Filament\Resources\Submissions\SubmissionResource;
@@ -86,7 +87,7 @@ class ManageEventActivities extends ManageRelatedRecords
         $event = $this->event();
 
         return $table
-            ->modifyQueryUsing(fn (Builder $query): Builder => $query->with(['submission', 'categories', 'speakers']))
+            ->modifyQueryUsing(fn (Builder $query): Builder => $query->with(['submission', 'categories', 'speakers', 'room']))
             ->columns([
                 ImageColumn::make('thumbnail')
                     ->label(__('program.activities.columns.image'))
@@ -108,6 +109,10 @@ class ManageEventActivities extends ManageRelatedRecords
                     ->label(__('program.activities.columns.time').' ('.$event->timezone.')')
                     ->state(fn (EventActivity $record): string => self::timeLabel($record, $event))
                     ->sortable(),
+                TextColumn::make('room.name')
+                    ->label(__('program.activities.columns.room'))
+                    ->placeholder('—')
+                    ->toggleable(),
                 TextColumn::make('categories.name')
                     ->label(__('program.activities.columns.categories'))
                     ->badge()
@@ -274,6 +279,10 @@ class ManageEventActivities extends ManageRelatedRecords
                 TimePicker::make('starts_at')->label(__('program.activities.form.starts_at'))->required()->seconds(false)->displayFormat($this->event()->time_format->displayTime()),
                 TimePicker::make('ends_at')->label(__('program.activities.form.ends_at'))->required()->seconds(false)->displayFormat($this->event()->time_format->displayTime()),
             ]),
+            Select::make('room_id')
+                ->label(__('program.activities.form.room'))
+                ->placeholder(__('program.activities.form.room_none'))
+                ->options(fn (): array => $this->event()->rooms()->orderBy('position')->pluck('name', 'id')->all()),
             ...$this->fileFields($activity, 'icon', 256),
             ...$this->fileFields($activity, 'image', 5120),
             TextInput::make('summary')
@@ -342,6 +351,7 @@ class ManageEventActivities extends ManageRelatedRecords
             'ends_on' => $activity->ends_on?->toDateString(),
             'starts_at' => $activity->starts_at === null ? null : substr($activity->starts_at, 0, 5),
             'ends_at' => $activity->ends_at === null ? null : substr($activity->ends_at, 0, 5),
+            'room_id' => $activity->room_id,
             'summary' => $activity->summary,
             'description' => $activity->description,
             'category_ids' => $activity->categories->pluck('id')->all(),
@@ -378,7 +388,10 @@ class ManageEventActivities extends ManageRelatedRecords
     private function run(callable $operation, string $successTitle, array $data, Schema $schema): void
     {
         try {
-            $operation();
+            $result = $operation();
+        } catch (ActivityRoomConflict $conflict) {
+            // La sala ocupada se muestra junto al selector y no se guarda nada (plan 031, CA-031-10).
+            throw ActionErrors::forForm(ValidationException::withMessages(['room_id' => [$conflict->getMessage()]]), $schema->getStatePath());
         } catch (ValidationException $exception) {
             // Un error por ponente elegido se muestra junto al selector, que es un solo campo.
             $errors = [];
@@ -398,6 +411,19 @@ class ManageEventActivities extends ManageRelatedRecords
         }
 
         Notification::make()->title($successTitle)->success()->send();
+
+        // Un ponente en dos actividades que se cruzan se guarda igual; se avisa para que lo revisen (CA-031-15).
+        if ($result instanceof EventActivity && $result->scheduleWarnings !== []) {
+            Notification::make()
+                ->title(__('program.activities.messages.speaker_clash_title'))
+                ->body(implode("\n", array_map(
+                    fn (array $warning): string => __('program.activities.speaker_clash', ['speaker' => $warning['speaker'], 'activity' => $warning['activity']]),
+                    $result->scheduleWarnings,
+                )))
+                ->warning()
+                ->persistent()
+                ->send();
+        }
     }
 
     /**
