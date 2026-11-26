@@ -4,7 +4,7 @@
 > `composer check:criteria` lee el **Estado** y los criterios de este archivo: no cambiar el formato de esas líneas.
 
 - **Fecha:** 2026-11-26
-- **Estado:** Borrador
+- **Estado:** Aprobado (2026-11-26: Antonio aprueba el plan y sus recomendaciones; DA-1 a DA-13 cerradas)
 - **Esfuerzo:** L
 - **Deuda relacionada:** ninguna abierta. Resuelve en parte la deuda «sedes y salas compartidas» del plan 031 §10 (se queda sin sedes) y la de «mostrar la sala en el sitio público». Prepara E-27 «Talleres con cupo» (`docs/plan-de-desarrollo.md`), que añadirá la inscripción y la lista de espera sobre el cupo que guarda este plan.
 
@@ -44,23 +44,23 @@ Medido el 2026-11-26 en `staging` (`a4f4b08`) y en la rama `feat/plan-031-f3-sal
 
 ## 3. Decisiones
 
-Resumen: un solo catálogo de lugares con tipo; el cupo y los datos del lugar externo viven en la actividad; lo público muestra poco en el programa y el detalle en la ficha. Las cuatro decisiones marcadas «Cerrada» las contestó Antonio el 2026-11-26; el resto son propuestas por aprobar con el plan.
+Resumen: un solo catálogo de lugares con tipo; el cupo y los datos del lugar externo viven en la actividad; lo público muestra poco en el programa y el detalle en la ficha. DA-5 a DA-8 las contestó Antonio el 2026-11-26 con sus respuestas; el resto las aprobó el mismo día con la recomendación del plan.
 
 ### DA-1 · Cómo se modela el lugar — se recomienda **una sola tabla con tipo (`rooms.kind`)**
 
-Opciones: (a) la tabla `rooms` con una columna `kind` (`room` o `external`); (b) un modelo aparte para los lugares externos. Con (a) el selector, el catálogo, el orden y la agenda tratan un solo concepto y un parque se elige igual que un auditorio; con (b) habría dos catálogos y dos selectores para lo mismo. Recomendación (a). **Pendiente de aprobar.**
+Opciones: (a) la tabla `rooms` con una columna `kind` (`room` o `external`); (b) un modelo aparte para los lugares externos. Con (a) el selector, el catálogo, el orden y la agenda tratan un solo concepto y un parque se elige igual que un auditorio; con (b) habría dos catálogos y dos selectores para lo mismo. Recomendación (a). **Cerrada el 2026-11-26: Antonio aprueba la recomendación.**
 
 ### DA-2 · Nombre interno y de interfaz — se recomienda **mantener `Room` y `rooms` por dentro y llamar «Lugares» al módulo en la interfaz**
 
-Renombrar a `Place` mueve el código y las pruebas de las F2 y F3 sin dar nada al usuario. El glosario aclara que `Room` es «lugar del evento, sala o externo». Si más adelante confunde, se renombra con una migración propia. **Pendiente de aprobar.**
+Renombrar a `Place` mueve el código y las pruebas de las F2 y F3 sin dar nada al usuario. El glosario aclara que `Room` es «lugar del evento, sala o externo». Si más adelante confunde, se renombra con una migración propia. **Cerrada el 2026-11-26: Antonio aprueba la recomendación.**
 
 ### DA-3 · Dónde vive el cupo — se recomienda **en la actividad, opcional, informativo**
 
-`event_activities.quota` (entero, nulo = sin cupo). Es independiente del lugar: también hay talleres con cupo dentro de una sala. No se hace cumplir (no hay inscripción); E-27 construirá la inscripción sobre este dato. **Pendiente de aprobar.**
+`event_activities.quota` (entero, nulo = sin cupo). Es independiente del lugar: también hay talleres con cupo dentro de una sala. No se hace cumplir (no hay inscripción); E-27 construirá la inscripción sobre este dato. **Cerrada el 2026-11-26: Antonio aprueba la recomendación.**
 
 ### DA-4 · Dónde viven el punto de reunión, el transporte y los responsables — se recomienda **en la actividad, y solo si su lugar es externo**
 
-Cambian de una actividad a otra aunque el lugar sea el mismo (el taller de las 9:00 se reúne en la puerta norte y el de las 12:00 en el quiosco). Solo se aceptan cuando el lugar de la actividad es externo; si la actividad pasa a una sala o a «sin lugar», se borran en la misma transacción. **Pendiente de aprobar.**
+Cambian de una actividad a otra aunque el lugar sea el mismo (el taller de las 9:00 se reúne en la puerta norte y el de las 12:00 en el quiosco). Solo se aceptan cuando el lugar de la actividad es externo; si la actividad pasa a una sala o a «sin lugar», se borran en la misma transacción. **Cerrada el 2026-11-26: Antonio aprueba la recomendación.**
 
 ### DA-5 · Visibilidad de los responsables — **Cerrada el 2026-11-26: por defecto solo el equipo, con opción de hacerlo visible al público**
 
@@ -80,23 +80,23 @@ Si no hay información, no se muestra. El campo trae texto de ayuda que orienta 
 
 ### DA-9 · Choques y agenda con lugares externos — se recomienda **los externos no se bloquean entre sí; en la agenda van en una columna «Fuera de sede»**
 
-Varios talleres a la vez en el mismo parque es lo normal, así que `DetectScheduleConflicts` ignora los lugares externos para el choque de sala. El aviso de **ponente en dos actividades a la vez** se mantiene también ahí (una persona no está en dos sitios). La agenda de la F4 del plan 031 pondrá todas las actividades externas en una columna «Fuera de sede» que admite actividades simultáneas. Este plan debe fusionarse **antes** de esa F4 para diseñarla una sola vez. **Pendiente de aprobar.**
+Varios talleres a la vez en el mismo parque es lo normal, así que `DetectScheduleConflicts` ignora los lugares externos para el choque de sala. El aviso de **ponente en dos actividades a la vez** se mantiene también ahí (una persona no está en dos sitios). La agenda de la F4 del plan 031 pondrá todas las actividades externas en una columna «Fuera de sede» que admite actividades simultáneas. Este plan debe fusionarse **antes** de esa F4 para diseñarla una sola vez. **Cerrada el 2026-11-26: Antonio aprueba la recomendación.**
 
 ### DA-10 · Cambiar el tipo de un lugar en uso — se recomienda **bloquearlo con un error que diga cuántas actividades lo usan**
 
-Pasar de externo a sala dejaría actividades con datos de lugar externo; pasar de sala a externo cambia la regla de choque bajo actividades ya programadas. Se bloquea igual que eliminar un lugar en uso (plan 031, DA-13); hay que mover las actividades antes. **Pendiente de aprobar.**
+Pasar de externo a sala dejaría actividades con datos de lugar externo; pasar de sala a externo cambia la regla de choque bajo actividades ya programadas. Se bloquea igual que eliminar un lugar en uso (plan 031, DA-13); hay que mover las actividades antes. **Cerrada el 2026-11-26: Antonio aprueba la recomendación.**
 
 ### DA-11 · Responsables: tabla propia — se recomienda **`activity_contacts` en vez de un texto libre**
 
-Opciones: (a) tabla con nombre, teléfono, correo, orden e `is_public`; (b) un campo de texto «contacto». Con (a) la marca `is_public` es por persona y la privacidad puede localizarlos y borrarlos; con (b) un teléfono pegado en texto libre es dato personal imposible de localizar. Recomendación (a), máximo 5 por actividad. **Pendiente de aprobar.**
+Opciones: (a) tabla con nombre, teléfono, correo, orden e `is_public`; (b) un campo de texto «contacto». Con (a) la marca `is_public` es por persona y la privacidad puede localizarlos y borrarlos; con (b) un teléfono pegado en texto libre es dato personal imposible de localizar. Recomendación (a), máximo 5 por actividad. **Cerrada el 2026-11-26: Antonio aprueba la recomendación.**
 
 ### DA-12 · Orden de trabajo — se recomienda **fusionar la F3 del plan 031, luego este plan y después la F4 del plan 031**
 
-Este plan modifica `DetectScheduleConflicts`, `CreateActivity` y `UpdateActivity` de la F3, y la agenda de la F4 necesita saber qué es un lugar externo. **Pendiente de aprobar.**
+Este plan modifica `DetectScheduleConflicts`, `CreateActivity` y `UpdateActivity` de la F3, y la agenda de la F4 necesita saber qué es un lugar externo. **Cerrada el 2026-11-26: Antonio aprueba la recomendación.**
 
 ### DA-13 · El sitio público muestra el lugar — se recomienda **sí, en el detalle de la actividad (no en el programa)**
 
-Resuelve la contradicción entre el plan 031 (la sala no sale en lo público) y el borrador del plan 033 (la API incluye la sala). El programa no muestra el lugar; el detalle sí, con nombre y, si existen, dirección y mapa. Esto **cambia a propósito** el contrato del plan 029 y las pruebas `CA-029-7` y `CA-031-28`. **Pendiente de aprobar.**
+Resuelve la contradicción entre el plan 031 (la sala no sale en lo público) y el borrador del plan 033 (la API incluye la sala). El programa no muestra el lugar; el detalle sí, con nombre y, si existen, dirección y mapa. Esto **cambia a propósito** el contrato del plan 029 y las pruebas `CA-029-7` y `CA-031-28`. **Cerrada el 2026-11-26: Antonio aprueba la recomendación.**
 
 ## 4. Contrato
 
@@ -138,7 +138,7 @@ Las migraciones **no se escriben ni se aplican a una base real** sin la propuest
 | ¿Qué Policy cubre cada acción y dónde se prueba? | `RoomPolicy` y la `EventActivityPolicy` existentes; no se crean permisos ni Policies. Se prueba el rechazo de `reviewer`, autor y otra organización al fijar lugar, cupo y responsables. |
 | ¿Hay modelos nuevos con datos de una organización? | Sí: `ActivityContact`, con `BelongsToOrganization`, `organization_id` `NOT NULL` con clave foránea y prueba de aislamiento en `tests/Feature/Tenancy/`. |
 | ¿El acceso cruza eventos o depende de `event_assignments`? | No; igual que el resto del programa. Todo se acota al evento y a la organización por claves compuestas. |
-| ¿Se guardan datos personales nuevos? | Sí: nombre, teléfono y correo de los responsables (`activity_contacts`). Base: relación de trabajo con la organización; si se publican, consentimiento de la persona, que el formulario recuerda al marcar «visible al público». Retención: mientras exista la actividad; al borrar a una persona se eliminan las filas con su correo dentro de la organización (F0 lo confirma con `PersonDataEraser`). Se actualizan `PersonalDataInventory` y `docs/privacidad.md` §2 y §3 en el mismo cambio. |
+| ¿Se guardan datos personales nuevos? | Sí: nombre, teléfono y correo de los responsables (`activity_contacts`). Base: relación de trabajo con la organización; si se publican, consentimiento de la persona, que el formulario recuerda al marcar «visible al público». Retención: mientras exista la actividad. La persona se localiza por su correo, como ya hace `PersonRecords` con contactos, participantes y ponentes (confirmado en F0, 2026-11-26): al anonimizarla se **eliminan** las filas de `activity_contacts` con su correo dentro de la organización (`PersonDataEraser`, `ErasePersonRecords`), `ExportPersonData` las incluye y `ReapplyAnonymizations` las vuelve a eliminar tras restaurar un respaldo. Se actualizan `PersonalDataInventory` y `docs/privacidad.md` §2 y §6 en el mismo cambio. |
 | ¿Se suben archivos? | No. |
 | ¿Hay dinero, pagos o webhooks? | No. El cupo no es cobro ni boleto. |
 | ¿Se envían correos o notificaciones? | No. |
@@ -153,9 +153,9 @@ Cada fase deja el repo en verde y termina en su propio commit con su registro en
 | F0 | Aprobar el plan y cerrar DA-1 a DA-13. Glosario: `Room` como «lugar del evento, sala o externo» y términos «Cupo» y «Responsable de actividad»; `Taller` pasa a «actividad con cupo, así la llama la ANPR». Propuesta de datos en `docs/database-design.md` §8.5. Confirmar con `PersonDataEraser` cómo se localizan y borran los responsables. Nota en E-27 de `docs/plan-de-desarrollo.md`. Sin cambios de código. | S |
 | F1 | **Datos.** Migraciones de `rooms`, `event_activities` y `activity_contacts`; `RoomKind` (enum); `ActivityContact`, su fábrica y relaciones; entrada en `PersonalDataInventory`. Pruebas de esquema, de aislamiento y de la guardiana de privacidad escritas antes. CA-035-1, 2, 22 y 23. | M |
 | F2 | **Lugares en el panel.** «Salas» pasa a «Lugares»: tipo, capacidad, interruptor de capacidad pública, dirección y mapa con texto de ayuda; bloqueo de cambio de tipo en uso; columnas nuevas. Textos es/en. CA-035-3 a 9. | M |
-| F3 | **Actividad.** Cupo, lugar con campos que aparecen según el tipo, punto de reunión, transporte y responsables; reglas en `CreateActivity` y `UpdateActivity` sin cambiar firma; `DetectScheduleConflicts` ignora los externos; aviso de cupo mayor que la capacidad; columnas «Lugar» y «Cupo». CA-035-10 a 21. | L |
+| F3 | **Actividad.** Cupo, lugar con campos que aparecen según el tipo, punto de reunión, transporte y responsables; reglas en `CreateActivity` y `UpdateActivity` sin cambiar firma; `DetectScheduleConflicts` ignora los externos; aviso de cupo mayor que la capacidad; columnas «Lugar» y «Cupo». **Privacidad de los responsables** en la misma fase en que se vuelven escribibles: localizarlos por correo en `PersonRecords`, eliminarlos en `PersonDataEraser` y `ErasePersonRecords`, incluirlos en `ExportPersonData` y `ReapplyAnonymizations`, y `docs/privacidad.md` §2 y §6. CA-035-10 a 21, 32, 33 y 34. | L |
 | F4 | **Sitio público y contratos.** Constructores públicos con la lista cerrada nueva, tipos de TypeScript, `ActivityCard` y la página de detalle, catálogo de componentes, `docs/api/endpoints.md` y actualización de `CA-029-7` y `CA-031-28`. `npm run typecheck`, `lint`, `test` y `build`. CA-035-24 a 31. | M |
-| F5 | **Verificación y cierre.** Navegador a 375 y 1280 px con la consola abierta (panel y sitio público), privacidad (CA-035-32 y 33), `composer check` completo y revisión con `/revisar-aislamiento`. Deuda a `docs/sprints/deuda-tecnica.md`. | M |
+| F5 | **Verificación y cierre.** Navegador a 375 y 1280 px con la consola abierta (panel y sitio público), `composer check` completo y revisión con `/revisar-aislamiento`. Deuda a `docs/sprints/deuda-tecnica.md`. | M |
 
 ## 7. Criterios de aceptación
 
@@ -205,11 +205,12 @@ Cada uno tiene al menos una prueba cuyo nombre lo cita (`CA-035-n: ...`) o decla
 - **CA-035-31:** *Dado* el sitio público, *cuando* se ve a 375 y 1280 px, *entonces* la insignia y los bloques del detalle se leen sin desbordar, con contraste AA, textos por i18n (es y en) y sin errores en consola.
   Manual: abrir el programa y el detalle de una actividad externa con cupo a 375 y 1280 px; esperar o hacer scroll antes de concluir un fallo por animaciones de entrada.
 
-**Privacidad (F1 y F5)**
+**Privacidad (F1 y F3)**
 
 - **CA-035-22:** *Dado* el modelo `ActivityContact`, *cuando* corre `PersonalDataInventoryTest`, *entonces* figura como cubierto con todas sus columnas clasificadas, y `docs/privacidad.md` §2 lo describe.
 - **CA-035-23:** *Dado* el nuevo modelo, *cuando* corren las pruebas de aislamiento de `tests/Feature/Tenancy/`, *entonces* una organización no ve ni modifica los responsables de otra, y sin contexto de organización la consulta falla.
-- **CA-035-32:** *Dado* una persona cuyo correo figura como responsable en actividades de la organización, *cuando* se borra o anonimiza a la persona, *entonces* esas filas se eliminan en esa organización y el registro de la operación no guarda su nombre ni su correo.
+- **CA-035-32:** *Dado* una persona cuyo correo figura como responsable en actividades de la organización, *cuando* se anonimiza a la persona, *entonces* esas filas se eliminan en esa organización (y no en otra), el resultado de la operación cuenta cuántas se eliminaron, y el registro de la operación no guarda su nombre ni su correo; si se restaura un respaldo, `ReapplyAnonymizations` las vuelve a eliminar.
+- **CA-035-34:** *Dado* una persona cuyo correo figura como responsable, *cuando* se exportan sus datos, *entonces* el archivo incluye esas filas (nombre, teléfono, correo, actividad y si es público) y solo las de esa organización.
 - **CA-035-33:** *Dado* el formulario, *cuando* se marca a un responsable como visible al público, *entonces* el texto de ayuda recuerda que la persona debe haber dado su permiso.
 
 ## 8. Riesgos
@@ -218,7 +219,7 @@ Cada uno tiene al menos una prueba cuyo nombre lo cita (`CA-035-n: ...`) o decla
 |---|---|
 | **Publicar un dato personal de un responsable** sin querer | `is_public` apagado por defecto, constructores públicos con lista cerrada, CA-035-28 y 29, y el aviso de permiso (CA-035-33). |
 | **Cambiar el contrato público** del plan 029 y romper a quien lo consume (sitio, app móvil) | Lista de claves exacta con prueba, tipos de TypeScript actualizados en el mismo cambio y `docs/api/endpoints.md` al día; el cambio es solo aditivo. |
-| **Dejar a los responsables fuera del borrado de una persona** | `PersonalDataInventory` y su guardiana (CA-035-22), prueba de borrado (CA-035-32) y confirmación con `PersonDataEraser` en F0. |
+| **Dejar a los responsables fuera del borrado de una persona** | `PersonalDataInventory` y su guardiana (CA-035-22), borrado y exportación por correo en `PersonRecords` (CA-035-32 y 34), ya confirmado en F0. |
 | **Romper la regla de choque** de la F3 al abrir una excepción para los externos | `DetectScheduleConflicts` sigue siendo la única definición; las pruebas `CA-031-10` a 17 se conservan y se añaden CA-035-16 y 17. |
 | **Lugares externos y actividades con datos huérfanos** al cambiar de tipo | Cambio de tipo bloqueado si el lugar está en uso (DA-10) y borrado de los datos externos al mover la actividad (CA-035-14). |
 | **Confundir cupo con inscripción:** el sitio parece prometer plazas | Texto «Cupo: n personas», sin botón ni «lugares disponibles», y E-27 documentado como la fase que añade la inscripción. |
@@ -231,6 +232,7 @@ Cada uno tiene al menos una prueba cuyo nombre lo cita (`CA-035-n: ...`) o decla
 
 | Fase | Commit | Fecha | Notas (salida real de las validaciones) |
 |---|---|---|---|
+| F0 | ver `git log` | 2026-11-26 | Plan en `Aprobado` (DA-1 a DA-13 cerradas). Glosario: `Sala` como «lugar del evento» con tipo, `Taller` como actividad con cupo, y los términos «Cupo» y «Responsable de actividad». Propuesta de datos en `docs/database-design.md` §8.5. `docs/privacidad.md` §2 y §6 con los responsables. Confirmado con `PersonRecords`, `PersonDataEraser`, `ExportPersonData` y `ReapplyAnonymizations` que los responsables se localizan por correo y se eliminan al anonimizar (CA-035-32 y 34, en F3). Nota en E-27 de `docs/plan-de-desarrollo.md`. Sin cambios de código ni migraciones. |
 
 ## 10. Deuda que deja (a registrar en F5)
 
