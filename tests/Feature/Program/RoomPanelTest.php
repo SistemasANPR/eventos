@@ -180,3 +180,55 @@ it('CA-031-5: the activities page links to the rooms page with the count of room
         ->assertActionVisible('rooms')
         ->assertSee(EventResource::getUrl('rooms', ['record' => $event], panel: 'admin', tenant: $organization), false);
 });
+
+it('CA-035-8: the create form offers the kind, capacity, address and map, and the help texts say what data can go there', function (): void {
+    [$organization, $event, $admin] = formScenario();
+    $component = roomsPage($organization, $admin, $event)->mountAction('createRoom');
+
+    foreach (['name', 'kind', 'capacity', 'address', 'map_url'] as $field) {
+        $component->assertSchemaComponentExists($field);
+    }
+
+    // Piso, edificio, ala o entrada: la ayuda de la dirección dice qué datos pueden ir ahí (el texto se ve en el navegador).
+    expect(__('program.rooms.address_help'))->toContain('edificio')->toContain('piso')
+        ->and(__('program.rooms.capacity_help'))->toContain('cupo');
+    app()->setLocale('en');
+    expect(__('program.rooms.address_help'))->toContain('building')->toContain('floor');
+});
+
+it('CA-035-3: the admin creates an external place with its details and the list shows its kind and capacity', function (): void {
+    [$organization, $event, $admin] = formScenario();
+
+    $component = roomsPage($organization, $admin, $event)
+        ->callAction('createRoom', [
+            'name' => 'Parque Lineal',
+            'kind' => 'external',
+            'capacity' => 40,
+            'capacity_is_public' => true,
+            'address' => 'Entrada norte, junto al quiosco',
+            'map_url' => 'https://maps.example.test/parque-lineal',
+        ])
+        ->assertHasNoActionErrors();
+
+    $room = Room::query()->where('event_id', $event->id)->firstOrFail();
+
+    expect($room->kind->value)->toBe('external')
+        ->and($room->capacity)->toBe(40)
+        ->and($room->capacity_is_public)->toBeTrue();
+
+    $component->assertCanSeeTableRecords([$room])
+        ->assertSee(__('program.rooms.kinds.external'))
+        ->assertSee('40');
+});
+
+it('CA-035-6: editing the kind of a place that has activities shows the error and keeps the kind', function (): void {
+    [$organization, $event, $admin] = formScenario();
+    $room = panelRoom($admin, $event, 'Sala A');
+    CurrentOrganization::run($organization, fn () => EventActivity::factory()->scheduled()->create(['event_id' => $event->id, 'room_id' => $room->id]));
+
+    roomsPage($organization, $admin, $event)
+        ->callAction(TestAction::make('editRoom')->table($room), ['name' => 'Sala A', 'kind' => 'external'])
+        ->assertNotified(__('program.rooms.failed'));
+
+    expect($room->refresh()->kind->value)->toBe('room');
+});
