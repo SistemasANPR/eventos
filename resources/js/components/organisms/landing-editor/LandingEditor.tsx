@@ -7,7 +7,7 @@ import { BlockLibrary } from '@/components/organisms/landing-editor/BlockLibrary
 import { BlockSettingsPanel } from '@/components/organisms/landing-editor/BlockSettingsPanel';
 import { EditorCanvas, type FocusRequest } from '@/components/organisms/landing-editor/EditorCanvas';
 import { BUTTON_PRIMARY, BUTTON_SECONDARY, FOCUS_RING, HEADING_LG } from '@/lib/classes';
-import { canAddBlock, createBlock, duplicateBlock, moveBlock, removeBlock } from '@/lib/landing-blocks';
+import { canAddBlock, createBlock, duplicateBlock, moveBlock, newClientId, removeBlock } from '@/lib/landing-blocks';
 import { blockLabelKey } from '@/lib/landing-draft';
 import { createTranslate } from '@/lib/translate';
 import { cn } from '@/lib/utils';
@@ -35,7 +35,7 @@ type Status =
     | { kind: 'invalid' }
     | { kind: 'conflict'; blocks: LandingBlockDraft[]; version: number };
 
-type Confirmation = { kind: 'remove'; blockId: string } | { kind: 'discard' };
+type Confirmation = { kind: 'remove'; blockId: string } | { kind: 'discard' } | { kind: 'template' };
 
 type SidePanel = 'settings' | 'library';
 
@@ -57,6 +57,8 @@ export function LandingEditor({
     preview,
     publicUrl,
     hasUnpublishedChanges,
+    kind = 'event',
+    template = null,
     api,
 }: LandingEditorComponentProps) {
     const t = useMemo(() => createTranslate(translations), [translations]);
@@ -184,6 +186,21 @@ export function LandingEditor({
         setSidePanel('settings');
         focusBlock(created.id);
         announcePosition('landing_editor.announce.added', created, at, blocks.length + 1);
+    };
+
+    /** Reemplaza los bloques por la plantilla de convocatoria; queda como cambio sin guardar y «Descartar» lo revierte. */
+    const handleConfirmTemplate = (): void => {
+        if (template === null) {
+            return;
+        }
+
+        // Ids propios del cliente: el servidor fija los definitivos al guardar (CA-022-14).
+        const fresh = template.map((block) => ({ ...block, id: newClientId() }));
+
+        setConfirmation(null);
+        setBlocks(fresh);
+        setSelectedId(fresh[0]?.id ?? null);
+        setAnnouncement(t('landing_editor.announce.template_applied', { total: String(fresh.length) }));
     };
 
     const handleChangeBlock = (changed: LandingBlockDraft): void =>
@@ -325,6 +342,17 @@ export function LandingEditor({
                 />
             )}
 
+            {confirmation?.kind === 'template' && (
+                <ConfirmBar
+                    title={t('landing_editor.confirm.template_title')}
+                    description={t('landing_editor.confirm.template_body')}
+                    confirmLabel={t('landing_editor.confirm.template_confirm')}
+                    cancelLabel={t('landing_editor.confirm.cancel')}
+                    onConfirm={handleConfirmTemplate}
+                    onCancel={handleCancelConfirmation}
+                />
+            )}
+
             {confirmation?.kind === 'remove' && (
                 <ConfirmBar
                     title={t('landing_editor.confirm.remove_title')}
@@ -413,7 +441,13 @@ export function LandingEditor({
                         ))}
                     </div>
                     {sidePanel === 'library' ? (
-                        <BlockLibrary canAdd={canAdd} onAdd={handleAdd} t={t} />
+                        <BlockLibrary
+                            kind={kind}
+                            canAdd={canAdd}
+                            onAdd={handleAdd}
+                            onApplyTemplate={template === null ? undefined : () => setConfirmation({ kind: 'template' })}
+                            t={t}
+                        />
                     ) : (
                         <BlockSettingsPanel
                             block={selectedBlock}

@@ -15,6 +15,7 @@ use App\Support\Calls\PublicCallData;
 use App\Support\Calls\ResolveCallState;
 use App\Support\Events\PublicEventData;
 use App\Support\Html\RichTextSanitizer;
+use App\Support\Landings\CallBlocksResolver;
 use Closure;
 use Illuminate\Support\Arr;
 
@@ -37,6 +38,7 @@ use Illuminate\Support\Arr;
  * - `image_gallery`: `title` e `images: [{url, alt}]`.
  * - `spacer`: `size`.
  * - `columns`: `columns: [PublicColumn, PublicColumn]`, cada una `{kind: 'text', html}` o `{kind: 'image', url, alt}`.
+ * - `call_*` (plan 033, solo con la convocatoria): los resuelve `CallBlocksResolver`.
  *
  * Las imágenes que ya no existen (borradas) se omiten en la galería y como fondo, sin romper la página.
  */
@@ -45,12 +47,14 @@ final class ResolveLandingBlocks
     /**
      * @param  list<array<string, mixed>>  $blocks
      * @param  Closure(string): ?string  $imageUrl  URL de una imagen por su id, o null si no está disponible
+     * @param  CallForSubmissions|null  $call  la convocatoria dueña de la landing; sin ella se omiten los bloques `call_*`
      * @return list<array<string, mixed>>
      */
-    public function handle(Event $event, Organization $organization, array $blocks, string $locale, Closure $imageUrl): array
+    public function handle(Event $event, Organization $organization, array $blocks, string $locale, Closure $imageUrl, ?CallForSubmissions $call = null): array
     {
         $resolved = [];
         $live = null;
+        $callResolver = null;
 
         foreach ($blocks as $block) {
             $type = LandingBlockType::tryFrom((string) ($block['type'] ?? ''));
@@ -60,6 +64,15 @@ final class ResolveLandingBlocks
             }
 
             $base = ['id' => (string) $block['id'], 'type' => $type->value];
+
+            if ($type->isForCall()) {
+                if ($call !== null) {
+                    $callResolver ??= new CallBlocksResolver($event, $organization, $call, $locale, $imageUrl);
+                    $resolved[] = $base + $callResolver->resolve($type, $block);
+                }
+
+                continue;
+            }
 
             $resolved[] = $base + match ($type) {
                 LandingBlockType::Hero => $this->hero($event, $block, $locale, $imageUrl),
@@ -86,6 +99,8 @@ final class ResolveLandingBlocks
                 ],
                 LandingBlockType::Spacer => ['size' => (string) ($block['size'] ?? 'md')],
                 LandingBlockType::Columns => ['columns' => $this->columns($event, $block, $locale, $imageUrl)],
+                // Los `call_*` ya salieron arriba.
+                default => [],
             };
         }
 
@@ -97,12 +112,38 @@ final class ResolveLandingBlocks
      *
      * @return array{event: array<string, mixed>, calls: list<array<string, mixed>>, tracks: list<array{name: string, description: ?string}>}
      */
-    public function preview(Event $event, Organization $organization, string $locale): array
+    public function preview(Event $event, Organization $organization, string $locale, ?CallForSubmissions $call = null, ?Closure $imageUrl = null): array
     {
-        return [
+        $preview = [
             'event' => $this->eventInfo($event, $organization, $locale),
             'calls' => $this->calls($event, $organization, $locale),
             'tracks' => $this->tracks($event, $locale),
+        ];
+
+        if ($call !== null) {
+            $preview['call'] = $this->callPreview($event, $organization, $call, $locale, $imageUrl ?? static fn (string $id): ?string => null);
+        }
+
+        return $preview;
+    }
+
+    /**
+     * Lo que el lienzo del editor necesita de la convocatoria para dibujar sus bloques `call_*` (plan 033): la
+     * convocatoria como la ve el público (un borrador cuenta como «próximamente»), el logotipo del evento y los
+     * datos vivos (líneas de requisitos, formulario y anuncios de las otras convocatorias).
+     *
+     * @param  Closure(string): ?string  $imageUrl
+     * @return array<string, mixed>
+     */
+    private function callPreview(Event $event, Organization $organization, CallForSubmissions $call, string $locale, Closure $imageUrl): array
+    {
+        $resolver = new CallBlocksResolver($event, $organization, $call, $locale, $imageUrl);
+        $live = $resolver->previewData();
+
+        return [
+            'call' => PublicCallData::from($call, $event, ResolveCallState::for($call) ?? CallState::Scheduled, $locale),
+            'logoUrl' => PublicEventData::logoUrl($event, $organization),
+            ...$live,
         ];
     }
 

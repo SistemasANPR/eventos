@@ -1,4 +1,5 @@
-import type { CallState, PublicTrack } from '@/types/call';
+import type { CallState, PublicCall, PublicTrack } from '@/types/call';
+import type { LandingIconName } from '@/types/call-landing';
 import type { TimeFormat } from '@/types/event';
 import type { Translations } from '@/types/inertia';
 
@@ -14,7 +15,11 @@ import type { Translations } from '@/types/inertia';
  */
 
 /** Tipos de bloque de la lista blanca (DA-3): coincide con `App\Enums\LandingBlockType`. */
-export type LandingBlockType = 'hero' | 'rich_text' | 'event_info' | 'calls' | 'tracks' | 'faq' | 'image_gallery' | 'spacer' | 'columns';
+export type LandingBlockType =
+    'hero' | 'rich_text' | 'event_info' | 'calls' | 'tracks' | 'faq' | 'image_gallery' | 'spacer' | 'columns' | CallLandingBlockType;
+
+/** Secciones propias de la landing de una convocatoria (plan 033). */
+export type CallLandingBlockType = 'call_hero' | 'call_dates' | 'call_axes' | 'call_requirements' | 'call_steps' | 'call_promos';
 
 /** Variantes de aspecto (DA-15): sobre tokens, nunca colores libres. */
 export type LandingTone = 'light' | 'accent';
@@ -134,7 +139,88 @@ export interface PublicColumnsBlock extends PublicBlockBase {
     columns: [PublicColumn, PublicColumn];
 }
 
+/* Secciones de la landing de una convocatoria (plan 033): ya resueltas; las fechas, el estado y el botón al formulario salen de la propia convocatoria. */
+
+export interface PublicCallHeroBlock extends PublicBlockBase {
+    type: 'call_hero';
+    title: string;
+    /** Línea bajo el título (el evento). */
+    eventLine: string;
+    lede: string;
+    notice: string | null;
+    /** Portada propia de la convocatoria; sin ella se usa el logotipo del evento. */
+    imageUrl: string | null;
+    imageAlt: string | null;
+}
+
+export interface PublicCallDatesBlock extends PublicBlockBase {
+    type: 'call_dates';
+    timezoneLabel: string | null;
+    resultsLabel: string | null;
+    venue: { name: string; note: string } | null;
+}
+
+export interface PublicCallAxesBlock extends PublicBlockBase {
+    type: 'call_axes';
+    title: string;
+    intro: string;
+    axes: PublicTrack[];
+}
+
+export interface PublicFormField {
+    name: string;
+    isRequired: boolean;
+}
+
+export interface PublicCallForm {
+    title: string;
+    requiredNote: string;
+    groups: { title: string; fields: PublicFormField[] }[];
+}
+
+export interface PublicCallRequirementsBlock extends PublicBlockBase {
+    type: 'call_requirements';
+    title: string;
+    intro: string | null;
+    /** Texto con partes en negrita entre `**`. */
+    items: string[];
+    buttonLabel: string;
+    /** Vista previa de lo que pide el formulario publicado; `null` si la convocatoria no tiene uno. */
+    form: PublicCallForm | null;
+}
+
+export interface PublicCallStep {
+    icon: LandingIconName;
+    title: string;
+    text: string;
+}
+
+export interface PublicCallStepsBlock extends PublicBlockBase {
+    type: 'call_steps';
+    title: string;
+    steps: PublicCallStep[];
+}
+
+export interface PublicCallPromo {
+    url: string;
+    title: string;
+    text: string;
+    button: string;
+    coverUrl: string | null;
+}
+
+export interface PublicCallPromosBlock extends PublicBlockBase {
+    type: 'call_promos';
+    promos: PublicCallPromo[];
+}
+
 export type PublicLandingBlock =
+    | PublicCallHeroBlock
+    | PublicCallDatesBlock
+    | PublicCallAxesBlock
+    | PublicCallRequirementsBlock
+    | PublicCallStepsBlock
+    | PublicCallPromosBlock
     | PublicHeroBlock
     | PublicRichTextBlock
     | PublicEventInfoBlock
@@ -241,7 +327,73 @@ export interface DraftColumnsBlock extends DraftBlockBase {
     columns: [DraftColumn, DraftColumn];
 }
 
+/* Secciones de la landing de una convocatoria (plan 033): borrador con textos por idioma. */
+
+export interface DraftCallHeroBlock extends DraftBlockBase {
+    type: 'call_hero';
+    /** Vacío = el título de la convocatoria. */
+    title: LocalizedText;
+    /** Vacío = el nombre del evento. */
+    eventLine: LocalizedText;
+    /** Vacío = la descripción de la convocatoria. */
+    lede: LocalizedText;
+    notice: LocalizedText;
+    /** Vacío = el logotipo del evento. */
+    image: DraftImageRef | null;
+    imageAlt: LocalizedText;
+}
+
+export interface DraftCallDatesBlock extends DraftBlockBase {
+    type: 'call_dates';
+    timezoneLabel: LocalizedText;
+    resultsLabel: LocalizedText;
+    venueName: LocalizedText;
+    venueNote: LocalizedText;
+}
+
+export interface DraftCallAxesBlock extends DraftBlockBase {
+    type: 'call_axes';
+    title: LocalizedText;
+    intro: LocalizedText;
+}
+
+export interface DraftTextItem {
+    key: string;
+    text: LocalizedText;
+}
+
+export interface DraftCallRequirementsBlock extends DraftBlockBase {
+    type: 'call_requirements';
+    title: LocalizedText;
+    intro: LocalizedText;
+    items: DraftTextItem[];
+    buttonLabel: LocalizedText;
+}
+
+export interface DraftStepItem {
+    key: string;
+    icon: LandingIconName;
+    title: LocalizedText;
+    text: LocalizedText;
+}
+
+export interface DraftCallStepsBlock extends DraftBlockBase {
+    type: 'call_steps';
+    title: LocalizedText;
+    items: DraftStepItem[];
+}
+
+export interface DraftCallPromosBlock extends DraftBlockBase {
+    type: 'call_promos';
+    buttonLabel: LocalizedText;
+}
+
+/** Las secciones propias de la landing de una convocatoria. */
+export type CallLandingBlockDraft =
+    DraftCallHeroBlock | DraftCallDatesBlock | DraftCallAxesBlock | DraftCallRequirementsBlock | DraftCallStepsBlock | DraftCallPromosBlock;
+
 export type LandingBlockDraft =
+    | CallLandingBlockDraft
     | DraftHeroBlock
     | DraftRichTextBlock
     | DraftEventInfoBlock
@@ -265,6 +417,18 @@ export interface LandingPreviewData {
     event: Omit<PublicEventInfoBlock, 'id' | 'type'>;
     calls: PublicLandingCall[];
     tracks: PublicTrack[];
+    /** Solo en el editor de una convocatoria (plan 033): lo que sus secciones leen de ella. */
+    call?: LandingCallPreview;
+}
+
+export interface LandingCallPreview {
+    /** La convocatoria como la ve el público (un borrador cuenta como «próximamente»). */
+    call: PublicCall;
+    logoUrl: string | null;
+    /** Líneas de requisitos que salen de los datos reales (límite de personas, ejes). */
+    liveItems: string[];
+    form: PublicCallForm | null;
+    promos: PublicCallPromo[];
 }
 
 export interface LandingEditorProps {
@@ -282,6 +446,10 @@ export interface LandingEditorProps {
     publicUrl: string | null;
     /** `true` si el borrador difiere de la versión publicada al abrir el editor. */
     hasUnpublishedChanges: boolean;
+    /** `call` en el editor de la landing de una convocatoria (plan 033): ofrece sus secciones y su plantilla. */
+    kind?: 'event' | 'call';
+    /** La plantilla de convocatoria, lista para aplicar; `null` en el editor del evento. */
+    template?: LandingBlockDraft[] | null;
 }
 
 /** Errores de validación del servidor, por ruta de campo (`blocks.2.title.es`). */

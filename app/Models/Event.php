@@ -179,7 +179,8 @@ class Event extends Model
     /** @return HasOne<EventLanding, $this> */
     public function landing(): HasOne
     {
-        return $this->hasOne(EventLanding::class);
+        // Solo la del evento: las landings de sus convocatorias llevan `call_id` (plan 033).
+        return $this->hasOne(EventLanding::class)->whereNull('call_id');
     }
 
     /** @return HasMany<PrivacyNotice, $this> */

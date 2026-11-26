@@ -1,4 +1,13 @@
-import type { DraftColumn, DraftFaqItem, LandingBlockDraft, LandingBlockType, LocalizedText } from '@/types/landing';
+import type {
+    CallLandingBlockType,
+    DraftColumn,
+    DraftFaqItem,
+    DraftStepItem,
+    DraftTextItem,
+    LandingBlockDraft,
+    LandingBlockType,
+    LocalizedText,
+} from '@/types/landing';
 
 /** Tipos que ofrece la biblioteca, en el orden en que se muestran (DA-3). */
 export const BLOCK_TYPES: readonly LandingBlockType[] = [
@@ -13,8 +22,23 @@ export const BLOCK_TYPES: readonly LandingBlockType[] = [
     'spacer',
 ];
 
+/** Secciones propias de la landing de una convocatoria (plan 033), en el orden de su plantilla. */
+export const CALL_BLOCK_TYPES: readonly CallLandingBlockType[] = [
+    'call_hero',
+    'call_dates',
+    'call_axes',
+    'call_requirements',
+    'call_steps',
+    'call_promos',
+];
+
+/** Los tipos que ofrece la biblioteca según el editor: el del evento, o el de una convocatoria (que suma sus secciones). */
+export function blockTypesFor(kind: 'event' | 'call'): readonly LandingBlockType[] {
+    return kind === 'call' ? [...CALL_BLOCK_TYPES, ...BLOCK_TYPES] : BLOCK_TYPES;
+}
+
 /** Límites de la especificación (DA-14): el servidor los hace cumplir; el editor los respeta para no ofrecer lo imposible. */
-export const LANDING_LIMITS = { blocks: 30, galleryImages: 12, faqItems: 20 } as const;
+export const LANDING_LIMITS = { blocks: 30, galleryImages: 12, faqItems: 20, callItems: 12 } as const;
 
 let counter = 0;
 
@@ -32,6 +56,14 @@ export function emptyText(locales: string[]): LocalizedText {
 
 export function emptyFaqItem(locales: string[]): DraftFaqItem {
     return { key: newClientId(), question: emptyText(locales), answer: emptyText(locales) };
+}
+
+export function emptyTextItem(locales: string[]): DraftTextItem {
+    return { key: newClientId(), text: emptyText(locales) };
+}
+
+export function emptyStepItem(locales: string[]): DraftStepItem {
+    return { key: newClientId(), icon: 'doc', title: emptyText(locales), text: emptyText(locales) };
 }
 
 export function emptyTextColumn(locales: string[]): DraftColumn {
@@ -71,6 +103,34 @@ export function createBlock(type: LandingBlockType, locales: string[]): LandingB
             return { id, type, size: 'md' };
         case 'columns':
             return { id, type, columns: [emptyTextColumn(locales), emptyTextColumn(locales)] };
+        case 'call_hero':
+            return {
+                id,
+                type,
+                title: emptyText(locales),
+                eventLine: emptyText(locales),
+                lede: emptyText(locales),
+                notice: emptyText(locales),
+                image: null,
+                imageAlt: emptyText(locales),
+            };
+        case 'call_dates':
+            return {
+                id,
+                type,
+                timezoneLabel: emptyText(locales),
+                resultsLabel: emptyText(locales),
+                venueName: emptyText(locales),
+                venueNote: emptyText(locales),
+            };
+        case 'call_axes':
+            return { id, type, title: emptyText(locales), intro: emptyText(locales) };
+        case 'call_requirements':
+            return { id, type, title: emptyText(locales), intro: emptyText(locales), items: [], buttonLabel: emptyText(locales) };
+        case 'call_steps':
+            return { id, type, title: emptyText(locales), items: [emptyStepItem(locales)] };
+        case 'call_promos':
+            return { id, type, buttonLabel: emptyText(locales) };
     }
 }
 

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Filament\Resources\Events;
 
 use App\Filament\Resources\Events\Pages\CreateEvent;
+use App\Filament\Resources\Events\Pages\EditCallLanding;
 use App\Filament\Resources\Events\Pages\EditEvent;
 use App\Filament\Resources\Events\Pages\EditEventLanding;
 use App\Filament\Resources\Events\Pages\ListEvents;
@@ -107,6 +108,8 @@ class EventResource extends Resource
             'edit' => EditEvent::route('/{record}/edit'),
             // Editor visual de la landing del evento (plan 022, F4).
             'landing' => EditEventLanding::route('/{record}/landing'),
+            // Editor de la landing propia de una convocatoria (plan 033).
+            'call-landing' => EditCallLanding::route('/{record}/calls/{call}/landing'),
             // Nombre = ruta del recurso anidado (`FormDefinitionResource`): Filament lo usa como su índice.
             'form-definitions' => ManageEventFormDefinitions::route('/{record}/form-definitions'),
             'submissions' => ManageEventSubmissions::route('/{record}/submissions'),

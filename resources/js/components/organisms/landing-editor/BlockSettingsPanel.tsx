@@ -1,6 +1,7 @@
 import { useId } from 'react';
 
 import { ChoiceField } from '@/components/molecules/ChoiceField';
+import { CallBlockForm } from '@/components/organisms/landing-editor/CallBlockForm';
 import { ImageField } from '@/components/molecules/ImageField';
 import { LocaleTabs } from '@/components/molecules/LocaleTabs';
 import { LocalizedField } from '@/components/molecules/LocalizedField';
@@ -157,6 +158,25 @@ export function BlockSettingsPanel({
                 );
             case 'columns':
                 return block.columns.map((column, position) => renderColumn(block, column, position));
+            case 'call_hero':
+            case 'call_dates':
+            case 'call_axes':
+            case 'call_requirements':
+            case 'call_steps':
+            case 'call_promos':
+                return (
+                    <CallBlockForm
+                        block={block}
+                        onChange={onChange}
+                        onUpload={onUpload}
+                        locales={locales}
+                        locale={activeLocale}
+                        defaultLocale={defaultLocale}
+                        fieldErrors={fieldErrors}
+                        fieldId={fieldId}
+                        t={t}
+                    />
+                );
             default:
                 return null;
         }

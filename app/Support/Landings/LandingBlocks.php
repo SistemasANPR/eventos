@@ -22,11 +22,12 @@ final class LandingBlocks
 {
     /**
      * @param  list<string>  $currentIds  identificadores del borrador guardado
+     * @param  bool  $forCall  `true` en la landing de una convocatoria: solo ella admite los bloques `call_*` (plan 033)
      * @return list<array<string, mixed>>
      *
      * @throws ValidationException
      */
-    public static function validate(Event $event, mixed $blocks, array $currentIds = []): array
+    public static function validate(Event $event, mixed $blocks, array $currentIds = [], bool $forCall = false): array
     {
         if (! is_array($blocks) || ! array_is_list($blocks)) {
             throw ValidationException::withMessages(['blocks' => __('landings.errors.invalid')]);
@@ -52,7 +53,7 @@ final class LandingBlocks
 
             $type = is_string($block['type'] ?? null) ? LandingBlockType::tryFrom($block['type']) : null;
 
-            if ($type === null) {
+            if ($type === null || (! $forCall && $type->isForCall())) {
                 $errors["{$path}.type"] = __('landings.errors.block_type');
 
                 continue;

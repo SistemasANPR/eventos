@@ -24,6 +24,7 @@ use Illuminate\Support\Carbon;
  * @property string $id
  * @property string $organization_id
  * @property string $event_id
+ * @property string|null $call_id
  * @property list<array<string, mixed>> $draft_blocks
  * @property list<array<string, mixed>>|null $published_blocks
  * @property int $version
@@ -57,7 +58,13 @@ class EventLanding extends Model
      */
     public static function currentPublished(Event $event): ?self
     {
-        return self::query()->where('event_id', $event->id)->whereNotNull('published_blocks')->first();
+        return self::query()->where('event_id', $event->id)->whereNull('call_id')->whereNotNull('published_blocks')->first();
+    }
+
+    /** La landing PROPIA de una convocatoria, si ya tiene versión publicada (plan 033); si no, `null`. */
+    public static function currentPublishedForCall(CallForSubmissions $call): ?self
+    {
+        return self::query()->where('call_id', $call->id)->whereNotNull('published_blocks')->first();
     }
 
     /**
@@ -68,6 +75,12 @@ class EventLanding extends Model
     public function publishedImageIds(): array
     {
         return LandingBlocks::imageIds($this->published_blocks ?? []);
+    }
+
+    /** ¿Es la landing de una convocatoria (y no la del evento)? */
+    public function isForCall(): bool
+    {
+        return $this->call_id !== null;
     }
 
     public function isPublished(): bool
@@ -85,6 +98,12 @@ class EventLanding extends Model
     public function event(): BelongsTo
     {
         return $this->belongsTo(Event::class);
+    }
+
+    /** @return BelongsTo<CallForSubmissions, $this> */
+    public function call(): BelongsTo
+    {
+        return $this->belongsTo(CallForSubmissions::class, 'call_id');
     }
 
     /** @return HasMany<LandingImage, $this> */
