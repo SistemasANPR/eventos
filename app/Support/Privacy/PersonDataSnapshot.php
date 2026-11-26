@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace App\Support\Privacy;
 
 use App\Models\Activity;
+use App\Models\ActivityContact;
 use App\Models\Contact;
+use App\Models\EventActivity;
 use App\Models\KnownDevice;
 use App\Models\MailDispatch;
 use App\Models\Review;
@@ -45,6 +47,7 @@ final class PersonDataSnapshot
             'contacts' => self::contacts($records),
             'submissions' => self::submissions($records),
             'speakers' => self::speakers($records),
+            'activity_contacts' => self::activityContacts($records),
             'account' => $user === null ? null : self::account($user),
             'reviews_made' => $user === null ? [] : self::reviewsMade($user),
             'emails_sent' => self::emailsSent($records),
@@ -142,6 +145,30 @@ final class PersonDataSnapshot
                 'has_photo' => $speaker->photo_path !== null,
                 'social_links' => $speaker->social_links,
                 'is_published' => $speaker->is_published,
+            ])->values()->all();
+    }
+
+    /**
+     * Los responsables de actividad con su correo (plan 035): nombre, teléfono, correo, si es público y la actividad
+     * (su identificador y su título, que no son datos de la persona).
+     *
+     * @return list<array<string, mixed>>
+     */
+    private static function activityContacts(PersonRecords $records): array
+    {
+        $contacts = ActivityContact::query()->whereKey($records->activityContactIds)->orderBy('created_at')->get();
+        $titles = EventActivity::withTrashed()->whereIn('id', $contacts->pluck('activity_id'))->pluck('title', 'id');
+
+        return $contacts
+            ->map(fn (ActivityContact $contact): array => [
+                'name' => $contact->name,
+                'phone' => $contact->phone,
+                'email' => $contact->email,
+                'is_public' => $contact->is_public,
+                'event_id' => $contact->event_id,
+                'activity_id' => $contact->activity_id,
+                'activity_title' => $titles[$contact->activity_id] ?? null,
+                'created_at' => self::iso($contact->created_at),
             ])->values()->all();
     }
 

@@ -83,6 +83,7 @@ final class ExportPersonData
             'contacts' => count($snapshot['contacts']),
             'submissions' => count($snapshot['submissions']),
             'speakers' => count($snapshot['speakers']),
+            'activity_contacts' => count($snapshot['activity_contacts']),
             'emails_sent' => count($snapshot['emails_sent']),
         ];
 

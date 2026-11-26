@@ -145,7 +145,8 @@ final class PersonalDataInventory
         ],
         ActivityContact::class => [
             // Responsables de una actividad en un lugar externo (plan 035): las filas se ELIMINAN al anonimizar a la persona,
-            // localizada por su correo (el borrado por correo llega con la F3 del plan 035; hasta entonces nada escribe aquí).
+            // localizada por su correo (`PersonRecords`, `PersonDataEraser::eraseActivityContacts`); `ExportPersonData` las
+            // incluye y `ReapplyAnonymizations` las vuelve a eliminar tras restaurar un respaldo (CA-035-32 y 34).
             'deleted' => true,
             'retained' => ['id', 'organization_id', 'event_id', 'activity_id', 'name', 'phone', 'email', 'position', 'is_public', 'created_at', 'updated_at'],
         ],
