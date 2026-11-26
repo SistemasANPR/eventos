@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Actions\Program;
 
 use App\Enums\ProgramImageType;
+use App\Exceptions\Domain\ActivityRoomConflict;
 use App\Http\Requests\Program\UpdateActivityRequest;
 use App\Models\Event;
 use App\Models\EventActivity;
@@ -12,6 +13,7 @@ use App\Models\Organization;
 use App\Models\User;
 use App\Support\Auth\AuthorizesInOrganization;
 use App\Support\Program\ActivityWrites;
+use App\Support\Program\DetectScheduleConflicts;
 use App\Support\Tenancy\CurrentOrganization;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\UploadedFile;
@@ -33,7 +35,11 @@ use Throwable;
  * evento (lista vacía: ninguno) con `SyncActivitySpeakers`, en la misma transacción.
  *
  * @throws AuthorizationException si quien edita no tiene `activities.manage` en la organización de la actividad
- * @throws ValidationException si falta un dato obligatorio, el fin es anterior al inicio, una categoría o un ponente no es del evento o un archivo no es aceptable
+ *                                `room_id`, si viene, cambia la sala (nulo la quita); si no viene se conserva, y el horario nuevo se comprueba
+ *                                contra ella. Una sala ocupada a esa hora rechaza TODO el cambio con `ActivityRoomConflict` (plan 031,
+ *                                CA-031-10 y 16); un ponente repetido en otra actividad que se cruza solo avisa, en `EventActivity::$scheduleWarnings`.
+ * @throws ValidationException si falta un dato obligatorio, el fin es anterior al inicio, una categoría, un ponente o la sala no es del evento o un archivo no es aceptable
+ * @throws ActivityRoomConflict si la sala ya está ocupada a esa hora
  */
 final class UpdateActivity
 {
@@ -51,6 +57,7 @@ final class UpdateActivity
             $validated = Validator::make(ActivityWrites::trimmed($data), UpdateActivityRequest::rulesFor($event))->validate();
 
             $stored = [];
+            $warnings = [];
 
             try {
                 $icon = $validated['icon'] ?? null;
@@ -59,9 +66,15 @@ final class UpdateActivity
                 $newIcon = $icon instanceof UploadedFile ? $stored[] = ActivityWrites::storeImage($icon, $event, ProgramImageType::Icon, 'icon') : null;
                 $newImage = $image instanceof UploadedFile ? $stored[] = ActivityWrites::storeImage($image, $event, ProgramImageType::Image, 'image') : null;
 
-                $replaced = DB::transaction(function () use ($actor, $activity, $validated, $newIcon, $newImage): array {
+                $replaced = DB::transaction(function () use ($actor, $activity, $validated, $newIcon, $newImage, &$warnings): array {
+                    // Primero el evento y luego la actividad (siempre en ese orden); la sala se comprueba antes de escribir (DA-10).
+                    ActivityWrites::lockEvent($activity->event_id);
                     $current = EventActivity::query()->whereKey($activity->id)->lockForUpdate()->firstOrFail();
                     $old = [];
+
+                    // Sin `room_id` en los datos la actividad conserva su sala, y el nuevo horario se comprueba contra ella.
+                    $roomId = array_key_exists('room_id', $validated) ? $validated['room_id'] : $current->room_id;
+                    ActivityWrites::assertRoomFree($current->event_id, $roomId, ActivityWrites::slot($validated), $current->id);
 
                     $attributes = [
                         'title' => $validated['title'],
@@ -70,6 +83,10 @@ final class UpdateActivity
                         'starts_at' => ActivityWrites::time($validated['starts_at']),
                         'ends_at' => ActivityWrites::time($validated['ends_at']),
                     ];
+
+                    if (array_key_exists('room_id', $validated)) {
+                        $attributes['room_id'] = $validated['room_id'];
+                    }
 
                     if (array_key_exists('summary', $validated)) {
                         $attributes['summary'] = $validated['summary'];
@@ -127,6 +144,7 @@ final class UpdateActivity
                         ->log('activity_updated');
 
                     $activity->setRawAttributes($current->getAttributes(), true);
+                    $warnings = DetectScheduleConflicts::speakerClashes($current);
 
                     return array_values(array_filter($old, is_string(...)));
                 });
@@ -141,6 +159,8 @@ final class UpdateActivity
             foreach ($replaced as $path) {
                 app(DeleteProgramImage::class)->handle($event, $path);
             }
+
+            $activity->scheduleWarnings = $warnings;
 
             return $activity;
         });

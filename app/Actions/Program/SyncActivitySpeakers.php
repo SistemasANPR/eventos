@@ -10,6 +10,7 @@ use App\Models\EventActivity;
 use App\Models\Organization;
 use App\Models\User;
 use App\Support\Auth\AuthorizesInOrganization;
+use App\Support\Program\DetectScheduleConflicts;
 use App\Support\Tenancy\CurrentOrganization;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\DB;
@@ -21,7 +22,8 @@ use Illuminate\Validation\ValidationException;
  * es válido y quita a todos. Solo se aceptan ponentes DEL MISMO EVENTO (no borrados); uno de otro evento
  * u organización, o un identificador mal formado, falla con error explícito y no cambia nada. Se ejecuta
  * en la organización DE LA ACTIVIDAD, dentro de una transacción (la base vuelve a exigir «mismo evento»
- * con claves compuestas) y audita con ids, sin texto libre, solo si algo cambió.
+ * con claves compuestas) y audita con ids, sin texto libre, solo si algo cambió. Los ponentes que quedan
+ * en otra actividad que se cruza con esta no impiden guardar: se devuelven como aviso en `scheduleWarnings`.
  *
  * @throws AuthorizationException si quien asigna no tiene `activities.manage` en la organización de la actividad
  * @throws ValidationException si algún ponente no es del evento de la actividad
@@ -73,6 +75,9 @@ final class SyncActivitySpeakers
                     ])
                     ->log('activity_speakers_synced');
             });
+
+            // Un ponente en dos actividades que se cruzan se guarda igual, con aviso (plan 031, CA-031-15). Se lee la fila vigente.
+            $activity->scheduleWarnings = DetectScheduleConflicts::speakerClashes(EventActivity::query()->findOrFail($activity->id));
 
             return $activity;
         });
