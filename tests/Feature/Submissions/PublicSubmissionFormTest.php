@@ -528,3 +528,46 @@ it('CA-034-17: opening the session by submitting is audited with via=submit and 
         ->and($log->properties->get('organization_id'))->toBe($ctx['org']->id)
         ->and((string) $log->properties)->not->toContain('ana@example.test');
 });
+
+/*
+ * Plan 034: la confirmación y la página de la convocatoria ofrecen el camino a la propuesta (CA-034-6, 7 y 12).
+ */
+
+it('CA-034-6: the confirmation offers the way to the proposal and the edit deadline in the event timezone, with no identifiers in the URL', function (): void {
+    $ctx = publicFormScenario();
+    turnstileOk();
+    $form = openForm($this->get(...), $ctx);
+    $response = $this->post($ctx['url'].'/submit', formBody($ctx, $form));
+
+    $this->get($ctx['url'].'/submitted')
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('Calls/Submitted')
+            ->where('authorUrl', '/parques/events/congreso/my-submission')
+            ->where('editDeadline', $ctx['call']->closes_at->utc()->format('Y-m-d\TH:i:s\Z'))
+            ->where('timezone', $ctx['event']->timezone)
+            ->where('timeFormat', $ctx['event']->time_format->value));
+
+    expect($response->headers->get('Location'))->not->toMatch('/[0-9a-f]{8}-[0-9a-f]{4}|@/');
+});
+
+it('CA-034-7: when the author session has expired the confirmation button leads to request a link, revealing nothing', function (): void {
+    $ctx = publicFormScenario();
+    turnstileOk();
+    $form = openForm($this->get(...), $ctx);
+    $this->post($ctx['url'].'/submit', formBody($ctx, $form));
+
+    $this->travel(61)->minutes();
+
+    $this->get('/parques/events/congreso/my-submission')->assertRedirect('/parques/events/congreso/my-submission/request-link');
+});
+
+it('CA-034-12: the call page always links to the request-link page while the call is public', function (string $status): void {
+    $ctx = publicFormScenario(callAttributes: ['status' => CallStatus::from($status)]);
+
+    $this->get($ctx['url'].'?lang=es')
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('Calls/Show')
+            ->where('authorRequestUrl', '/parques/events/congreso/my-submission/request-link?lang=es'));
+})->with(['published', 'paused', 'closed']);

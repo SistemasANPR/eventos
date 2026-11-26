@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Public;
 
+use App\Enums\CallState;
 use App\Models\CallForSubmissions;
 use App\Models\Event;
 use App\Models\Organization;
 use App\Support\Calls\PublicCallData;
+use App\Support\Calls\ResolveCallState;
 use App\Support\Events\PublicEventData;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -47,6 +49,12 @@ final class ShowSubmissionConfirmationController
             'organization' => ['name' => $organization->name, 'slug' => $organization->slug],
             'callUrl' => route('calls.show', $callRoute, false)."?lang={$locale}",
             'eventUrl' => route('events.show', $route, false)."?lang={$locale}",
+            // Plan 034: el camino a la propuesta (sin token: si la sesión caducó, la ruta pide un enlace) y hasta
+            // cuándo se puede editar, solo mientras la convocatoria siga abierta.
+            'authorUrl' => route('author.submission.show', $route, false),
+            'editDeadline' => ResolveCallState::for($call) === CallState::Open ? $call->closes_at->utc()->format('Y-m-d\TH:i:s\Z') : null,
+            'timezone' => $event->timezone,
+            'timeFormat' => $event->time_format->value,
         ]);
     }
 }

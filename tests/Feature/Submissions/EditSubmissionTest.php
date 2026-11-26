@@ -310,3 +310,49 @@ it('CA-006-37: without an author session the edit routes ask for a new link', fu
     $this->get(AuthorFixtures::path($submission, 'my-submission/edit'))->assertRedirect($requestLink);
     $this->patch(AuthorFixtures::path($submission, 'my-submission/edit'), ['title' => 'x'])->assertRedirect($requestLink);
 });
+
+/*
+ * Plan 034: la vista del autor dice si puede editar, hasta cuándo y, si no, por qué (CA-034-14).
+ */
+
+it('CA-034-14: with an open call the author sees it is editable until the closing, in the event timezone and time format', function (): void {
+    $ctx = editScenario();
+    $closing = $ctx['call']->closes_at->utc()->format('Y-m-d\TH:i:s\Z');
+
+    $this->get(AuthorFixtures::path($ctx['submission']))
+        ->assertOk()
+        ->assertInertia(fn (AssertableInertia $page) => $page
+            ->component('Author/Show')
+            ->where('editPolicy.state', 'editable')
+            ->where('editPolicy.until', $closing)
+            ->where('timezone', $ctx['event']->timezone)
+            ->where('timeFormat', $ctx['event']->time_format->value)
+            ->where('logoutUrl', AuthorFixtures::path($ctx['submission'], 'my-submission/logout'))
+            ->where('editUrl', fn (?string $url): bool => $url !== null));
+});
+
+it('CA-034-14: after the closing the state is call_closed with the closing date and there is no edit button', function (): void {
+    $ctx = editScenario();
+    $closing = $ctx['call']->closes_at->utc()->format('Y-m-d\TH:i:s\Z');
+    $this->travelTo($ctx['call']->closes_at->copy()->addHour());
+    app(AuthorSession::class)->open($ctx['submission']);
+
+    $this->get(AuthorFixtures::path($ctx['submission']))
+        ->assertOk()
+        ->assertInertia(fn (AssertableInertia $page) => $page
+            ->where('editPolicy.state', 'call_closed')
+            ->where('editPolicy.until', $closing)
+            ->where('editUrl', null));
+});
+
+it('CA-034-14: a proposal that is no longer submitted is in_process, without edit button and without a date', function (SubmissionStatus $status): void {
+    $ctx = editScenario();
+    $ctx['submission']->forceFill(['status' => $status, 'withdrawn_at' => $status === SubmissionStatus::Withdrawn ? now() : null])->save();
+
+    $this->get(AuthorFixtures::path($ctx['submission']))
+        ->assertOk()
+        ->assertInertia(fn (AssertableInertia $page) => $page
+            ->where('editPolicy.state', 'in_process')
+            ->where('editPolicy.until', null)
+            ->where('editUrl', null));
+})->with([SubmissionStatus::UnderReview, SubmissionStatus::Accepted, SubmissionStatus::Withdrawn]);

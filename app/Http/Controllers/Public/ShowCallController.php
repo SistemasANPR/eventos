@@ -50,6 +50,9 @@ final class ShowCallController
             'submitUrl' => $state === CallState::Open
                 ? route('calls.submit.show', $eventRoute + ['call' => $call->slug], false)."?lang={$locale}"
                 : null,
+            // Plan 034: quien ya envió vuelve a su propuesta pidiendo un enlace; se ofrece con la convocatoria en
+            // cualquier estado público, porque consultar sigue siendo posible tras el cierre.
+            'authorRequestUrl' => route('author.request-link.show', $eventRoute, false)."?lang={$locale}",
             // Solo se enlaza si hay una versión PUBLICADA (CA-003-19).
             'privacyUrl' => PrivacyNotice::currentPublished($event) === null
                 ? null
