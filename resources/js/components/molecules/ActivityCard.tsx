@@ -5,6 +5,9 @@ import { cn } from '@/lib/utils';
 import type { TimeFormat } from '@/types/event';
 import type { PublicActivitySummary } from '@/types/program';
 
+/** Insignia «Cupo limitado» (plan 035): ámbar de aviso, sin número. Solo la usa esta tarjeta, por eso no está en `lib/classes.ts`. */
+const LIMITED_SEATS_BADGE = 'rounded-full bg-warning-bg px-3 py-1 text-sm font-semibold text-warning';
+
 interface ActivityCardProps {
     activity: PublicActivitySummary;
     /** Idioma de la página. */
@@ -16,7 +19,8 @@ interface ActivityCardProps {
 
 /**
  * Tarjeta de una actividad del programa público: horario local del evento, título (enlace al detalle),
- * resumen, categorías y ponentes. Una actividad que cruza la medianoche muestra su fecha de fin.
+ * resumen, categorías y ponentes. Una actividad que cruza la medianoche muestra su fecha de fin y una con cupo
+ * muestra la insignia «Cupo limitado», nunca el número (va en el detalle, plan 035).
  * Usar en la lista de actividades de un día; no para ponentes ni para el detalle completo.
  */
 export function ActivityCard({ activity, locale, timeFormat, className }: ActivityCardProps) {
@@ -40,6 +44,11 @@ export function ActivityCard({ activity, locale, timeFormat, className }: Activi
                             {activity.title}
                         </a>
                     </h3>
+                    {activity.limitedSeats && (
+                        <p>
+                            <span className={LIMITED_SEATS_BADGE}>{t('program.limited_seats')}</span>
+                        </p>
+                    )}
                 </div>
             </div>
 
