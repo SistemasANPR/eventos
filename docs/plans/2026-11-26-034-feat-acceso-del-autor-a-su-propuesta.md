@@ -49,7 +49,7 @@ Quien acaba de enviar ya pasó el formulario (Turnstile, límite por IP y por co
 
 ### DA-2 · Qué lleva el acuse — se recomienda **plazo de edición y dirección de `request-link`, nunca un token**
 
-Dos variables nuevas e **aditivas** en `submission.received`: `request_link_url` (la pantalla de pedir acceso del evento) y `edit_deadline` (el cierre de la convocatoria en la zona y el formato de hora del evento; si la convocatoria no tiene cierre, un texto fijo «mientras la convocatoria siga abierta»). Se actualiza la plantilla predeterminada es y en. Las plantillas que un organizador ya personalizó **no se tocan** y siguen funcionando: las variables son opcionales. CA-006-29 sigue cumpliéndose (sin enlace con token); se anota en el plan 006 que este plan la matiza.
+Dos variables nuevas e **aditivas** en `submission.received`: `request_link_url` (la pantalla de pedir acceso del evento) y `edit_deadline` (el cierre de la convocatoria en la zona del evento y en el idioma del envío, con el mismo formato que `closing_date` del recordatorio de cierre, `submission_results.closing_date_format`; `closes_at` es obligatorio en la convocatoria, así que no hay caso sin cierre). El formateo se extrae a una clase de apoyo compartida con `SendClosingReminders`, sin duplicarlo. Se actualiza la plantilla predeterminada es y en. Las plantillas que un organizador ya personalizó **no se tocan** y siguen funcionando: las variables son opcionales. CA-006-29 sigue cumpliéndose (sin enlace con token); se anota en el plan 006 que este plan la matiza.
 
 ### DA-3 · Entrada desde la convocatoria — se recomienda **enlace de texto permanente bajo el botón de envío o el estado**
 
@@ -61,7 +61,7 @@ Visible mientras la convocatoria sea pública (abierta, programada, pausada o ce
 
 ### DA-5 · Cerrar sesión — se recomienda **POST propio `my-submission/logout`**
 
-En equipos compartidos, una sesión de 60 min abierta por el envío justifica un botón de salida. Ruta web (HTML, no JSON: no entra al catálogo de `docs/api/endpoints.md`), solo POST con CSRF, en el grupo con sesión de autor. Cierra con `AuthorSession::close()` y redirige a la página de la convocatoria.
+En equipos compartidos, una sesión de 60 min abierta por el envío justifica un botón de salida. Ruta web (HTML, no JSON: no entra al catálogo de `docs/api/endpoints.md`), solo POST con CSRF, en el grupo con sesión de autor. Cierra con un método nuevo de `AuthorSession` que, además de olvidar la sesión, deja la auditoría `author_session_closed`; redirige a la página de la convocatoria de la propuesta (o a la del evento si la convocatoria ya no es pública).
 
 ### DA-6 · Pantalla de pedir acceso — se recomienda **explicar el mecanismo sin cambiar su respuesta**
 
@@ -76,7 +76,7 @@ Texto fijo: «Te enviaremos un enlace al correo con el que registraste la propue
   - `Calls/Submitted`: `authorUrl` (a `author.submission.show`, sin token) y `editDeadline` (ISO UTC o `null`) con `timezone` y `timeFormat` del evento.
   - `Calls/Show`: `authorRequestUrl`.
   - `Author/Show`: `editPolicy` = `{state: 'editable'|'call_closed'|'in_process', until: string|null}`, `timezone`, `timeFormat`, `logoutUrl`.
-  - `Author/RequestLink`: `accessLinkMinutes`.
+  - `Author/RequestLink`: sin props nuevas; ya recibe `expiresInMinutes` y `maxLinks` (`AccessLinkPageData`). Solo cambia el texto de introducción (DA-6).
 - **Datos:** sin cambios. Sin migración.
 - **Textos:** claves nuevas en `lang/es` y `lang/en` (`public.php`, `mail_templates.php`), con paridad.
 
@@ -125,14 +125,14 @@ Cada uno tiene al menos una prueba cuyo nombre lo cita (`CA-034-n: ...`) o decla
 **Acuse**
 
 - **CA-034-8:** *Dado* un envío correcto, *cuando* se encola `submission.received`, *entonces* las variables incluyen `request_link_url` (a `author.request-link.show` del evento) y `edit_deadline` en la zona y el formato de hora del evento; el cuerpo no contiene ningún token ni `access_url` (CA-006-29 se mantiene).
-- **CA-034-9:** *Dado* una convocatoria sin cierre definido, *cuando* se compone el acuse, *entonces* `edit_deadline` es «mientras la convocatoria siga abierta» (en inglés, su equivalente).
+- **CA-034-9:** *Dado* una convocatoria que cierra a una hora cuyo día cambia según la zona (p. ej. 2027-02-16 02:00 UTC con evento en `America/Mexico_City`), *cuando* se compone el acuse en es y en en, *entonces* `edit_deadline` muestra el cierre en la zona del evento y en el idioma del envío, con el mismo formato que `closing_date` del recordatorio de cierre.
 - **CA-034-10:** *Dado* una plantilla del organizador que no usa las variables nuevas, *cuando* se envía el acuse, *entonces* se envía igual, sin error.
 - **CA-034-11:** *Dado* la plantilla predeterminada, *entonces* existe en es y en, menciona la edición y su plazo, y la prueba del catálogo de notificaciones pasa.
 
 **Convocatoria y pantalla de acceso**
 
 - **CA-034-12:** *Dado* una convocatoria pública abierta, programada, pausada o cerrada, *cuando* se abre su página, *entonces* aparece «¿Ya enviaste tu propuesta? Consúltala o edítala» hacia `request-link`; *cuando* el evento no está disponible, *entonces* no hay página ni enlace (plan 032).
-- **CA-034-13:** *Dado* la pantalla de pedir acceso, *entonces* explica que el enlace llega al correo, que dura `accessLinkMinutes` minutos y que es de un solo uso; y *cuando* se envía un correo con propuesta y uno sin ella, *entonces* la respuesta sigue siendo idéntica (CA-006-32).
+- **CA-034-13:** *Dado* la pantalla de pedir acceso, *entonces* explica que el enlace llega al correo, que dura `expiresInMinutes` minutos y que es de un solo uso (antes de enviar el correo, no solo después); y *cuando* se envía un correo con propuesta y uno sin ella, *entonces* la respuesta sigue siendo idéntica (CA-006-32).
 
 **Vista del autor**
 
