@@ -21,6 +21,7 @@ use App\Models\Speaker;
 use App\Support\Events\EventTime;
 use App\Support\Files\MediaDisk;
 use App\Support\Files\MediaThumbnail;
+use App\Support\Program\ActivityWrites;
 use BackedEnum;
 use Filament\Actions\Action;
 use Filament\Forms\Components\Checkbox;
@@ -36,6 +37,7 @@ use Filament\Resources\Pages\ManageRelatedRecords;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Image;
 use Filament\Schemas\Components\Text;
+use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\IconColumn;
@@ -111,6 +113,10 @@ class ManageEventActivities extends ManageRelatedRecords
                     ->sortable(),
                 TextColumn::make('room.name')
                     ->label(__('program.activities.columns.room'))
+                    ->placeholder('—')
+                    ->toggleable(),
+                TextColumn::make('quota')
+                    ->label(__('program.activities.columns.quota'))
                     ->placeholder('—')
                     ->toggleable(),
                 TextColumn::make('categories.name')
@@ -282,7 +288,19 @@ class ManageEventActivities extends ManageRelatedRecords
             Select::make('room_id')
                 ->label(__('program.activities.form.room'))
                 ->placeholder(__('program.activities.form.room_none'))
-                ->options(fn (): array => $this->event()->rooms()->orderBy('position')->pluck('name', 'id')->all()),
+                ->options(fn (): array => $this->placeOptions()),
+            Toggle::make('has_quota')
+                ->label(__('program.activities.form.has_quota'))
+                ->live(),
+            TextInput::make('quota')
+                ->label(__('program.activities.form.quota'))
+                ->helperText(__('program.activities.form.quota_help'))
+                ->numeric()
+                ->integer()
+                ->minValue(1)
+                ->maxValue(ActivityWrites::MAX_QUOTA)
+                ->required(fn (Get $get): bool => (bool) $get('has_quota'))
+                ->visible(fn (Get $get): bool => (bool) $get('has_quota')),
             ...$this->fileFields($activity, 'icon', 256),
             ...$this->fileFields($activity, 'image', 5120),
             TextInput::make('summary')
@@ -352,6 +370,8 @@ class ManageEventActivities extends ManageRelatedRecords
             'starts_at' => $activity->starts_at === null ? null : substr($activity->starts_at, 0, 5),
             'ends_at' => $activity->ends_at === null ? null : substr($activity->ends_at, 0, 5),
             'room_id' => $activity->room_id,
+            'has_quota' => $activity->quota !== null,
+            'quota' => $activity->quota,
             'summary' => $activity->summary,
             'description' => $activity->description,
             'category_ids' => $activity->categories->pluck('id')->all(),
@@ -369,6 +389,13 @@ class ManageEventActivities extends ManageRelatedRecords
      */
     private function payload(array $data): array
     {
+        // «Con cupo limitado» apagado deja la actividad sin cupo (plan 035, CA-035-21); el interruptor no es un dato de la Action.
+        if (! ($data['has_quota'] ?? false)) {
+            $data['quota'] = null;
+        }
+
+        unset($data['has_quota']);
+
         foreach (['icon', 'image'] as $field) {
             if (! ($data[$field] ?? null) instanceof UploadedFile) {
                 unset($data[$field]);
@@ -413,6 +440,15 @@ class ManageEventActivities extends ManageRelatedRecords
         Notification::make()->title($successTitle)->success()->send();
 
         // Un ponente en dos actividades que se cruzan se guarda igual; se avisa para que lo revisen (CA-031-15).
+        if ($result instanceof EventActivity && $result->quotaWarning !== null) {
+            Notification::make()
+                ->title(__('program.activities.messages.quota_over_capacity_title'))
+                ->body(__('program.activities.quota_over_capacity', $result->quotaWarning))
+                ->warning()
+                ->persistent()
+                ->send();
+        }
+
         if ($result instanceof EventActivity && $result->scheduleWarnings !== []) {
             Notification::make()
                 ->title(__('program.activities.messages.speaker_clash_title'))
@@ -507,6 +543,22 @@ class ManageEventActivities extends ManageRelatedRecords
     private static function mediaUrl(EventActivity $activity, string $type): ?string
     {
         return MediaThumbnail::dataUri($type === 'icon' ? $activity->icon_path : $activity->image_path, $type === 'icon' ? 96 : 160);
+    }
+
+    /**
+     * Los lugares del evento para el selector, agrupados por tipo: salas y lugares externos (plan 035, DA-1).
+     *
+     * @return array<string, array<string, string>>
+     */
+    private function placeOptions(): array
+    {
+        $groups = [];
+
+        foreach ($this->event()->rooms()->orderBy('position')->get() as $room) {
+            $groups[__('program.rooms.kinds.'.$room->kind->value)][$room->id] = $room->name;
+        }
+
+        return $groups;
     }
 
     /** @return array<string, string> ponentes DEL EVENTO (id => nombre), por apellido */

@@ -465,3 +465,73 @@ it('CA-031-15: a speaker booked at the same time is saved and the panel shows a 
 
     expect(CurrentOrganization::run($organization, fn () => EventActivity::query()->where('event_id', $event->id)->count()))->toBe(2);
 });
+
+it('CA-035-21: the admin creates an activity with limited quota in an external place and the list shows place and quota', function (): void {
+    [$organization, $event, $admin] = formScenario();
+    $park = CurrentOrganization::run($organization, fn (): Room => Room::factory()->external()->create(['event_id' => $event->id, 'name' => 'Parque Lineal']));
+
+    $component = activitiesPage($organization, $admin, $event)
+        ->callAction('createActivity', [
+            'title' => 'Taller en el parque',
+            'starts_on' => '2027-03-10', 'ends_on' => '2027-03-10', 'starts_at' => '09:00', 'ends_at' => '10:00',
+            'room_id' => $park->id,
+            'has_quota' => true,
+            'quota' => 30,
+        ])
+        ->assertHasNoActionErrors();
+
+    $activity = CurrentOrganization::run($organization, fn () => EventActivity::query()->where('event_id', $event->id)->firstOrFail());
+
+    expect($activity->quota)->toBe(30)->and($activity->room_id)->toBe($park->id);
+    $component->assertSee('Parque Lineal')->assertSee('30');
+});
+
+it('CA-035-21: turning off limited quota in the form removes the quota of the activity', function (): void {
+    [$organization, $event, $admin] = formScenario();
+    $activity = panelActivity($event, ['quota' => 25]);
+
+    activitiesPage($organization, $admin, $event)
+        ->callAction(TestAction::make('editActivity')->table($activity), [
+            'title' => $activity->title,
+            'starts_on' => '2027-03-10', 'ends_on' => '2027-03-10', 'starts_at' => '10:00', 'ends_at' => '11:00',
+            'has_quota' => false,
+        ])
+        ->assertHasNoActionErrors();
+
+    expect($activity->refresh()->quota)->toBeNull();
+});
+
+it('CA-035-21: the quota is required while limited quota is on and must be at least one', function (): void {
+    [$organization, $event, $admin] = formScenario();
+
+    foreach ([null, 0] as $invalid) {
+        activitiesPage($organization, $admin, $event)
+            ->callAction('createActivity', [
+                'title' => 'Sin cupo valido',
+                'starts_on' => '2027-03-10', 'ends_on' => '2027-03-10', 'starts_at' => '09:00', 'ends_at' => '10:00',
+                'has_quota' => true,
+                'quota' => $invalid,
+            ])
+            ->assertHasActionErrors(['quota']);
+    }
+
+    expect(CurrentOrganization::run($organization, fn () => EventActivity::query()->where('event_id', $event->id)->count()))->toBe(0);
+});
+
+it('CA-035-11: a quota above the capacity of the place is saved and the panel shows a persistent warning', function (): void {
+    [$organization, $event, $admin] = formScenario();
+    $room = CurrentOrganization::run($organization, fn (): Room => Room::factory()->create(['event_id' => $event->id, 'capacity' => 20]));
+
+    activitiesPage($organization, $admin, $event)
+        ->callAction('createActivity', [
+            'title' => 'Cupo grande',
+            'starts_on' => '2027-03-10', 'ends_on' => '2027-03-10', 'starts_at' => '09:00', 'ends_at' => '10:00',
+            'room_id' => $room->id,
+            'has_quota' => true,
+            'quota' => 50,
+        ])
+        ->assertHasNoActionErrors()
+        ->assertNotified(__('program.activities.messages.quota_over_capacity_title'));
+
+    expect(CurrentOrganization::run($organization, fn () => EventActivity::query()->where('event_id', $event->id)->count()))->toBe(1);
+});
