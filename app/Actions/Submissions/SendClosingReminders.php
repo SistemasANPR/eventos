@@ -14,6 +14,7 @@ use App\Models\MailDispatch;
 use App\Models\Organization;
 use App\Models\Submission;
 use App\Models\SubmissionParticipant;
+use App\Support\Calls\CallClosingDate;
 use App\Support\Calls\ResolveCallState;
 use App\Support\Notifications\MailRecipient;
 use App\Support\Submissions\ClosingRemindersReport;
@@ -146,7 +147,7 @@ final class SendClosingReminders
             variables: [
                 'author_name' => $primary->full_name,
                 'event_name' => $event->getTranslation('name', $locale),
-                'closing_date' => $this->closingDate($call, $event, $locale),
+                'closing_date' => CallClosingDate::for($call, $event, $locale),
                 'edit_hint' => $editable ? __('submission_results.edit_hint', [], $locale) : '',
                 'request_link_url' => route('author.request-link.show', ['organization' => $organization->slug, 'event' => $event->slug]),
             ],
@@ -157,14 +158,5 @@ final class SendClosingReminders
         );
 
         return $dispatch->wasRecentlyCreated;
-    }
-
-    /** Fecha y hora del cierre en la zona del evento, en el idioma del autor. */
-    private function closingDate(CallForSubmissions $call, Event $event, string $locale): string
-    {
-        return CarbonImmutable::instance($call->closes_at)
-            ->setTimezone($event->timezone)
-            ->locale($locale)
-            ->translatedFormat(__('submission_results.closing_date_format', [], $locale));
     }
 }

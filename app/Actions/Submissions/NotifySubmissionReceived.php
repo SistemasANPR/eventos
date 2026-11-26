@@ -11,6 +11,7 @@ use App\Models\Submission;
 use App\Models\SubmissionParticipant;
 use App\Models\SubmissionType;
 use App\Models\Track;
+use App\Support\Calls\CallClosingDate;
 use App\Support\Notifications\MailRecipient;
 use App\Support\Submissions\SubmissionOrganizers;
 use App\Support\Submissions\SubmissionReference;
@@ -56,6 +57,10 @@ final class NotifySubmissionReceived
                 'call_title' => (string) $call?->getTranslation('title', $submission->locale),
                 'submission_type' => (string) $type?->getTranslation('name', $submission->locale),
                 'track_name' => (string) $track?->getTranslation('name', $submission->locale),
+                // Plan 034: hasta cuándo puede editar y dónde pedir el acceso. Es la dirección de la página de pedir
+                // el enlace, no un enlace con token: el acuse sigue sin dar acceso por sí mismo (CA-006-29).
+                'edit_deadline' => $call instanceof CallForSubmissions ? CallClosingDate::for($call, $event, $submission->locale) : '',
+                'request_link_url' => route('author.request-link.show', ['organization' => $organization->slug, 'event' => $event->slug]),
             ],
             factId: $submission->id,
             organization: $organization,

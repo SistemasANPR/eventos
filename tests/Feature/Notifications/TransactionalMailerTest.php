@@ -47,6 +47,8 @@ it('CA-008-27: the same notification is sent unchanged with either adapter', fun
             'submission_type' => 'Session',
             'track_name' => 'Nature',
             'event_name' => 'Parks Congress',
+            'edit_deadline' => '15 de febrero de 2027, 20:00 CST',
+            'request_link_url' => 'https://eventos.example.test/parques/events/congreso/my-submission/request-link',
         ],
         factId: 'fact-1',
         organization: $organization,
