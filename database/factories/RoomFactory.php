@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Database\Factories;
 
+use App\Enums\RoomKind;
 use App\Models\Event;
 use App\Models\Organization;
 use App\Models\Room;
@@ -38,6 +39,13 @@ class RoomFactory extends Factory
                 ->id,
             'name' => fake()->unique()->words(2, true),
             'position' => 1,
+            'kind' => RoomKind::Room,
         ];
+    }
+
+    /** Un lugar fuera del recinto (un parque, un espacio público): admite actividades simultáneas. */
+    public function external(): static
+    {
+        return $this->state(fn (): array => ['kind' => RoomKind::External]);
     }
 }

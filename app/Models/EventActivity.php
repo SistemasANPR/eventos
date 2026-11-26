@@ -13,6 +13,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Carbon;
 
@@ -39,6 +40,9 @@ use Illuminate\Support\Carbon;
  * @property string|null $description
  * @property bool $is_published
  * @property Carbon|null $hidden_by_reversal_at
+ * @property int|null $quota cupo (plan 035, DA-3); nulo: sin cupo
+ * @property string|null $meeting_point punto de reunión de una actividad en un lugar externo
+ * @property string|null $transport_info detalle del transporte; nulo: sin transporte
  */
 class EventActivity extends Model
 {
@@ -70,6 +74,7 @@ class EventActivity extends Model
             'starts_on' => 'date',
             'ends_on' => 'date',
             'is_published' => 'boolean',
+            'quota' => 'integer',
             'hidden_by_reversal_at' => 'datetime',
         ];
     }
@@ -129,5 +134,15 @@ class EventActivity extends Model
         return $this->belongsToMany(Speaker::class, 'activity_speaker', 'activity_id', 'speaker_id')
             ->withPivot('position')
             ->orderByPivot('position');
+    }
+
+    /**
+     * Responsables de la actividad en un lugar externo, en su orden (plan 035, DA-11).
+     *
+     * @return HasMany<ActivityContact, $this>
+     */
+    public function contacts(): HasMany
+    {
+        return $this->hasMany(ActivityContact::class, 'activity_id')->orderBy('position');
     }
 }
