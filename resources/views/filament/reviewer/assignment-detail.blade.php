@@ -51,7 +51,9 @@
             <div style="margin-bottom: 1rem;">
                 <div class="fi-fo-field-label-content">{{ $answer['label'] }}</div>
 
-                @if ($answer['type'] === 'file')
+                @if ($answer['empty'])
+                    <p style="margin: 0; opacity: 0.6; font-style: italic;">{{ __('submission_panel.detail.unanswered') }}</p>
+                @elseif ($answer['type'] === 'file')
                     @if ($detail['canDownload'])
                         <ul style="margin: 0; padding-left: 1.25rem;">
                             @foreach ($answer['files'] as $file)

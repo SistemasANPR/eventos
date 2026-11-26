@@ -110,6 +110,24 @@ it('CA-009-6: the detail shows labelled answers, participants and files with the
         ->assertSee(route('submission-files.download', ['organization' => $organization->slug, 'file' => $file->id]), false);
 });
 
+it('the detail shows an unanswered question with "Sin respuesta" instead of leaving it out', function (): void {
+    [$organization, $event, $user] = formScenario(OrganizationRole::Organizer);
+    $submission = detailedSubmission($organization, $event, [
+        'form_snapshot' => ['fields' => [
+            ['key' => 'f_resumen', 'type' => 'long_text', 'label' => ['es' => 'Resumen de la propuesta'], 'config' => []],
+            ['key' => 'f_opcional', 'type' => 'short_text', 'label' => ['es' => 'Pregunta opcional nueva'], 'config' => []],
+            ['key' => 'f_foto', 'type' => 'file', 'label' => ['es' => 'Foto opcional'], 'config' => []],
+        ]],
+        'answers' => ['f_resumen' => 'Texto del resumen'],
+    ]);
+
+    $this->actingAs($user)->get(detailUrl($organization, $event, $submission))
+        ->assertOk()
+        ->assertSee('Pregunta opcional nueva')
+        ->assertSee('Foto opcional')
+        ->assertSee('Sin respuesta');
+});
+
 it('CA-009-7: the detail of a submission of another organization is a 404', function (): void {
     [$organization, $event, $user] = formScenario(OrganizationRole::Organizer);
     [$otherOrganization, $otherEvent] = formScenario();

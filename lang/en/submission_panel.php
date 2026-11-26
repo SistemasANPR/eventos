@@ -38,6 +38,7 @@ return [
         'yes' => 'Yes',
         'no' => 'No',
         'no_answers' => 'This submission has no answers.',
+        'unanswered' => 'No answer',
         'no_participants' => 'This submission has no participants.',
         'participant' => [
             'second_last_name' => 'Maternal last name',
