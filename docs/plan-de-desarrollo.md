@@ -291,7 +291,7 @@ Toda notificación nueva se registra en el catálogo con su plantilla predetermi
 | E-24 | Acreditación y check-in | Registro y acreditación | R3 | M | E-22 | M | — | QR, gafetes y constancias |
 | E-25 | Patrocinadores y expositores | Patrocinadores y expositores | R4 | L | E-23 | M | — | Paquetes, contratos y portal |
 | E-26 | Voluntarios | Voluntarios | R4 | M | E-21 | B | — | Turnos con cupo y constancia |
-| E-27 | Talleres con cupo | Talleres y talleristas | R4 | M | E-22 | B | — | Inscripción y lista de espera |
+| E-27 | Talleres con cupo | Talleres y talleristas | R4 | M | E-22 | B | — | Inscripción y lista de espera sobre el cupo de las actividades (plan 035) |
 | E-28 | Logística y hospedaje | Hoteles y recorridos; Logística | R4 | M | E-22 | B | — | Servicios del evento con cupo |
 | E-29 | Comunicación masiva | Comunicación | R4 | M | E-13 | M | — | Campañas segmentadas |
 | E-30 | Tareas y producción | Tareas y producción | R4 | M | E-03 | B | — | Tablero del equipo |
