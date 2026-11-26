@@ -14,7 +14,7 @@ use Illuminate\Support\Str;
 /**
  * Detalle público de una actividad (plan 029, DA-3, DA-7, CA-029-2, 3 y 10): la actividad visible de ESE
  * evento (publicada, no oculta por una reversa, programada y no borrada) con sus categorías y SOLO sus
- * ponentes visibles, en el orden de `position`. Devuelve `null` si no existe o no es visible, si es de
+ * ponentes visibles, en el orden de `position`, su lugar y sus responsables públicos (plan 035). Devuelve `null` si no existe o no es visible, si es de
  * otro evento u organización o si el identificador no es un uuid: el llamador responde 404 uniforme.
  *
  * @throws MissingOrganizationContext sin organización en contexto
@@ -35,7 +35,7 @@ final class FindPublicActivity
             ->where('event_activities.organization_id', $organizationId)
             ->where('event_activities.event_id', $event->id)
             ->whereKey($activityId)
-            ->with(PublicProgramQuery::activityRelations($event))
+            ->with([...PublicProgramQuery::activityRelations($event), ...PublicProgramQuery::activityDetailRelations($event)])
             ->first();
     }
 }
