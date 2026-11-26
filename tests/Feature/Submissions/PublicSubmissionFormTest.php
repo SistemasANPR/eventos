@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Enums\CallStatus;
 use App\Enums\FormDefinitionStatus;
 use App\Http\Middleware\SetOrganizationFromRoute;
+use App\Models\Activity;
 use App\Models\CallForSubmissions;
 use App\Models\Event;
 use App\Models\FormDefinition;
@@ -22,6 +23,7 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Testing\TestResponse;
 use Inertia\Testing\AssertableInertia as Assert;
+use Tests\Support\AuthorFixtures;
 
 uses(RefreshDatabase::class);
 
@@ -419,3 +421,153 @@ it('CA-006-7: the body cannot choose the organization, event, call or status', f
         ->and($submission->call_for_submissions_id)->toBe($ctx['call']->id)
         ->and($submission->status->value)->toBe('submitted');
 });
+
+/*
+ * Plan 034: el autor queda con sesión sobre su propuesta al enviarla (CA-034-1 a 5 y CA-034-17).
+ */
+
+it('CA-034-1: a confirmed submission leaves the browser with an author session on that proposal', function (): void {
+    $ctx = publicFormScenario();
+    turnstileOk();
+    $form = openForm($this->get(...), $ctx);
+
+    $this->post($ctx['url'].'/submit', formBody($ctx, $form))->assertRedirect($ctx['url'].'/submitted?lang=es');
+
+    $this->get('/parques/events/congreso/my-submission')
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page->component('Author/Show')->where('submission.title', 'Mi propuesta'));
+});
+
+it('CA-034-2: an idempotent repetition opens the session on the same proposal without a second one or a second mail', function (): void {
+    $ctx = publicFormScenario();
+    turnstileOk();
+    $form = openForm($this->get(...), $ctx);
+    $body = formBody($ctx, $form);
+
+    $this->post($ctx['url'].'/submit', $body)->assertRedirect();
+    session()->forget('author_session');
+    $this->get('/parques/events/congreso/my-submission')->assertRedirect('/parques/events/congreso/my-submission/request-link');
+
+    $this->post($ctx['url'].'/submit', array_replace($body, ['turnstile_token' => 'otro-token']))->assertRedirect();
+
+    $this->get('/parques/events/congreso/my-submission')->assertOk();
+    expect(submissionCount())->toBe(1)
+        ->and(Activity::query()->where('event', 'author_session_opened')->count())->toBe(2);
+});
+
+it('CA-034-3: a rejected submission opens no author session', function (): void {
+    $ctx = publicFormScenario();
+    turnstileOk();
+    $form = openForm($this->get(...), $ctx);
+
+    // Validación (422): título vacío.
+    $this->post($ctx['url'].'/submit', formBody($ctx, $form, ['title' => '']))->assertSessionHasErrors('title');
+    expect(session('author_session'))->toBeNull();
+
+    // Convocatoria cerrada (409).
+    $ctx['call']->forceFill(['status' => CallStatus::Closed])->save();
+    $this->postJson($ctx['url'].'/submit', formBody($ctx, $form))->assertStatus(409);
+    expect(session('author_session'))->toBeNull();
+
+    // Formulario cambiado mientras se llenaba (409).
+    $ctx['call']->forceFill(['status' => CallStatus::Published])->save();
+    $this->postJson($ctx['url'].'/submit', formBody($ctx, $form, ['form_version' => 999]))->assertStatus(409);
+    expect(session('author_session'))->toBeNull();
+
+    $this->get('/parques/events/congreso/my-submission')->assertRedirect('/parques/events/congreso/my-submission/request-link');
+});
+
+it('CA-034-4: the session opened by the submission reaches only that proposal and never the organizer panel', function (): void {
+    $ctx = publicFormScenario();
+    turnstileOk();
+    $form = openForm($this->get(...), $ctx);
+
+    $this->post($ctx['url'].'/submit', formBody($ctx, $form))->assertRedirect();
+    $mine = Submission::query()->sole();
+    // Otra propuesta del mismo evento, de otra persona, creada después de abrir la sesión.
+    AuthorFixtures::sibling($mine, 'otra@example.test', ['title' => 'Propuesta ajena']);
+
+    $this->get('/parques/events/congreso/my-submission')
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('submission.title', 'Mi propuesta')
+            ->where('submission.reference', fn (string $reference): bool => $reference !== ''));
+
+    foreach (["/admin/{$ctx['org']->slug}", '/admin'] as $panelPath) {
+        expect($this->get($panelPath)->getStatusCode())->toBe(302);
+    }
+});
+
+it('CA-034-5: submitting a second proposal replaces the author session and regenerates the session id', function (): void {
+    $ctx = publicFormScenario();
+    turnstileOk();
+    $first = openForm($this->get(...), $ctx);
+    $this->post($ctx['url'].'/submit', formBody($ctx, $first, ['title' => 'Primera']))->assertRedirect();
+    $firstId = session('author_session.submission_id');
+    $idBefore = session()->getId();
+
+    $second = openForm($this->get(...), $ctx);
+    $luis = array_replace(formBody($ctx, $second)['participants'][0], ['first_name' => 'Luis', 'last_name' => 'Gómez', 'email' => 'luis@example.test']);
+    $this->post($ctx['url'].'/submit', formBody($ctx, $second, ['title' => 'Segunda', 'participants' => [$luis]]))->assertSessionHasNoErrors()->assertRedirect();
+
+    expect(session('author_session.submission_id'))->not->toBe($firstId)
+        ->and(session()->getId())->not->toBe($idBefore);
+    $this->get('/parques/events/congreso/my-submission')
+        ->assertInertia(fn (Assert $page) => $page->where('submission.title', 'Segunda'));
+});
+
+it('CA-034-17: opening the session by submitting is audited with via=submit and without personal data', function (): void {
+    $ctx = publicFormScenario();
+    turnstileOk();
+    $form = openForm($this->get(...), $ctx);
+
+    $this->post($ctx['url'].'/submit', formBody($ctx, $form))->assertRedirect();
+
+    $log = Activity::query()->where('event', 'author_session_opened')->sole();
+    expect($log->properties->get('via'))->toBe('submit')
+        ->and($log->properties->get('organization_id'))->toBe($ctx['org']->id)
+        ->and((string) $log->properties)->not->toContain('ana@example.test');
+});
+
+/*
+ * Plan 034: la confirmación y la página de la convocatoria ofrecen el camino a la propuesta (CA-034-6, 7 y 12).
+ */
+
+it('CA-034-6: the confirmation offers the way to the proposal and the edit deadline in the event timezone, with no identifiers in the URL', function (): void {
+    $ctx = publicFormScenario();
+    turnstileOk();
+    $form = openForm($this->get(...), $ctx);
+    $response = $this->post($ctx['url'].'/submit', formBody($ctx, $form));
+
+    $this->get($ctx['url'].'/submitted')
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('Calls/Submitted')
+            ->where('authorUrl', '/parques/events/congreso/my-submission')
+            ->where('editDeadline', $ctx['call']->closes_at->utc()->format('Y-m-d\TH:i:s\Z'))
+            ->where('timezone', $ctx['event']->timezone)
+            ->where('timeFormat', $ctx['event']->time_format->value));
+
+    expect($response->headers->get('Location'))->not->toMatch('/[0-9a-f]{8}-[0-9a-f]{4}|@/');
+});
+
+it('CA-034-7: when the author session has expired the confirmation button leads to request a link, revealing nothing', function (): void {
+    $ctx = publicFormScenario();
+    turnstileOk();
+    $form = openForm($this->get(...), $ctx);
+    $this->post($ctx['url'].'/submit', formBody($ctx, $form));
+
+    $this->travel(61)->minutes();
+
+    $this->get('/parques/events/congreso/my-submission')->assertRedirect('/parques/events/congreso/my-submission/request-link');
+});
+
+it('CA-034-12: the call page always links to the request-link page while the call is public', function (string $status): void {
+    $ctx = publicFormScenario(callAttributes: ['status' => CallStatus::from($status)]);
+
+    $this->get($ctx['url'].'?lang=es')
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('Calls/Show')
+            ->where('authorRequestUrl', '/parques/events/congreso/my-submission/request-link?lang=es'));
+})->with(['published', 'paused', 'closed']);

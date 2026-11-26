@@ -16,6 +16,7 @@ use App\Http\Requests\Submissions\StoreSubmissionRequest;
 use App\Models\CallForSubmissions;
 use App\Models\Event;
 use App\Models\Organization;
+use App\Support\Auth\AuthorSession;
 use App\Support\Submissions\PublicFormThrottle;
 use Illuminate\Http\Exceptions\ThrottleRequestsException;
 use Illuminate\Http\JsonResponse;
@@ -44,6 +45,7 @@ final class StoreSubmissionController
         PublicFormThrottle $throttle,
         VerifyTurnstile $turnstile,
         SubmitSubmission $submit,
+        AuthorSession $authorSession,
     ): RedirectResponse|JsonResponse {
         // El idioma del envío ya está validado contra los de la convocatoria.
         app()->setLocale($request->string('locale')->toString());
@@ -52,7 +54,7 @@ final class StoreSubmissionController
             $throttle->hitSubmission((string) $request->ip(), $request->primaryEmail());
             $turnstile->handle($request->string('turnstile_token')->toString(), $request->ip());
 
-            $submit->handle($call, $request->validated(), $request->string('upload_token')->toString());
+            $outcome = $submit->handle($call, $request->validated(), $request->string('upload_token')->toString());
         } catch (ThrottleRequestsException $exception) {
             return $this->failure('TOO_MANY_REQUESTS', __('submission_form.too_many_requests'), 429, $exception->getHeaders());
         } catch (TurnstileInvalid $exception) {
@@ -68,6 +70,10 @@ final class StoreSubmissionController
         } catch (IdempotencyPayloadMismatch $exception) {
             return $this->failure(IdempotencyPayloadMismatch::CODE, $exception->getMessage(), 409);
         }
+
+        // Quien acaba de enviar queda con sesión sobre su propuesta (plan 034, DA-1): la clave de idempotencia
+        // vive en la sesión del navegador, así que una repetición solo puede venir del mismo navegador.
+        $authorSession->open($outcome->submission, AuthorSession::VIA_SUBMIT);
 
         // Dato de sesión que la confirmación exige: sin él, `/submitted` redirige a la convocatoria.
         $request->session()->put(ShowSubmissionConfirmationController::sessionKey($call), true);

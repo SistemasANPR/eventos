@@ -4,9 +4,10 @@ import { HexagonBadge } from '@/components/atoms/HexagonBadge';
 import { PageBanner } from '@/components/molecules/PageBanner';
 import { useTranslation } from '@/hooks/useTranslation';
 import { PublicLayout } from '@/layouts/PublicLayout';
-import { BUTTON_SECONDARY, CALL_COLUMN, FOCUS_RING } from '@/lib/classes';
+import { BUTTON_PRIMARY, BUTTON_SECONDARY, CALL_COLUMN, FOCUS_RING } from '@/lib/classes';
+import { formatEventInstant } from '@/lib/date-format';
 import { cn } from '@/lib/utils';
-import type { PublicOrganization } from '@/types/event';
+import type { PublicOrganization, TimeFormat } from '@/types/event';
 
 interface SubmittedProps {
     call: { title: string };
@@ -14,14 +15,21 @@ interface SubmittedProps {
     organization: PublicOrganization;
     callUrl: string;
     eventUrl: string;
+    /** Propuesta del autor (plan 034): sin token; si la sesión caducó, esa ruta pide un enlace de acceso. */
+    authorUrl: string;
+    /** Cierre de la convocatoria (ISO 8601, UTC) mientras siga abierta; hasta entonces puede editar. */
+    editDeadline: string | null;
+    timezone: string;
+    timeFormat: TimeFormat;
 }
 
 /**
  * Confirmación del envío (CA-006-57): sin datos personales ni identificadores. El detalle de lo
- * enviado llega por correo a la persona principal.
+ * enviado llega por correo a la persona principal. Ofrece entrar a la propuesta y dice hasta cuándo se puede
+ * editar (plan 034, CA-034-6).
  */
-export default function Submitted({ call, event, organization, callUrl, eventUrl }: SubmittedProps) {
-    const { t } = useTranslation();
+export default function Submitted({ call, event, organization, callUrl, eventUrl, authorUrl, editDeadline, timezone, timeFormat }: SubmittedProps) {
+    const { t, locale } = useTranslation();
 
     return (
         <PublicLayout organizationName={organization.name} isWide>
@@ -47,7 +55,15 @@ export default function Submitted({ call, event, organization, callUrl, eventUrl
                         {t('submitted.body', { call: call.title })}
                     </p>
                 </div>
+                {editDeadline !== null && (
+                    <p className="text-center text-base text-text-muted">
+                        {t('submitted.edit_until', { date: formatEventInstant(editDeadline, timezone, locale, timeFormat) })}
+                    </p>
+                )}
                 <div className="flex flex-col items-stretch justify-center gap-3 sm:flex-row sm:gap-4">
+                    <a href={authorUrl} className={cn(BUTTON_PRIMARY, FOCUS_RING)}>
+                        {t('submitted.edit_action')}
+                    </a>
                     <a href={callUrl} className={cn(BUTTON_SECONDARY, FOCUS_RING)}>
                         {t('submitted.back_to_call')}
                     </a>

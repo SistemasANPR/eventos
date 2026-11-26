@@ -15,7 +15,7 @@ const translations = {
     author: {
         request: {
             title: 'Pedir mi enlace de acceso',
-            intro: 'Escribe tu correo.',
+            intro: 'Escribe tu correo. El enlace dura :minutes minutos y solo se usa una vez.',
             email_label: 'Correo electrónico',
             submit: 'Enviarme el enlace',
             sending: 'Enviando…',
@@ -53,6 +53,12 @@ const translations = {
             session_notice: 'Tu acceso dura :minutes minutos.',
             back_to_event: 'Volver al evento',
             edit_action: 'Editar mi propuesta',
+            edit_until: 'Puedes editar hasta el :date.',
+            edit_closed: 'Cerró el :date.',
+            edit_closed_no_date: 'La convocatoria cerró.',
+            edit_in_process: 'Ya está en proceso.',
+            logout: 'Cerrar sesión',
+            logging_out: 'Cerrando…',
             updated_notice: 'Guardamos los cambios.',
             withdraw: {
                 action: 'Retirar mi propuesta',
@@ -140,6 +146,12 @@ describe('Author/RequestLink page', () => {
     beforeEach(() => {
         post.mockClear();
         transform.mockClear();
+    });
+
+    it('CA-034-13: explains before sending that the link arrives by email, lasts its minutes and is single use', () => {
+        render(<RequestLink {...requestProps} />);
+
+        expect(screen.getByText('Escribe tu correo. El enlace dura 30 minutos y solo se usa una vez.')).toBeInTheDocument();
     });
 
     it('shows a labelled email field, the anti-robot check and the send button', () => {
@@ -238,12 +250,61 @@ describe('Author/Show page', () => {
         eventUrl: '/parques/events/congreso?lang=es',
         withdrawUrl,
         editUrl: '/parques/events/congreso/my-submission/edit',
+        editPolicy: { state: 'editable' as const, until: '2027-02-15T23:00:00Z' },
+        timezone: 'America/Mexico_City',
+        timeFormat: '24h' as const,
+        logoutUrl: '/parques/events/congreso/my-submission/logout',
         wasUpdated: false,
     };
 
     beforeEach(() => {
         routerPost.mockClear();
         pageErrors = {};
+    });
+
+    it('CA-034-14: says until when it can be edited, in the event timezone and time format', () => {
+        render(<Show {...props} />);
+
+        expect(screen.getByTestId('edit-notice')).toHaveTextContent(/Puedes editar hasta el .*17:00/);
+    });
+
+    it('CA-034-14: tells why it cannot be edited: call closed (with or without date) or already in process', () => {
+        const closed = render(<Show {...props} editUrl={null} editPolicy={{ state: 'call_closed', until: '2027-02-15T23:00:00Z' }} />);
+
+        expect(screen.getByTestId('edit-notice')).toHaveTextContent(/Cerró el .*17:00/);
+        expect(screen.queryByRole('link', { name: 'Editar mi propuesta' })).not.toBeInTheDocument();
+        closed.unmount();
+
+        const undated = render(<Show {...props} editUrl={null} editPolicy={{ state: 'call_closed', until: null }} />);
+
+        expect(screen.getByTestId('edit-notice')).toHaveTextContent('La convocatoria cerró.');
+        undated.unmount();
+
+        render(<Show {...props} editUrl={null} editPolicy={{ state: 'in_process', until: null }} />);
+
+        expect(screen.getByTestId('edit-notice')).toHaveTextContent('Ya está en proceso.');
+    });
+
+    it('CA-034-14: a withdrawn proposal shows its own notice and no edit notice', () => {
+        render(
+            <Show
+                {...props}
+                submission={{ ...submission, status: 'withdrawn', withdrawnAt: '2027-01-25T12:00:00Z' }}
+                editUrl={null}
+                editPolicy={{ state: 'in_process', until: null }}
+            />,
+        );
+
+        expect(screen.queryByTestId('edit-notice')).not.toBeInTheDocument();
+        expect(screen.getByText(/Retiraste esta propuesta/)).toBeInTheDocument();
+    });
+
+    it('CA-034-16: the sign-out button posts to the logout route', () => {
+        render(<Show {...props} />);
+
+        fireEvent.click(screen.getByRole('button', { name: 'Cerrar sesión' }));
+
+        expect(routerPost).toHaveBeenCalledWith('/parques/events/congreso/my-submission/logout', {}, expect.anything());
     });
 
     it('shows title, status, answers and participants', () => {

@@ -6,6 +6,15 @@ import type { PublicOrganization } from '@/types/event';
 /** Estado de una propuesta: coincide con `App\Enums\SubmissionStatus`. */
 export type SubmissionStatus = 'submitted' | 'under_review' | 'accepted' | 'waitlisted' | 'rejected' | 'confirmed' | 'withdrawn';
 
+/** Qué puede hacer el autor con su propuesta ahora: coincide con `App\Enums\AuthorEditState` (plan 034). */
+export type AuthorEditState = 'editable' | 'call_closed' | 'in_process';
+
+/** Estado de edición y hasta cuándo (cierre de la convocatoria, ISO 8601 en UTC): lo calcula `PrepareAuthorEdit::policy`. */
+export interface AuthorEditPolicy {
+    state: AuthorEditState;
+    until: string | null;
+}
+
 /** Props de `Author/RequestLink`: coincide con `App\Support\Submissions\AccessLinkPageData`. */
 export interface AccessLinkPageProps {
     event: { name: string; locale: string; locales: string[] };

@@ -19,6 +19,7 @@ const translations = {
         tracks: 'Ejes temáticos',
         no_tracks: 'Esta convocatoria aún no tiene ejes temáticos.',
         back_to_event: 'Volver al evento',
+        already_submitted: '¿Ya enviaste tu propuesta? Consúltala o edítala',
         state: { scheduled: 'Próximamente', open: 'Abierta', paused: 'En pausa', closed: 'Cerrada' },
         state_hint: {
             scheduled: 'La convocatoria aún no abre.',
@@ -237,5 +238,41 @@ describe('Calls/Show page: logo (plan 027)', () => {
         render(<Show call={call} event={{ ...event, logoUrl: null }} organization={organization} eventUrl="/e" privacyUrl={null} />);
 
         expect(screen.queryByRole('img')).not.toBeInTheDocument();
+    });
+});
+
+describe('Calls/Show page: way back to a sent proposal (plan 034)', () => {
+    const authorRequestUrl = '/parques/events/congreso/my-submission/request-link?lang=es';
+
+    it('CA-034-12: links to the request-link page in the usual page, in any state of the call', () => {
+        const { unmount } = render(
+            <Show call={{ ...call, state: 'closed' }} event={event} organization={organization} eventUrl="/e" privacyUrl={null} authorRequestUrl={authorRequestUrl} />,
+        );
+
+        expect(screen.getByRole('link', { name: '¿Ya enviaste tu propuesta? Consúltala o edítala' })).toHaveAttribute('href', authorRequestUrl);
+        unmount();
+
+        render(<Show call={call} event={event} organization={organization} eventUrl="/e" privacyUrl={null} />);
+
+        expect(screen.queryByRole('link', { name: '¿Ya enviaste tu propuesta? Consúltala o edítala' })).not.toBeInTheDocument();
+    });
+
+    it('CA-034-12: links to the request-link page in the Spanish landing too', () => {
+        const slugs = { organization: 'parques', event: 'congreso', call: 'ponencias' };
+        const landing = { minParticipants: 1, maxParticipants: 5, formProposal: [], formParticipant: [], otherCalls: [] };
+        render(
+            <Show
+                slugs={slugs}
+                landing={landing}
+                call={call}
+                event={event}
+                organization={organization}
+                eventUrl="/e"
+                privacyUrl={null}
+                authorRequestUrl={authorRequestUrl}
+            />,
+        );
+
+        expect(screen.getByRole('link', { name: '¿Ya enviaste tu propuesta? Consúltala o edítala' })).toHaveAttribute('href', authorRequestUrl);
     });
 });

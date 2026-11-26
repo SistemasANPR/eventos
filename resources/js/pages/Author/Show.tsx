@@ -6,9 +6,9 @@ import { EventFact } from '@/components/molecules/EventFact';
 import { useTranslation } from '@/hooks/useTranslation';
 import { PublicLayout } from '@/layouts/PublicLayout';
 import { BUTTON_PRIMARY, BUTTON_SECONDARY, FACTS_PANEL, PAGE_TITLE } from '@/lib/classes';
-import { formatPublishedAt } from '@/lib/date-format';
-import type { AuthorAnswer, AuthorParticipant, AuthorSubmission, SubmissionStatus } from '@/types/author';
-import type { PublicOrganization } from '@/types/event';
+import { formatEventInstant, formatPublishedAt } from '@/lib/date-format';
+import type { AuthorAnswer, AuthorEditPolicy, AuthorParticipant, AuthorSubmission, SubmissionStatus } from '@/types/author';
+import type { PublicOrganization, TimeFormat } from '@/types/event';
 
 interface ShowProps {
     event: { name: string };
@@ -21,6 +21,12 @@ interface ShowProps {
     withdrawUrl: string | null;
     /** Pantalla de edición, o `null` si la propuesta ya no se puede editar (la decide el servidor). */
     editUrl: string | null;
+    /** Por qué se puede o no editar y hasta cuándo (plan 034, DA-4). */
+    editPolicy: AuthorEditPolicy;
+    timezone: string;
+    timeFormat: TimeFormat;
+    /** Destino del POST que cierra la sesión del autor (plan 034, DA-5). */
+    logoutUrl: string;
     /** Se acaba de guardar una edición. */
     wasUpdated: boolean;
 }
@@ -41,7 +47,20 @@ const STATUS_STYLE: Record<SubmissionStatus, { classes: string; mark: string }> 
  * el autor envió —título, eje, estado, respuestas y participantes—; nada de lo que es del equipo organizador.
  * Los textos de las respuestas se muestran escapados (React), nunca como HTML.
  */
-export default function Show({ event, organization, submission, sessionMinutes, eventUrl, withdrawUrl, editUrl, wasUpdated }: ShowProps) {
+export default function Show({
+    event,
+    organization,
+    submission,
+    sessionMinutes,
+    eventUrl,
+    withdrawUrl,
+    editUrl,
+    editPolicy,
+    timezone,
+    timeFormat,
+    logoutUrl,
+    wasUpdated,
+}: ShowProps) {
     const { t, locale } = useTranslation();
     const { props } = usePage<{ errors?: Record<string, string> }>();
     const editError = props.errors?.edit;
@@ -87,6 +106,7 @@ export default function Show({ event, organization, submission, sessionMinutes, 
                         {editError}
                     </p>
                 )}
+                <EditNotice policy={editPolicy} status={submission.status} timezone={timezone} timeFormat={timeFormat} />
                 {editUrl !== null && (
                     <TextLink href={editUrl} className={`${BUTTON_SECONDARY} self-start no-underline`}>
                         {t('author.show.edit_action')}
@@ -128,14 +148,59 @@ export default function Show({ event, organization, submission, sessionMinutes, 
 
                 <footer className="flex flex-col gap-2 border-t border-border pt-4">
                     <p className="text-sm text-text-muted">{t('author.show.session_notice', { minutes: String(sessionMinutes) })}</p>
-                    {eventUrl !== null && (
-                        <TextLink href={eventUrl} className="-ml-3 self-start">
-                            {t('author.show.back_to_event')}
-                        </TextLink>
-                    )}
+                    <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+                        {eventUrl !== null && (
+                            <TextLink href={eventUrl} className="-ml-3 self-start">
+                                {t('author.show.back_to_event')}
+                            </TextLink>
+                        )}
+                        <LogoutButton logoutUrl={logoutUrl} />
+                    </div>
                 </footer>
             </article>
         </PublicLayout>
+    );
+}
+
+/**
+ * Dice si la propuesta se puede editar, hasta cuándo y, si no, por qué (plan 034, DA-4, CA-034-14). La fecha va en la
+ * zona y el formato de hora del evento. Una propuesta retirada ya lo dice su propio aviso: no se repite aquí.
+ */
+function EditNotice({ policy, status, timezone, timeFormat }: { policy: AuthorEditPolicy; status: SubmissionStatus; timezone: string; timeFormat: TimeFormat }) {
+    const { t, locale } = useTranslation();
+    const date = policy.until === null ? '' : formatEventInstant(policy.until, timezone, locale, timeFormat);
+
+    if (policy.state === 'in_process' && status === 'withdrawn') {
+        return null;
+    }
+
+    const message = {
+        editable: t('author.show.edit_until', { date }),
+        call_closed: policy.until === null ? t('author.show.edit_closed_no_date') : t('author.show.edit_closed', { date }),
+        in_process: t('author.show.edit_in_process'),
+    }[policy.state];
+
+    return (
+        <p data-testid="edit-notice" className="max-w-prose text-base text-text">
+            {message}
+        </p>
+    );
+}
+
+/** Cierra la sesión del autor: solo POST con CSRF (plan 034, DA-5); el servidor audita y lleva a la convocatoria. */
+function LogoutButton({ logoutUrl }: { logoutUrl: string }) {
+    const { t } = useTranslation();
+    const [isLoggingOut, setIsLoggingOut] = useState(false);
+
+    return (
+        <button
+            type="button"
+            disabled={isLoggingOut}
+            onClick={() => router.post(logoutUrl, {}, { onStart: () => setIsLoggingOut(true), onFinish: () => setIsLoggingOut(false) })}
+            className={`${BUTTON_SECONDARY} self-start`}
+        >
+            {isLoggingOut ? t('author.show.logging_out') : t('author.show.logout')}
+        </button>
     );
 }
 

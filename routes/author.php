@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Http\Controllers\Author\ConsumeAccessLinkController;
+use App\Http\Controllers\Author\LogoutAuthorController;
 use App\Http\Controllers\Author\RequestAccessLinkController;
 use App\Http\Controllers\Author\ShowAccessConfirmationController;
 use App\Http\Controllers\Author\ShowAccessLinkRequestController;
@@ -39,5 +40,7 @@ Route::middleware([SetOrganizationFromRoute::class, HandleInertiaRequests::class
             Route::patch('edit', UpdateAuthorSubmissionController::class)->name('author.update');
             // Cambio de estado: solo POST con CSRF (un GET responde 405).
             Route::post('withdraw', WithdrawAuthorSubmissionController::class)->name('author.withdraw');
+            // Cerrar la sesión a mano (plan 034, DA-5): solo POST con CSRF.
+            Route::post('logout', LogoutAuthorController::class)->name('author.logout');
         });
     });

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Actions\Submissions;
 
+use App\Enums\AuthorEditState;
 use App\Enums\CallState;
 use App\Enums\FieldType;
 use App\Enums\FormDefinitionStatus;
@@ -34,6 +35,26 @@ final class PrepareAuthorEdit
     public function isEditable(Submission $submission): bool
     {
         return $this->openCall($submission) instanceof CallForSubmissions;
+    }
+
+    /**
+     * Por qué se puede o no editar, y hasta cuándo (plan 034, DA-4): `until` es el cierre de la convocatoria
+     * (ISO 8601 en UTC) mientras la propuesta siga «enviada»; una propuesta en proceso no lleva fecha.
+     *
+     * @return array{state: string, until: ?string}
+     */
+    public function policy(Submission $submission): array
+    {
+        if ($submission->status !== SubmissionStatus::Submitted) {
+            return ['state' => AuthorEditState::InProcess->value, 'until' => null];
+        }
+
+        $call = $submission->call_for_submissions_id === null ? null : CallForSubmissions::query()->find($submission->call_for_submissions_id);
+
+        return [
+            'state' => ($this->isEditable($submission) ? AuthorEditState::Editable : AuthorEditState::CallClosed)->value,
+            'until' => $call instanceof CallForSubmissions ? $call->closes_at->utc()->format('Y-m-d\TH:i:s\Z') : null,
+        ];
     }
 
     /** @return array<string, mixed>|null */
