@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Enums\EventStatus;
 use App\Enums\OrganizationRole;
 use App\Models\Activity;
 use App\Models\Event;
@@ -188,4 +189,15 @@ it('CA-034-17: opening by link and closing the session are audited without perso
         ->and($opened->properties->get('organization_id'))->toBe($submission->organization_id)
         ->and($closed->properties->get('organization_id'))->toBe($submission->organization_id)
         ->and((string) $opened->properties.(string) $closed->properties)->not->toContain('ana@example.test');
+});
+
+it('CA-034-16: logout of an archived event, which has no public page, sends the author to request a link', function (): void {
+    $submission = AuthorFixtures::submission();
+    $event = Event::query()->findOrFail($submission->event_id);
+    $event->forceFill(['status' => EventStatus::Archived])->save();
+    app(AuthorSession::class)->open($submission);
+
+    $this->post(AuthorFixtures::path($submission, 'my-submission/logout'))
+        ->assertStatus(303)
+        ->assertRedirect(AuthorFixtures::path($submission, 'my-submission/request-link'));
 });

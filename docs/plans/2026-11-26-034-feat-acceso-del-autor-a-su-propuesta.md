@@ -4,7 +4,7 @@
 > `composer check:criteria` lee el **Estado** y los criterios de este archivo: no cambiar el formato de esas líneas.
 
 - **Fecha:** 2026-11-26
-- **Estado:** Aprobado (2026-11-26: Antonio aprueba el plan y cierra DA-1 a DA-6 con la recomendación del plan)
+- **Estado:** En curso (F0 a F2 construidas y verificadas con pruebas; pendiente la comprobación manual de CA-034-19 en navegador, ver §9)
 - **Esfuerzo:** M
 - **Deuda relacionada:** ninguna abierta. El plan 006 §9 deja la comprobación manual de CA-006-58 pendiente; este plan toca las mismas pantallas y la repite para ellas.
 
@@ -167,3 +167,7 @@ Cada uno tiene al menos una prueba cuyo nombre lo cita (`CA-034-n: ...`) o decla
 
 | Fase | Commit | Fecha | Notas (salida real de las validaciones) |
 |---|---|---|---|
+| F0 | de13a2b | 2026-11-26 | Aprobado por Antonio el 2026-11-26 (DA-1 a DA-6 con la recomendación). Ajustes a lo medido en el código: `closes_at` es obligatorio (CA-034-9 sin caso «sin cierre»), `AccessLinkPageData` ya expone `expiresInMinutes` (CA-034-13) y el cierre de sesión audita con un método nuevo de `AuthorSession`. |
+| F1 | 282277f, d59c96b, aa2be1c | 2026-11-26 | Sesión de autor al enviar, `author.logout` con auditoría, acuse con `edit_deadline` y `request_link_url` (formateo compartido en `CallClosingDate`), `PrepareAuthorEdit::policy`, props de confirmación y convocatoria. Pruebas escritas primero (rojo visto en sesión, acuse y props); las del cierre de sesión se escribieron tras la ruta. Larastan: sin errores. Pint al día. |
+| F2 | e2da10f | 2026-11-26 | `Calls/Submitted`, `Calls/Show` (página y landing), `Author/Show`, `Author/RequestLink`, textos es/en. `npm run typecheck` y `npm run lint` sin errores; Vitest 50 archivos / 375 pruebas en verde; build con `npx vite build --configLoader runner` (con `npm run build` falla el EACCES conocido de `node_modules/.vite-temp` del contenedor). |
+| F3 | pendiente | | Suite completa de PHP, `composer check:criteria` y la comprobación manual de CA-034-19 a ~375 px y ~1280 px con la consola abierta (el navegador de Playwright lo usaba otra sesión y la extensión de Chrome no conectó). |
