@@ -8,6 +8,7 @@ use App\Enums\OrganizationRole;
 use App\Exceptions\Domain\LastOrganizationAdmin;
 use App\Exceptions\Domain\PersonCannotBeAnonymized;
 use App\Exceptions\Domain\PersonFileDeletionFailed;
+use App\Models\ActivityContact;
 use App\Models\AnonymizationLog;
 use App\Models\Contact;
 use App\Models\Organization;
@@ -79,6 +80,7 @@ final class ErasePersonRecords
                 'mail_dispatches' => $this->eraser->eraseMailDispatches($records->emails),
                 'participants' => $this->eraser->eraseParticipants($records->participantIds),
                 'speakers' => $this->eraser->eraseSpeakers($records->speakerIds),
+                'activity_contacts' => $this->eraser->eraseActivityContacts($records->activityContactIds),
                 'contacts' => $this->eraser->eraseContacts($records->contactIds),
             ];
 
@@ -157,6 +159,7 @@ final class ErasePersonRecords
             ->merge(SubmissionParticipant::query()->whereKey($records->participantIds)->pluck('full_name'))
             ->merge(Speaker::withTrashed()->whereKey($records->speakerIds)->get(['first_name', 'last_name'])
                 ->map(fn (Speaker $speaker): string => trim("{$speaker->first_name} {$speaker->last_name}")))
+            ->merge(ActivityContact::query()->whereKey($records->activityContactIds)->pluck('name'))
             ->reject(fn (?string $name): bool => $name === PersonDataEraser::NAME);
 
         return Redactor::needles([...$records->emails, ...$names]);

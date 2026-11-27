@@ -89,12 +89,13 @@ it('CA-029-7: speaker and activity props have exactly the closed key list and no
     ]);
 
     $speakerKeys = ['id', 'name', 'company', 'jobTitle', 'tagline', 'photoUrl', 'url'];
-    $activityKeys = ['id', 'title', 'summary', 'date', 'endDate', 'startTime', 'endTime', 'categories', 'speakers', 'iconUrl', 'url'];
+    // Plan 035: el resumen gana `limitedSeats` y el detalle gana cupo, lugar, reunión, transporte y responsables públicos.
+    $activityKeys = ['id', 'title', 'summary', 'date', 'endDate', 'startTime', 'endTime', 'categories', 'speakers', 'iconUrl', 'limitedSeats', 'url'];
 
     expect(array_keys($summaryProps))->toBe($speakerKeys)
         ->and(array_keys($speakerProps))->toBe([...$speakerKeys, 'bioHtml', 'categories', 'socialLinks'])
         ->and(array_keys($activitySummaryProps))->toBe($activityKeys)
-        ->and(array_keys($activityProps))->toBe([...$activityKeys, 'descriptionHtml', 'imageUrl'])
+        ->and(array_keys($activityProps))->toBe([...$activityKeys, 'descriptionHtml', 'imageUrl', 'seats', 'place', 'meetingPoint', 'transport', 'contacts'])
         ->and(array_keys($activityProps['categories'][0]))->toBe(['id', 'name'])
         ->and(array_keys($activityProps['speakers'][0]))->toBe($speakerKeys)
         ->and(array_keys($speakerProps['socialLinks'][0]))->toBe(['network', 'url']);

@@ -1,11 +1,12 @@
 import { useId } from 'react';
 
 import { ChoiceField } from '@/components/molecules/ChoiceField';
+import { CallBlockForm } from '@/components/organisms/landing-editor/CallBlockForm';
 import { ImageField } from '@/components/molecules/ImageField';
 import { LocaleTabs } from '@/components/molecules/LocaleTabs';
 import { LocalizedField } from '@/components/molecules/LocalizedField';
 import { RichTextField } from '@/components/molecules/RichTextField';
-import { BUTTON_SECONDARY, FORM_CONTROL, HEADING_LG } from '@/lib/classes';
+import { BUTTON_SECONDARY, EDITOR_ITEM_FIELDSET, FORM_CONTROL, HEADING_LG } from '@/lib/classes';
 import { isHttpsUrl } from '@/lib/html-edit';
 import { emptyFaqItem, emptyText, emptyTextColumn, LANDING_LIMITS, newClientId } from '@/lib/landing-blocks';
 import { blockLabelKey, localizedFields, missingLocales } from '@/lib/landing-draft';
@@ -157,6 +158,25 @@ export function BlockSettingsPanel({
                 );
             case 'columns':
                 return block.columns.map((column, position) => renderColumn(block, column, position));
+            case 'call_hero':
+            case 'call_dates':
+            case 'call_axes':
+            case 'call_requirements':
+            case 'call_steps':
+            case 'call_promos':
+                return (
+                    <CallBlockForm
+                        block={block}
+                        onChange={onChange}
+                        onUpload={onUpload}
+                        locales={locales}
+                        locale={activeLocale}
+                        defaultLocale={defaultLocale}
+                        fieldErrors={fieldErrors}
+                        fieldId={fieldId}
+                        t={t}
+                    />
+                );
             default:
                 return null;
         }
@@ -273,7 +293,7 @@ export function BlockSettingsPanel({
                     {...common}
                 />
                 {faq.items.map((item, position) => (
-                    <fieldset key={item.key} className="flex flex-col gap-3 rounded-md border border-border p-3">
+                    <fieldset key={item.key} className={EDITOR_ITEM_FIELDSET}>
                         <legend className="px-1 text-sm font-semibold text-text">
                             {t('landing_editor.field.faq_item', { number: String(position + 1) })}
                         </legend>
@@ -335,7 +355,7 @@ export function BlockSettingsPanel({
                     {...common}
                 />
                 {gallery.images.map((entry, position) => (
-                    <fieldset key={entry.key} className="flex flex-col gap-3 rounded-md border border-border p-3">
+                    <fieldset key={entry.key} className={EDITOR_ITEM_FIELDSET}>
                         <legend className="px-1 text-sm font-semibold text-text">
                             {t('landing_editor.field.gallery_image', { number: String(position + 1) })}
                         </legend>
@@ -393,7 +413,7 @@ export function BlockSettingsPanel({
         };
 
         return (
-            <fieldset key={position} className="flex flex-col gap-3 rounded-md border border-border p-3">
+            <fieldset key={position} className={EDITOR_ITEM_FIELDSET}>
                 <legend className="px-1 text-sm font-semibold text-text">
                     {t('landing_editor.field.column', { number: String(position + 1) })}
                 </legend>

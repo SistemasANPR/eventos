@@ -7,7 +7,10 @@ namespace App\Http\Requests\Program;
 use App\Models\ActivityCategory;
 use App\Models\Event;
 use App\Models\EventActivity;
+use App\Models\Room;
 use App\Models\Speaker;
+use App\Support\Program\ActivityWrites;
+use App\Support\Program\ExternalDetails;
 use Closure;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Gate;
@@ -61,6 +64,9 @@ class StoreActivityRequest extends FormRequest
             'category_ids' => ['nullable', 'array'],
             'category_ids.*' => ['string', self::categoryOfEvent($event)],
             ...self::speakerRules($event),
+            'room_id' => ['nullable', 'string', self::roomOfEvent($event)],
+            'quota' => ['nullable', 'integer', 'min:1', 'max:'.ActivityWrites::MAX_QUOTA],
+            ...ExternalDetails::rules(),
             'is_published' => ['sometimes', 'boolean'],
             'icon' => ['nullable', 'file'],
             'image' => ['nullable', 'file'],
@@ -89,6 +95,20 @@ class StoreActivityRequest extends FormRequest
                 }
             }],
         ];
+    }
+
+    /** La sala, si viene, es del mismo evento (la consulta pasa por el filtro de organización del modelo). */
+    private static function roomOfEvent(Event $event): Closure
+    {
+        return static function (string $attribute, mixed $value, Closure $fail) use ($event): void {
+            $exists = is_string($value)
+                && Str::isUuid($value)
+                && Room::query()->where('event_id', $event->id)->whereKey($value)->exists();
+
+            if (! $exists) {
+                $fail('program.activities.room_invalid')->translate();
+            }
+        };
     }
 
     private static function categoryOfEvent(Event $event): Closure

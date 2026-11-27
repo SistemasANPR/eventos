@@ -35,6 +35,7 @@ final class ShowAccessLinkRequestController
             $event,
             $locale,
             linkRequested: (bool) $request->session()->pull('author.link_requested', false),
+            callSlug: AccessLinkPageData::callHint($request->query('call')),
         ));
     }
 }

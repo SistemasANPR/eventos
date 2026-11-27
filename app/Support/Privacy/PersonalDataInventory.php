@@ -6,6 +6,7 @@ namespace App\Support\Privacy;
 
 use App\Models\Activity;
 use App\Models\ActivityCategory;
+use App\Models\ActivityContact;
 use App\Models\AnonymizationLog;
 use App\Models\CallForSubmissions;
 use App\Models\Contact;
@@ -18,6 +19,7 @@ use App\Models\FormDefinition;
 use App\Models\KnownDevice;
 use App\Models\LandingImage;
 use App\Models\Lodging;
+use App\Models\LodgingImage;
 use App\Models\MailDispatch;
 use App\Models\MailTemplate;
 use App\Models\NotificationSetting;
@@ -29,11 +31,13 @@ use App\Models\ReviewAnswer;
 use App\Models\ReviewAssignment;
 use App\Models\ReviewRevision;
 use App\Models\ReviewScopeRule;
+use App\Models\Room;
 use App\Models\Rubric;
 use App\Models\RubricCriterion;
 use App\Models\Speaker;
 use App\Models\SpeakerCategory;
 use App\Models\Sponsor;
+use App\Models\SponsorCategory;
 use App\Models\Submission;
 use App\Models\SubmissionAccessToken;
 use App\Models\SubmissionFile;
@@ -139,6 +143,13 @@ final class PersonalDataInventory
             'deleted' => true,
             'retained' => ['id', 'user_id', 'fingerprint_hash', 'last_seen_at', 'created_at', 'updated_at'],
         ],
+        ActivityContact::class => [
+            // Responsables de una actividad en un lugar externo (plan 035): las filas se ELIMINAN al anonimizar a la persona,
+            // localizada por su correo (`PersonRecords`, `PersonDataEraser::eraseActivityContacts`); `ExportPersonData` las
+            // incluye y `ReapplyAnonymizations` las vuelve a eliminar tras restaurar un respaldo (CA-035-32 y 34).
+            'deleted' => true,
+            'retained' => ['id', 'organization_id', 'event_id', 'activity_id', 'name', 'phone', 'email', 'position', 'is_public', 'created_at', 'updated_at'],
+        ],
         Activity::class => [
             // La entrada se conserva (quién, qué, cuándo, con identificadores sin dato personal); del texto se quita el nombre y el correo.
             'redacted' => ['description', 'properties', 'attribute_changes'],
@@ -154,6 +165,7 @@ final class PersonalDataInventory
     public const EXEMPT = [
         Organization::class => 'Es el responsable del tratamiento: nombre e identificador de la organización, no de una persona.',
         ActivityCategory::class => 'Catálogo de categorías del programa definido por la organización.',
+        Room::class => 'Catálogo de lugares del evento (nombre, orden, tipo, capacidad, dirección y mapa de un lugar) definido por la organización; no guarda personas.',
         CallForSubmissions::class => 'Configuración de la convocatoria de la organización.',
         Event::class => 'Configuración del evento de la organización (nombre, fechas, idiomas, logotipo institucional).',
         EventActivity::class => 'Texto e imágenes del programa que redacta la organización; los ponentes se vinculan por identificador (la ficha es `Speaker`).',
@@ -161,8 +173,10 @@ final class PersonalDataInventory
         EventLanding::class => 'Contenido de la página pública redactado por la organización.',
         FormDefinition::class => 'Definición del formulario (campos y reglas), sin respuestas de personas.',
         LandingImage::class => 'Imágenes de la página pública cargadas por la organización.',
-        Lodging::class => 'Hoteles recomendados del evento (nombre, dirección, enlace de reserva): datos de un negocio que registra la organización, sin personas.',
-        Sponsor::class => 'Patrocinadores del evento (nombre de la empresa, logotipo, nivel y sitio web): datos de una organización, sin personas.',
+        Lodging::class => 'Hoteles recomendados del evento (nombre, dirección, enlace de reserva): datos de un negocio que registra la organización, sin personas; sus datos adicionales (texto o foto) son del negocio, no de asistentes ni autores.',
+        Sponsor::class => 'Patrocinadores del evento (nombre de la empresa, logotipo, nivel y sitio web): datos de una organización, sin personas; sus datos adicionales (texto o foto) son de la empresa, no de asistentes ni autores.',
+        SponsorCategory::class => 'Catálogo de niveles de patrocinador (Oro, Plata, Bronce...) definido por la organización: sin personas.',
+        LodgingImage::class => 'Ruta de una imagen de la galería de un hospedaje (negocio del evento): sin personas.',
         MailTemplate::class => 'Plantillas de correo de la organización, sin destinatarios.',
         NotificationSetting::class => 'Interruptores de notificaciones de la organización.',
         PrivacyNotice::class => 'Texto del aviso de privacidad; `published_by` es el identificador de un miembro del equipo.',

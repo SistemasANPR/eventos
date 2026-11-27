@@ -5,9 +5,11 @@ declare(strict_types=1);
 namespace App\Support\Landings;
 
 use App\Actions\Landings\ResolveLandingBlocks;
+use App\Models\CallForSubmissions;
 use App\Models\Event;
 use App\Models\EventLanding;
 use App\Models\Organization;
+use App\Support\Calls\ResolveCallState;
 use App\Support\Events\PublicPageAvailability;
 use Illuminate\Support\Facades\Lang;
 
@@ -21,7 +23,7 @@ use Illuminate\Support\Facades\Lang;
 final class LandingEditorProps
 {
     /** @return array<string, mixed> */
-    public static function from(Event $event, Organization $organization, EventLanding $landing, ResolveLandingBlocks $resolve): array
+    public static function from(Event $event, Organization $organization, EventLanding $landing, ResolveLandingBlocks $resolve, ?CallForSubmissions $call = null): array
     {
         $locales = $event->offeredLocales();
 
@@ -31,11 +33,24 @@ final class LandingEditorProps
             'locales' => $locales,
             'defaultLocale' => $event->default_locale,
             // Los mismos textos de `lang/public.php` que el sitio público; el editor añade los suyos (`landing_editor.*`).
-            'translations' => Lang::get('public'),
-            'preview' => $resolve->preview($event, $organization, $event->default_locale),
-            // Sin página pública (evento archivado o sin publicar) no hay enlace que ofrecer (plan 032, CA-032-6).
-            'publicUrl' => PublicPageAvailability::eventUrl($event, $organization),
+            // Con una convocatoria (plan 033) se añaden los textos de relleno de su plantilla.
+            'translations' => $call === null ? Lang::get('public') : [...Lang::get('public'), 'call_template' => Lang::get('landings.call_template')],
+            'preview' => $resolve->preview($event, $organization, $event->default_locale, $call, LandingImageUrls::forEditor($event, $organization, $landing)),
+            // Sin página pública (evento archivado o sin publicar, o convocatoria en borrador) no hay enlace que ofrecer (plan 032, CA-032-6).
+            'publicUrl' => $call === null ? PublicPageAvailability::eventUrl($event, $organization) : self::callUrl($event, $organization, $call),
             'hasUnpublishedChanges' => $landing->hasUnpublishedChanges(),
+            // La plantilla de convocatoria, lista para que el editor la aplique si el organizador la pide (plan 033).
+            'template' => $call === null ? null : LandingBlocks::forEditor(LandingTemplate::callBlocks($event), $locales, static fn (string $id): ?string => null),
+            'kind' => $call === null ? 'event' : 'call',
         ];
+    }
+
+    private static function callUrl(Event $event, Organization $organization, CallForSubmissions $call): ?string
+    {
+        if (! PublicPageAvailability::isAvailable($event, $call) || ResolveCallState::for($call) === null) {
+            return null;
+        }
+
+        return route('calls.show', ['organization' => $organization->slug, 'event' => $event->slug, 'call' => $call->slug], false);
     }
 }

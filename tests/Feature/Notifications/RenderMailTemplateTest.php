@@ -26,6 +26,8 @@ function receivedVariables(array $overrides = []): array
         'submission_type' => 'Sesión',
         'track_name' => 'Naturaleza',
         'event_name' => 'Congreso Parques 2027',
+        'edit_deadline' => '15 de febrero de 2027, 20:00 CST',
+        'request_link_url' => 'https://eventos.example.test/parques/events/congreso/my-submission/request-link',
     ], ...$overrides];
 }
 

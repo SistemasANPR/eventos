@@ -88,7 +88,23 @@ class EditEventLanding extends ViewRecord
         parent::mount($record);
 
         // Creación perezosa (CA-022-2): solo la primera vez, con la plantilla y sin publicar.
+        $this->ensureLanding();
+    }
+
+    /** Crea la landing de este editor si no existe (la del evento; la de una convocatoria lo cambia, plan 033). */
+    protected function ensureLanding(): void
+    {
         app(CreateEventLanding::class)->handle(ActionErrors::actor(), $this->event());
+    }
+
+    /**
+     * Lo que recibe el editor al montarse.
+     *
+     * @return array<string, mixed>
+     */
+    protected function editorProps(): array
+    {
+        return LandingEditorProps::from($this->event(), $this->organization(), $this->landing(), app(ResolveLandingBlocks::class));
     }
 
     public function content(Schema $schema): Schema
@@ -96,7 +112,7 @@ class EditEventLanding extends ViewRecord
         return $schema->components([
             View::make('filament.landings.editor')->viewData(fn (): array => [
                 'available' => is_file(resource_path('js/landing-editor.tsx')),
-                'props' => LandingEditorProps::from($this->event(), $this->organization(), $this->landing(), app(ResolveLandingBlocks::class)),
+                'props' => $this->editorProps(),
             ]),
         ]);
     }
@@ -205,7 +221,7 @@ class EditEventLanding extends ViewRecord
     /**
      * @return list<array<string, mixed>>
      */
-    private function blocksFor(EventLanding $landing): array
+    protected function blocksFor(EventLanding $landing): array
     {
         return LandingBlocks::forEditor(
             $landing->draft_blocks,
@@ -215,17 +231,17 @@ class EditEventLanding extends ViewRecord
     }
 
     /** La landing se vuelve a leer en cada llamada: nunca se confía en una copia que el cliente pudiera haber desactualizado. */
-    private function landing(): EventLanding
+    protected function landing(): EventLanding
     {
-        return EventLanding::query()->where('event_id', $this->event()->id)->firstOrFail();
+        return EventLanding::query()->where('event_id', $this->event()->id)->whereNull('call_id')->firstOrFail();
     }
 
-    private function organization(): Organization
+    protected function organization(): Organization
     {
         return CurrentOrganization::get();
     }
 
-    private function event(): Event
+    protected function event(): Event
     {
         $record = $this->getRecord();
 

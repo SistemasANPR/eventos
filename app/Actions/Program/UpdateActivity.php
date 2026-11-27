@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Actions\Program;
 
 use App\Enums\ProgramImageType;
+use App\Exceptions\Domain\ActivityRoomConflict;
 use App\Http\Requests\Program\UpdateActivityRequest;
 use App\Models\Event;
 use App\Models\EventActivity;
@@ -12,6 +13,8 @@ use App\Models\Organization;
 use App\Models\User;
 use App\Support\Auth\AuthorizesInOrganization;
 use App\Support\Program\ActivityWrites;
+use App\Support\Program\DetectScheduleConflicts;
+use App\Support\Program\ExternalDetails;
 use App\Support\Tenancy\CurrentOrganization;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\UploadedFile;
@@ -33,7 +36,11 @@ use Throwable;
  * evento (lista vacía: ninguno) con `SyncActivitySpeakers`, en la misma transacción.
  *
  * @throws AuthorizationException si quien edita no tiene `activities.manage` en la organización de la actividad
- * @throws ValidationException si falta un dato obligatorio, el fin es anterior al inicio, una categoría o un ponente no es del evento o un archivo no es aceptable
+ *                                `room_id`, si viene, cambia la sala (nulo la quita); si no viene se conserva, y el horario nuevo se comprueba
+ *                                contra ella. Una sala ocupada a esa hora rechaza TODO el cambio con `ActivityRoomConflict` (plan 031,
+ *                                CA-031-10 y 16); un ponente repetido en otra actividad que se cruza solo avisa, en `EventActivity::$scheduleWarnings`.
+ * @throws ValidationException si falta un dato obligatorio, el fin es anterior al inicio, una categoría, un ponente o la sala no es del evento o un archivo no es aceptable
+ * @throws ActivityRoomConflict si la sala ya está ocupada a esa hora
  */
 final class UpdateActivity
 {
@@ -51,6 +58,8 @@ final class UpdateActivity
             $validated = Validator::make(ActivityWrites::trimmed($data), UpdateActivityRequest::rulesFor($event))->validate();
 
             $stored = [];
+            $warnings = [];
+            $quotaWarning = null;
 
             try {
                 $icon = $validated['icon'] ?? null;
@@ -59,9 +68,19 @@ final class UpdateActivity
                 $newIcon = $icon instanceof UploadedFile ? $stored[] = ActivityWrites::storeImage($icon, $event, ProgramImageType::Icon, 'icon') : null;
                 $newImage = $image instanceof UploadedFile ? $stored[] = ActivityWrites::storeImage($image, $event, ProgramImageType::Image, 'image') : null;
 
-                $replaced = DB::transaction(function () use ($actor, $activity, $validated, $newIcon, $newImage): array {
+                $replaced = DB::transaction(function () use ($actor, $activity, $validated, $newIcon, $newImage, &$warnings, &$quotaWarning): array {
+                    // Primero el evento y luego la actividad (siempre en ese orden); la sala se comprueba antes de escribir (DA-10).
+                    ActivityWrites::lockEvent($activity->event_id);
                     $current = EventActivity::query()->whereKey($activity->id)->lockForUpdate()->firstOrFail();
                     $old = [];
+
+                    // Sin `room_id` en los datos la actividad conserva su sala, y el nuevo horario se comprueba contra ella.
+                    $roomId = array_key_exists('room_id', $validated) ? $validated['room_id'] : $current->room_id;
+                    ActivityWrites::assertRoomFree($current->event_id, $roomId, ActivityWrites::slot($validated), $current->id);
+
+                    // Los datos del lugar externo solo viven con un lugar externo; si ya no lo es, se borran (CA-035-13 y 14).
+                    $external = ExternalDetails::isExternal($roomId);
+                    ExternalDetails::assertAllowed($validated, $external);
 
                     $attributes = [
                         'title' => $validated['title'],
@@ -70,6 +89,22 @@ final class UpdateActivity
                         'starts_at' => ActivityWrites::time($validated['starts_at']),
                         'ends_at' => ActivityWrites::time($validated['ends_at']),
                     ];
+
+                    if (array_key_exists('room_id', $validated)) {
+                        $attributes['room_id'] = $validated['room_id'];
+                    }
+
+                    foreach (['meeting_point', 'transport_info'] as $field) {
+                        if (! $external) {
+                            $attributes[$field] = null;
+                        } elseif (array_key_exists($field, $validated)) {
+                            $attributes[$field] = $validated[$field];
+                        }
+                    }
+
+                    if (array_key_exists('quota', $validated)) {
+                        $attributes['quota'] = $validated['quota'] === null ? null : (int) $validated['quota'];
+                    }
 
                     if (array_key_exists('summary', $validated)) {
                         $attributes['summary'] = $validated['summary'];
@@ -110,6 +145,19 @@ final class UpdateActivity
                         }
                     }
 
+                    // Los responsables: con un lugar externo, exactamente los que vengan (ausente conserva); si no, ninguno.
+                    $contacts = null;
+
+                    if (! $external) {
+                        $contacts = ExternalDetails::syncContacts($current, []);
+                    } elseif (array_key_exists('contacts', $validated)) {
+                        $contacts = ExternalDetails::syncContacts($current, array_values($validated['contacts'] ?? []));
+                    }
+
+                    if ($contacts !== null && $contacts['changed']) {
+                        $changed[] = 'contacts';
+                    }
+
                     // Los ponentes solo cambian si vienen en los datos; la Action deja su propia auditoría.
                     if (array_key_exists('speaker_ids', $validated)) {
                         app(SyncActivitySpeakers::class)->handle($actor, $current, array_values($validated['speaker_ids'] ?? []));
@@ -123,10 +171,14 @@ final class UpdateActivity
                             'organization_id' => $current->organization_id,
                             'event_id' => $current->event_id,
                             'changed' => $changed,
+                            // Solo cuántos responsables, nunca sus datos (plan 035, CA-035-14).
+                            ...($contacts !== null && $contacts['changed'] ? ['contacts' => ['before' => $contacts['before'], 'after' => $contacts['after']]] : []),
                         ])
                         ->log('activity_updated');
 
                     $activity->setRawAttributes($current->getAttributes(), true);
+                    $warnings = DetectScheduleConflicts::speakerClashes($current);
+                    $quotaWarning = ActivityWrites::quotaWarning($current->quota, $current->room_id);
 
                     return array_values(array_filter($old, is_string(...)));
                 });
@@ -141,6 +193,9 @@ final class UpdateActivity
             foreach ($replaced as $path) {
                 app(DeleteProgramImage::class)->handle($event, $path);
             }
+
+            $activity->scheduleWarnings = $warnings;
+            $activity->quotaWarning = $quotaWarning;
 
             return $activity;
         });

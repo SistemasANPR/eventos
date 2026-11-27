@@ -81,6 +81,7 @@ const activity: PublicActivitySummary = {
     categories: [],
     speakers: [],
     iconUrl: null,
+    limitedSeats: false,
     url: '/parques/events/congreso/activities/a1',
 };
 

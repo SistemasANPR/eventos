@@ -6,7 +6,9 @@ import { EventFact } from '@/components/molecules/EventFact';
 import { LocaleSwitcher } from '@/components/molecules/LocaleSwitcher';
 import { PageBanner } from '@/components/molecules/PageBanner';
 import { CallLanding } from '@/components/organisms/CallLanding';
+import { CallLandingPage } from '@/components/organisms/CallLandingPage';
 import type { CallLandingData, CallRouteSlugs } from '@/types/call-landing';
+import type { PublicLanding } from '@/types/landing';
 import { useTranslation } from '@/hooks/useTranslation';
 import { PublicLayout } from '@/layouts/PublicLayout';
 import { BUTTON_PRIMARY, CALL_COLUMN, FACTS_PANEL, FOCUS_RING_ON_DARK } from '@/lib/classes';
@@ -25,10 +27,14 @@ interface ShowProps {
     privacyUrl: string | null;
     /** URL del formulario de envío; solo existe con la convocatoria abierta. */
     submitUrl?: string | null;
+    /** Página para pedir el enlace de acceso a una propuesta ya enviada (plan 034): se ofrece con la convocatoria en cualquier estado público. */
+    authorRequestUrl?: string | null;
     /** Rutas (organización, evento, convocatoria): permiten encontrar el texto propio de una convocatoria, si lo tiene. */
     slugs?: CallRouteSlugs;
     /** Datos con los que se arma la landing (formulario, límite de personas, otras convocatorias). */
     landing?: CallLandingData;
+    /** Landing propia de la convocatoria, armada en el editor y publicada (plan 033); `null` si no tiene. */
+    callLanding?: PublicLanding | null;
 }
 
 /**
@@ -37,8 +43,35 @@ interface ShowProps {
  * botón grande que lleva al formulario de envío (`submitUrl`, plan 006). Muestra apertura, cierre y resultados en fichas; la categoría, la zona horaria y los ejes se
  * ocultan (los ejes siguen en el formulario de envío).
  */
-export default function Show({ call, event, organization, eventUrl, privacyUrl, submitUrl = null, slugs, landing }: ShowProps) {
+export default function Show({
+    call,
+    event,
+    organization,
+    eventUrl,
+    privacyUrl,
+    submitUrl = null,
+    authorRequestUrl = null,
+    slugs,
+    landing,
+    callLanding,
+}: ShowProps) {
     const { t } = useTranslation();
+
+    // La landing que armó el organizador manda sobre la automática (en español, como ella).
+    if (callLanding !== undefined && callLanding !== null && call.locale === 'es') {
+        return (
+            <CallLandingPage
+                call={call}
+                event={event}
+                organization={organization}
+                blocks={callLanding.blocks}
+                eventUrl={eventUrl}
+                privacyUrl={privacyUrl}
+                submitUrl={submitUrl}
+                authorRequestUrl={authorRequestUrl}
+            />
+        );
+    }
 
     // Toda convocatoria (en español) usa la landing, armada con sus datos; en otros idiomas, la presentación de siempre.
     if (landing !== undefined && slugs !== undefined && call.locale === 'es') {
@@ -52,6 +85,7 @@ export default function Show({ call, event, organization, eventUrl, privacyUrl, 
                 eventUrl={eventUrl}
                 privacyUrl={privacyUrl}
                 submitUrl={submitUrl}
+                authorRequestUrl={authorRequestUrl}
             />
         );
     }
@@ -109,6 +143,7 @@ export default function Show({ call, event, organization, eventUrl, privacyUrl, 
                             {t('call.back_to_event')}
                         </TextLink>
                     )}
+                    {authorRequestUrl !== null && <TextLink href={authorRequestUrl}>{t('call.already_submitted')}</TextLink>}
                     {privacyUrl !== null && <TextLink href={privacyUrl}>{t('event.privacy_link')}</TextLink>}
                     {(call.extraLinks ?? []).map((link, index) => (
                         <TextLink key={`${index}-${link.url}`} href={link.url} rel="noopener noreferrer nofollow">

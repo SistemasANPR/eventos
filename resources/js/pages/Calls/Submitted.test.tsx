@@ -11,7 +11,16 @@ const translations = {
         body: 'Tu propuesta para «:call» quedó registrada.',
         back_to_call: 'Volver a la convocatoria',
         back_to_event: 'Volver al evento',
+        edit_action: 'Ver o editar mi propuesta',
+        edit_until: 'Puedes corregirla hasta el :date.',
     },
+};
+
+const author = {
+    authorUrl: '/parques/events/congreso/my-submission',
+    editDeadline: '2027-02-15T23:00:00Z' as string | null,
+    timezone: 'America/Mexico_City',
+    timeFormat: '24h' as const,
 };
 
 vi.mock('@/hooks/useTranslation', () => ({
@@ -31,6 +40,7 @@ describe('Calls/Submitted page', () => {
                 organization={{ name: 'Parques', slug: 'parques' }}
                 callUrl="/parques/events/congreso/call/ponencias?lang=es"
                 eventUrl="/parques/events/congreso?lang=es"
+                {...author}
             />,
         );
 
@@ -46,6 +56,7 @@ describe('Calls/Submitted page: logo (plan 027)', () => {
         organization: { name: 'Parques', slug: 'parques' },
         callUrl: '/c',
         eventUrl: '/e',
+        ...author,
     };
 
     it('CA-027-13: shows the logo with the event name as alt text and nothing without it', () => {
@@ -57,5 +68,29 @@ describe('Calls/Submitted page: logo (plan 027)', () => {
         render(<Submitted {...props} event={{ name: 'Congreso', logoUrl: null }} />);
 
         expect(screen.queryByRole('img')).not.toBeInTheDocument();
+    });
+});
+
+describe('Calls/Submitted page: way back to the proposal (plan 034)', () => {
+    const props = {
+        call: { title: 'Convocatoria de ponencias' },
+        event: { name: 'Congreso' },
+        organization: { name: 'Parques', slug: 'parques' },
+        callUrl: '/c',
+        eventUrl: '/e',
+    };
+
+    it('CA-034-6: offers the button to the proposal and says until when it can be edited, in the event timezone', () => {
+        render(<Submitted {...props} {...author} />);
+
+        expect(screen.getByRole('link', { name: 'Ver o editar mi propuesta' })).toHaveAttribute('href', '/parques/events/congreso/my-submission');
+        expect(screen.getByText(/Puedes corregirla hasta el .*17:00/)).toBeInTheDocument();
+    });
+
+    it('CA-034-6: without a deadline (the call is no longer open) it keeps the button and shows no date', () => {
+        render(<Submitted {...props} {...author} editDeadline={null} />);
+
+        expect(screen.getByRole('link', { name: 'Ver o editar mi propuesta' })).toBeInTheDocument();
+        expect(screen.queryByText(/Puedes corregirla/)).not.toBeInTheDocument();
     });
 });

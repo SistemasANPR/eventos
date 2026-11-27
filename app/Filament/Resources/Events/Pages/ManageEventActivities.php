@@ -9,21 +9,28 @@ use App\Actions\Program\DeleteActivity;
 use App\Actions\Program\SetActivityPublication;
 use App\Actions\Program\UpdateActivity;
 use App\Enums\ProgramCategoryKind;
+use App\Enums\RoomKind;
+use App\Exceptions\Domain\ActivityRoomConflict;
 use App\Filament\Resources\Events\EventResource;
 use App\Filament\Resources\Events\ProgramCategoryShortcuts;
 use App\Filament\Resources\Submissions\SubmissionResource;
 use App\Filament\Support\ActionErrors;
+use App\Models\ActivityContact;
 use App\Models\Event;
 use App\Models\EventActivity;
+use App\Models\Room;
 use App\Models\Speaker;
 use App\Support\Events\EventTime;
 use App\Support\Files\MediaDisk;
 use App\Support\Files\MediaThumbnail;
+use App\Support\Program\ActivityWrites;
+use App\Support\Program\ExternalDetails;
 use BackedEnum;
 use Filament\Actions\Action;
 use Filament\Forms\Components\Checkbox;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\FileUpload;
+use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\RichEditor;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
@@ -34,6 +41,7 @@ use Filament\Resources\Pages\ManageRelatedRecords;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Image;
 use Filament\Schemas\Components\Text;
+use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\IconColumn;
@@ -41,6 +49,7 @@ use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Filters\TernaryFilter;
+use Filament\Tables\Grouping\Group;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
@@ -84,7 +93,7 @@ class ManageEventActivities extends ManageRelatedRecords
         $event = $this->event();
 
         return $table
-            ->modifyQueryUsing(fn (Builder $query): Builder => $query->with(['submission', 'categories', 'speakers']))
+            ->modifyQueryUsing(fn (Builder $query): Builder => $query->with(['submission', 'categories', 'speakers', 'room', 'contacts']))
             ->columns([
                 ImageColumn::make('thumbnail')
                     ->label(__('program.activities.columns.image'))
@@ -106,6 +115,14 @@ class ManageEventActivities extends ManageRelatedRecords
                     ->label(__('program.activities.columns.time').' ('.$event->timezone.')')
                     ->state(fn (EventActivity $record): string => self::timeLabel($record, $event))
                     ->sortable(),
+                TextColumn::make('room.name')
+                    ->label(__('program.activities.columns.room'))
+                    ->placeholder('—')
+                    ->toggleable(),
+                TextColumn::make('quota')
+                    ->label(__('program.activities.columns.quota'))
+                    ->placeholder('—')
+                    ->toggleable(),
                 TextColumn::make('categories.name')
                     ->label(__('program.activities.columns.categories'))
                     ->badge()
@@ -132,7 +149,9 @@ class ManageEventActivities extends ManageRelatedRecords
                         : SubmissionResource::getUrl('view', ['event' => $record->event_id, 'record' => $record->submission]))
                     ->limit(40),
             ])
-            ->defaultSort(fn (Builder $query): Builder => $query->orderBy('starts_on')->orderBy('starts_at')->orderBy('title'))
+            ->groups([$this->dayGroup()])
+            ->defaultGroup('starts_on')
+            ->defaultSort(fn (Builder $query): Builder => $query->orderBy('starts_on')->orderBy('starts_at')->orderBy('ends_at')->orderBy('title'))
             ->filters([
                 SelectFilter::make('category')
                     ->label(__('program.activities.filters.category'))
@@ -162,7 +181,22 @@ class ManageEventActivities extends ManageRelatedRecords
     /** @return array<int, Action> */
     protected function getHeaderActions(): array
     {
-        return [ProgramCategoryShortcuts::button($this->event(), ProgramCategoryKind::Activity), $this->createAction()];
+        return [ProgramCategoryShortcuts::button($this->event(), ProgramCategoryKind::Activity), $this->roomsAction(), $this->createAction()];
+    }
+
+    /** Lleva a la lista de salas del evento (con su conteo); solo presenta, la Policy decide quién entra. */
+    private function roomsAction(): Action
+    {
+        $event = $this->event();
+
+        return Action::make('rooms')
+            ->label(__('program.rooms.button'))
+            ->icon(Heroicon::OutlinedBuildingOffice2)
+            ->color('gray')
+            ->outlined()
+            ->badge(fn (): int => Room::query()->where('event_id', $event->id)->count())
+            ->url(fn (): string => EventResource::getUrl('rooms', ['record' => $event]))
+            ->visible(fn (): bool => Gate::allows('viewAny', Room::class));
     }
 
     private function createAction(): Action
@@ -255,6 +289,24 @@ class ManageEventActivities extends ManageRelatedRecords
                 TimePicker::make('starts_at')->label(__('program.activities.form.starts_at'))->required()->seconds(false)->displayFormat($this->event()->time_format->displayTime()),
                 TimePicker::make('ends_at')->label(__('program.activities.form.ends_at'))->required()->seconds(false)->displayFormat($this->event()->time_format->displayTime()),
             ]),
+            Select::make('room_id')
+                ->label(__('program.activities.form.room'))
+                ->placeholder(__('program.activities.form.room_none'))
+                ->options(fn (): array => $this->placeOptions())
+                ->live(),
+            ...$this->externalFields(),
+            Toggle::make('has_quota')
+                ->label(__('program.activities.form.has_quota'))
+                ->live(),
+            TextInput::make('quota')
+                ->label(__('program.activities.form.quota'))
+                ->helperText(__('program.activities.form.quota_help'))
+                ->numeric()
+                ->integer()
+                ->minValue(1)
+                ->maxValue(ActivityWrites::MAX_QUOTA)
+                ->required(fn (Get $get): bool => (bool) $get('has_quota'))
+                ->visible(fn (Get $get): bool => (bool) $get('has_quota')),
             ...$this->fileFields($activity, 'icon', 256),
             ...$this->fileFields($activity, 'image', 5120),
             TextInput::make('summary')
@@ -323,6 +375,18 @@ class ManageEventActivities extends ManageRelatedRecords
             'ends_on' => $activity->ends_on?->toDateString(),
             'starts_at' => $activity->starts_at === null ? null : substr($activity->starts_at, 0, 5),
             'ends_at' => $activity->ends_at === null ? null : substr($activity->ends_at, 0, 5),
+            'room_id' => $activity->room_id,
+            'meeting_point' => $activity->meeting_point,
+            'has_transport' => $activity->transport_info !== null,
+            'transport_info' => $activity->transport_info,
+            'contacts' => $activity->contacts->map(fn (ActivityContact $contact): array => [
+                'name' => $contact->name,
+                'phone' => $contact->phone,
+                'email' => $contact->email,
+                'is_public' => $contact->is_public,
+            ])->all(),
+            'has_quota' => $activity->quota !== null,
+            'quota' => $activity->quota,
             'summary' => $activity->summary,
             'description' => $activity->description,
             'category_ids' => $activity->categories->pluck('id')->all(),
@@ -340,6 +404,26 @@ class ManageEventActivities extends ManageRelatedRecords
      */
     private function payload(array $data): array
     {
+        // «Con cupo limitado» apagado deja la actividad sin cupo (plan 035, CA-035-21); el interruptor no es un dato de la Action.
+        if (! ($data['has_quota'] ?? false)) {
+            $data['quota'] = null;
+        }
+
+        unset($data['has_quota']);
+
+        // Punto de reunión, transporte y responsables solo viajan con un lugar externo; con una sala o sin lugar no se envían
+        // (la Action borra los que la actividad tuviera). «Incluye transporte» apagado deja la actividad sin transporte.
+        if (! $this->isExternalPlace($data['room_id'] ?? null)) {
+            unset($data['meeting_point'], $data['transport_info'], $data['contacts'], $data['has_transport']);
+        } else {
+            if (! ($data['has_transport'] ?? false)) {
+                $data['transport_info'] = null;
+            }
+
+            $data['contacts'] = array_values($data['contacts'] ?? []);
+            unset($data['has_transport']);
+        }
+
         foreach (['icon', 'image'] as $field) {
             if (! ($data[$field] ?? null) instanceof UploadedFile) {
                 unset($data[$field]);
@@ -359,7 +443,10 @@ class ManageEventActivities extends ManageRelatedRecords
     private function run(callable $operation, string $successTitle, array $data, Schema $schema): void
     {
         try {
-            $operation();
+            $result = $operation();
+        } catch (ActivityRoomConflict $conflict) {
+            // La sala ocupada se muestra junto al selector y no se guarda nada (plan 031, CA-031-10).
+            throw ActionErrors::forForm(ValidationException::withMessages(['room_id' => [$conflict->getMessage()]]), $schema->getStatePath());
         } catch (ValidationException $exception) {
             // Un error por ponente elegido se muestra junto al selector, que es un solo campo.
             $errors = [];
@@ -379,6 +466,28 @@ class ManageEventActivities extends ManageRelatedRecords
         }
 
         Notification::make()->title($successTitle)->success()->send();
+
+        // Un ponente en dos actividades que se cruzan se guarda igual; se avisa para que lo revisen (CA-031-15).
+        if ($result instanceof EventActivity && $result->quotaWarning !== null) {
+            Notification::make()
+                ->title(__('program.activities.messages.quota_over_capacity_title'))
+                ->body(__('program.activities.quota_over_capacity', $result->quotaWarning))
+                ->warning()
+                ->persistent()
+                ->send();
+        }
+
+        if ($result instanceof EventActivity && $result->scheduleWarnings !== []) {
+            Notification::make()
+                ->title(__('program.activities.messages.speaker_clash_title'))
+                ->body(implode("\n", array_map(
+                    fn (array $warning): string => __('program.activities.speaker_clash', ['speaker' => $warning['speaker'], 'activity' => $warning['activity']]),
+                    $result->scheduleWarnings,
+                )))
+                ->warning()
+                ->persistent()
+                ->send();
+        }
     }
 
     /**
@@ -399,6 +508,31 @@ class ManageEventActivities extends ManageRelatedRecords
         return $query->whereHas('categories', fn (Builder $categories): Builder => $categories
             ->where('activity_categories.event_id', $this->event()->id)
             ->whereKey($value));
+    }
+
+    /**
+     * Agrupa la lista por día de inicio (plan 031, DA-12): una actividad de varios días queda bajo el
+     * día en que empieza, y las que no tienen fecha forman el último grupo («Sin programar»; en
+     * PostgreSQL los nulos van al final en orden ascendente). Dentro de cada día manda el orden por
+     * defecto: hora de inicio, hora de fin y título.
+     */
+    private function dayGroup(): Group
+    {
+        return Group::make('starts_on')
+            ->label(__('program.activities.group_by_day'))
+            ->titlePrefixedWithLabel(false)
+            ->getKeyFromRecordUsing(fn (EventActivity $record): ?string => $record->starts_on?->toDateString())
+            ->getTitleFromRecordUsing(fn (EventActivity $record): string => self::dayHeading($record))
+            ->scopeQueryByKeyUsing(fn (Builder $query, ?string $key): Builder => $key === null
+                ? $query->whereNull('starts_on')
+                : $query->whereDate('starts_on', $key));
+    }
+
+    private static function dayHeading(EventActivity $activity): string
+    {
+        return $activity->starts_on === null
+            ? __('program.activities.unscheduled')
+            : $activity->starts_on->locale(app()->getLocale())->isoFormat('dddd, LL');
     }
 
     private static function dateLabel(EventActivity $activity): string
@@ -437,6 +571,76 @@ class ManageEventActivities extends ManageRelatedRecords
     private static function mediaUrl(EventActivity $activity, string $type): ?string
     {
         return MediaThumbnail::dataUri($type === 'icon' ? $activity->icon_path : $activity->image_path, $type === 'icon' ? 96 : 160);
+    }
+
+    /**
+     * Datos de una actividad en un lugar externo (plan 035, DA-4): aparecen solo cuando el lugar elegido es externo.
+     * Punto de reunión, transporte con su detalle y hasta cinco responsables, cada uno con su marca «visible al
+     * público» apagada por defecto y el recordatorio de que la persona debe haber dado su permiso (CA-035-33).
+     *
+     * @return list<mixed>
+     */
+    private function externalFields(): array
+    {
+        $external = fn (Get $get): bool => $this->isExternalPlace($get('room_id'));
+
+        return [
+            TextInput::make('meeting_point')
+                ->label(__('program.activities.form.meeting_point'))
+                ->helperText(__('program.activities.form.meeting_point_help'))
+                ->maxLength(ExternalDetails::TEXT_LIMIT)
+                ->visible($external),
+            Toggle::make('has_transport')
+                ->label(__('program.activities.form.has_transport'))
+                ->live()
+                ->visible($external),
+            TextInput::make('transport_info')
+                ->label(__('program.activities.form.transport_info'))
+                ->helperText(__('program.activities.form.transport_info_help'))
+                ->maxLength(ExternalDetails::TEXT_LIMIT)
+                ->required(fn (Get $get): bool => (bool) $get('has_transport'))
+                ->visible(fn (Get $get): bool => $external($get) && (bool) $get('has_transport')),
+            Repeater::make('contacts')
+                ->label(__('program.activities.form.contacts'))
+                ->helperText(__('program.activities.form.contacts_help'))
+                ->schema([
+                    TextInput::make('name')->label(__('program.activities.form.contact_name'))->required()->maxLength(120),
+                    TextInput::make('phone')->label(__('program.activities.form.contact_phone'))->tel()->maxLength(40),
+                    TextInput::make('email')->label(__('program.activities.form.contact_email'))->email()->maxLength(254),
+                    Toggle::make('is_public')
+                        ->label(__('program.activities.form.contact_is_public'))
+                        ->helperText(__('program.activities.form.contact_is_public_help'))
+                        ->default(false),
+                ])
+                ->maxItems(ExternalDetails::MAX_CONTACTS)
+                ->defaultItems(0)
+                ->addActionLabel(__('program.activities.form.contacts_add'))
+                ->visible($external),
+        ];
+    }
+
+    /** Si el lugar elegido es externo; un valor ausente o que no es de este evento no lo es. */
+    private function isExternalPlace(mixed $roomId): bool
+    {
+        return is_string($roomId)
+            && Str::isUuid($roomId)
+            && Room::query()->where('event_id', $this->event()->id)->whereKey($roomId)->value('kind') === RoomKind::External;
+    }
+
+    /**
+     * Los lugares del evento para el selector, agrupados por tipo: salas y lugares externos (plan 035, DA-1).
+     *
+     * @return array<string, array<string, string>>
+     */
+    private function placeOptions(): array
+    {
+        $groups = [];
+
+        foreach ($this->event()->rooms()->orderBy('position')->get() as $room) {
+            $groups[__('program.rooms.kinds.'.$room->kind->value)][$room->id] = $room->name;
+        }
+
+        return $groups;
     }
 
     /** @return array<string, string> ponentes DEL EVENTO (id => nombre), por apellido */

@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 namespace App\Actions\Sponsors;
 
+use App\Enums\ProgramImageType;
 use App\Models\Event;
 use App\Models\Organization;
 use App\Models\Sponsor;
 use App\Models\User;
 use App\Support\Auth\AuthorizesInOrganization;
+use App\Support\Extras\ExtraFields;
 use App\Support\Sponsors\SponsorRules;
 use App\Support\Sponsors\StoresSponsorLogo;
 use App\Support\Tenancy\CurrentOrganization;
@@ -23,7 +25,7 @@ use Throwable;
  * Da de alta un patrocinador en un evento (plan 030, CA-030-4, CA-030-5). Solo el nombre es obligatorio; el
  * sitio web debe ser http o https; el logotipo (`logo`) se guarda por su contenido en el disco `media`. Sin
  * orden explícito, queda al final de la lista. Se ejecuta en la organización DEL EVENTO, en una transacción,
- * y audita con identificadores. Si algo falla, no queda ningún archivo huérfano.
+ * y audita con identificadores. `extra_fields` trae los datos adicionales (ver `ExtraFields`). Si algo falla, no queda ningún archivo huérfano.
  *
  * @throws AuthorizationException si quien crea no tiene `sponsors.manage` en la organización del evento
  * @throws ValidationException si los datos no cumplen `SponsorRules` o el logotipo no es aceptable
@@ -41,13 +43,14 @@ final class CreateSponsor
             $this->authorizeActor($actor, 'create', Sponsor::class, $event);
 
             $storedLogo = null;
+            $storedExtras = [];
 
             try {
-                return DB::transaction(function () use ($actor, $event, $data, &$storedLogo): Sponsor {
+                return DB::transaction(function () use ($actor, $event, $data, &$storedLogo, &$storedExtras): Sponsor {
                     // Se bloquea el evento para que dos altas simultáneas no tomen el mismo orden.
                     Event::query()->whereKey($event->id)->lockForUpdate()->firstOrFail();
 
-                    $validated = Validator::make(SponsorRules::trimmed($data), SponsorRules::rules())->validate();
+                    $validated = Validator::make(SponsorRules::trimmed($data), SponsorRules::rules($event->id))->validate();
                     $attributes = SponsorRules::forStorage($validated);
                     $attributes['position'] ??= ((int) Sponsor::query()->where('event_id', $event->id)->max('position')) + 1;
 
@@ -57,6 +60,11 @@ final class CreateSponsor
                         $storedLogo = $this->storeLogo($logo, $event);
                         $attributes['logo_path'] = $storedLogo;
                     }
+
+                    $unused = [];
+                    $attributes['extra_fields'] = ExtraFields::resolve(
+                        $event, ProgramImageType::SponsorLogo, is_array($data['extra_fields'] ?? null) ? $data['extra_fields'] : null, null, $storedExtras, $unused,
+                    ) ?: null;
 
                     $sponsor = new Sponsor;
                     $sponsor->event_id = $event->id;
@@ -79,6 +87,8 @@ final class CreateSponsor
                 if ($storedLogo !== null) {
                     $this->discardLogo($event, $storedLogo);
                 }
+
+                ExtraFields::discard($event, $storedExtras);
 
                 throw $exception;
             }

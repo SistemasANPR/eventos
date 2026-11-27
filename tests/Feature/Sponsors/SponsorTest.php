@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Actions\Sponsors\CreateSponsor;
+use App\Actions\Sponsors\CreateSponsorCategory;
 use App\Actions\Sponsors\DeleteSponsor;
 use App\Actions\Sponsors\UpdateSponsor;
 use App\Enums\OrganizationRole;
@@ -64,14 +65,15 @@ function newSponsor(User $actor, Event $event, array $data = []): Sponsor
 
 it('CA-030-4: an admin adds a sponsor with name, level, website and logo; the logo goes to the media disk of the event', function (): void {
     [$organization, $event, $admin] = formScenario();
+    $gold = app(CreateSponsorCategory::class)->handle($admin, $event, ['name' => 'Oro']);
 
     $sponsor = newSponsor($admin, $event, [
-        'level' => ' Oro ',
+        'sponsor_category_id' => $gold->id,
         'website_url' => 'https://acme.test',
         'logo' => UploadedFile::fake()->image('logo.png', 40, 40),
     ]);
 
-    expect($sponsor->level)->toBe('Oro')
+    expect($sponsor->sponsor_category_id)->toBe($gold->id)
         ->and($sponsor->position)->toBe(1)
         ->and((string) $sponsor->logo_path)->toStartWith("organizations/{$organization->id}/events/{$event->id}/media/sponsor_logo/")
         ->and(Storage::disk(MediaDisk::name())->exists((string) $sponsor->logo_path))->toBeTrue()
@@ -147,11 +149,12 @@ it('CA-030-6: editing keeps the logo when no new one comes, and deleting the spo
     $sponsor = newSponsor($admin, $event, ['logo' => UploadedFile::fake()->image('uno.png', 30, 30)]);
     $other = newSponsor($admin, $event, ['name' => 'Otro']);
     $path = (string) $sponsor->logo_path;
+    $silver = app(CreateSponsorCategory::class)->handle($admin, $event, ['name' => 'Plata']);
 
-    $updated = app(UpdateSponsor::class)->handle($admin, $sponsor, ['level' => 'Plata', 'website_url' => '']);
+    $updated = app(UpdateSponsor::class)->handle($admin, $sponsor, ['sponsor_category_id' => $silver->id, 'website_url' => '']);
 
     expect($updated->logo_path)->toBe($path)
-        ->and($updated->level)->toBe('Plata')
+        ->and($updated->sponsor_category_id)->toBe($silver->id)
         ->and($updated->website_url)->toBeNull();
 
     app(DeleteSponsor::class)->handle($admin, $updated);
@@ -191,11 +194,12 @@ it('CA-030-8: an admin of another organization cannot create, edit or delete the
 it('CA-030-4: in the panel the empty list shows its empty state, the admin adds a sponsor with a logo and the list shows its thumbnail', function (): void {
     [$organization, $event, $admin] = formScenario();
 
+    $gold = app(CreateSponsorCategory::class)->handle($admin, $event, ['name' => 'Oro']);
     $component = sponsorsPage($organization, $admin, $event)->assertSee(__('sponsors.empty_heading'));
 
     $component->callAction('createSponsor', [
         'name' => 'Acme',
-        'level' => 'Oro',
+        'sponsor_category_id' => $gold->id,
         'website_url' => 'https://acme.test',
         'logo' => UploadedFile::fake()->image('logo.png', 30, 30),
     ])->assertHasNoActionErrors();
@@ -204,7 +208,7 @@ it('CA-030-4: in the panel the empty list shows its empty state, the admin adds 
 
     $component->assertCanSeeTableRecords([$sponsor]);
 
-    expect($sponsor->level)->toBe('Oro')
+    expect($sponsor->sponsor_category_id)->toBe($gold->id)
         ->and($sponsor->logo_path)->not->toBeNull();
 });
 

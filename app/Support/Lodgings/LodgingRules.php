@@ -10,6 +10,9 @@ final class LodgingRules
     /** Campos de texto que se guardan recortados y, si quedan vacíos, como nulos. */
     public const TEXT_FIELDS = ['name', 'address', 'description', 'booking_url', 'rate'];
 
+    /** Imágenes que admite la galería de un hospedaje (plan 030, DA-5). */
+    public const MAX_IMAGES = 10;
+
     /** @return array<string, list<string>> */
     public static function rules(): array
     {

@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
  * Hospedaje recomendado de un evento (plan 030, DA-1). Sin `$fillable`: se crea y edita solo desde las Actions.
@@ -23,6 +24,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property string|null $booking_url
  * @property string|null $rate
  * @property int $position
+ * @property list<array{id: string, label: string, type: string, value?: string|null, path?: string|null}>|null $extra_fields
  */
 class Lodging extends Model
 {
@@ -34,9 +36,25 @@ class Lodging extends Model
     /** @var list<string> */
     protected $guarded = ['*'];
 
+    /** @return array<string, string> */
+    protected function casts(): array
+    {
+        return ['extra_fields' => 'array'];
+    }
+
     /** @return BelongsTo<Event, $this> */
     public function event(): BelongsTo
     {
         return $this->belongsTo(Event::class);
+    }
+
+    /**
+     * Galería del hospedaje, en su orden (plan 030, DA-5).
+     *
+     * @return HasMany<LodgingImage, $this>
+     */
+    public function images(): HasMany
+    {
+        return $this->hasMany(LodgingImage::class)->orderBy('position');
     }
 }

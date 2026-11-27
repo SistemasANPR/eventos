@@ -152,10 +152,22 @@ class Event extends Model
         return $this->hasMany(Sponsor::class);
     }
 
+    /** @return HasMany<SponsorCategory, $this> */
+    public function sponsorCategories(): HasMany
+    {
+        return $this->hasMany(SponsorCategory::class);
+    }
+
     /** @return HasMany<ActivityCategory, $this> */
     public function activityCategories(): HasMany
     {
         return $this->hasMany(ActivityCategory::class);
+    }
+
+    /** @return HasMany<Room, $this> */
+    public function rooms(): HasMany
+    {
+        return $this->hasMany(Room::class);
     }
 
     /** @return HasMany<EventActivity, $this> */
@@ -167,7 +179,8 @@ class Event extends Model
     /** @return HasOne<EventLanding, $this> */
     public function landing(): HasOne
     {
-        return $this->hasOne(EventLanding::class);
+        // Solo la del evento: las landings de sus convocatorias llevan `call_id` (plan 033).
+        return $this->hasOne(EventLanding::class)->whereNull('call_id');
     }
 
     /** @return HasMany<PrivacyNotice, $this> */

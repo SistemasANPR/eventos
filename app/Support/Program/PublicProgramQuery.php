@@ -11,6 +11,7 @@ use App\Support\Tenancy\Exceptions\MissingOrganizationContext;
 use App\Support\Tenancy\Exceptions\OrganizationMismatch;
 use Closure;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\Relation;
 
@@ -58,6 +59,28 @@ final class PublicProgramQuery
         $wrapped = $query->getQuery()->getGrammar()->wrap($column);
 
         $query->orderByRaw($wrapped.' collate "'.self::TEXT_COLLATION.'"');
+    }
+
+    /**
+     * Relaciones que solo necesita el DETALLE de una actividad (plan 035): su lugar y SOLO los responsables marcados
+     * públicos, en su orden, acotados al evento. El resumen no las usa.
+     *
+     * @return array<string, Closure(Relation<*, *, *>): void>
+     */
+    public static function activityDetailRelations(Event $event): array
+    {
+        return [
+            'room' => static function (Relation $room) use ($event): void {
+                /** @var Builder<Model> $query */
+                $query = $room->getQuery();
+                $query->where('rooms.event_id', $event->id);
+            },
+            'contacts' => static function (Relation $contacts) use ($event): void {
+                /** @var Builder<Model> $query */
+                $query = $contacts->getQuery();
+                $query->where('activity_contacts.event_id', $event->id)->where('activity_contacts.is_public', true)->orderBy('activity_contacts.position');
+            },
+        ];
     }
 
     /**

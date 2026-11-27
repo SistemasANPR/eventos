@@ -63,6 +63,43 @@ export function localizedFields(block: LandingBlockDraft): Array<{ path: string;
                       ? []
                       : [{ path: `columns.${index}.alt`, text: column.alt, isRequired: true }],
             );
+        case 'call_hero':
+            return [
+                { path: 'title', text: block.title, isRequired: false },
+                { path: 'eventLine', text: block.eventLine, isRequired: false },
+                { path: 'lede', text: block.lede, isRequired: false },
+                { path: 'notice', text: block.notice, isRequired: false },
+                ...(block.image === null ? [] : [{ path: 'imageAlt', text: block.imageAlt, isRequired: true }]),
+            ];
+        case 'call_dates':
+            return [
+                { path: 'timezoneLabel', text: block.timezoneLabel, isRequired: false },
+                { path: 'resultsLabel', text: block.resultsLabel, isRequired: false },
+                { path: 'venueName', text: block.venueName, isRequired: false },
+                { path: 'venueNote', text: block.venueNote, isRequired: false },
+            ];
+        case 'call_axes':
+            return [
+                { path: 'title', text: block.title, isRequired: false },
+                { path: 'intro', text: block.intro, isRequired: false },
+            ];
+        case 'call_requirements':
+            return [
+                { path: 'title', text: block.title, isRequired: false },
+                { path: 'intro', text: block.intro, isRequired: false },
+                ...block.items.map((item, index) => ({ path: `items.${index}.text`, text: item.text, isRequired: true })),
+                { path: 'buttonLabel', text: block.buttonLabel, isRequired: false },
+            ];
+        case 'call_steps':
+            return [
+                { path: 'title', text: block.title, isRequired: false },
+                ...block.items.flatMap((item, index) => [
+                    { path: `items.${index}.title`, text: item.title, isRequired: true },
+                    { path: `items.${index}.text`, text: item.text, isRequired: true },
+                ]),
+            ];
+        case 'call_promos':
+            return [{ path: 'buttonLabel', text: block.buttonLabel, isRequired: false }];
         case 'event_info':
         case 'spacer':
             return [];
@@ -83,9 +120,13 @@ export function resolveDraftBlock(
     locale: string,
     defaultLocale: string,
     preview: LandingPreviewData,
+    /** Texto de relleno de la plantilla de convocatoria por clave (`axes_title`...); sin él, vacío. */
+    template: (key: string) => string = () => '',
 ): PublicLandingBlock {
     const text = (value: LocalizedText): string => pickText(value, locale, defaultLocale);
     const optional = (value: LocalizedText): string | null => pickOptionalText(value, locale, defaultLocale);
+    const orDefault = (value: LocalizedText, key: string): string => optional(value) ?? template(key);
+    const call = preview.call;
 
     switch (block.type) {
         case 'hero': {
@@ -132,6 +173,59 @@ export function resolveDraftBlock(
                 id: block.id,
                 type: 'columns',
                 columns: [resolveColumn(block.columns[0], text), resolveColumn(block.columns[1], text)],
+            };
+        case 'call_hero':
+            return {
+                id: block.id,
+                type: 'call_hero',
+                title: optional(block.title) ?? call?.call.title ?? '',
+                eventLine: optional(block.eventLine) ?? preview.event.name,
+                lede: optional(block.lede) ?? call?.call.description ?? '',
+                notice: optional(block.notice),
+                imageUrl: block.image?.url ?? null,
+                imageAlt: block.image === null ? null : optional(block.imageAlt),
+            };
+        case 'call_dates': {
+            const venue = text(block.venueName);
+
+            return {
+                id: block.id,
+                type: 'call_dates',
+                timezoneLabel: optional(block.timezoneLabel),
+                resultsLabel: optional(block.resultsLabel),
+                venue: venue === '' ? null : { name: venue, note: text(block.venueNote) },
+            };
+        }
+        case 'call_axes':
+            return {
+                id: block.id,
+                type: 'call_axes',
+                title: orDefault(block.title, 'axes_title'),
+                intro: orDefault(block.intro, 'axes_intro'),
+                axes: preview.tracks,
+            };
+        case 'call_requirements':
+            return {
+                id: block.id,
+                type: 'call_requirements',
+                title: orDefault(block.title, 'requirements_title'),
+                intro: orDefault(block.intro, 'requirements_intro'),
+                items: [...(call?.liveItems ?? []), ...block.items.map((item) => text(item.text)).filter((item) => item !== '')],
+                buttonLabel: orDefault(block.buttonLabel, 'requirements_button'),
+                form: call?.form ?? null,
+            };
+        case 'call_steps':
+            return {
+                id: block.id,
+                type: 'call_steps',
+                title: orDefault(block.title, 'steps_title'),
+                steps: block.items.map((item) => ({ icon: item.icon, title: text(item.title), text: text(item.text) })),
+            };
+        case 'call_promos':
+            return {
+                id: block.id,
+                type: 'call_promos',
+                promos: (call?.promos ?? []).map((promo) => ({ ...promo, button: orDefault(block.buttonLabel, 'promo_button') })),
             };
     }
 }

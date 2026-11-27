@@ -6,8 +6,10 @@ namespace App\Support\Program;
 
 use App\Actions\Program\StoreProgramImage;
 use App\Enums\ProgramImageType;
+use App\Exceptions\Domain\ActivityRoomConflict;
 use App\Models\Event;
 use App\Models\EventActivity;
+use App\Models\Room;
 use App\Support\Html\RichTextSanitizer;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Validation\ValidationException;
@@ -18,6 +20,9 @@ use Illuminate\Validation\ValidationException;
  */
 final class ActivityWrites
 {
+    /** Tope del cupo de una actividad (plan 035, CA-035-10), igual al de la capacidad de un lugar. */
+    public const MAX_QUOTA = 100000;
+
     /**
      * Quita los espacios sobrantes del nombre y de la descripción corta; una descripción corta vacía es nula.
      *
@@ -34,7 +39,12 @@ final class ActivityWrites
             $data['summary'] = trim($data['summary']) ?: null;
         }
 
-        return $data;
+        // El cupo vacío es «sin cupo» (plan 035, CA-035-10).
+        if (array_key_exists('quota', $data) && $data['quota'] === '') {
+            $data['quota'] = null;
+        }
+
+        return ExternalDetails::normalized($data);
     }
 
     /** Descripción enriquecida saneada (DA-16); sin texto visible, nula. */
@@ -76,5 +86,64 @@ final class ActivityWrites
         $pivot = ['organization_id' => $activity->organization_id, 'event_id' => $activity->event_id];
 
         $activity->categories()->sync(array_fill_keys($categoryIds, $pivot));
+    }
+
+    /**
+     * Aviso de que el cupo supera la capacidad del lugar (plan 035, CA-035-11): nulo si no hay cupo, lugar o
+     * capacidad, o si el cupo cabe. No impide guardar.
+     *
+     * @return array{quota: int, capacity: int}|null
+     */
+    public static function quotaWarning(?int $quota, ?string $roomId): ?array
+    {
+        if ($quota === null || $roomId === null) {
+            return null;
+        }
+
+        $capacity = Room::query()->whereKey($roomId)->value('capacity');
+
+        return $capacity !== null && $quota > (int) $capacity ? ['quota' => $quota, 'capacity' => (int) $capacity] : null;
+    }
+
+    /**
+     * Bloquea la fila del evento hasta el final de la transacción (plan 031, DA-10): comprobar la sala y
+     * escribir ocurren sin que otra persona ocupe la misma sala entre las dos cosas. Es el mismo bloqueo de `DeleteRoom`.
+     */
+    public static function lockEvent(string $eventId): void
+    {
+        Event::query()->whereKey($eventId)->lockForUpdate()->firstOrFail();
+    }
+
+    /**
+     * Rechaza el cambio si otra actividad del evento ya ocupa la sala en ese intervalo (CA-031-10).
+     * Se llama dentro de la transacción y con el evento bloqueado, antes de escribir nada.
+     *
+     * @param  array{starts_on: string, starts_at: string, ends_on: string, ends_at: string}  $slot
+     *
+     * @throws ActivityRoomConflict
+     */
+    public static function assertRoomFree(string $eventId, ?string $roomId, array $slot, ?string $exceptActivityId = null): void
+    {
+        $conflict = DetectScheduleConflicts::roomConflict($eventId, $roomId, $slot, $exceptActivityId);
+
+        if ($conflict !== null) {
+            throw new ActivityRoomConflict($conflict->title);
+        }
+    }
+
+    /**
+     * Intervalo que se guardará, con las horas normalizadas a `H:i:s`.
+     *
+     * @param  array<string, mixed>  $validated
+     * @return array{starts_on: string, starts_at: string, ends_on: string, ends_at: string}
+     */
+    public static function slot(array $validated): array
+    {
+        return [
+            'starts_on' => (string) $validated['starts_on'],
+            'starts_at' => self::time((string) $validated['starts_at']),
+            'ends_on' => (string) $validated['ends_on'],
+            'ends_at' => self::time((string) $validated['ends_at']),
+        ];
     }
 }

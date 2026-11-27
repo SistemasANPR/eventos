@@ -39,6 +39,7 @@ return [
         'yes' => 'Sí',
         'no' => 'No',
         'no_answers' => 'Esta propuesta no tiene respuestas.',
+        'unanswered' => 'Sin respuesta',
         'no_participants' => 'Esta propuesta no tiene participantes.',
         'participant' => [
             'second_last_name' => 'Apellido materno',

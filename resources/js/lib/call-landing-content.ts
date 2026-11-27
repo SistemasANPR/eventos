@@ -23,10 +23,10 @@ export interface LandingInput {
 }
 
 /** Iconos que se reparten, en orden, entre los ejes del evento. */
-const AXIS_ICONS: LandingIconName[] = ['hoja', 'personas', 'plano', 'chip', 'ciudad', 'monedas'];
+export const AXIS_ICONS: LandingIconName[] = ['hoja', 'personas', 'plano', 'chip', 'ciudad', 'monedas'];
 
 /** «GMT-6» y similares: la etiqueta de la zona horaria cuando la convocatoria no trae una propia (por ejemplo, «CDMX»). */
-function zoneLabelOf(timezone: string): string {
+export function zoneLabelOf(timezone: string): string {
     const part = new Intl.DateTimeFormat('es-MX', { timeZone: timezone, timeZoneName: 'short' })
         .formatToParts(new Date())
         .find((p) => p.type === 'timeZoneName');

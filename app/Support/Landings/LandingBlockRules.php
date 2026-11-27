@@ -43,6 +43,12 @@ final class LandingBlockRules
 
     public const MAX_FAQ_ITEMS = 20;
 
+    /** Elementos de la lista de requisitos y de pasos de la landing de una convocatoria (plan 033). */
+    public const MAX_CALL_ITEMS = 12;
+
+    /** Iconos del diseño de la landing de convocatoria que se pueden elegir para un paso. */
+    public const STEP_ICONS = ['doc', 'enviar', 'lupa', 'premio', 'micro', 'check', 'calendario', 'reloj', 'pin', 'impresora', 'hoja', 'personas', 'plano', 'chip', 'ciudad', 'monedas'];
+
     public const MAX_RICH_CHARACTERS = 5_000;
 
     /**
@@ -90,6 +96,46 @@ final class LandingBlockRules
             ],
             LandingBlockType::Spacer => [
                 'size' => ['kind' => 'enum', 'values' => ['sm', 'md', 'lg'], 'default' => 'md'],
+            ],
+            LandingBlockType::CallHero => [
+                // Vacío = el dato de la convocatoria (título, descripción) o del evento (nombre, logotipo).
+                'title' => ['kind' => 'text', 'max' => 160],
+                'eventLine' => ['kind' => 'text', 'max' => 160],
+                'lede' => ['kind' => 'text', 'max' => 600],
+                'notice' => ['kind' => 'text', 'max' => 200],
+                'image' => ['kind' => 'image'],
+                'imageAlt' => ['kind' => 'text', 'max' => 160, 'requiredWhen' => 'image'],
+            ],
+            LandingBlockType::CallDates => [
+                'timezoneLabel' => ['kind' => 'text', 'max' => 20],
+                'resultsLabel' => ['kind' => 'text', 'max' => 80],
+                'venueName' => ['kind' => 'text', 'max' => 160],
+                'venueNote' => ['kind' => 'text', 'max' => 200, 'requiredWhen' => 'venueName'],
+            ],
+            LandingBlockType::CallAxes => [
+                'title' => $title,
+                'intro' => ['kind' => 'text', 'max' => 300],
+            ],
+            LandingBlockType::CallRequirements => [
+                'title' => $title,
+                'intro' => ['kind' => 'text', 'max' => 300],
+                'items' => ['kind' => 'list', 'max' => self::MAX_CALL_ITEMS, 'fields' => [
+                    'key' => ['kind' => 'ignored'],
+                    'text' => ['kind' => 'text', 'max' => 300, 'required' => true],
+                ]],
+                'buttonLabel' => ['kind' => 'text', 'max' => 60],
+            ],
+            LandingBlockType::CallSteps => [
+                'title' => $title,
+                'items' => ['kind' => 'list', 'max' => self::MAX_CALL_ITEMS, 'fields' => [
+                    'key' => ['kind' => 'ignored'],
+                    'icon' => ['kind' => 'enum', 'values' => self::STEP_ICONS, 'default' => 'doc'],
+                    'title' => ['kind' => 'text', 'max' => 60, 'required' => true],
+                    'text' => ['kind' => 'text', 'max' => 200, 'required' => true],
+                ]],
+            ],
+            LandingBlockType::CallPromos => [
+                'buttonLabel' => ['kind' => 'text', 'max' => 60],
             ],
             LandingBlockType::Columns => [
                 'columns' => ['kind' => 'list', 'exactly' => 2, 'fields' => [

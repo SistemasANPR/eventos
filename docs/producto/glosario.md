@@ -23,6 +23,7 @@
 | Ponente | `Speaker` | Persona que presenta en un evento: su ficha (nombre, apellido, correo, país, organización, cargo, biografía, fotografía, redes). Nace al aceptar una propuesta (uno por participante) o se da de alta a mano. Editar la ficha de un evento no cambia la de otro. Vínculo **opcional** a un `Contact` para sugerir y copiar datos de eventos anteriores (plan 021, DA-1) | Evento (`Contact` opcional) |
 | Categoría de ponente | `SpeakerCategory` | Etiqueta propia de cada evento para clasificar ponentes (magistral, invitado, panelista); catálogo independiente del de actividades y de los ejes; un ponente admite varias (plan 021, DA-7) | Evento |
 | Categoría de actividad | `ActivityCategory` | Etiqueta propia de cada evento para clasificar actividades; catálogo independiente del de ponentes y de los ejes; una actividad admite varias (plan 021, DA-7) | Evento |
+| Categoría de patrocinador | `SponsorCategory` | Etiqueta propia de cada evento (Oro, Plata, Bronce...) que se muestra como «Nivel» del patrocinador; catálogo aparte del de ponentes y actividades (plan 030) | Evento |
 | Comité evaluador | `ReviewCommittee` | Grupo de evaluadores de uno o más ejes | Evento |
 | Evaluador | `Reviewer` | Persona que califica propuestas | Evento |
 | Rúbrica | `Rubric` | Conjunto de criterios con su escala y peso. Versionada | Evento |
@@ -35,21 +36,24 @@
 | Bloque de la landing | `LandingBlock` (tipos en el enum `LandingBlockType`) | Pieza de la landing de una lista blanca de 9 tipos: `hero`, `rich_text`, `event_info`, `calls`, `tracks`, `faq`, `image_gallery`, `spacer` y `columns`. Se guarda como objeto `jsonb` con identificador, tipo y contenido validado por su tipo (`LandingBlockRules`); no es un modelo. No confundir con `ScheduleBlock` (bloque del horario) (plan 022, DA-3, DA-13) | Evento (dentro de `EventLanding`) |
 | Imagen de la landing | `LandingImage` (tabla `landing_images`) | Imagen subida por el organizador para una landing, en el disco privado `media`; los bloques guardan su identificador, nunca su ruta (plan 022, DA-7) | Evento |
 | Sede | `Venue` | Lugar del evento | Organización |
-| Sala | `Room` | Espacio dentro de una sede | Organización |
-| Taller | `Workshop` | Sesión con cupo e inscripción | Evento |
+| Sala (en la interfaz, «Lugar») | `Room` | Lugar del evento donde ocurren actividades: catálogo propio de cada evento, con nombre, orden y un **tipo**: `sala` (dentro del recinto: salón, auditorio, aula; de uso exclusivo, dos actividades no la comparten a la misma hora) o `externo` (un parque o espacio público de la ciudad sede; admite actividades simultáneas). Capacidad, dirección o ubicación y enlace de mapa son opcionales; la capacidad es física y es del lugar. Una actividad programada tiene a lo sumo un lugar, o ninguno. El nombre del módulo en el panel es «Lugares» (plan 031, DA-2, DA-3, DA-5; plan 035, DA-1, DA-2). Las sedes y los lugares compartidos entre eventos quedan para después | Evento |
+| Agenda | — (vista, no es un modelo) | Segunda vista de las actividades en el panel: un día por pantalla, una columna por sala y las horas en vertical; se alterna con la lista y lee las mismas actividades. No es `Schedule` (el programa publicado por versiones) (plan 031, DA-1) | Evento |
+| Taller | `Workshop` (no es un modelo: una actividad con cupo) | Actividad con cupo. Así la llama la ANPR; otras organizaciones usan su propio nombre mediante las categorías de actividad. Puede ser en una sala o en un lugar externo. La inscripción y la lista de espera llegan con E-22 y E-27 (plan 035, §1) | Evento |
+| Cupo | `EventActivity::quota` | Número opcional de personas que admite una actividad; vacío significa sin cupo. Lo decide la organización y es de la actividad, distinto de la capacidad del lugar. Hoy es informativo: el programa solo muestra «Cupo limitado» y el detalle muestra el número (plan 035, DA-3, DA-6) | Evento |
+| Responsable de actividad | `ActivityContact` | Persona de contacto de una actividad en un lugar externo (nombre, teléfono y correo, opcionales salvo el nombre; hasta 5); solo el equipo la ve, salvo que se marque visible al público (plan 035, DA-5, DA-11) | Evento |
 | Asistente | `Attendee` | Persona que asiste al evento | Evento (`Contact`) |
 | Inscripción | `Registration` | Registro de un asistente con sus boletos | Evento |
 | Tipo de boleto | `TicketType` | Lo ofrecido: precio por etapa y moneda, vigencia, cupo | Evento |
 | Boleto | `Ticket` | Lo contratado por un asistente; tiene código QR | Evento |
 | Cupón | `Coupon` | Descuento aplicable a boletos | Evento |
 | Pago | `Payment` | Hecho financiero con su referencia del proveedor (ADR-0007) | Evento |
-| Patrocinador | `Sponsor` | Organización que patrocina un evento. Desde el plan 030 es una ficha simple del evento (nombre, nivel, sitio web, logotipo y orden); el vínculo con `Contact` llega en R4 | Evento (`Contact`) |
+| Patrocinador | `Sponsor` | Organización que patrocina un evento. Desde el plan 030 es una ficha simple del evento (nombre, nivel —una categoría de patrocinador del evento—, sitio web, logotipo y orden); el vínculo con `Contact` llega en R4 | Evento (`Contact`) |
 | Paquete de patrocinio | `SponsorshipPackage` | Beneficios y precio de un nivel de patrocinio | Evento |
 | Expositor | `Exhibitor` | Organización que tiene un espacio en la expo | Evento |
 | Voluntario | `Volunteer` | Persona que apoya la operación | Evento (`Contact`) |
 | Turno | `VolunteerShift` | Franja con cupo para voluntarios | Evento |
 | Hotel | `Hotel` | Alojamiento recomendado o con bloque | Evento |
-| Hospedaje | `Lodging` | Alojamiento recomendado de un evento, ficha simple del plan 030 (nombre, dirección, descripción, enlace de reserva, tarifa y orden); el bloque con cupo `Hotel` llega en R4 | Evento |
+| Hospedaje | `Lodging` | Alojamiento recomendado de un evento, ficha simple del plan 030 (nombre, dirección, descripción, enlace de reserva, tarifa, hasta 10 imágenes y orden); el bloque con cupo `Hotel` llega en R4 | Evento |
 | Plantilla de correo | `MailTemplate` | Personalización de un correo del catálogo para un idioma, con variables de lista blanca; por organización y, desde R1, por evento (`event_id`). La predeterminada del sistema no es un modelo: vive en `lang/` (plan 008) | Organización |
 | Notificación del catálogo | `NotificationType` | Un correo que el sistema puede enviar, registrado en código en `NotificationCatalog` con su clave (`submission.received`), variables, criticidad y límite por destinatario. No es un modelo ni una tabla (ADR-0009) | — (código) |
 | Ajuste de notificación | `NotificationSetting` | Si una organización tiene activa una notificación no crítica; sin fila, está activa (plan 008, H-008-5) | Organización |

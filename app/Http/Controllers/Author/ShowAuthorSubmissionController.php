@@ -43,6 +43,11 @@ final class ShowAuthorSubmissionController
             'editUrl' => $edit->isEditable($submission)
                 ? route('author.edit', ['organization' => $organization->slug, 'event' => $event->slug], false)
                 : null,
+            // Plan 034: por qué se puede o no editar y hasta cuándo, con la zona y el formato de hora del evento.
+            'editPolicy' => $edit->policy($submission),
+            'timezone' => $event->timezone,
+            'timeFormat' => $event->time_format->value,
+            'logoutUrl' => route('author.logout', ['organization' => $organization->slug, 'event' => $event->slug], false),
             'wasUpdated' => (bool) $request->session()->pull('author.updated', false),
             'sessionMinutes' => (int) config('submissions.author.session_minutes'),
             // Sin página pública del evento (archivado) no se ofrece el enlace de vuelta (plan 032, CA-032-6).

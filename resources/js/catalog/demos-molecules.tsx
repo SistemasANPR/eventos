@@ -34,7 +34,7 @@ export function ProgramDayNavDemo() {
     return <ProgramDayNav days={['2027-03-10', '2027-03-11', '2027-03-12']} currentDay="2027-03-11" baseUrl="/components" locale={locale} />;
 }
 
-/** Demo de `ActivityCard`: una actividad de la tarde de un evento con horas de 12 h. */
+/** Demo de `ActivityCard`: una actividad de la tarde de un evento con horas de 12 h y cupo limitado. */
 export function ActivityCardDemo() {
     const { t, locale } = useTranslation();
 
@@ -53,6 +53,7 @@ export function ActivityCardDemo() {
                 categories: [{ id: 'demo-category', name: t('catalog.demo_data.category_name') }],
                 speakers: [{ id: 'demo-speaker', name: t('catalog.demo_data.speaker_name'), company: null, jobTitle: null, tagline: null, photoUrl: null, url: '/components' }],
                 iconUrl: null,
+                limitedSeats: true,
                 url: '/components',
             }}
         />

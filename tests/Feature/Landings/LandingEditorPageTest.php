@@ -77,7 +77,7 @@ it('CA-022-34: without events.manage the editor is refused', function (): void {
     expect($this->actingAs($reviewer)->get(editorUrl($organization, $event))->status())->toBeIn([403, 404]);
 });
 
-it('CA-022-34: «Diseñar landing» is offered on the event screen, on its card menu and on each call row, all to the same page', function (): void {
+it('CA-022-34: «Diseñar landing» is offered on the event screen, on its card menu and on each call row (the row goes to the call own editor, plan 033)', function (): void {
     [$organization, $event, $user] = formScenario(OrganizationRole::Organizer);
     $call = CurrentOrganization::run($organization, fn (): CallForSubmissions => CallForSubmissions::factory()->create(['event_id' => $event->id]));
     editorActAsAdmin($organization, $user);
@@ -90,7 +90,8 @@ it('CA-022-34: «Diseñar landing» is offered on the event screen, on its card 
     Livewire::test(ListEvents::class)->assertTableActionVisible('designLanding', $event);
 
     Livewire::test(CallsRelationManager::class, ['ownerRecord' => $event, 'pageClass' => ViewEvent::class])
-        ->assertTableActionVisible('designLanding', $call);
+        ->assertTableActionVisible('designLanding', $call)
+        ->assertTableActionHasUrl('designLanding', EventResource::getUrl('call-landing', ['record' => $event, 'call' => $call->id]), $call);
 });
 
 it('CA-022-4: the editor of an event of another organization answers 404', function (): void {

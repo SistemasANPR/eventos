@@ -2,6 +2,7 @@ import type { CSSProperties, ReactNode } from 'react';
 
 import { Icon } from '@/components/organisms/call-landing/Icon';
 import { Rich } from '@/components/organisms/call-landing/Rich';
+import { RichText } from '@/components/atoms/RichText';
 import type { LandingStatus } from '@/lib/call-landing-view';
 import type { CallLandingContent, LandingAxis, LandingFaq, LandingPromo, LandingStep } from '@/types/call-landing';
 
@@ -78,7 +79,13 @@ export function TopBar({ view }: { view: LandingView }) {
     );
 }
 
-export function Hero({ content, view }: { content: CallLandingContent; view: LandingView }) {
+export function Hero({
+    content,
+    view,
+}: {
+    content: Pick<CallLandingContent, 'title' | 'eventLine' | 'lede' | 'cover' | 'notice'>;
+    view: LandingView;
+}) {
     return (
         <section className={content.cover === undefined ? 'cl-hero cl-hero--sin-portada' : 'cl-hero'}>
             {TRIANGLES.map((triangle, index) => (
@@ -124,8 +131,8 @@ export function Hero({ content, view }: { content: CallLandingContent; view: Lan
     );
 }
 
-export function Dates({ content, view }: { content: CallLandingContent; view: LandingView }) {
-    const cards = 2 + (view.resultsOn === undefined ? 0 : 1) + (content.venue === undefined ? 0 : 1);
+export function Dates({ venue, view }: { venue: CallLandingContent['venue']; view: LandingView }) {
+    const cards = 2 + (view.resultsOn === undefined ? 0 : 1) + (venue === undefined ? 0 : 1);
 
     return (
         <section id="fechas" className="cl-fechas" aria-labelledby="t-fechas">
@@ -159,14 +166,14 @@ export function Dates({ content, view }: { content: CallLandingContent; view: La
                             <span className="cl-fecha__dato">{view.resultsOn}</span>
                         </li>
                     )}
-                    {content.venue !== undefined && (
+                    {venue !== undefined && (
                         <li className="cl-fecha">
                             <span className="cl-tile">
                                 <Icon name="pin" />
                             </span>
                             <span className="cl-fecha__et">Congreso</span>
-                            <span className="cl-fecha__dato">{content.venue.name}</span>
-                            <span className="cl-fecha__nota">{content.venue.note}</span>
+                            <span className="cl-fecha__dato">{venue.name}</span>
+                            <span className="cl-fecha__nota">{venue.note}</span>
                         </li>
                     )}
                 </ol>
@@ -187,8 +194,8 @@ function AxisCard({ axis }: { axis: LandingAxis }) {
     );
 }
 
-export function Axes({ content }: { content: CallLandingContent }) {
-    if (content.axes.items.length === 0) {
+export function Axes({ axes }: { axes: CallLandingContent['axes'] }) {
+    if (axes.items.length === 0) {
         return null;
     }
 
@@ -196,11 +203,11 @@ export function Axes({ content }: { content: CallLandingContent }) {
         <section id="ejes" className="cl-band">
             <div className="cl-in">
                 <div className="cl-sec-head">
-                    <h2>{content.axes.heading}</h2>
-                    <p>{content.axes.intro}</p>
+                    <h2>{axes.heading}</h2>
+                    <p>{axes.intro}</p>
                 </div>
                 <ul className="cl-ejes">
-                    {content.axes.items.map((axis) => (
+                    {axes.items.map((axis) => (
                         <AxisCard key={axis.name} axis={axis} />
                     ))}
                 </ul>
@@ -269,9 +276,7 @@ function RequirementsAside({ aside }: { aside: NonNullable<CallLandingContent['r
     );
 }
 
-export function Requirements({ content, view }: { content: CallLandingContent; view: LandingView }) {
-    const { requirements } = content;
-
+export function Requirements({ requirements, view }: { requirements: CallLandingContent['requirements']; view: LandingView }) {
     return (
         <section id="requisitos" className="cl-band cl-band--blanca">
             <div className={requirements.aside === undefined ? 'cl-in cl-dos cl-dos--sola' : 'cl-in cl-dos'}>
@@ -303,12 +308,12 @@ function StepItem({ step }: { step: LandingStep }) {
     );
 }
 
-export function Steps({ steps }: { steps: LandingStep[] }) {
+export function Steps({ steps, heading = 'Cómo funciona' }: { steps: LandingStep[]; heading?: string }) {
     return (
         <section className="cl-band cl-band--blanca" aria-labelledby="t-pasos" style={{ paddingTop: 0 }}>
             <div className="cl-in">
                 <div className="cl-sec-head">
-                    <h2 id="t-pasos">Cómo funciona</h2>
+                    <h2 id="t-pasos">{heading}</h2>
                 </div>
                 <ol className="cl-pasos">
                     {steps.map((step) => (
@@ -326,7 +331,9 @@ function FaqItem({ faq, isOpen }: { faq: LandingFaq; isOpen: boolean }) {
             <summary>{faq.question}</summary>
             <div className="cl-faq__resp">
                 {faq.answer.map((block, index) =>
-                    'paragraph' in block ? (
+                    'html' in block ? (
+                        <RichText key={index} html={block.html} />
+                    ) : 'paragraph' in block ? (
                         <p key={index}>
                             <Rich text={block.paragraph} />
                         </p>
@@ -345,13 +352,21 @@ function FaqItem({ faq, isOpen }: { faq: LandingFaq; isOpen: boolean }) {
     );
 }
 
-export function Faqs({ faqs }: { faqs: LandingFaq[] }) {
+export function Faqs({
+    faqs,
+    heading = 'Preguntas frecuentes',
+    intro = 'Si tu duda no está aquí, revisa la página del congreso.',
+}: {
+    faqs: LandingFaq[];
+    heading?: string;
+    intro?: string | null;
+}) {
     return (
         <section id="preguntas" className="cl-band">
             <div className="cl-in cl-faq-wrap">
                 <div className="cl-sec-head">
-                    <h2>Preguntas frecuentes</h2>
-                    <p>Si tu duda no está aquí, revisa la página del congreso.</p>
+                    <h2>{heading}</h2>
+                    {intro !== null && <p>{intro}</p>}
                 </div>
                 <div className="cl-faq">
                     {faqs.map((faq, index) => (

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Filament\Resources\Events;
 
 use App\Filament\Resources\Events\Pages\CreateEvent;
+use App\Filament\Resources\Events\Pages\EditCallLanding;
 use App\Filament\Resources\Events\Pages\EditEvent;
 use App\Filament\Resources\Events\Pages\EditEventLanding;
 use App\Filament\Resources\Events\Pages\ListEvents;
@@ -14,9 +15,11 @@ use App\Filament\Resources\Events\Pages\ManageEventAssignmentRules;
 use App\Filament\Resources\Events\Pages\ManageEventFormDefinitions;
 use App\Filament\Resources\Events\Pages\ManageEventLodgings;
 use App\Filament\Resources\Events\Pages\ManageEventReviewers;
+use App\Filament\Resources\Events\Pages\ManageEventRooms;
 use App\Filament\Resources\Events\Pages\ManageEventRubrics;
 use App\Filament\Resources\Events\Pages\ManageEventSpeakerCategories;
 use App\Filament\Resources\Events\Pages\ManageEventSpeakers;
+use App\Filament\Resources\Events\Pages\ManageEventSponsorCategories;
 use App\Filament\Resources\Events\Pages\ManageEventSponsors;
 use App\Filament\Resources\Events\Pages\ManageEventSubmissions;
 use App\Filament\Resources\Events\Pages\ViewEvent;
@@ -105,6 +108,8 @@ class EventResource extends Resource
             'edit' => EditEvent::route('/{record}/edit'),
             // Editor visual de la landing del evento (plan 022, F4).
             'landing' => EditEventLanding::route('/{record}/landing'),
+            // Editor de la landing propia de una convocatoria (plan 033).
+            'call-landing' => EditCallLanding::route('/{record}/calls/{call}/landing'),
             // Nombre = ruta del recurso anidado (`FormDefinitionResource`): Filament lo usa como su índice.
             'form-definitions' => ManageEventFormDefinitions::route('/{record}/form-definitions'),
             'submissions' => ManageEventSubmissions::route('/{record}/submissions'),
@@ -124,9 +129,12 @@ class EventResource extends Resource
             // Hospedaje y patrocinadores del evento (plan 030, F2).
             'lodgings' => ManageEventLodgings::route('/{record}/lodgings'),
             'sponsors' => ManageEventSponsors::route('/{record}/sponsors'),
+            'sponsor-categories' => ManageEventSponsorCategories::route('/{record}/sponsor-categories'),
             // Catálogos de categorías del programa (plan 021, F1).
             'speaker-categories' => ManageEventSpeakerCategories::route('/{record}/speaker-categories'),
             'activity-categories' => ManageEventActivityCategories::route('/{record}/activity-categories'),
+            // Salas del evento (plan 031, F2).
+            'rooms' => ManageEventRooms::route('/{record}/rooms'),
         ];
     }
 

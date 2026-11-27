@@ -7,6 +7,7 @@ namespace App\Actions\Privacy;
 use App\Exceptions\Domain\LastOrganizationAdmin;
 use App\Exceptions\Domain\PersonCannotBeAnonymized;
 use App\Exceptions\Domain\PersonFileDeletionFailed;
+use App\Models\ActivityContact;
 use App\Models\AnonymizationLog;
 use App\Models\Contact;
 use App\Models\Organization;
@@ -22,7 +23,7 @@ use App\Support\Tenancy\CurrentOrganization;
  * Tras restaurar un respaldo, vuelve a anonimizar a las personas de `anonymization_log` que reaparecieron con
  * sus datos (plan 014, H-014-3, DA-5, CA-014-19). Trabaja en UNA organización, con su contexto
  * (`CurrentOrganization::run`): del registro toma las huellas, recorre los correos de los contactos,
- * participantes, ponentes y miembros aún sin anonimizar y, cuando la huella de uno coincide, ejecuta el mismo
+ * participantes, ponentes, responsables de actividad y miembros aún sin anonimizar y, cuando la huella de uno coincide, ejecuta el mismo
  * motor que la anonimización a petición (`ErasePersonRecords`). Es idempotente: sobre datos ya anonimizados no
  * encuentra a nadie. Se puede simular (`$simulate`) para ver cuántas personas se reaplicarían sin cambiar nada.
  *
@@ -108,6 +109,7 @@ final class ReapplyAnonymizations
             ->merge(Contact::query()->whereNull('anonymized_at')->pluck('email'))
             ->merge(SubmissionParticipant::query()->whereNull('anonymized_at')->pluck('email'))
             ->merge(Speaker::withTrashed()->whereNull('anonymized_at')->whereNotNull('email')->pluck('email'))
+            ->merge(ActivityContact::query()->whereNotNull('email')->pluck('email'))
             ->merge(User::query()->membersOf($organization)->whereNull('anonymized_at')->pluck('email'));
 
         return $emails

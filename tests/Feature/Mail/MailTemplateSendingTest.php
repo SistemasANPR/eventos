@@ -51,7 +51,7 @@ function sendNotice(Organization $organization, string $key = 'submission.new_fo
         key: $key,
         recipient: new MailRecipient('equipo@example.test', 'Equipo', 'es'),
         variables: $key === 'submission.received'
-            ? ['author_name' => 'Ana', 'submission_title' => 'T', 'submission_reference' => 'PR-1', 'event_name' => 'Congreso', 'call_title' => 'Convocatoria', 'submission_type' => 'Sesión', 'track_name' => 'Naturaleza']
+            ? ['author_name' => 'Ana', 'submission_title' => 'T', 'submission_reference' => 'PR-1', 'event_name' => 'Congreso', 'call_title' => 'Convocatoria', 'submission_type' => 'Sesión', 'track_name' => 'Naturaleza', 'edit_deadline' => '15 de febrero de 2027, 20:00 CST', 'request_link_url' => 'https://eventos.example.test/parques/events/congreso/my-submission/request-link']
             : organizerNoticeVariables(),
         factId: $factId,
         organization: $organization,

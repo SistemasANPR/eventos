@@ -24,6 +24,7 @@ const translations = {
         time_range: ':start – :end',
         speakers: 'Ponentes',
         pagination_label: 'Páginas del programa',
+        limited_seats: 'Cupo limitado',
     },
     pagination: {
         previous: 'Página anterior',
@@ -76,6 +77,7 @@ function activity(id: string, title: string, categories: PublicCategory[], overr
         categories,
         speakers: [],
         iconUrl: null,
+        limitedSeats: false,
         url: `/parques/events/congreso/activities/${id}`,
         ...overrides,
     };
@@ -102,6 +104,16 @@ function renderProgram(props: Partial<Parameters<typeof Program>[0]> = {}) {
 }
 
 describe('Events/Program', () => {
+    it('CA-035-24: marks with a limited quota badge only the activities that have a quota, with no number', () => {
+        renderProgram({
+            activities: page([activity('a1', 'Taller de huertos', [talleres], { limitedSeats: true }), activity('a2', 'Charla de biodiversidad', [charlas])]),
+        });
+
+        expect(screen.getAllByText('Cupo limitado')).toHaveLength(1);
+        expect(screen.getByText('Cupo limitado').closest('article')).toHaveTextContent('Taller de huertos');
+        expect(screen.getByText('Charla de biodiversidad').closest('article')).not.toHaveTextContent('Cupo limitado');
+    });
+
     it('CA-029-22: orders the headings h1 (page), h2 (day) and h3 (activities)', () => {
         renderProgram();
 

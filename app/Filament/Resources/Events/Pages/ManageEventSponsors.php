@@ -9,12 +9,15 @@ use App\Actions\Sponsors\DeleteSponsor;
 use App\Actions\Sponsors\UpdateSponsor;
 use App\Filament\Resources\Events\EventResource;
 use App\Filament\Support\ActionErrors;
+use App\Filament\Support\ExtraFieldsInput;
 use App\Models\Event;
 use App\Models\Sponsor;
+use App\Models\SponsorCategory;
 use App\Support\Files\MediaThumbnail;
 use BackedEnum;
 use Filament\Actions\Action;
 use Filament\Forms\Components\FileUpload;
+use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Notifications\Notification;
@@ -23,7 +26,9 @@ use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Gate;
@@ -57,6 +62,7 @@ class ManageEventSponsors extends ManageRelatedRecords
     public function table(Table $table): Table
     {
         return $table
+            ->modifyQueryUsing(fn (Builder $query): Builder => $query->with('category'))
             ->columns([
                 TextColumn::make('position')->label(__('sponsors.columns.position'))->sortable(),
                 ImageColumn::make('logo_path')
@@ -64,8 +70,16 @@ class ManageEventSponsors extends ManageRelatedRecords
                     ->state(fn (Sponsor $record): ?string => MediaThumbnail::dataUri($record->logo_path))
                     ->imageSize(40),
                 TextColumn::make('name')->label(__('sponsors.columns.name'))->searchable()->weight('medium'),
-                TextColumn::make('level')->label(__('sponsors.columns.level'))->badge()->toggleable(),
+                TextColumn::make('category.name')->label(__('sponsors.columns.level'))->badge()->placeholder('—')->toggleable(),
                 TextColumn::make('website_url')->label(__('sponsors.columns.website_url'))->url(fn (Sponsor $record): ?string => $record->website_url, shouldOpenInNewTab: true)->limit(40)->toggleable(),
+            ])
+            ->filters([
+                SelectFilter::make('level')
+                    ->label(__('sponsors.columns.level'))
+                    ->options(fn (): array => $this->categoryOptions())
+                    ->query(fn (Builder $query, array $data): Builder => is_string($data['value'] ?? null) && $data['value'] !== ''
+                        ? $query->where('sponsor_category_id', $data['value'])
+                        : $query),
             ])
             ->defaultSort('position')
             ->paginationPageOptions([25, 50, 100])
@@ -78,15 +92,42 @@ class ManageEventSponsors extends ManageRelatedRecords
     /** @return array<int, Action> */
     protected function getHeaderActions(): array
     {
-        return [$this->createAction()];
+        return [$this->categoriesAction(), $this->createAction()];
+    }
+
+    /** Botón «Categorías» (con su conteo) que lleva al catálogo de niveles del evento. */
+    private function categoriesAction(): Action
+    {
+        return Action::make('categories')
+            ->label(__('sponsors.categories.button'))
+            ->icon(Heroicon::OutlinedTag)
+            ->color('gray')
+            ->outlined()
+            ->badge(fn (): int => SponsorCategory::query()->where('event_id', $this->event()->id)->count())
+            ->url(fn (): string => EventResource::getUrl('sponsor-categories', ['record' => $this->event()]))
+            ->visible(fn (): bool => Gate::allows('viewAny', SponsorCategory::class));
+    }
+
+    /**
+     * Niveles del evento para el selector y el filtro, en su orden.
+     *
+     * @return array<string, string>
+     */
+    private function categoryOptions(): array
+    {
+        return SponsorCategory::query()->where('event_id', $this->event()->id)->orderBy('position')->pluck('name', 'id')->all();
     }
 
     /** @return array<int, mixed> */
-    private static function components(): array
+    private function components(): array
     {
         return [
             TextInput::make('name')->label(__('sponsors.fields.name'))->required()->maxLength(160),
-            TextInput::make('level')->label(__('sponsors.fields.level'))->helperText(__('sponsors.fields.level_help'))->maxLength(80),
+            Select::make('sponsor_category_id')
+                ->label(__('sponsors.fields.level'))
+                ->helperText(__('sponsors.fields.level_help'))
+                ->options(fn (): array => $this->categoryOptions())
+                ->placeholder(__('sponsors.fields.level_none')),
             TextInput::make('website_url')->label(__('sponsors.fields.website_url'))->helperText(__('sponsors.fields.website_url_help'))->url()->maxLength(2048),
             // No se guarda en el disco del formulario: la sube `StoreProgramImage`, que decide por el contenido.
             FileUpload::make('logo')
@@ -100,6 +141,7 @@ class ManageEventSponsors extends ManageRelatedRecords
                 ->label(__('sponsors.fields.remove_logo'))
                 ->visible(fn (?Model $record): bool => $record instanceof Sponsor && $record->logo_path !== null),
             TextInput::make('position')->label(__('sponsors.fields.position'))->helperText(__('sponsors.fields.position_help'))->numeric()->integer()->minValue(0)->maxValue(9999),
+            ExtraFieldsInput::make(),
         ];
     }
 
@@ -109,7 +151,7 @@ class ManageEventSponsors extends ManageRelatedRecords
             ->label(__('sponsors.create'))
             ->icon(Heroicon::OutlinedPlus)
             ->modalWidth('2xl')
-            ->schema(self::components())
+            ->schema(fn (): array => $this->components())
             ->visible(fn (): bool => Gate::allows('create', [Sponsor::class, $this->event()]))
             ->action(function (array $data, Schema $schema): void {
                 $this->run(
@@ -126,8 +168,11 @@ class ManageEventSponsors extends ManageRelatedRecords
             ->label(__('sponsors.edit'))
             ->icon(Heroicon::OutlinedPencilSquare)
             ->modalWidth('2xl')
-            ->schema(self::components())
-            ->fillForm(fn (Model $record): array => $this->sponsor($record)->only(['name', 'level', 'website_url', 'position']))
+            ->schema(fn (): array => $this->components())
+            ->fillForm(fn (Model $record): array => [
+                ...$this->sponsor($record)->only(['name', 'sponsor_category_id', 'website_url', 'position']),
+                'extra_fields' => ExtraFieldsInput::fill($this->sponsor($record)->extra_fields),
+            ])
             ->visible(fn (Model $record): bool => Gate::allows('update', $record))
             ->action(function (Model $record, array $data, Schema $schema): void {
                 $this->run(
@@ -176,7 +221,7 @@ class ManageEventSponsors extends ManageRelatedRecords
             unset($data['remove_logo']);
         }
 
-        return $data;
+        return ExtraFieldsInput::input($data);
     }
 
     private function sponsor(Model $record): Sponsor

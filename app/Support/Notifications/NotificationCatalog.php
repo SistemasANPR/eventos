@@ -44,7 +44,7 @@ final class NotificationCatalog
             new NotificationDescriptor('auth.two_factor_reset', ['user_name', 'occurred_at'], critical: true),
             new NotificationDescriptor('team.set_password', ['member_name', 'organization_name', 'role_name', 'set_password_url'], critical: true),
             new NotificationDescriptor('team.membership_added', ['member_name', 'organization_name', 'role_name', 'login_url'], critical: true),
-            new NotificationDescriptor('submission.received', ['author_name', 'submission_title', 'submission_reference', 'event_name', 'call_title', 'submission_type', 'track_name'], critical: true, recipientLimit: 5),
+            new NotificationDescriptor('submission.received', ['author_name', 'submission_title', 'submission_reference', 'event_name', 'call_title', 'submission_type', 'track_name', 'edit_deadline', 'request_link_url'], critical: true, recipientLimit: 5),
             new NotificationDescriptor('submission.access_link', ['author_name', 'event_name', 'access_url', 'expires_in_minutes'], critical: true, recipientLimit: 5),
             new NotificationDescriptor('submission.new_for_organizers', ['author_name', 'submission_title', 'event_name', 'panel_url'], critical: false),
             new NotificationDescriptor('submission.updated', ['author_name', 'submission_title', 'event_name', 'panel_url'], critical: false),

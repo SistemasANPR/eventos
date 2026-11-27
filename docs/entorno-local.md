@@ -95,7 +95,7 @@ git config --local --add credential.https://github.com.helper ""
 git config --local --add credential.https://github.com.helper '!f() { test "$1" = get && echo "username=Antonio1491" && echo "password=$(gh auth token --user Antonio1491)"; }; f'
 ```
 
-El helper toma el token de la sesión de `Antonio1491` en `gh` (debe aparecer en `gh auth status`; si no, `gh auth login`). No sirve `!gh auth git-credential`: con varias cuentas no entrega credencial y el push se queda esperando una contraseña (comprobado el 2026-11-09). No cambiar la cuenta activa de `gh` ni borrar credenciales de otras cuentas. Al clonar de nuevo, repetir estos tres comandos. Verificar con `git config --local --list | grep -E "remote.origin.url|credential"`.
+El helper toma el token de la sesión de `Antonio1491` en `gh` (debe aparecer en `gh auth status`; si no, `gh auth login`). No sirve `!gh auth git-credential`: con varias cuentas no entrega credencial y el push se queda esperando una contraseña (comprobado el 2026-11-09). **Este proyecto se trabaja con la cuenta `Antonio1491`, también en `gh`:** esa debe ser la cuenta **activa** (`gh auth switch --user Antonio1491`; comprobar con `gh auth status`) para abrir, actualizar y fusionar pull requests. La cuenta `support-parksys` solo tiene lectura en este repo: con ella activa, `gh pr merge` y `gh pr edit` fallan por falta de permisos (comprobado el 2026-11-27, `permissions.push: false`). No borrar las credenciales de otras cuentas, y no tomar el token de una cuenta distinta de la activa para saltarse este paso. Al clonar de nuevo, repetir estos tres comandos. Verificar con `git config --local --list | grep -E "remote.origin.url|credential"`.
 
 ## 9. Problemas frecuentes
 

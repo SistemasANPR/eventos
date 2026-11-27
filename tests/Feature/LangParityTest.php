@@ -69,3 +69,24 @@ it('CA-032-18: the texts of the unavailable event page and of the panel explanat
         }
     }
 });
+
+it('CA-034-18: the texts of the author access (plan 034) exist in es and en and are not empty', function (string $key): void {
+    foreach (['es', 'en'] as $locale) {
+        $text = trans("public.{$key}", [], $locale);
+
+        expect($text)->toBeString()
+            ->and($text)->not->toBe("public.{$key}")
+            ->and($text)->not->toBe('');
+    }
+})->with([
+    'call.already_submitted',
+    'submitted.edit_action',
+    'submitted.edit_until',
+    'author.show.edit_until',
+    'author.show.edit_closed',
+    'author.show.edit_closed_no_date',
+    'author.show.edit_in_process',
+    'author.show.logout',
+    'author.show.logging_out',
+    'author.request.intro',
+]);

@@ -84,7 +84,7 @@ it('CA-029-1: sends the public props of section 4.3 with relative urls and the e
             ->where('privacyUrl', null)
             ->has('categories', 0)
             ->has('activities.data.0', fn (Assert $activity) => $activity
-                ->hasAll(['id', 'title', 'summary', 'date', 'endDate', 'startTime', 'endTime', 'categories', 'speakers', 'iconUrl', 'url'])));
+                ->hasAll(['id', 'title', 'summary', 'date', 'endDate', 'startTime', 'endTime', 'categories', 'speakers', 'iconUrl', 'limitedSeats', 'url'])));
 });
 
 it('CA-029-1: sends only the categories used by the shown day', function (): void {

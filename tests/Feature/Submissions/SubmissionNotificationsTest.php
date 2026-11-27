@@ -7,9 +7,11 @@ use App\Actions\Submissions\SubmitSubmission;
 use App\Enums\FormDefinitionStatus;
 use App\Enums\OrganizationRole;
 use App\Jobs\SendTransactionalMail;
+use App\Mail\OutgoingMailable;
 use App\Models\CallForSubmissions;
 use App\Models\Event;
 use App\Models\FormDefinition;
+use App\Models\MailTemplate;
 use App\Models\Organization;
 use App\Models\PrivacyNotice;
 use App\Models\Submission;
@@ -19,6 +21,7 @@ use App\Models\User;
 use App\Support\Tenancy\CurrentOrganization;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Event as EventBus;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Queue;
 use Tests\Support\FakeSubmissionForm;
 use Tests\Support\Memberships;
@@ -156,3 +159,59 @@ it('CA-006-14: a repeated submission with the same key queues the emails only on
     expect(pushedMails('submission.received'))->toHaveCount(1)
         ->and(pushedMails('submission.new_for_organizers'))->toHaveCount(1);
 });
+
+/*
+ * Plan 034: el acuse avisa que se puede editar y hasta cuándo, con la dirección de pedir acceso (CA-034-8 a 11).
+ */
+
+it('CA-034-8: the acknowledgement carries the request-link page and the edit deadline, never an access token', function (): void {
+    Queue::fake();
+    $ctx = notifyScenario();
+
+    app(SubmitSubmission::class)->handle($ctx['call'], notifyInput($ctx));
+
+    $variables = pushedMails('submission.received')[0]->variables;
+    expect($variables['request_link_url'])->toBe(route('author.request-link.show', ['organization' => $ctx['org']->slug, 'event' => $ctx['event']->slug]))
+        ->and($variables['edit_deadline'])->not->toBe('')
+        ->and($variables)->not->toHaveKey('access_url')
+        ->and(implode(' ', $variables))->not->toContain('my-submission/access');
+});
+
+it('CA-034-9: the deadline is the closing in the event timezone and the language of the submission', function (string $locale, string $expected): void {
+    Queue::fake();
+    $ctx = notifyScenario();
+    // 2027-02-16 02:00 UTC es todavía el 15 de febrero a las 20:00 en la Ciudad de México.
+    $ctx['event']->forceFill(['timezone' => 'America/Mexico_City'])->save();
+    $ctx['call']->forceFill(['closes_at' => '2027-02-16 02:00:00', 'results_at' => '2027-03-01 00:00:00'])->save();
+
+    app(SubmitSubmission::class)->handle($ctx['call'], ['locale' => $locale] + notifyInput($ctx));
+
+    expect(pushedMails('submission.received')[0]->variables['edit_deadline'])->toBe($expected);
+})->with([
+    ['es', '15 de febrero de 2027, 20:00 CST'],
+    ['en', 'February 15, 2027, 20:00 CST'],
+]);
+
+it('CA-034-10: a template customized by the organizer without the new variables still sends', function (): void {
+    Queue::fake();
+    Mail::fake();
+    $ctx = notifyScenario();
+    MailTemplate::factory()->create([
+        'organization_id' => $ctx['org']->id,
+        'notification_key' => 'submission.received',
+        'locale' => 'es',
+        'subject' => 'Recibido: {{ submission_title }}',
+        'body' => 'Hola {{ author_name }}, recibimos tu propuesta.',
+    ]);
+
+    app(SubmitSubmission::class)->handle($ctx['call'], notifyInput($ctx));
+    app()->call([pushedMails('submission.received')[0], 'handle']);
+
+    Mail::assertSent(OutgoingMailable::class, fn (OutgoingMailable $mail): bool => $mail->subject === 'Recibido: Parques vivos');
+});
+
+it('CA-034-11: the default template exists in es and en and mentions the edit deadline and the request-link page', function (string $locale): void {
+    $template = trans('mail_templates.submission.received', [], $locale);
+
+    expect($template['body'])->toContain('{{ edit_deadline }}')->and($template['body'])->toContain('{{ request_link_url }}');
+})->with(['es', 'en']);

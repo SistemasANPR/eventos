@@ -291,7 +291,7 @@ Toda notificación nueva se registra en el catálogo con su plantilla predetermi
 | E-24 | Acreditación y check-in | Registro y acreditación | R3 | M | E-22 | M | — | QR, gafetes y constancias |
 | E-25 | Patrocinadores y expositores | Patrocinadores y expositores | R4 | L | E-23 | M | — | Paquetes, contratos y portal |
 | E-26 | Voluntarios | Voluntarios | R4 | M | E-21 | B | — | Turnos con cupo y constancia |
-| E-27 | Talleres con cupo | Talleres y talleristas | R4 | M | E-22 | B | — | Inscripción y lista de espera |
+| E-27 | Talleres con cupo | Talleres y talleristas | R4 | M | E-22 | B | — | Inscripción y lista de espera sobre el cupo de las actividades (plan 035) |
 | E-28 | Logística y hospedaje | Hoteles y recorridos; Logística | R4 | M | E-22 | B | — | Servicios del evento con cupo |
 | E-29 | Comunicación masiva | Comunicación | R4 | M | E-13 | M | — | Campañas segmentadas |
 | E-30 | Tareas y producción | Tareas y producción | R4 | M | E-03 | B | — | Tablero del equipo |
@@ -512,7 +512,7 @@ Solo épicas (§8), sin historias detalladas todavía. Se esbozan al abrir cada 
 | S-8 | Recortes de seguridad RC-1..RC-3 | ADR-0011 (recortes de seguridad de R0) | Inicio de E-02 | 9-nov |
 | S-9 | Escaneo de archivos y RLS | ADR-0011 cerrada, deuda P1/P2 | E-14 | 11-dic |
 | S-10 | Pasarela, modelo de ingresos y CFDI | ADR-0007 aceptada (DA-1..DA-5) | E-23 | `[PENDIENTE]` |
-| S-11 | Editor de agenda: Livewire o React dentro de Filament | Plan de E-20 | E-20 | `[PENDIENTE]` |
+| S-11 | Editor de agenda: Livewire o React dentro de Filament | Plan 031 (DA-4): Livewire con Alpine y arrastre nativo, sin dependencias nuevas; prueba de concepto antes de F4 | E-20 | 25-nov (cerrada; prueba de concepto pendiente) |
 | S-12 | Contacto único por organización o persona global | ADR-0003 DA-3 y glosario | E-17 | — |
 | S-13 | Limpieza de metadatos de PDF y PPTX para la revisión ciega | Plan 007 | E-11 (H-011-4) | antes de R1 |
 | S-14 | Límites de subida y tiempo máximo de petición en Railway | Nota en el plan 007 y 010 | E-07 | 12-nov |
