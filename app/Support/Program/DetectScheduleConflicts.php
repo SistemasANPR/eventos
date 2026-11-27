@@ -23,6 +23,21 @@ use Illuminate\Database\Eloquent\Builder;
 final class DetectScheduleConflicts
 {
     /**
+     * Minuto absoluto de una fecha y una hora LOCALES (sin zona), para comparar intervalos en memoria con la misma
+     * definición de solape que la consulta (plan 031, F4). `$time` es `H:i` o `H:i:s`.
+     */
+    public static function absoluteMinute(string $date, string $time): int
+    {
+        return intdiv((int) strtotime($date.' '.$time.' UTC'), 60);
+    }
+
+    /** Si dos intervalos `[inicio, fin)` se cruzan: terminar justo cuando otra empieza no es choque (plan 031, DA-5). */
+    public static function overlap(int $startA, int $endA, int $startB, int $endB): bool
+    {
+        return $startA < $endB && $endA > $startB;
+    }
+
+    /**
      * La actividad que ya ocupa la sala en ese intervalo, si la hay. Sin sala no hay choque posible.
      *
      * @param  array{starts_on: string, starts_at: string, ends_on: string, ends_at: string}  $slot  fechas `Y-m-d` y horas `H:i:s`
