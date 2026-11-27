@@ -1,0 +1,378 @@
+/*
+ * Agenda de lectura del panel (plan 031, F4): cuadrícula día × lugar. CSS propio con las variables de color de
+ * Filament (--gray-*, --primary-*, --danger-*) para seguir el tema claro y oscuro del panel, sin depender de que
+ * Tailwind escanee las vistas de Livewire. Mobile-first: la página no se desplaza a lo ancho; la cuadrícula se desplaza
+ * dentro de `.agenda-scroll`, con el eje de horas fijo (sticky) y columnas de ancho mínimo.
+ *
+ * Geometría: una fila de la cuadrícula es un paso de 15 minutos (`--agenda-row`). Cada tarjeta se coloca con
+ * `--agenda-start` y `--agenda-span` (en filas) y reparte el ancho de su columna con `--agenda-lane` y `--agenda-lanes`.
+ */
+
+.agenda {
+    --agenda-row: 1.25rem;
+    --agenda-axis: 4.5rem;
+    --agenda-col: 11rem;
+    --agenda-line: var(--gray-200);
+    --agenda-surface: #fff;
+    --agenda-muted: var(--gray-500);
+    --agenda-text: var(--gray-950);
+    --agenda-card: var(--primary-50);
+    --agenda-card-border: var(--primary-600);
+
+    display: grid;
+    gap: 1rem;
+    min-width: 0;
+    color: var(--agenda-text);
+}
+
+.dark .agenda {
+    --agenda-line: var(--gray-700);
+    --agenda-surface: var(--gray-900);
+    --agenda-muted: var(--gray-400);
+    --agenda-text: #fff;
+    --agenda-card: color-mix(in oklab, var(--primary-500) 22%, var(--gray-900));
+    --agenda-card-border: var(--primary-400);
+}
+
+.agenda-title {
+    font-size: 1.125rem;
+    font-weight: 700;
+}
+
+.agenda-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+}
+
+.agenda-days {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+/* Área de toque de al menos 44 px (CA-031-30). */
+.agenda-day-button {
+    min-height: 2.75rem;
+    min-width: 2.75rem;
+    padding: 0 1rem;
+    border: 1px solid var(--agenda-line);
+    border-radius: 0.5rem;
+    background: var(--agenda-surface);
+    color: var(--agenda-text);
+    font-size: 0.875rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.agenda-day-button[aria-current='date'] {
+    border-color: var(--agenda-card-border);
+    background: var(--agenda-card-border);
+    color: #fff;
+}
+
+.agenda-day-button:focus-visible,
+.agenda-scroll:focus-visible,
+.agenda-link:focus-visible {
+    outline: 3px solid var(--primary-500);
+    outline-offset: 2px;
+}
+
+.agenda-timezone,
+.agenda-pending__help {
+    color: var(--agenda-muted);
+    font-size: 0.8125rem;
+}
+
+.agenda-loading {
+    color: var(--agenda-muted);
+    font-size: 0.875rem;
+}
+
+.agenda-busy {
+    opacity: 0.6;
+    transition: opacity 0.15s;
+}
+
+/* Diseño: la cuadrícula ocupa todo el ancho; el panel de pendientes va debajo y, en pantallas anchas, al lado. */
+.agenda-layout {
+    display: grid;
+    gap: 1rem;
+    min-width: 0;
+}
+
+.agenda-main {
+    min-width: 0;
+}
+
+@media (min-width: 1024px) {
+    .agenda-layout {
+        grid-template-columns: minmax(0, 1fr) 16rem;
+        align-items: start;
+    }
+}
+
+/* Estados: error, sin lugares, sin actividades. */
+.agenda-state {
+    padding: 1rem 1.25rem;
+    border: 1px solid var(--agenda-line);
+    border-radius: 0.75rem;
+    background: var(--agenda-surface);
+}
+
+.agenda-state--error {
+    border-color: var(--danger-600);
+    background: color-mix(in oklab, var(--danger-500) 10%, var(--agenda-surface));
+}
+
+.agenda-state--notice {
+    border-style: dashed;
+}
+
+.agenda-state__title {
+    font-weight: 700;
+}
+
+.agenda-state__body {
+    margin-top: 0.25rem;
+    color: var(--agenda-muted);
+    font-size: 0.875rem;
+}
+
+.agenda-state--error .agenda-state__body {
+    color: var(--agenda-text);
+}
+
+.agenda-link {
+    display: inline-flex;
+    align-items: center;
+    min-height: 2.75rem;
+    margin-top: 0.5rem;
+    color: var(--primary-600);
+    font-weight: 600;
+    text-decoration: underline;
+}
+
+.dark .agenda-link {
+    color: var(--primary-400);
+}
+
+/* La región que se desplaza: la página no se mueve a lo ancho. */
+.agenda-scroll {
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    border: 1px solid var(--agenda-line);
+    border-radius: 0.75rem;
+    background: var(--agenda-surface);
+}
+
+.agenda-grid {
+    display: grid;
+    grid-template-columns: var(--agenda-axis) repeat(var(--agenda-cols), minmax(var(--agenda-col), 1fr));
+    min-width: calc(var(--agenda-axis) + var(--agenda-cols) * var(--agenda-col));
+}
+
+.agenda-corner,
+.agenda-head {
+    position: sticky;
+    top: 0;
+    z-index: 3;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-height: 3rem;
+    padding: 0.375rem 0.5rem;
+    border-bottom: 1px solid var(--agenda-line);
+    background: var(--agenda-surface);
+    font-size: 0.8125rem;
+}
+
+.agenda-head {
+    border-left: 1px solid var(--agenda-line);
+}
+
+.agenda-corner {
+    position: sticky;
+    left: 0;
+    z-index: 4;
+    color: var(--agenda-muted);
+}
+
+.agenda-head__name {
+    font-weight: 700;
+    overflow-wrap: anywhere;
+}
+
+.agenda-head__meta {
+    color: var(--agenda-muted);
+    font-size: 0.75rem;
+}
+
+/* Eje de horas: fijo a la izquierda al desplazar. */
+.agenda-axis {
+    position: sticky;
+    left: 0;
+    z-index: 2;
+    height: calc(var(--agenda-rows) * var(--agenda-row));
+    background: var(--agenda-surface);
+}
+
+.agenda-axis__hour {
+    position: absolute;
+    top: calc(var(--agenda-start) * var(--agenda-row));
+    right: 0.5rem;
+    transform: translateY(-50%);
+    color: var(--agenda-muted);
+    font-size: 0.75rem;
+    white-space: nowrap;
+}
+
+/* Cuerpo de cada columna: líneas cada hora (4 filas) y más suaves cada paso. */
+.agenda-body {
+    position: relative;
+    height: calc(var(--agenda-rows) * var(--agenda-row));
+    border-left: 1px solid var(--agenda-line);
+    background-image: repeating-linear-gradient(
+        to bottom,
+        var(--agenda-line) 0,
+        var(--agenda-line) 1px,
+        transparent 1px,
+        transparent calc(var(--agenda-row) * 4)
+    );
+}
+
+.agenda-cell {
+    position: absolute;
+    top: calc(var(--agenda-start) * var(--agenda-row));
+    height: calc(var(--agenda-span) * var(--agenda-row));
+    left: calc(var(--agenda-lane) / var(--agenda-lanes) * 100%);
+    width: calc(100% / var(--agenda-lanes));
+    overflow: hidden;
+    padding: 0.25rem 0.375rem;
+    border-left: 4px solid var(--agenda-card-border);
+    border-radius: 0.375rem;
+    background: var(--agenda-card);
+    box-shadow: 0 0 0 1px var(--agenda-surface);
+    font-size: 0.75rem;
+    line-height: 1.25;
+}
+
+.agenda-cell--muted {
+    border-left-style: dashed;
+    opacity: 0.75;
+}
+
+.agenda-cell--clash {
+    border-left-color: var(--danger-600);
+    background: color-mix(in oklab, var(--danger-500) 14%, var(--agenda-surface));
+}
+
+.agenda-cell:hover,
+.agenda-cell:focus-within {
+    z-index: 1;
+    overflow: visible;
+    height: auto;
+    min-height: calc(var(--agenda-span) * var(--agenda-row));
+}
+
+.agenda-cell__time {
+    color: var(--agenda-muted);
+    font-weight: 600;
+}
+
+.agenda-cell__title {
+    font-size: 0.8125rem;
+    font-weight: 700;
+    overflow-wrap: anywhere;
+}
+
+.agenda-cell__place,
+.agenda-cell__speakers,
+.agenda-cell__quota {
+    color: var(--agenda-muted);
+}
+
+/* Insignias con texto: nunca solo color (CA-031-20). */
+.agenda-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+    margin-top: 0.25rem;
+}
+
+.agenda-badge {
+    display: inline-block;
+    padding: 0 0.375rem;
+    border: 1px solid var(--agenda-line);
+    border-radius: 999px;
+    background: var(--agenda-surface);
+    color: var(--agenda-text);
+    font-size: 0.6875rem;
+    font-weight: 600;
+}
+
+.agenda-badge--clash,
+.agenda-badge--danger {
+    border-color: var(--danger-600);
+    color: var(--danger-700);
+}
+
+.dark .agenda-badge--clash,
+.dark .agenda-badge--danger {
+    color: var(--danger-300);
+}
+
+/* Panel de pendientes. */
+.agenda-pending {
+    padding: 0.75rem 1rem;
+    border: 1px solid var(--agenda-line);
+    border-radius: 0.75rem;
+    background: var(--agenda-surface);
+}
+
+.agenda-pending__title {
+    font-weight: 700;
+}
+
+.agenda-pending__list {
+    display: grid;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+}
+
+.agenda-pending__item {
+    display: grid;
+    gap: 0.125rem;
+    padding: 0.5rem;
+    border: 1px dashed var(--agenda-line);
+    border-radius: 0.5rem;
+    font-size: 0.8125rem;
+}
+
+.agenda-pending__name {
+    font-weight: 600;
+}
+
+.agenda-pending__speakers,
+.agenda-pending__empty {
+    color: var(--agenda-muted);
+    font-size: 0.75rem;
+}
+
+/* Texto solo para lectores de pantalla. */
+.agenda-sr {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .agenda-busy {
+        transition: none;
+    }
+}
