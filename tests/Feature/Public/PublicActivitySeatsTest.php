@@ -287,3 +287,15 @@ it('CA-035-25: the activity page sends the seats, place and public contacts, and
             ->missing('activities.data.0.seats')
             ->missing('activities.data.0.place'));
 });
+
+it('CA-035-28: a public contact left on an activity whose place is a room or missing is not published', function (): void {
+    $event = ppEvent();
+    $room = seatsPlace($event, false, ['name' => 'Sala']);
+    $inRoom = ppActivity($event, ['room_id' => $room->id]);
+    $nowhere = ppActivity($event, ['title' => 'Sin lugar']);
+    seatsContact($inRoom, 1, ['name' => 'Residuo en sala', 'is_public' => true]);
+    seatsContact($nowhere, 1, ['name' => 'Residuo sin lugar', 'is_public' => true]);
+
+    expect(seatsProps($event, $inRoom)[1]['contacts'])->toBe([])
+        ->and(seatsProps($event, $nowhere)[1]['contacts'])->toBe([]);
+});

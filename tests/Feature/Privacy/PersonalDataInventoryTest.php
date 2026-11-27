@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Actions\Privacy\AnonymizePerson;
 use App\Models\Activity;
+use App\Models\ActivityContact;
 use App\Models\Contact;
 use App\Models\KnownDevice;
 use App\Models\MailDispatch;
@@ -109,4 +110,12 @@ it('CA-014-26: every column declared as replaced changes when the person is anon
     expect(KnownDevice::query()->where('user_id', $person['user']->id)->exists())->toBeFalse()
         ->and(PersonalDataInventory::COVERED[KnownDevice::class]['deleted'])->toBeTrue();
     expect(strtolower((string) Activity::query()->get()->toJson()))->not->toContain('ana.torres@example.test');
+});
+
+it('CA-035-22: the activity contacts are declared as deleted in the inventory with every column classified', function (): void {
+    $entry = PersonalDataInventory::COVERED[ActivityContact::class] ?? null;
+
+    expect($entry)->not->toBeNull()
+        ->and($entry['deleted'] ?? false)->toBeTrue()
+        ->and(PersonalDataInventory::allColumns(ActivityContact::class))->toEqualCanonicalizing(Schema::getColumnListing((new ActivityContact)->getTable()));
 });

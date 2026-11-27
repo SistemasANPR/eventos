@@ -83,7 +83,7 @@ final class PublicActivityData
             'meetingPoint' => $external ? $activity->meeting_point : null,
             'transport' => $external ? $activity->transport_info : null,
             'contacts' => $activity->contacts
-                ->filter(static fn (ActivityContact $contact): bool => $contact->is_public)
+                ->filter(static fn (ActivityContact $contact): bool => $external && $contact->is_public)
                 ->map(static fn (ActivityContact $contact): array => ['name' => $contact->name, 'phone' => $contact->phone, 'email' => $contact->email])
                 ->values()
                 ->all(),
