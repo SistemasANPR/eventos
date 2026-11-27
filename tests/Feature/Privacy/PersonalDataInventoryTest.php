@@ -113,9 +113,8 @@ it('CA-014-26: every column declared as replaced changes when the person is anon
 });
 
 it('CA-035-22: the activity contacts are declared as deleted in the inventory with every column classified', function (): void {
-    $entry = PersonalDataInventory::COVERED[ActivityContact::class] ?? null;
+    $entry = PersonalDataInventory::COVERED[ActivityContact::class];
 
-    expect($entry)->not->toBeNull()
-        ->and($entry['deleted'] ?? false)->toBeTrue()
+    expect($entry['deleted'])->toBeTrue()
         ->and(PersonalDataInventory::allColumns(ActivityContact::class))->toEqualCanonicalizing(Schema::getColumnListing((new ActivityContact)->getTable()));
 });
