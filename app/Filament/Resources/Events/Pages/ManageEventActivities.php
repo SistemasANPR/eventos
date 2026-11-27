@@ -15,6 +15,7 @@ use App\Filament\Resources\Events\EventResource;
 use App\Filament\Resources\Events\ProgramCategoryShortcuts;
 use App\Filament\Resources\Submissions\SubmissionResource;
 use App\Filament\Support\ActionErrors;
+use App\Livewire\Program\EventAgenda;
 use App\Models\ActivityContact;
 use App\Models\Event;
 use App\Models\EventActivity;
@@ -24,6 +25,9 @@ use App\Support\Events\EventTime;
 use App\Support\Files\MediaDisk;
 use App\Support\Files\MediaThumbnail;
 use App\Support\Program\ActivityWrites;
+use App\Support\Program\Agenda\AgendaClash;
+use App\Support\Program\Agenda\AgendaClashType;
+use App\Support\Program\Agenda\BuildsAgenda;
 use App\Support\Program\ExternalDetails;
 use BackedEnum;
 use Filament\Actions\Action;
@@ -40,9 +44,11 @@ use Filament\Notifications\Notification;
 use Filament\Resources\Pages\ManageRelatedRecords;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Image;
+use Filament\Schemas\Components\Livewire as LivewireComponent;
 use Filament\Schemas\Components\Text;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Schema;
+use Filament\Support\Components\Attributes\Unexposed;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\ImageColumn;
@@ -57,6 +63,7 @@ use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
+use Livewire\Attributes\Url;
 use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 use LogicException;
 
@@ -77,6 +84,20 @@ class ManageEventActivities extends ManageRelatedRecords
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedCalendarDays;
 
+    /**
+     * Vista de la pantalla (plan 031, DA-1): `lista` (por defecto) o `agenda`. Vive en la dirección (`?vista=agenda`), así que se
+     * recuerda y se puede compartir; cualquier otro valor, o la agenda para quien no puede gestionar actividades, cae en la lista.
+     */
+    #[Url(as: 'vista', except: 'lista')]
+    public string $vista = 'lista';
+
+    /**
+     * Choques de las actividades del evento, pedidos una sola vez por petición (plan 031, CA-031-20).
+     *
+     * @var array<string, list<AgendaClash>>|null
+     */
+    private ?array $clashIndex = null;
+
     public static function getNavigationLabel(): string
     {
         return __('program.activities.navigation');
@@ -86,6 +107,27 @@ class ManageEventActivities extends ManageRelatedRecords
     public function getTitle(): string
     {
         return static::getNavigationLabel();
+    }
+
+    /**
+     * Con la agenda, el contenido es el componente de la cuadrícula en vez de la tabla; con la lista, el de siempre.
+     * La agenda exige poder gestionar actividades (la misma Policy que la página): quien no puede, ve la lista.
+     */
+    #[Unexposed]
+    public function content(Schema $schema): Schema
+    {
+        if (! $this->isAgendaView()) {
+            return parent::content($schema);
+        }
+
+        return $schema->components([
+            LivewireComponent::make(EventAgenda::class, fn (): array => ['eventId' => $this->event()->id]),
+        ]);
+    }
+
+    private function isAgendaView(): bool
+    {
+        return $this->vista === 'agenda' && Gate::allows('create', [EventActivity::class, $this->event()]);
     }
 
     public function table(Table $table): Table
@@ -123,6 +165,14 @@ class ManageEventActivities extends ManageRelatedRecords
                     ->label(__('program.activities.columns.quota'))
                     ->placeholder('—')
                     ->toggleable(),
+                // Sin `toggleable()`: una actividad que choca no se oculta por error del selector de columnas (CA-031-20).
+                TextColumn::make('clashes')
+                    ->label(__('program.activities.columns.clashes'))
+                    ->state(fn (EventActivity $record): array => array_keys($this->clashBadges($record)))
+                    ->badge()
+                    ->color(fn (string $state, EventActivity $record): string => $this->clashBadges($record)[$state] ?? 'gray')
+                    ->listWithLineBreaks()
+                    ->wrap(),
                 TextColumn::make('categories.name')
                     ->label(__('program.activities.columns.categories'))
                     ->badge()
@@ -181,7 +231,28 @@ class ManageEventActivities extends ManageRelatedRecords
     /** @return array<int, Action> */
     protected function getHeaderActions(): array
     {
-        return [ProgramCategoryShortcuts::button($this->event(), ProgramCategoryKind::Activity), $this->roomsAction(), $this->createAction()];
+        return [
+            $this->viewAction('viewList', 'list'),
+            $this->viewAction('viewAgenda', 'agenda'),
+            ProgramCategoryShortcuts::button($this->event(), ProgramCategoryKind::Activity),
+            $this->roomsAction(),
+            $this->createAction(),
+        ];
+    }
+
+    /** Enlace para cambiar de vista: solo cambia `vista` en la dirección; la agenda se ofrece a quien puede gestionar actividades. */
+    private function viewAction(string $name, string $view): Action
+    {
+        $active = ($this->isAgendaView() ? 'agenda' : 'list') === $view;
+
+        return Action::make($name)
+            ->label(__("program.activities.views.{$view}"))
+            ->icon($view === 'agenda' ? Heroicon::OutlinedCalendarDays : Heroicon::OutlinedListBullet)
+            ->color($active ? 'primary' : 'gray')
+            ->outlined(! $active)
+            ->extraAttributes($active ? ['aria-current' => 'page'] : [])
+            ->url(fn (): string => EventResource::getUrl('activities', ['record' => $this->event(), ...($view === 'agenda' ? ['vista' => 'agenda'] : [])]))
+            ->visible(fn (): bool => $view !== 'agenda' || Gate::allows('create', [EventActivity::class, $this->event()]));
     }
 
     /** Lleva a la lista de salas del evento (con su conteo); solo presenta, la Policy decide quién entra. */
@@ -656,6 +727,30 @@ class ManageEventActivities extends ManageRelatedRecords
     private function activity(Model $record): EventActivity
     {
         return $record instanceof EventActivity ? $record : throw new LogicException('La fila no es una actividad.');
+    }
+
+    /**
+     * Las insignias de choque de una actividad: texto => color (sala ocupada, rojo; ponente repetido, ámbar). Los choques
+     * de todo el evento se piden UNA vez por petición. Un fallo de `BuildsAgenda` se propaga: no se oculta como «sin choques».
+     *
+     * @return array<string, string>
+     */
+    private function clashBadges(EventActivity $activity): array
+    {
+        $this->clashIndex ??= app(BuildsAgenda::class)->clashes($this->event());
+
+        $badges = [];
+
+        foreach ($this->clashIndex[$activity->id] ?? [] as $clash) {
+            $isRoom = $clash->type === AgendaClashType::Room;
+            $text = $isRoom
+                ? __('program.activities.clash.room', ['title' => $clash->withTitle])
+                : __('program.activities.clash.speaker', ['speaker' => $clash->speaker ?? '', 'title' => $clash->withTitle]);
+
+            $badges[$text] = $isRoom ? 'danger' : 'warning';
+        }
+
+        return $badges;
     }
 
     private function event(): Event
