@@ -9,6 +9,7 @@ use App\Models\Organization;
 use App\Models\Sponsor;
 use App\Models\User;
 use App\Support\Auth\AuthorizesInOrganization;
+use App\Support\Extras\ExtraFields;
 use App\Support\Sponsors\StoresSponsorLogo;
 use App\Support\Tenancy\CurrentOrganization;
 use Illuminate\Auth\Access\AuthorizationException;
@@ -47,9 +48,13 @@ final class DeleteSponsor
                     ->log('sponsor_deleted');
             });
 
+            $event = Event::query()->findOrFail($sponsor->event_id);
+
             if ($sponsor->logo_path !== null) {
-                $this->discardLogo(Event::query()->findOrFail($sponsor->event_id), $sponsor->logo_path);
+                $this->discardLogo($event, $sponsor->logo_path);
             }
+
+            ExtraFields::discard($event, ExtraFields::paths($sponsor->extra_fields));
         });
     }
 }

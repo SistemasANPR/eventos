@@ -4,12 +4,14 @@ declare(strict_types=1);
 
 namespace App\Actions\Lodgings;
 
+use App\Enums\ProgramImageType;
 use App\Models\Event;
 use App\Models\Lodging;
 use App\Models\LodgingImage;
 use App\Models\Organization;
 use App\Models\User;
 use App\Support\Auth\AuthorizesInOrganization;
+use App\Support\Extras\ExtraFields;
 use App\Support\Lodgings\LodgingRules;
 use App\Support\Lodgings\StoresLodgingImages;
 use App\Support\Tenancy\CurrentOrganization;
@@ -24,7 +26,7 @@ use Throwable;
  * Edita un hospedaje (plan 030, CA-030-2, CA-030-3, CA-030-14, CA-030-15). Solo cambia las claves que llegan en
  * `$data`; la validación corre sobre la ficha ya combinada (el nombre sigue siendo obligatorio). `images` agrega
  * imágenes al final de la galería y `remove_images` (identificadores de imágenes de ESTE hospedaje; los ajenos se
- * ignoran) quita las indicadas; el archivo de una imagen quitada se borra DESPUÉS de confirmar la transacción. Se
+ * ignoran) quita las indicadas; `extra_fields` (opcional) reemplaza la lista de datos adicionales (ver `ExtraFields`); el archivo de una imagen quitada se borra DESPUÉS de confirmar la transacción. Se
  * ejecuta en la organización DEL HOSPEDAJE y audita qué campos cambiaron (nombres de campo, sin los valores).
  *
  * @throws AuthorizationException si quien edita no tiene `lodgings.manage` en la organización del hospedaje
@@ -56,7 +58,16 @@ final class UpdateLodging
                         LodgingRules::rules(),
                     )->validate();
 
-                    $lodging->forceFill(LodgingRules::forStorage(array_intersect_key($validated, $given)))->save();
+                    $attributes = LodgingRules::forStorage(array_intersect_key($validated, $given));
+
+                    // Sin la clave, los datos adicionales no cambian; con ella, la lista que llega reemplaza a la guardada.
+                    if (array_key_exists('extra_fields', $data)) {
+                        $attributes['extra_fields'] = ExtraFields::resolve(
+                            $event, ProgramImageType::LodgingImage, is_array($data['extra_fields']) ? $data['extra_fields'] : null, $lodging->extra_fields, $stored, $removedPaths,
+                        ) ?: null;
+                    }
+
+                    $lodging->forceFill($attributes)->save();
                     $changed = array_keys($lodging->getChanges());
 
                     $removeIds = array_values(array_filter(

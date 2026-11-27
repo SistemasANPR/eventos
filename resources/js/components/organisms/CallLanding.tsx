@@ -1,13 +1,13 @@
 import { Head } from '@inertiajs/react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 
+import { buildLandingView } from '@/components/organisms/call-landing/landing-view';
 import {
     Axes,
     Dates,
     Faqs,
     Footer,
     Hero,
-    type LandingView,
     Promo,
     Requirements,
     Steps,
@@ -16,9 +16,8 @@ import {
 } from '@/components/organisms/call-landing/LandingParts';
 import { useTranslation } from '@/hooks/useTranslation';
 import { buildLandingContent } from '@/lib/call-landing-content';
-import { countdownText, ctaLabel, formatLandingDate, formatLandingTime, landingStatus, statusLabel } from '@/lib/call-landing-view';
 import type { PublicCall } from '@/types/call';
-import type { CallLandingContent, CallLandingData, CallRouteSlugs } from '@/types/call-landing';
+import type { CallLandingData, CallRouteSlugs } from '@/types/call-landing';
 import type { PublicOrganization } from '@/types/event';
 
 import '../../../css/call-landing.css';
@@ -37,27 +36,14 @@ interface CallLandingProps {
     authorRequestUrl?: string | null;
 }
 
-function buildView(call: PublicCall, content: CallLandingContent, submitUrl: string | null): LandingView {
-    return {
-        status: landingStatus(call.state),
-        statusText: statusLabel(call.state),
-        countdown: countdownText(call.state, call.opensAt, call.closesAt, call.timezone),
-        opensOn: formatLandingDate(call.opensAt, call.timezone),
-        closesOn: formatLandingDate(call.closesAt, call.timezone),
-        closesAt: formatLandingTime(call.closesAt, call.timezone, content.timezoneLabel),
-        resultsOn: content.resultsLabel ?? (call.resultsAt === undefined ? undefined : formatLandingDate(call.resultsAt, call.timezone)),
-        submitUrl,
-        ctaLabel: ctaLabel(call.state),
-    };
-}
-
 /** Oculta la barra fija del teléfono cuando el anuncio de otra convocatoria entra en pantalla (o ya quedó atrás). */
-function useIsPromoReached() {
+export function useIsPromoReached(selector?: string) {
     const promoRef = useRef<HTMLDivElement>(null);
     const [isReached, setIsReached] = useState(false);
 
     useEffect(() => {
-        const target = promoRef.current;
+        // Con `selector`, el anuncio es el primer elemento que lo cumple dentro del contenedor (la landing del editor).
+        const target = selector === undefined ? promoRef.current : (promoRef.current?.querySelector(selector) ?? null);
 
         if (target === null || typeof IntersectionObserver === 'undefined') {
             return undefined;
@@ -69,7 +55,7 @@ function useIsPromoReached() {
         observer.observe(target);
 
         return () => observer.disconnect();
-    }, []);
+    }, [selector]);
 
     return { promoRef, isReached };
 }
@@ -78,13 +64,14 @@ function useIsPromoReached() {
  * Landing de toda convocatoria, con el diseño de la ANPR (aprobado el 24 nov 2026): barra de la asociación, portada con
  * estado y cuenta regresiva, fechas, ejes, requisitos, pasos, preguntas, anuncios de otras convocatorias y pie. Se arma con
  * los datos reales de la convocatoria (`buildLandingContent`); el texto propio de una convocatoria, si lo tiene, está en
- * `lib/call-landings.ts`.
+ * `lib/call-landings.ts`. Es la landing AUTOMÁTICA: una convocatoria con landing propia publicada (editor, plan 033) usa
+ * `CallLandingPage`.
  */
 export function CallLanding({ call, event, data, organization, slugs, eventUrl, privacyUrl, submitUrl, authorRequestUrl = null }: CallLandingProps) {
     const { t } = useTranslation();
     const { promoRef, isReached } = useIsPromoReached();
     const content = useMemo(() => buildLandingContent({ call, event, slugs, data }), [call, event, slugs, data]);
-    const view = buildView(call, content, submitUrl);
+    const view = buildLandingView(call, content, submitUrl);
 
     const links = [
         ...(call.showBackLink === false ? [] : [{ label: 'Volver al evento', href: eventUrl }]),
@@ -109,9 +96,9 @@ export function CallLanding({ call, event, data, organization, slugs, eventUrl, 
             <TopBar view={view} />
             <main id="contenido" tabIndex={-1}>
                 <Hero content={content} view={view} />
-                <Dates content={content} view={view} />
-                <Axes content={content} />
-                <Requirements content={content} view={view} />
+                <Dates venue={content.venue} view={view} />
+                <Axes axes={content.axes} />
+                <Requirements requirements={content.requirements} view={view} />
                 <Steps steps={content.steps} />
                 <Faqs faqs={content.faqs} />
                 <div ref={promoRef}>

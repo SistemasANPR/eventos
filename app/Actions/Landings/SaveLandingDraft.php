@@ -52,7 +52,7 @@ final class SaveLandingDraft
                     throw new LandingVersionConflict;
                 }
 
-                $clean = LandingBlocks::validate($event, $blocks, array_column($current->draft_blocks, 'id'));
+                $clean = LandingBlocks::validate($event, $blocks, array_column($current->draft_blocks, 'id'), $current->isForCall());
                 $this->assertImagesBelong($current, $clean);
 
                 if (LandingBlocks::same($current->draft_blocks, $clean)) {

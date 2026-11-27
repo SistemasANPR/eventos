@@ -4,15 +4,18 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Public;
 
+use App\Actions\Landings\ResolveLandingBlocks;
 use App\Enums\CallState;
 use App\Models\CallForSubmissions;
 use App\Models\Event;
+use App\Models\EventLanding;
 use App\Models\Organization;
 use App\Models\PrivacyNotice;
 use App\Support\Calls\CallLandingData;
 use App\Support\Calls\PublicCallData;
 use App\Support\Calls\ResolveCallState;
 use App\Support\Events\PublicEventData;
+use App\Support\Landings\LandingImageUrls;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -25,7 +28,7 @@ use Inertia\Response;
  */
 final class ShowCallController
 {
-    public function __invoke(Request $request, Organization $organization, Event $event, CallForSubmissions $call): Response
+    public function __invoke(Request $request, Organization $organization, Event $event, CallForSubmissions $call, ResolveLandingBlocks $resolve): Response
     {
         abort_unless($event->isPublished(), 404);
 
@@ -45,6 +48,8 @@ final class ShowCallController
             // La landing se arma con estos datos; los nombres solo sirven para encontrar el texto propio de una convocatoria, si lo tiene.
             'slugs' => ['organization' => $organization->slug, 'event' => $event->slug, 'call' => $call->slug],
             'landing' => CallLandingData::from($call, $event, $organization, $locale),
+            // La landing propia de la convocatoria, ya armada con el editor (plan 033), si tiene versión publicada.
+            'callLanding' => $this->callLanding($call, $event, $organization, $locale, $resolve),
             'eventUrl' => route('events.show', $eventRoute, false)."?lang={$locale}",
             // Solo con la convocatoria abierta se ofrece el botón de envío (plan 006, H-006-7).
             'submitUrl' => $state === CallState::Open
@@ -59,5 +64,19 @@ final class ShowCallController
                 ? null
                 : route('events.privacy', $eventRoute, false),
         ]);
+    }
+
+    /** @return array{blocks: list<array<string, mixed>>}|null */
+    private function callLanding(CallForSubmissions $call, Event $event, Organization $organization, string $locale, ResolveLandingBlocks $resolve): ?array
+    {
+        $landing = EventLanding::currentPublishedForCall($call);
+
+        if ($landing === null) {
+            return null;
+        }
+
+        return [
+            'blocks' => $resolve->handle($event, $organization, $landing->published_blocks ?? [], $locale, LandingImageUrls::forPublic($event, $organization, $landing), $call),
+        ];
     }
 }

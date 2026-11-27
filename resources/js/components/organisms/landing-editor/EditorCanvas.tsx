@@ -58,8 +58,13 @@ export function EditorCanvas({
     const elements = useRef(new Map<string, HTMLElement>());
 
     const resolved = useMemo(
-        () => blocks.map((block) => resolveDraftBlock(block, locale, defaultLocale, preview)),
-        [blocks, locale, defaultLocale, preview],
+        () => blocks.map((block) => resolveDraftBlock(block, locale, defaultLocale, preview, (key) => t(`call_template.${key}`))),
+        [blocks, locale, defaultLocale, preview, t],
+    );
+    // En el editor de una convocatoria, el lienzo dibuja con el diseño de su landing y lee de ella fechas y estado.
+    const call = useMemo(
+        () => (preview.call === undefined ? undefined : { call: preview.call.call, submitUrl: null, logoUrl: preview.call.logoUrl }),
+        [preview.call],
     );
 
     useEffect(() => {
@@ -162,7 +167,7 @@ export function EditorCanvas({
 
     return (
         <ViewportFrame viewport={viewport} title={t(`landing_editor.viewport.frame_${viewport}`)}>
-            <LandingRenderer blocks={resolved} locale={locale} t={t} wrapBlock={wrapBlock} />
+            <LandingRenderer blocks={resolved} locale={locale} t={t} call={call} wrapBlock={wrapBlock} />
         </ViewportFrame>
     );
 }

@@ -9,6 +9,7 @@ use App\Models\Lodging;
 use App\Models\Organization;
 use App\Models\User;
 use App\Support\Auth\AuthorizesInOrganization;
+use App\Support\Extras\ExtraFields;
 use App\Support\Lodgings\StoresLodgingImages;
 use App\Support\Tenancy\CurrentOrganization;
 use Illuminate\Auth\Access\AuthorizationException;
@@ -35,7 +36,7 @@ final class DeleteLodging
             $paths = [];
 
             DB::transaction(function () use ($actor, $lodging, &$paths): void {
-                $paths = $lodging->images()->pluck('path')->all();
+                $paths = [...$lodging->images()->pluck('path')->all(), ...ExtraFields::paths($lodging->extra_fields)];
                 $lodging->delete();
 
                 activity()

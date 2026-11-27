@@ -13,6 +13,7 @@ use App\Models\SubmissionFile;
 use App\Models\SubmissionParticipant;
 use App\Models\User;
 use App\Support\Files\SubmissionFileData;
+use App\Support\Forms\ProposalFields;
 use App\Support\Reviews\BlindReview;
 use Illuminate\Support\Number;
 
@@ -29,7 +30,7 @@ final class SubmissionDetail
 {
     /**
      * @return array{
-     *     answers: list<array{label: string, retired: bool, type: string, value: string|bool|list<string>|null, files: list<array{name: string, size: string, url: string|null, previewUrl: string|null}>, fileCount: int}>,
+     *     answers: list<array{label: string, retired: bool, type: string, value: string|bool|list<string>|null, files: list<array{name: string, size: string, url: string|null, previewUrl: string|null}>, fileCount: int, empty: bool}>,
      *     participants: list<array{photoUrl: ?string, fields: list<array{label: string, value: string}>, name: string, email: string, country: string, state: ?string, city: ?string, phone: ?string, altEmail: ?string, jobTitle: ?string, company: ?string, bio: ?string, primary: bool}>,
      *     canDownload: bool,
      *     blind: bool
@@ -50,7 +51,7 @@ final class SubmissionDetail
      * los atributos ni al estado de Livewire. `blind` solo avisa a la vista para explicar por qué faltan.
      *
      * @return array{
-     *     answers: list<array{label: string, retired: bool, type: string, value: string|bool|list<string>|null, files: list<array{name: string, size: string, url: string|null, previewUrl: string|null}>, fileCount: int}>,
+     *     answers: list<array{label: string, retired: bool, type: string, value: string|bool|list<string>|null, files: list<array{name: string, size: string, url: string|null, previewUrl: string|null}>, fileCount: int, empty: bool}>,
      *     participants: list<array{photoUrl: ?string, fields: list<array{label: string, value: string}>, name: string, email: string, country: string, state: ?string, city: ?string, phone: ?string, altEmail: ?string, jobTitle: ?string, company: ?string, bio: ?string, primary: bool}>,
      *     canDownload: bool,
      *     blind: bool
@@ -63,7 +64,7 @@ final class SubmissionDetail
 
     /**
      * @return array{
-     *     answers: list<array{label: string, retired: bool, type: string, value: string|bool|list<string>|null, files: list<array{name: string, size: string, url: string|null, previewUrl: string|null}>, fileCount: int}>,
+     *     answers: list<array{label: string, retired: bool, type: string, value: string|bool|list<string>|null, files: list<array{name: string, size: string, url: string|null, previewUrl: string|null}>, fileCount: int, empty: bool}>,
      *     participants: list<array{photoUrl: ?string, fields: list<array{label: string, value: string}>, name: string, email: string, country: string, state: ?string, city: ?string, phone: ?string, altEmail: ?string, jobTitle: ?string, company: ?string, bio: ?string, primary: bool}>,
      *     canDownload: bool,
      *     blind: bool
@@ -159,7 +160,7 @@ final class SubmissionDetail
 
     /**
      * @param  array<string, list<SubmissionFile>>  $filesByField
-     * @return list<array{label: string, retired: bool, type: string, value: string|bool|list<string>|null, files: list<array{name: string, size: string, url: string|null, previewUrl: string|null}>, fileCount: int}>
+     * @return list<array{label: string, retired: bool, type: string, value: string|bool|list<string>|null, files: list<array{name: string, size: string, url: string|null, previewUrl: string|null}>, fileCount: int, empty: bool}>
      */
     private static function answers(Submission $submission, array $filesByField, bool $canDownload, Organization $organization, bool $forReviewer, bool $blind): array
     {
@@ -189,18 +190,26 @@ final class SubmissionDetail
 
             $files = $type === FieldType::File ? ($filesByField[$key] ?? []) : [];
 
-            // Un campo sin respuesta ni archivos no aporta nada al detalle.
-            if (! array_key_exists($key, $submission->answers) && $files === []) {
+            $answered = array_key_exists($key, $submission->answers) || $files !== [];
+
+            // El título y el tema van en el encabezado de la propuesta, no entre las respuestas.
+            if (! $answered && ProposalFields::isRoleField($field)) {
                 continue;
             }
+
+            $value = $type === FieldType::File ? null : self::value($type, $field, $submission->answers[$key] ?? null, $locale, $fallback);
 
             $rows[] = [
                 'label' => self::text($field['label'] ?? null, $locale, $fallback) ?: $key,
                 'retired' => false,
                 'type' => $type->value,
-                'value' => $type === FieldType::File ? null : self::value($type, $field, $submission->answers[$key] ?? null, $locale, $fallback),
+                'value' => $value,
                 'files' => self::files($files, $canDownload, $organization, $positions),
                 'fileCount' => count($files),
+                // Pregunta que quedó sin responder: el detalle la muestra como «Sin respuesta».
+                'empty' => $type === FieldType::File
+                    ? $files === []
+                    : (! $answered || $value === null || $value === '' || $value === []),
             ];
         }
 
@@ -218,6 +227,7 @@ final class SubmissionDetail
                 'value' => is_scalar($answer) ? (string) $answer : json_encode($answer, JSON_UNESCAPED_UNICODE),
                 'files' => [],
                 'fileCount' => 0,
+                'empty' => false,
             ];
         }
 

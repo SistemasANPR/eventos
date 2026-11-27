@@ -9,6 +9,7 @@ use App\Actions\Lodgings\DeleteLodging;
 use App\Actions\Lodgings\UpdateLodging;
 use App\Filament\Resources\Events\EventResource;
 use App\Filament\Support\ActionErrors;
+use App\Filament\Support\ExtraFieldsInput;
 use App\Models\Event;
 use App\Models\Lodging;
 use App\Models\LodgingImage;
@@ -117,6 +118,7 @@ class ManageEventLodgings extends ManageRelatedRecords
                 ->maxSize(2 * 1024)
                 ->storeFiles(false),
             TextInput::make('position')->label(__('lodgings.fields.position'))->helperText(__('lodgings.fields.position_help'))->numeric()->integer()->minValue(0)->maxValue(9999),
+            ExtraFieldsInput::make(),
         ];
     }
 
@@ -156,7 +158,7 @@ class ManageEventLodgings extends ManageRelatedRecords
             unset($data['remove_images']);
         }
 
-        return $data;
+        return ExtraFieldsInput::input($data);
     }
 
     private function createAction(): Action
@@ -183,7 +185,10 @@ class ManageEventLodgings extends ManageRelatedRecords
             ->icon(Heroicon::OutlinedPencilSquare)
             ->modalWidth('2xl')
             ->schema(self::components())
-            ->fillForm(fn (Model $record): array => $this->lodging($record)->only(['name', 'address', 'description', 'booking_url', 'rate', 'position']))
+            ->fillForm(fn (Model $record): array => [
+                ...$this->lodging($record)->only(['name', 'address', 'description', 'booking_url', 'rate', 'position']),
+                'extra_fields' => ExtraFieldsInput::fill($this->lodging($record)->extra_fields),
+            ])
             ->visible(fn (Model $record): bool => Gate::allows('update', $record))
             ->action(function (Model $record, array $data, Schema $schema): void {
                 $this->run(

@@ -42,9 +42,10 @@ function landingErrors(Event $event, array $blocks): array
     return [];
 }
 
-it('CA-022-9: the block types are exactly the nine of the whitelist', function (): void {
+it('CA-022-9: the block types are exactly the whitelist (nine of the event plus six sections of a call, plan 033)', function (): void {
     expect(LandingBlockType::values())->toBe([
         'hero', 'rich_text', 'event_info', 'calls', 'tracks', 'faq', 'image_gallery', 'spacer', 'columns',
+        'call_hero', 'call_dates', 'call_axes', 'call_requirements', 'call_steps', 'call_promos',
     ]);
 });
 

@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 namespace App\Actions\Sponsors;
 
+use App\Enums\ProgramImageType;
 use App\Models\Event;
 use App\Models\Organization;
 use App\Models\Sponsor;
 use App\Models\User;
 use App\Support\Auth\AuthorizesInOrganization;
+use App\Support\Extras\ExtraFields;
 use App\Support\Sponsors\SponsorRules;
 use App\Support\Sponsors\StoresSponsorLogo;
 use App\Support\Tenancy\CurrentOrganization;
@@ -22,7 +24,8 @@ use Throwable;
 /**
  * Edita un patrocinador (plan 030, CA-030-5, CA-030-6). Solo cambia las claves que llegan en `$data`; la
  * validación corre sobre la ficha ya combinada. `logo` reemplaza el logotipo y `remove_logo` lo quita; el
- * archivo anterior se borra DESPUÉS de confirmar la transacción. Se ejecuta en la organización DEL PATROCINADOR
+ * archivo anterior se borra DESPUÉS de confirmar la transacción. `extra_fields` (opcional) reemplaza la lista de
+ * datos adicionales (ver `ExtraFields`). Se ejecuta en la organización DEL PATROCINADOR
  * y audita qué campos cambiaron (nombres de campo, sin los valores).
  *
  * @throws AuthorizationException si quien edita no tiene `sponsors.manage` en la organización del patrocinador
@@ -43,9 +46,11 @@ final class UpdateSponsor
             $event = Event::query()->findOrFail($sponsor->event_id);
             $storedLogo = null;
             $replacedLogo = null;
+            $storedExtras = [];
+            $removedExtras = [];
 
             try {
-                $sponsor = DB::transaction(function () use ($actor, $sponsor, $event, $data, &$storedLogo, &$replacedLogo): Sponsor {
+                $sponsor = DB::transaction(function () use ($actor, $sponsor, $event, $data, &$storedLogo, &$replacedLogo, &$storedExtras, &$removedExtras): Sponsor {
                     $sponsor->refresh();
 
                     $given = SponsorRules::trimmed($data);
@@ -67,6 +72,13 @@ final class UpdateSponsor
                         $replacedLogo = $sponsor->logo_path;
                         $attributes['logo_path'] = null;
                         $logoChanged = true;
+                    }
+
+                    // Sin la clave, los datos adicionales no cambian; con ella, la lista que llega reemplaza a la guardada.
+                    if (array_key_exists('extra_fields', $data)) {
+                        $attributes['extra_fields'] = ExtraFields::resolve(
+                            $event, ProgramImageType::SponsorLogo, is_array($data['extra_fields']) ? $data['extra_fields'] : null, $sponsor->extra_fields, $storedExtras, $removedExtras,
+                        ) ?: null;
                     }
 
                     $sponsor->forceFill($attributes)->save();
@@ -96,12 +108,16 @@ final class UpdateSponsor
                     $this->discardLogo($event, $storedLogo);
                 }
 
+                ExtraFields::discard($event, $storedExtras);
+
                 throw $exception;
             }
 
             if ($replacedLogo !== null) {
                 $this->discardLogo($event, $replacedLogo);
             }
+
+            ExtraFields::discard($event, $removedExtras);
 
             return $sponsor;
         });

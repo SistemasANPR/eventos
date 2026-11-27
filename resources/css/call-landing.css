@@ -1012,3 +1012,8 @@ html:has(.cl) {
         grid-template-areas: 'txt btn';
     }
 }
+
+/* Bloque del evento (texto, imagen, galeria...) dentro de la landing de una convocatoria: centrado y con aire arriba y abajo. */
+.cl-libre {
+    padding-block: 2rem;
+}

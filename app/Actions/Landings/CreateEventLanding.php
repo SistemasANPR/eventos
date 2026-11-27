@@ -43,7 +43,7 @@ final class CreateEventLanding
                 // Se bloquea el evento: dos aperturas simultáneas del editor no crean dos landings.
                 Event::query()->whereKey($event->id)->lockForUpdate()->firstOrFail();
 
-                $existing = EventLanding::query()->where('event_id', $event->id)->first();
+                $existing = EventLanding::query()->where('event_id', $event->id)->whereNull('call_id')->first();
 
                 if ($existing !== null) {
                     return $existing;

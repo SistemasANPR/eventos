@@ -22,7 +22,7 @@ export type LandingIconName =
 export type RichText = string;
 
 /** Un bloque de la respuesta de una pregunta frecuente. */
-export type FaqBlock = { paragraph: RichText } | { list: RichText[] };
+export type FaqBlock = { paragraph: RichText } | { list: RichText[] } | { html: string };
 
 export interface LandingAxis {
     icon: LandingIconName;
