@@ -38,7 +38,7 @@ Medido el 2026-11-26 en `staging` (`a4f4b08`) y en la rama `feat/plan-031-f3-sal
 - `rooms` (plan 031, F2): `name`, `position`, ámbito evento; sin capacidad, tipo, dirección ni mapa. Página «Salas» (`ManageEventRooms`), `RoomPolicy` con `activities.manage` y `activities.delete`, Actions `CreateRoom`, `UpdateRoom`, `DeleteRoom` y `MoveRoom`.
 - `event_activities.room_id` (nulo, clave compuesta, `CHECK` de «sala solo si está programada»). La F3 añadió `DetectScheduleConflicts`, `ActivityRoomConflict` y los avisos de ponente repetido; en `CreateActivity` y `UpdateActivity` el evento se bloquea antes de comprobar la sala. **Toda sala es exclusiva.**
 - No existen cupo, lugar externo, punto de reunión, transporte ni responsables. No hay modelos de asistente, inscripción ni boleto (`app/Models`); el glosario define `Taller` (`Workshop`) como «sesión con cupo e inscripción» y E-27 está en R4, detrás de E-22.
-- Público (plan 029): constructores `PublicActivityData` y `PublicSpeakerData` con **listas cerradas de claves**; `CA-029-7` y `CA-031-28` comparan las claves exactas, y `CA-031-28` exige que ninguna cadena mencione la sala. El borrador del plan 033 (app móvil y API) dice que `/events/{event}/rooms` y `activities` incluyen la sala: hoy el borrador y la regla del plan 031 se contradicen.
+- Público (plan 029): constructores `PublicActivityData` y `PublicSpeakerData` con **listas cerradas de claves**; `CA-029-7` y `CA-031-28` comparan las claves exactas, y `CA-031-28` exige que ninguna cadena mencione la sala. El borrador del plan 036 (app móvil y API) dice que `/events/{event}/rooms` y `activities` incluyen la sala: hoy el borrador y la regla del plan 031 se contradicen.
 - Privacidad: `PersonalDataInventoryTest` exige que todo modelo de `app/Models` figure como cubierto por la anonimización o exento con su razón, y que cada columna de una tabla cubierta esté clasificada.
 - Frontend: `ActivityCard` (molécula), la página `Events/Activity` y los tipos de `resources/js/types/program.ts` reflejan el contrato público actual.
 
@@ -96,7 +96,7 @@ Este plan modifica `DetectScheduleConflicts`, `CreateActivity` y `UpdateActivity
 
 ### DA-13 · El sitio público muestra el lugar — se recomienda **sí, en el detalle de la actividad (no en el programa)**
 
-Resuelve la contradicción entre el plan 031 (la sala no sale en lo público) y el borrador del plan 033 (la API incluye la sala). El programa no muestra el lugar; el detalle sí, con nombre y, si existen, dirección y mapa. Esto **cambia a propósito** el contrato del plan 029 y las pruebas `CA-029-7` y `CA-031-28`. **Cerrada el 2026-11-26: Antonio aprueba la recomendación.**
+Resuelve la contradicción entre el plan 031 (la sala no sale en lo público) y el borrador del plan 036 (la API incluye la sala). El programa no muestra el lugar; el detalle sí, con nombre y, si existen, dirección y mapa. Esto **cambia a propósito** el contrato del plan 029 y las pruebas `CA-029-7` y `CA-031-28`. **Cerrada el 2026-11-26: Antonio aprueba la recomendación.**
 
 ## 4. Contrato
 
@@ -122,7 +122,7 @@ Las migraciones **no se escriben ni se aplican a una base real** sin la propuest
 
 - **Resumen de actividad** (`PublicActivityData::summary`): se añade `limitedSeats` (booleano). Nada más.
 - **Detalle** (`PublicActivityData::detail`): se añaden `seats` (cupo o nulo), `place` (o nulo) con `name`, `isExternal`, `address`, `mapUrl` y `capacity` (esta última solo si `capacity_is_public`), `meetingPoint`, `transport` y `contacts` (solo los `is_public`, con `name`, `phone` y `email`). Cada valor vacío llega como `null` o lista vacía y la página no lo pinta.
-- Se actualizan `docs/api/endpoints.md` (borrador del plan 033), `resources/js/types/program.ts`, las pruebas `CA-029-7` y `CA-031-28`, y la lista de claves del plan 029.
+- Se actualizan `docs/api/endpoints.md` (borrador del plan 036), `resources/js/types/program.ts`, las pruebas `CA-029-7` y `CA-031-28`, y la lista de claves del plan 029.
 - No hay rutas JSON ni webhooks nuevos.
 
 ### 4.4 Interfaz

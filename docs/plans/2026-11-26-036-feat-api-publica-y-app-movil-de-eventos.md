@@ -1,6 +1,6 @@
 # feat: API pública v1 y app móvil multi-evento (Expo)
 
-> Plan 033. Es la especificación SDD (ADR-0001). Se presenta y se espera aprobación antes de escribir código. `NNN` = 033: todos sus criterios son `CA-033-n`. Cubre **dos entregables**: (1) la API pública de solo lectura en este repositorio y (2) la app móvil «Eventos ANPR» en un repositorio aparte. El segundo no se construye hasta cerrar el contrato del primero.
+> Plan 036. Es la especificación SDD (ADR-0001). Se presenta y se espera aprobación antes de escribir código. `NNN` = 036: todos sus criterios son `CA-036-n`. Cubre **dos entregables**: (1) la API pública de solo lectura en este repositorio y (2) la app móvil «Eventos ANPR» en un repositorio aparte. El segundo no se construye hasta cerrar el contrato del primero.
 > `composer check:criteria` lee el **Estado** y los criterios de este archivo: no cambiar el formato de esas líneas.
 
 - **Fecha:** 2026-11-26
@@ -148,7 +148,7 @@ Seguridad adicional: límite por IP estricto, sin CORS abierto innecesario (la a
 
 ## 6. Estrategia por fases
 
-Cada fase deja su repositorio en verde y termina en su propio commit. Las fases F0 a F4 son backend (este repositorio, rama `feat/plan-033-api-publica`); F5 a F9 son la app (repositorio nuevo).
+Cada fase deja su repositorio en verde y termina en su propio commit. Las fases F0 a F4 son backend (este repositorio, rama `feat/plan-036-api-publica`); F5 a F9 son la app (repositorio nuevo).
 
 | Fase | Qué se hace | Esfuerzo |
 |---|---|---|
@@ -167,55 +167,55 @@ Orden de dependencias: F0 → F1 → F2 → F3 → F4 → (F5 puede empezar al t
 
 ## 7. Criterios de aceptación
 
-Cada uno tiene al menos una prueba cuyo nombre lo cita (`CA-033-n: ...`) o declara su comprobación manual con una línea `Manual:` debajo. Los CA-033-1 a 14 son del backend (Pest); del 15 al 20, de la app (repositorio aparte, con su propia verificación).
+Cada uno tiene al menos una prueba cuyo nombre lo cita (`CA-036-n: ...`) o declara su comprobación manual con una línea `Manual:` debajo. Los CA-036-1 a 14 son del backend (Pest); del 15 al 20, de la app (repositorio aparte, con su propia verificación).
 
 **Aislamiento y visibilidad**
 
-- **CA-033-1:** *Dado* un evento publicado y listado de la organización A, *cuando* se consulta `GET /api/v1/public/events`, *entonces* aparece; un evento de la organización B con `listed_in_app` falso o en borrador **no** aparece.
-- **CA-033-2:** *Dado* un evento de la organización B, *cuando* se pide el contenido de un ponente o actividad de la organización A usando el uuid del evento de B, *entonces* responde 404 (el binding está acotado por evento y organización).
-- **CA-033-3:** *Dado* un evento archivado, borrador o inexistente, *cuando* se consulta cualquiera de sus rutas, *entonces* responde con el mismo cuerpo de error uniforme (no se distingue «no existe» de «no publicado»); el archivado responde 410 `EVENT_UNAVAILABLE` según el plan 032.
-- **CA-033-4:** *Dado* un ponente o actividad no publicado, oculto por reversa, borrado o sin programar, *cuando* se consulta la lista o el detalle, *entonces* no aparece y el detalle responde 404.
-- **CA-033-5:** *Dado* cualquier respuesta de la API, *entonces* no contiene `email`, teléfonos, `contact_id`, `submission_id` ni `created_by_submission_id` (prueba que recorre todas las respuestas).
-- **CA-033-6:** *Dado* que no hay contexto de organización fijado, *cuando* cualquier consulta distinta de la de resolución del evento intenta leer, *entonces* la consulta **falla** (no devuelve vacío).
+- **CA-036-1:** *Dado* un evento publicado y listado de la organización A, *cuando* se consulta `GET /api/v1/public/events`, *entonces* aparece; un evento de la organización B con `listed_in_app` falso o en borrador **no** aparece.
+- **CA-036-2:** *Dado* un evento de la organización B, *cuando* se pide el contenido de un ponente o actividad de la organización A usando el uuid del evento de B, *entonces* responde 404 (el binding está acotado por evento y organización).
+- **CA-036-3:** *Dado* un evento archivado, borrador o inexistente, *cuando* se consulta cualquiera de sus rutas, *entonces* responde con el mismo cuerpo de error uniforme (no se distingue «no existe» de «no publicado»); el archivado responde 410 `EVENT_UNAVAILABLE` según el plan 032.
+- **CA-036-4:** *Dado* un ponente o actividad no publicado, oculto por reversa, borrado o sin programar, *cuando* se consulta la lista o el detalle, *entonces* no aparece y el detalle responde 404.
+- **CA-036-5:** *Dado* cualquier respuesta de la API, *entonces* no contiene `email`, teléfonos, `contact_id`, `submission_id` ni `created_by_submission_id` (prueba que recorre todas las respuestas).
+- **CA-036-6:** *Dado* que no hay contexto de organización fijado, *cuando* cualquier consulta distinta de la de resolución del evento intenta leer, *entonces* la consulta **falla** (no devuelve vacío).
 
 **Contrato**
 
-- **CA-033-7:** *Dado* cualquier ruta, *entonces* responde con el sobre `{success, data, meta}` y los errores con `{success:false, error:{code,message}}` en JSON, aun si el cliente no envía `Accept: application/json`.
-- **CA-033-8:** *Dado* `perPage=500`, *cuando* se lista, *entonces* responde 422/400 `VALIDATION_FAILED` o se limita a 100 (según lo fije el endpoint documentado); nunca devuelve más de 100.
-- **CA-033-9:** *Dado* una petición con `If-None-Match` igual al `ETag` vigente, *entonces* responde 304 sin cuerpo; tras cambiar el contenido, responde 200 con un `ETag` nuevo.
-- **CA-033-10:** *Dado* `Accept-Language: en` y un evento que ofrece en, *entonces* las etiquetas y datos traducibles salen en inglés; si el idioma no está ofrecido, se usa el idioma por defecto del evento.
-- **CA-033-11:** *Dado* el archivo `openapi-v1.yaml`, *cuando* corre la prueba de conformidad, *entonces* todas las respuestas reales cumplen el esquema (falla si un campo se renombra o desaparece).
-- **CA-033-12:** *Dado* una ruta bajo `/api/v1/public`, *entonces* está registrada en `docs/api/endpoints.md` (prueba guardiana).
+- **CA-036-7:** *Dado* cualquier ruta, *entonces* responde con el sobre `{success, data, meta}` y los errores con `{success:false, error:{code,message}}` en JSON, aun si el cliente no envía `Accept: application/json`.
+- **CA-036-8:** *Dado* `perPage=500`, *cuando* se lista, *entonces* responde 422/400 `VALIDATION_FAILED` o se limita a 100 (según lo fije el endpoint documentado); nunca devuelve más de 100.
+- **CA-036-9:** *Dado* una petición con `If-None-Match` igual al `ETag` vigente, *entonces* responde 304 sin cuerpo; tras cambiar el contenido, responde 200 con un `ETag` nuevo.
+- **CA-036-10:** *Dado* `Accept-Language: en` y un evento que ofrece en, *entonces* las etiquetas y datos traducibles salen en inglés; si el idioma no está ofrecido, se usa el idioma por defecto del evento.
+- **CA-036-11:** *Dado* el archivo `openapi-v1.yaml`, *cuando* corre la prueba de conformidad, *entonces* todas las respuestas reales cumplen el esquema (falla si un campo se renombra o desaparece).
+- **CA-036-12:** *Dado* una ruta bajo `/api/v1/public`, *entonces* está registrada en `docs/api/endpoints.md` (prueba guardiana).
 
 **Seguridad y datos**
 
-- **CA-033-13:** *Dado* más peticiones por IP que el límite, *entonces* responde 429 `RATE_LIMITED`.
-- **CA-033-14:** *Dado* un evento recién publicado, *entonces* tiene `public_code` único global; dos eventos de organizaciones distintas nunca comparten código; la búsqueda por código es insensible a mayúsculas y responde 404 uniforme si no existe.
+- **CA-036-13:** *Dado* más peticiones por IP que el límite, *entonces* responde 429 `RATE_LIMITED`.
+- **CA-036-14:** *Dado* un evento recién publicado, *entonces* tiene `public_code` único global; dos eventos de organizaciones distintas nunca comparten código; la búsqueda por código es insensible a mayúsculas y responde 404 uniforme si no existe.
 
 **App móvil**
 
-- **CA-033-15:** *Dado* que la app se abre por primera vez, *cuando* el usuario busca su evento por nombre, por código o escaneando un QR, *entonces* lo encuentra y la app muestra su inicio.
+- **CA-036-15:** *Dado* que la app se abre por primera vez, *cuando* el usuario busca su evento por nombre, por código o escaneando un QR, *entonces* lo encuentra y la app muestra su inicio.
   Manual: iOS y Android reales; probar los tres caminos y un código inexistente (mensaje de error claro, sin cierre).
-- **CA-033-16:** *Dado* un evento elegido, *cuando* se reabre la app, *entonces* entra directo a ese evento y ofrece «cambiar de evento».
+- **CA-036-16:** *Dado* un evento elegido, *cuando* se reabre la app, *entonces* entra directo a ese evento y ofrece «cambiar de evento».
   Manual: cerrar y abrir la app, con y sin red.
-- **CA-033-17:** *Dado* un evento sin hospedaje ni patrocinadores, *entonces* esas pestañas no aparecen.
+- **CA-036-17:** *Dado* un evento sin hospedaje ni patrocinadores, *entonces* esas pestañas no aparecen.
   Manual: con un evento de prueba así.
-- **CA-033-18:** *Dado* que se abrió el programa con red y luego se pierde, *entonces* la app sigue mostrando lo guardado con «última actualización»; al volver la red, se refresca sola.
+- **CA-036-18:** *Dado* que se abrió el programa con red y luego se pierde, *entonces* la app sigue mostrando lo guardado con «última actualización»; al volver la red, se refresca sola.
   Manual: modo avión en un dispositivo real.
-- **CA-033-19:** *Dado* un enlace `https://.../{org}/events/{evento}` compartido, *cuando* se toca con la app instalada, *entonces* abre ese evento directamente; sin la app, abre el sitio web.
+- **CA-036-19:** *Dado* un enlace `https://.../{org}/events/{evento}` compartido, *cuando* se toca con la app instalada, *entonces* abre ese evento directamente; sin la app, abre el sitio web.
   Manual: iOS y Android.
-- **CA-033-20:** *Dado* una actividad marcada en «mi agenda», *entonces* permanece tras cerrar la app y se ve en una vista propia ordenada por hora; no se envía nada al servidor.
+- **CA-036-20:** *Dado* una actividad marcada en «mi agenda», *entonces* permanece tras cerrar la app y se ve en una vista propia ordenada por hora; no se envía nada al servidor.
   Manual: marcar, cerrar, reabrir.
 
 ## 8. Riesgos
 
 | Riesgo | Mitigación |
 |---|---|
-| Fuga entre organizaciones por la consulta global de eventos (primera superficie que cruza organizaciones). | Una sola clase con `withoutOrganizationScope` documentada en ADR-0003; contexto fijado antes de cualquier otra lectura; CA-033-1, 2, 5 y 6; revisión con `/revisar-aislamiento` antes de integrar F2 y F3. |
-| Exponer datos personales o internos por un campo olvidado. | Constructores explícitos (lista blanca de campos) y la prueba que recorre las respuestas (CA-033-5); revisión contra `docs/privacidad.md`. |
+| Fuga entre organizaciones por la consulta global de eventos (primera superficie que cruza organizaciones). | Una sola clase con `withoutOrganizationScope` documentada en ADR-0003; contexto fijado antes de cualquier otra lectura; CA-036-1, 2, 5 y 6; revisión con `/revisar-aislamiento` antes de integrar F2 y F3. |
+| Exponer datos personales o internos por un campo olvidado. | Constructores explícitos (lista blanca de campos) y la prueba que recorre las respuestas (CA-036-5); revisión contra `docs/privacidad.md`. |
 | Rechazo de las tiendas (política de contenido, privacidad, «app envoltura» de un sitio web, Apple 4.2). | App nativa real con caché, QR, favoritos y enlaces profundos; política de privacidad publicada; TestFlight y pruebas internas antes de enviar; iniciar cuentas y revisión con holgura. |
 | Plazo de cuentas de desarrollador y verificación de organización (D-U-N-S en Apple). | Empezar el trámite en F0, en paralelo. |
-| App instalada con versión vieja frente a un cambio de API. | Solo cambios aditivos en v1; `X-App-Version`; `426` reservado; CA-033-11 detecta deriva. |
+| App instalada con versión vieja frente a un cambio de API. | Solo cambios aditivos en v1; `X-App-Version`; `426` reservado; CA-036-11 detecta deriva. |
 | Carga por polling de muchos asistentes durante el evento (picos). | `ETag`/304, `Cache-Control`, caché en el borde (CDN) para las rutas públicas, límite por IP; medir antes del primer evento real y registrar la cifra. |
 | Abuso o scraping del listado. | Límite por IP, `perPage` ≤ 100, sin exponer datos internos; solo se listan eventos con `listed_in_app`. |
 | Contenido de ponentes y actividades en un solo idioma (no traducible). | Se documenta; la app no inventa traducciones. Mejora posible en un plan de contenido traducible. |
