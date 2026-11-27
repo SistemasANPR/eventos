@@ -6,6 +6,7 @@ namespace App\Support\Privacy;
 
 use App\Models\Activity;
 use App\Models\ActivityCategory;
+use App\Models\ActivityContact;
 use App\Models\AnonymizationLog;
 use App\Models\CallForSubmissions;
 use App\Models\Contact;
@@ -142,6 +143,13 @@ final class PersonalDataInventory
             'deleted' => true,
             'retained' => ['id', 'user_id', 'fingerprint_hash', 'last_seen_at', 'created_at', 'updated_at'],
         ],
+        ActivityContact::class => [
+            // Responsables de una actividad en un lugar externo (plan 035): las filas se ELIMINAN al anonimizar a la persona,
+            // localizada por su correo (`PersonRecords`, `PersonDataEraser::eraseActivityContacts`); `ExportPersonData` las
+            // incluye y `ReapplyAnonymizations` las vuelve a eliminar tras restaurar un respaldo (CA-035-32 y 34).
+            'deleted' => true,
+            'retained' => ['id', 'organization_id', 'event_id', 'activity_id', 'name', 'phone', 'email', 'position', 'is_public', 'created_at', 'updated_at'],
+        ],
         Activity::class => [
             // La entrada se conserva (quién, qué, cuándo, con identificadores sin dato personal); del texto se quita el nombre y el correo.
             'redacted' => ['description', 'properties', 'attribute_changes'],
@@ -157,7 +165,7 @@ final class PersonalDataInventory
     public const EXEMPT = [
         Organization::class => 'Es el responsable del tratamiento: nombre e identificador de la organización, no de una persona.',
         ActivityCategory::class => 'Catálogo de categorías del programa definido por la organización.',
-        Room::class => 'Catálogo de salas del evento (nombre y orden) definido por la organización.',
+        Room::class => 'Catálogo de lugares del evento (nombre, orden, tipo, capacidad, dirección y mapa de un lugar) definido por la organización; no guarda personas.',
         CallForSubmissions::class => 'Configuración de la convocatoria de la organización.',
         Event::class => 'Configuración del evento de la organización (nombre, fechas, idiomas, logotipo institucional).',
         EventActivity::class => 'Texto e imágenes del programa que redacta la organización; los ponentes se vinculan por identificador (la ficha es `Speaker`).',

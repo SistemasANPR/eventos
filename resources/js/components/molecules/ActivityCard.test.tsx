@@ -5,7 +5,7 @@ import { createTranslate } from '@/lib/translate';
 import type { PublicActivitySummary } from '@/types/program';
 
 const translations = {
-    program: { until: 'Termina el :date', time_range: ':start – :end', speakers: 'Ponentes' },
+    program: { until: 'Termina el :date', time_range: ':start – :end', speakers: 'Ponentes', limited_seats: 'Cupo limitado' },
 };
 
 vi.mock('@/hooks/useTranslation', () => ({
@@ -26,6 +26,7 @@ const activity: PublicActivitySummary = {
         { id: 's2', name: 'Luis Pérez', company: null, jobTitle: null, tagline: null, photoUrl: null, url: '/p/events/c/speakers/s2' },
     ],
     iconUrl: null,
+    limitedSeats: false,
     url: '/p/events/c/activities/a1',
 };
 
@@ -95,5 +96,23 @@ describe('ActivityCard', () => {
         expect(icon).toHaveAttribute('loading', 'lazy');
         expect(icon).toHaveAttribute('width');
         expect(icon).toHaveAttribute('height');
+    });
+
+    it('CA-035-24: shows the limited quota badge only when the activity has a quota and never a number', () => {
+        const { unmount } = render(<ActivityCard activity={{ ...activity, limitedSeats: true }} locale="es" timeFormat="24h" />);
+
+        expect(screen.getByText('Cupo limitado')).toBeInTheDocument();
+        expect(screen.getByText('Cupo limitado').closest('article')).not.toHaveTextContent(/\d+\s*personas/);
+        unmount();
+
+        render(<ActivityCard activity={activity} locale="es" timeFormat="24h" />);
+
+        expect(screen.queryByText('Cupo limitado')).not.toBeInTheDocument();
+    });
+
+    it('CA-035-24: keeps the badge outside the title link so the link name stays the title', () => {
+        render(<ActivityCard activity={{ ...activity, limitedSeats: true }} locale="es" timeFormat="24h" />);
+
+        expect(screen.getByRole('link', { name: 'Taller de jardinería' })).toBeInTheDocument();
     });
 });

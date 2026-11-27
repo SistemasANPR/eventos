@@ -108,7 +108,7 @@ export const registry: CatalogEntry[] = [
         path: 'molecules/ActivityCard',
         level: 'molecule',
         category: 'Data display',
-        useWhen: 'Una actividad del programa público: horario local del evento, título con enlace al detalle, resumen, categorías y ponentes',
+        useWhen: 'Una actividad del programa público: horario local del evento, título con enlace al detalle, insignia «Cupo limitado» si tiene cupo, resumen, categorías y ponentes',
         avoidFor: 'Ponentes o el detalle completo de una actividad; datos que no sean del programa',
         preview: 'demo',
     },

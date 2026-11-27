@@ -14,6 +14,7 @@ use App\Models\User;
 use App\Support\Auth\AuthorizesInOrganization;
 use App\Support\Program\ActivityWrites;
 use App\Support\Program\DetectScheduleConflicts;
+use App\Support\Program\ExternalDetails;
 use App\Support\Tenancy\CurrentOrganization;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\UploadedFile;
@@ -67,6 +68,10 @@ final class CreateActivity
                     ActivityWrites::lockEvent($event->id);
                     ActivityWrites::assertRoomFree($event->id, $validated['room_id'] ?? null, ActivityWrites::slot($validated));
 
+                    // Punto de reunión, transporte y responsables solo con un lugar externo (plan 035, CA-035-13).
+                    $external = ExternalDetails::isExternal($validated['room_id'] ?? null);
+                    ExternalDetails::assertAllowed($validated, $external);
+
                     $activity = new EventActivity;
                     $activity->event_id = $event->id;
                     $activity->forceFill([
@@ -80,10 +85,14 @@ final class CreateActivity
                         'icon_path' => $iconPath,
                         'image_path' => $imagePath,
                         'room_id' => $validated['room_id'] ?? null,
+                        'quota' => isset($validated['quota']) ? (int) $validated['quota'] : null,
+                        'meeting_point' => $external ? ($validated['meeting_point'] ?? null) : null,
+                        'transport_info' => $external ? ($validated['transport_info'] ?? null) : null,
                         'is_published' => $validated['is_published'] ?? true,
                     ])->save();
 
                     ActivityWrites::syncCategories($activity, array_values($validated['category_ids'] ?? []));
+                    $contacts = ExternalDetails::syncContacts($activity, $external ? array_values($validated['contacts'] ?? []) : []);
 
                     if (($validated['speaker_ids'] ?? []) !== []) {
                         app(SyncActivitySpeakers::class)->handle($actor, $activity, array_values($validated['speaker_ids']));
@@ -97,11 +106,14 @@ final class CreateActivity
                             'organization_id' => $activity->organization_id,
                             'event_id' => $event->id,
                             'is_published' => $activity->is_published,
+                            // Solo cuántos responsables, nunca sus datos (plan 035, CA-035-14).
+                            'contacts' => ['before' => $contacts['before'], 'after' => $contacts['after']],
                         ])
                         ->log('activity_created');
 
                     // Un ponente en dos actividades que se cruzan no impide guardar: se avisa (CA-031-15).
                     $activity->scheduleWarnings = DetectScheduleConflicts::speakerClashes($activity);
+                    $activity->quotaWarning = ActivityWrites::quotaWarning($activity->quota, $activity->room_id);
 
                     return $activity;
                 });

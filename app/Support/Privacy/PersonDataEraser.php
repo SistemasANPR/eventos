@@ -6,6 +6,7 @@ namespace App\Support\Privacy;
 
 use App\Exceptions\Domain\PersonFileDeletionFailed;
 use App\Models\Activity;
+use App\Models\ActivityContact;
 use App\Models\Contact;
 use App\Models\KnownDevice;
 use App\Models\MailDispatch;
@@ -163,6 +164,17 @@ final class PersonDataEraser
                 'country' => null,
                 'anonymized_at' => now(),
             ]);
+    }
+
+    /**
+     * Los responsables de actividad de la persona se ELIMINAN (plan 035, CA-035-32): son nombre, teléfono y correo sin
+     * más contenido, y nada depende de ellos. Solo los de la organización en contexto.
+     *
+     * @param  list<string>  $activityContactIds
+     */
+    public function eraseActivityContacts(array $activityContactIds): int
+    {
+        return ActivityContact::query()->whereIn('id', $activityContactIds)->delete();
     }
 
     /**

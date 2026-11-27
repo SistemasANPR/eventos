@@ -351,20 +351,20 @@ it('CA-031-18: the existing calls without room keep working with the same argume
     expect($synced->fresh()->title)->toBe('Otro nombre')->and($synced->fresh()->room_id)->toBeNull();
 });
 
-it('CA-031-28: the public props of an activity with a room have exactly the same keys and never mention the room', function (): void {
+it('CA-031-28: the public summary of an activity with a room never mentions the room and the detail names it without its id', function (): void {
     $event = ppEvent();
     $room = rcRoom($event, 'Sala secreta del sotano');
     $activity = rcActivity($event, $room, '10:00:00', '11:00:00', 'Con sala');
 
     $found = ppIn($event, fn () => app(FindPublicActivity::class)->handle($event, $activity->id));
     [$detail, $summary] = ppIn($event, fn (): array => [PublicActivityData::detail($found, $event), PublicActivityData::summary($found, $event)]);
-    $keys = ['id', 'title', 'summary', 'date', 'endDate', 'startTime', 'endTime', 'categories', 'speakers', 'iconUrl', 'url'];
+    // Plan 035 (DA-13) cambia a propósito el contrato público: `limitedSeats` en el resumen y cupo, lugar y demás en el detalle.
+    $keys = ['id', 'title', 'summary', 'date', 'endDate', 'startTime', 'endTime', 'categories', 'speakers', 'iconUrl', 'limitedSeats', 'url'];
 
     expect(array_keys($summary))->toBe($keys)
-        ->and(array_keys($detail))->toBe([...$keys, 'descriptionHtml', 'imageUrl']);
+        ->and(array_keys($detail))->toBe([...$keys, 'descriptionHtml', 'imageUrl', 'seats', 'place', 'meetingPoint', 'transport', 'contacts'])
+        ->and($detail['place']['name'])->toBe('Sala secreta del sotano');
 
-    $emitted = json_encode([$detail, $summary], JSON_THROW_ON_ERROR);
-
-    expect($emitted)->not->toContain('Sala secreta');
-    expect($emitted)->not->toContain($room->id);
+    expect(json_encode($summary, JSON_THROW_ON_ERROR))->not->toContain('Sala secreta');
+    expect(json_encode([$detail, $summary], JSON_THROW_ON_ERROR))->not->toContain($room->id);
 });

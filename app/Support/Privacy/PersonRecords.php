@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Support\Privacy;
 
+use App\Models\ActivityContact;
 use App\Models\Contact;
 use App\Models\Speaker;
 use App\Models\SubmissionParticipant;
@@ -26,6 +27,7 @@ final class PersonRecords
      * @param  list<string>  $contactIds
      * @param  list<string>  $participantIds
      * @param  list<string>  $speakerIds
+     * @param  list<string>  $activityContactIds  responsables de actividades (plan 035) con alguno de sus correos
      * @param  list<string>  $submissionIds  propuestas donde participa
      * @param  list<string>  $primarySubmissionIds  propuestas donde es el participante principal (autor que las envió)
      */
@@ -35,6 +37,7 @@ final class PersonRecords
         public readonly array $contactIds,
         public readonly array $participantIds,
         public readonly array $speakerIds,
+        public readonly array $activityContactIds,
         public readonly array $submissionIds,
         public readonly array $primarySubmissionIds,
         public readonly ?string $userId,
@@ -69,6 +72,12 @@ final class PersonRecords
             ->values()
             ->all();
 
+        // Los responsables de una actividad se localizan solo por correo: no tienen vínculo con un `Contact` (plan 035, DA-11).
+        $activityContactIds = ActivityContact::query()
+            ->whereRaw('lower(email) in ('.implode(',', array_fill(0, count($emails), '?')).')', $emails)
+            ->pluck('id')
+            ->all();
+
         $user = User::query()
             ->membersOf(CurrentOrganization::get())
             ->whereRaw('lower(email) = ?', [$email])
@@ -80,6 +89,7 @@ final class PersonRecords
             contactIds: $contactIds,
             participantIds: $participants->pluck('id')->all(),
             speakerIds: $speakers->pluck('id')->all(),
+            activityContactIds: $activityContactIds,
             submissionIds: $participants->pluck('submission_id')->unique()->values()->all(),
             primarySubmissionIds: $participants->where('is_primary', true)->pluck('submission_id')->unique()->values()->all(),
             userId: $user?->id,
@@ -91,6 +101,7 @@ final class PersonRecords
         return $this->contactIds === []
             && $this->participantIds === []
             && $this->speakerIds === []
+            && $this->activityContactIds === []
             && $this->userId === null;
     }
 }
