@@ -15,6 +15,7 @@ use App\Models\Event;
 use App\Models\EventActivity;
 use App\Models\EventAssignment;
 use App\Models\EventLanding;
+use App\Models\ExtraFieldDefinition;
 use App\Models\FormDefinition;
 use App\Models\KnownDevice;
 use App\Models\LandingImage;
@@ -173,8 +174,9 @@ final class PersonalDataInventory
         EventLanding::class => 'Contenido de la página pública redactado por la organización.',
         FormDefinition::class => 'Definición del formulario (campos y reglas), sin respuestas de personas.',
         LandingImage::class => 'Imágenes de la página pública cargadas por la organización.',
-        Lodging::class => 'Hoteles recomendados del evento (nombre, dirección, enlace de reserva): datos de un negocio que registra la organización, sin personas; sus datos adicionales (texto o foto) son del negocio, no de asistentes ni autores.',
-        Sponsor::class => 'Patrocinadores del evento (nombre de la empresa, logotipo, nivel y sitio web): datos de una organización, sin personas; sus datos adicionales (texto o foto) son de la empresa, no de asistentes ni autores.',
+        Lodging::class => 'Hoteles recomendados del evento (nombre, dirección, enlace de reserva): datos de un negocio que registra la organización, sin personas; las respuestas a las preguntas del formulario del evento son del negocio, no de asistentes ni autores.',
+        Sponsor::class => 'Patrocinadores del evento (nombre de la empresa, logotipo, nivel y sitio web): datos de una organización, sin personas; las respuestas a las preguntas del formulario del evento son de la empresa, no de asistentes ni autores.',
+        ExtraFieldDefinition::class => 'Preguntas del formulario de hospedajes y patrocinadores (título, tipo, opciones) definidas por la organización: sin personas.',
         SponsorCategory::class => 'Catálogo de niveles de patrocinador (Oro, Plata, Bronce...) definido por la organización: sin personas.',
         LodgingImage::class => 'Ruta de una imagen de la galería de un hospedaje (negocio del evento): sin personas.',
         MailTemplate::class => 'Plantillas de correo de la organización, sin destinatarios.',

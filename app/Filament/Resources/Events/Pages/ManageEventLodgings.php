@@ -9,8 +9,10 @@ use App\Actions\Lodgings\DeleteLodging;
 use App\Actions\Lodgings\UpdateLodging;
 use App\Filament\Resources\Events\EventResource;
 use App\Filament\Support\ActionErrors;
+use App\Filament\Support\ExtraFieldDefinitionsAction;
 use App\Filament\Support\ExtraFieldsInput;
 use App\Models\Event;
+use App\Models\ExtraFieldDefinition;
 use App\Models\Lodging;
 use App\Models\LodgingImage;
 use App\Support\Files\MediaThumbnail;
@@ -88,11 +90,11 @@ class ManageEventLodgings extends ManageRelatedRecords
     /** @return array<int, Action> */
     protected function getHeaderActions(): array
     {
-        return [$this->createAction()];
+        return [ExtraFieldDefinitionsAction::make(ExtraFieldDefinition::SCOPE_LODGING, fn (): Event => $this->event()), $this->createAction()];
     }
 
     /** @return array<int, mixed> */
-    private static function components(): array
+    private function components(): array
     {
         return [
             TextInput::make('name')->label(__('lodgings.fields.name'))->required()->maxLength(160),
@@ -118,7 +120,7 @@ class ManageEventLodgings extends ManageRelatedRecords
                 ->maxSize(2 * 1024)
                 ->storeFiles(false),
             TextInput::make('position')->label(__('lodgings.fields.position'))->helperText(__('lodgings.fields.position_help'))->numeric()->integer()->minValue(0)->maxValue(9999),
-            ExtraFieldsInput::make(),
+            ...ExtraFieldsInput::components($this->event(), ExtraFieldDefinition::SCOPE_LODGING),
         ];
     }
 
@@ -167,7 +169,7 @@ class ManageEventLodgings extends ManageRelatedRecords
             ->label(__('lodgings.create'))
             ->icon(Heroicon::OutlinedPlus)
             ->modalWidth('2xl')
-            ->schema(self::components())
+            ->schema(fn (): array => $this->components())
             ->visible(fn (): bool => Gate::allows('create', [Lodging::class, $this->event()]))
             ->action(function (array $data, Schema $schema): void {
                 $this->run(
@@ -184,10 +186,10 @@ class ManageEventLodgings extends ManageRelatedRecords
             ->label(__('lodgings.edit'))
             ->icon(Heroicon::OutlinedPencilSquare)
             ->modalWidth('2xl')
-            ->schema(self::components())
+            ->schema(fn (): array => $this->components())
             ->fillForm(fn (Model $record): array => [
                 ...$this->lodging($record)->only(['name', 'address', 'description', 'booking_url', 'rate', 'position']),
-                'extra_fields' => ExtraFieldsInput::fill($this->lodging($record)->extra_fields),
+                ...ExtraFieldsInput::fill($this->lodging($record)),
             ])
             ->visible(fn (Model $record): bool => Gate::allows('update', $record))
             ->action(function (Model $record, array $data, Schema $schema): void {

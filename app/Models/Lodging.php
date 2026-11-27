@@ -24,7 +24,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property string|null $booking_url
  * @property string|null $rate
  * @property int $position
- * @property list<array{id: string, label: string, type: string, value?: string|null, path?: string|null}>|null $extra_fields
+ * @property array<string, string|array{path: string}>|null $extra_fields respuestas a las preguntas del evento: id de la pregunta => texto o {path} de la foto
  */
 class Lodging extends Model
 {

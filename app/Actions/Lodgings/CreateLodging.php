@@ -6,6 +6,7 @@ namespace App\Actions\Lodgings;
 
 use App\Enums\ProgramImageType;
 use App\Models\Event;
+use App\Models\ExtraFieldDefinition;
 use App\Models\Lodging;
 use App\Models\Organization;
 use App\Models\User;
@@ -24,7 +25,7 @@ use Throwable;
  * Da de alta un hospedaje en un evento (plan 030, CA-030-1, CA-030-2, CA-030-14). Solo el nombre es obligatorio;
  * el enlace de reserva debe ser http o https. Las imágenes (`images`, hasta 10) se guardan por su contenido en el
  * disco `media`. Sin orden explícito, queda al final de la lista. Se ejecuta en la organización DEL EVENTO, en una
- * transacción, y audita con identificadores. `extra_fields` trae los datos adicionales (ver `ExtraFields`). Si algo falla, no queda ningún archivo huérfano.
+ * transacción, y audita con identificadores. `extra_fields` trae las respuestas a las preguntas del formulario del evento (ver `ExtraFields`). Si algo falla, no queda ningún archivo huérfano.
  *
  * @throws AuthorizationException si quien crea no tiene `lodgings.manage` en la organización del evento
  * @throws ValidationException si los datos no cumplen `LodgingRules` o alguna imagen no es aceptable
@@ -57,7 +58,7 @@ final class CreateLodging
 
                     $unused = [];
                     $attributes['extra_fields'] = ExtraFields::resolve(
-                        $event, ProgramImageType::LodgingImage, is_array($data['extra_fields'] ?? null) ? $data['extra_fields'] : null, null, $stored, $unused,
+                        $event, ExtraFieldDefinition::SCOPE_LODGING, ProgramImageType::LodgingImage, is_array($data['extra_fields'] ?? null) ? $data['extra_fields'] : null, null, null, $stored, $unused,
                     ) ?: null;
 
                     $lodging = new Lodging;

@@ -6,6 +6,7 @@ namespace App\Actions\Sponsors;
 
 use App\Enums\ProgramImageType;
 use App\Models\Event;
+use App\Models\ExtraFieldDefinition;
 use App\Models\Organization;
 use App\Models\Sponsor;
 use App\Models\User;
@@ -24,8 +25,8 @@ use Throwable;
 /**
  * Edita un patrocinador (plan 030, CA-030-5, CA-030-6). Solo cambia las claves que llegan en `$data`; la
  * validación corre sobre la ficha ya combinada. `logo` reemplaza el logotipo y `remove_logo` lo quita; el
- * archivo anterior se borra DESPUÉS de confirmar la transacción. `extra_fields` (opcional) reemplaza la lista de
- * datos adicionales (ver `ExtraFields`). Se ejecuta en la organización DEL PATROCINADOR
+ * archivo anterior se borra DESPUÉS de confirmar la transacción. `extra_fields` (opcional) trae las respuestas a las preguntas del evento y `extra_remove` las fotos que se quitan (ver `ExtraFields`).
+ * Se ejecuta en la organización DEL PATROCINADOR
  * y audita qué campos cambiaron (nombres de campo, sin los valores).
  *
  * @throws AuthorizationException si quien edita no tiene `sponsors.manage` en la organización del patrocinador
@@ -74,10 +75,11 @@ final class UpdateSponsor
                         $logoChanged = true;
                     }
 
-                    // Sin la clave, los datos adicionales no cambian; con ella, la lista que llega reemplaza a la guardada.
+                    // Sin la clave, las respuestas a las preguntas del evento no cambian; con ella, se aplican (ver `ExtraFields`).
                     if (array_key_exists('extra_fields', $data)) {
                         $attributes['extra_fields'] = ExtraFields::resolve(
-                            $event, ProgramImageType::SponsorLogo, is_array($data['extra_fields']) ? $data['extra_fields'] : null, $sponsor->extra_fields, $storedExtras, $removedExtras,
+                            $event, ExtraFieldDefinition::SCOPE_SPONSOR, ProgramImageType::SponsorLogo, is_array($data['extra_fields']) ? $data['extra_fields'] : null,
+                            is_array($data['extra_remove'] ?? null) ? $data['extra_remove'] : null, $sponsor->extra_fields, $storedExtras, $removedExtras,
                         ) ?: null;
                     }
 

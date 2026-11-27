@@ -6,6 +6,7 @@ namespace App\Actions\Sponsors;
 
 use App\Enums\ProgramImageType;
 use App\Models\Event;
+use App\Models\ExtraFieldDefinition;
 use App\Models\Organization;
 use App\Models\Sponsor;
 use App\Models\User;
@@ -25,7 +26,7 @@ use Throwable;
  * Da de alta un patrocinador en un evento (plan 030, CA-030-4, CA-030-5). Solo el nombre es obligatorio; el
  * sitio web debe ser http o https; el logotipo (`logo`) se guarda por su contenido en el disco `media`. Sin
  * orden explícito, queda al final de la lista. Se ejecuta en la organización DEL EVENTO, en una transacción,
- * y audita con identificadores. `extra_fields` trae los datos adicionales (ver `ExtraFields`). Si algo falla, no queda ningún archivo huérfano.
+ * y audita con identificadores. `extra_fields` trae las respuestas a las preguntas del formulario del evento (ver `ExtraFields`). Si algo falla, no queda ningún archivo huérfano.
  *
  * @throws AuthorizationException si quien crea no tiene `sponsors.manage` en la organización del evento
  * @throws ValidationException si los datos no cumplen `SponsorRules` o el logotipo no es aceptable
@@ -63,7 +64,7 @@ final class CreateSponsor
 
                     $unused = [];
                     $attributes['extra_fields'] = ExtraFields::resolve(
-                        $event, ProgramImageType::SponsorLogo, is_array($data['extra_fields'] ?? null) ? $data['extra_fields'] : null, null, $storedExtras, $unused,
+                        $event, ExtraFieldDefinition::SCOPE_SPONSOR, ProgramImageType::SponsorLogo, is_array($data['extra_fields'] ?? null) ? $data['extra_fields'] : null, null, null, $storedExtras, $unused,
                     ) ?: null;
 
                     $sponsor = new Sponsor;

@@ -152,6 +152,12 @@ class Event extends Model
         return $this->hasMany(Sponsor::class);
     }
 
+    /** @return HasMany<ExtraFieldDefinition, $this> */
+    public function extraFieldDefinitions(): HasMany
+    {
+        return $this->hasMany(ExtraFieldDefinition::class);
+    }
+
     /** @return HasMany<SponsorCategory, $this> */
     public function sponsorCategories(): HasMany
     {

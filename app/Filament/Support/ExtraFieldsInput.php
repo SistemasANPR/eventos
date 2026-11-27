@@ -4,125 +4,134 @@ declare(strict_types=1);
 
 namespace App\Filament\Support;
 
+use App\Models\Event;
+use App\Models\ExtraFieldDefinition;
+use App\Models\Lodging;
+use App\Models\Sponsor;
 use App\Support\Extras\ExtraFields;
+use Filament\Forms\Components\CheckboxList;
+use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\FileUpload;
-use Filament\Forms\Components\Hidden;
-use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
+use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
-use Filament\Schemas\Components\Utilities\Get;
+use Filament\Forms\Components\Toggle;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\UploadedFile;
 
 /**
- * Campo «Datos adicionales» de los formularios de hospedajes y patrocinadores (plan 030, DA-7): lista de datos con
- * título libre y tipo texto o foto, hasta `ExtraFields::MAX`. Las fotos no se guardan en el disco del formulario: las sube
- * la Action por su contenido. Al editar, un dato con foto ya guardada la conserva si no se sube otra.
+ * Preguntas del formulario de hospedajes y de patrocinadores (plan 030, DA-7): los campos que define el evento
+ * (`ExtraFieldDefinition`) se agregan al formulario de cada registro, después de los campos fijos y en el orden de las
+ * preguntas, un campo por pregunta según su tipo. Cada registro responde las suyas: el formulario de alta empieza vacío.
+ * Las fotos y los PDF no se guardan en el disco del formulario: los sube la Action por su contenido. Al editar, un archivo
+ * ya guardado se conserva si no se sube otro, y puede quitarse con su casilla.
  */
 final class ExtraFieldsInput
 {
-    public static function make(): Repeater
-    {
-        return Repeater::make('extra_fields')
-            ->label(__('extra_fields.section'))
-            ->helperText(__('extra_fields.help', ['max' => ExtraFields::MAX]))
-            ->addActionLabel(__('extra_fields.add'))
-            ->maxItems(ExtraFields::MAX)
-            ->collapsible()
-            ->itemLabel(function (array $state): string {
-                $label = is_string($state['label'] ?? null) ? trim($state['label']) : '';
-
-                return $label !== '' ? $label : __('extra_fields.untitled');
-            })
-            ->default([])
-            ->schema([
-                Hidden::make('id'),
-                Hidden::make('has_image')->dehydrated(false),
-                TextInput::make('label')->label(__('extra_fields.label'))->required()->maxLength(120),
-                Select::make('type')
-                    ->label(__('extra_fields.type'))
-                    ->options([
-                        ExtraFields::TYPE_TEXT => __('extra_fields.type_text'),
-                        ExtraFields::TYPE_IMAGE => __('extra_fields.type_image'),
-                    ])
-                    ->default(ExtraFields::TYPE_TEXT)
-                    ->required()
-                    ->native(false)
-                    ->live(),
-                TextInput::make('value')
-                    ->label(__('extra_fields.value'))
-                    ->maxLength(500)
-                    ->required(fn (Get $get): bool => $get('type') === ExtraFields::TYPE_TEXT)
-                    ->visible(fn (Get $get): bool => $get('type') === ExtraFields::TYPE_TEXT),
-                // No se guarda en el disco del formulario: la sube `StoreProgramImage`, que decide por el contenido.
-                FileUpload::make('image')
-                    ->label(__('extra_fields.image'))
-                    ->helperText(fn (Get $get): string => $get('has_image') === true ? __('extra_fields.image_current') : __('extra_fields.image_help'))
-                    ->image()
-                    ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp'])
-                    ->maxSize(2 * 1024)
-                    ->storeFiles(false)
-                    ->visible(fn (Get $get): bool => $get('type') === ExtraFields::TYPE_IMAGE),
-            ]);
-    }
-
     /**
-     * Lo guardado, como estado del Repeater al editar (la ruta de la foto no sale: solo si ya tiene una).
+     * Un campo por pregunta del evento y módulo, en su orden (ninguno si el evento no definió preguntas).
      *
-     * @param  array<int, mixed>|null  $stored
-     * @return list<array<string, mixed>>
+     * @return list<CheckboxList|DatePicker|FileUpload|Select|Textarea|TextInput|Toggle>
      */
-    public static function fill(?array $stored): array
+    public static function components(Event $event, string $scope): array
     {
-        $items = [];
+        $components = [];
 
-        foreach ($stored ?? [] as $item) {
-            if (! is_array($item)) {
+        foreach (ExtraFields::definitions($event, $scope) as $definition) {
+            $id = $definition->id;
+            $name = "extra_fields.{$id}";
+
+            if ($definition->isFile()) {
+                $isPhoto = $definition->type === ExtraFieldDefinition::TYPE_PHOTO;
+                // No se guarda en el disco del formulario: la sube la Action, que decide por el contenido.
+                $upload = FileUpload::make($name)
+                    ->label($definition->label)
+                    ->helperText(fn (?Model $record): string => self::hasFile($record, $id)
+                        ? __('form_questions.file_current')
+                        : __($isPhoto ? 'form_questions.photo_help' : 'form_questions.file_help'))
+                    ->maxSize(2 * 1024)
+                    ->storeFiles(false);
+                $components[] = $isPhoto
+                    ? $upload->image()->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp'])
+                    : $upload->acceptedFileTypes(['application/pdf']);
+                $components[] = Toggle::make("extra_remove.{$id}")
+                    ->label(__('form_questions.remove_file', ['label' => $definition->label]))
+                    ->visible(fn (?Model $record): bool => self::hasFile($record, $id) && ! $definition->required);
+
                 continue;
             }
 
-            $items[] = [
-                'id' => $item['id'] ?? null,
-                'label' => $item['label'] ?? '',
-                'type' => $item['type'] ?? ExtraFields::TYPE_TEXT,
-                'value' => $item['value'] ?? null,
-                'has_image' => is_string($item['path'] ?? null),
-            ];
+            $components[] = match ($definition->type) {
+                ExtraFieldDefinition::TYPE_LONG_TEXT => Textarea::make($name)->rows(3)->maxLength(ExtraFields::MAX_LONG_TEXT),
+                ExtraFieldDefinition::TYPE_NUMBER => TextInput::make($name)->numeric()
+                    ->minValue(is_numeric($definition->config['min'] ?? null) ? $definition->config['min'] : null)
+                    ->maxValue(is_numeric($definition->config['max'] ?? null) ? $definition->config['max'] : null),
+                ExtraFieldDefinition::TYPE_DATE => DatePicker::make($name),
+                ExtraFieldDefinition::TYPE_CHECKBOX => Toggle::make($name)->accepted($definition->required),
+                ExtraFieldDefinition::TYPE_SINGLE_CHOICE => Select::make($name)->options($definition->options())->native(false),
+                ExtraFieldDefinition::TYPE_MULTIPLE_CHOICE => CheckboxList::make($name)->options($definition->options()),
+                default => TextInput::make($name)->maxLength(ExtraFields::MAX_SHORT_TEXT),
+            };
+            $field = $components[array_key_last($components)];
+            $field->label($definition->label);
+
+            // La casilla obligatoria se exige con `accepted`; las demás, con `required`. Los archivos los exige la Action.
+            if ($definition->required && $definition->type !== ExtraFieldDefinition::TYPE_CHECKBOX) {
+                $field->required();
+            }
         }
 
-        return $items;
+        return $components;
     }
 
     /**
-     * Estado del formulario → entrada de la Action: lista sin claves, con la foto subida (archivo temporal) tal cual.
+     * Respuestas guardadas, como estado inicial del formulario al editar (solo en la edición: el alta empieza vacía).
+     *
+     * @return array<string, array<string, mixed>>
+     */
+    public static function fill(Model $record): array
+    {
+        return ['extra_fields' => ExtraFields::fill($record instanceof Lodging || $record instanceof Sponsor ? $record->extra_fields : null)];
+    }
+
+    /**
+     * Estado del formulario → entrada de la Action: mapa pregunta => valor o archivo subido (temporal), y los archivos que
+     * se quitan. Sin preguntas en el formulario no se envía nada y las respuestas guardadas no cambian.
      *
      * @param  array<string, mixed>  $data
      * @return array<string, mixed>
      */
     public static function input(array $data): array
     {
-        $raw = $data['extra_fields'] ?? [];
-        $items = [];
+        $raw = $data['extra_fields'] ?? null;
+        $remove = $data['extra_remove'] ?? [];
+        unset($data['extra_fields'], $data['extra_remove']);
 
-        foreach (is_array($raw) ? array_values($raw) : [] as $item) {
-            if (! is_array($item)) {
-                continue;
-            }
-
-            $image = $item['image'] ?? null;
-            unset($item['image'], $item['has_image']);
-
-            foreach (is_array($image) ? $image : [$image] as $file) {
-                if ($file instanceof UploadedFile) {
-                    $item['image'] = $file;
-                    break;
-                }
-            }
-
-            $items[] = $item;
+        if (! is_array($raw)) {
+            return $data;
         }
 
-        $data['extra_fields'] = $items;
+        $answers = [];
+
+        foreach ($raw as $id => $value) {
+            // Un campo de archivo trae una lista con el archivo temporal; una elección múltiple, una lista de valores.
+            if (is_array($value) && collect($value)->contains(fn (mixed $item): bool => $item instanceof UploadedFile)) {
+                $value = collect($value)->first(fn (mixed $item): bool => $item instanceof UploadedFile);
+            }
+
+            $answers[(string) $id] = $value;
+        }
+
+        $data['extra_fields'] = $answers;
+        $data['extra_remove'] = is_array($remove) ? array_keys(array_filter($remove, static fn (mixed $on): bool => $on === true)) : [];
 
         return $data;
+    }
+
+    private static function hasFile(?Model $record, string $id): bool
+    {
+        $values = $record instanceof Lodging || $record instanceof Sponsor ? $record->extra_fields : null;
+
+        return is_array($values) && is_array($values[$id] ?? null);
     }
 }
