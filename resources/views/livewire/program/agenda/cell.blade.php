@@ -11,6 +11,7 @@
 @endphp
 <article class="agenda-cell{{ $cell->isPublished ? '' : ' agenda-cell--muted' }}{{ $cell->clashes !== [] ? ' agenda-cell--clash' : '' }}"
          data-agenda-cell="{{ $cell->activityId }}"
+         tabindex="0"
          style="--agenda-start: {{ $this->rows($agenda, $start - $agenda->startMinute) }}; --agenda-span: {{ $this->rows($agenda, $end - $start) }}; --agenda-lane: {{ $cell->lane }}; --agenda-lanes: {{ max(1, $cell->lanes) }};"
          title="{{ $cell->title }} · {{ $range }}">
     <p class="agenda-cell__time">{{ $range }}</p>

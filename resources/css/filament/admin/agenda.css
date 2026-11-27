@@ -267,6 +267,11 @@
 .agenda-cell--clash {
     border-left-color: var(--danger-600);
     background: color-mix(in oklab, var(--danger-500) 14%, var(--agenda-surface));
+    /* Una tarjeta con choque nunca recorta su insignia: el texto dice con cuál choca (CA-031-20). */
+    z-index: 1;
+    overflow: visible;
+    height: auto;
+    min-height: calc(var(--agenda-span) * var(--agenda-row));
 }
 
 .agenda-cell:hover,
@@ -303,10 +308,11 @@
 }
 
 .agenda-badge {
-    display: inline-block;
-    padding: 0 0.375rem;
+    display: block;
+    padding: 0.0625rem 0.375rem;
     border: 1px solid var(--agenda-line);
-    border-radius: 999px;
+    border-radius: 0.375rem;
+    overflow-wrap: anywhere;
     background: var(--agenda-surface);
     color: var(--agenda-text);
     font-size: 0.6875rem;
@@ -375,4 +381,10 @@
     .agenda-busy {
         transition: none;
     }
+}
+
+/* Foco visible en la tarjeta, que se enfoca con teclado y tacto para ver su detalle completo. */
+.agenda-cell:focus-visible {
+    outline: 2px solid var(--primary-600);
+    outline-offset: 1px;
 }
