@@ -68,6 +68,7 @@ export default function Show({
                 eventUrl={eventUrl}
                 privacyUrl={privacyUrl}
                 submitUrl={submitUrl}
+                authorRequestUrl={authorRequestUrl}
             />
         );
     }

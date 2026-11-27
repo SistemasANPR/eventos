@@ -275,4 +275,18 @@ describe('Calls/Show page: way back to a sent proposal (plan 034)', () => {
 
         expect(screen.getByRole('link', { name: '¿Ya enviaste tu propuesta? Consúltala o edítala' })).toHaveAttribute('href', authorRequestUrl);
     });
+
+    it('CA-034-12: links to the request-link page in the own landing of the call (plan 033) too, and not when it is not offered', () => {
+        const callLanding = { blocks: [] };
+        const { unmount } = render(
+            <Show call={call} event={event} organization={organization} eventUrl="/e" privacyUrl={null} callLanding={callLanding} authorRequestUrl={authorRequestUrl} />,
+        );
+
+        expect(screen.getByRole('link', { name: '¿Ya enviaste tu propuesta? Consúltala o edítala' })).toHaveAttribute('href', authorRequestUrl);
+        unmount();
+
+        render(<Show call={call} event={event} organization={organization} eventUrl="/e" privacyUrl={null} callLanding={callLanding} />);
+
+        expect(screen.queryByRole('link', { name: '¿Ya enviaste tu propuesta? Consúltala o edítala' })).not.toBeInTheDocument();
+    });
 });

@@ -19,6 +19,8 @@ interface CallLandingPageProps {
     eventUrl: string;
     privacyUrl: string | null;
     submitUrl: string | null;
+    /** Página para pedir el enlace de acceso a una propuesta ya enviada (plan 034); `null` si no se ofrece. */
+    authorRequestUrl?: string | null;
 }
 
 /**
@@ -26,13 +28,14 @@ interface CallLandingPageProps {
  * bloques que armó el organizador en el editor (el mismo `LandingRenderer` del lienzo) y la barra fija del teléfono.
  * Usar en: `Calls/Show`, cuando el servidor entrega `callLanding` y la convocatoria está en español.
  */
-export function CallLandingPage({ call, event, organization, blocks, eventUrl, privacyUrl, submitUrl }: CallLandingPageProps) {
+export function CallLandingPage({ call, event, organization, blocks, eventUrl, privacyUrl, submitUrl, authorRequestUrl = null }: CallLandingPageProps) {
     const { t } = useTranslation();
     const { promoRef, isReached } = useIsPromoReached('.cl-band--promo');
     const view = buildLandingView(call, { timezoneLabel: zoneLabelOf(call.timezone) }, submitUrl);
 
     const links = [
         ...(call.showBackLink === false ? [] : [{ label: 'Volver al evento', href: eventUrl }]),
+        ...(authorRequestUrl === null ? [] : [{ label: t('call.already_submitted'), href: authorRequestUrl }]),
         ...(privacyUrl === null ? [] : [{ label: 'Aviso de privacidad', href: privacyUrl }]),
         ...(call.extraLinks ?? []).map((link) => ({ label: link.label, href: link.url, rel: 'noopener noreferrer nofollow' })),
         ...call.locales
